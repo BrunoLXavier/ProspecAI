@@ -8,7 +8,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from infrastructure.auth import get_auth_dependency, CurrentUser
+from adapters.api.auth_middleware import require_admin, AuthenticatedUser
 from adapters.database.connection import get_db
 from adapters.repositories.llm_config_repository import LLMConfigRepository
 from use_cases.manage_llm_config import ManageLLMConfigUseCase, LLMConfigInput
@@ -84,17 +84,8 @@ class ProviderInfo(BaseModel):
 
 # ========== Auth Dependency ==========
 
-auth_dependency = get_auth_dependency()
-
-
-async def require_admin(user: CurrentUser = Depends(auth_dependency)):
-    """Require admin role."""
-    if "admin" not in user.roles:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
-        )
-    return user
+# Use central auth middleware which validates backend-issued tokens
+# and enforces roles via `require_admin` from adapters.api.auth_middleware
 
 
 # ========== API Endpoints ==========
@@ -116,14 +107,15 @@ async def get_supported_providers():
 
 @router.get("/active", response_model=Optional[LLMConfigResponse])
 async def get_active_config(
-    user: CurrentUser = Depends(require_admin),
+    user: AuthenticatedUser = Depends(require_admin),
     session = Depends(get_db),
 ):
     """Get the active LLM configuration for the current tenant."""
     repository = LLMConfigRepository(session)
     use_case = ManageLLMConfigUseCase(repository)
     
-    config = await use_case.get_active_config(UUID(user.tenant_id))
+    tenant_uuid = user.tenant_id if isinstance(user.tenant_id, UUID) else UUID(user.tenant_id)
+    config = await use_case.get_active_config(tenant_uuid)
     if not config:
         return None
     
@@ -133,7 +125,7 @@ async def get_active_config(
 @router.post("/test", response_model=TestConnectionResponse)
 async def test_connection_inline(
     request: TestConnectionRequest,
-    user: CurrentUser = Depends(require_admin),
+    user: AuthenticatedUser = Depends(require_admin),
     session = Depends(get_db),
 ):
     """
@@ -206,21 +198,22 @@ async def test_connection_inline(
 
 @router.get("", response_model=List[LLMConfigResponse])
 async def get_all_configs(
-    user: CurrentUser = Depends(require_admin),
+    user: AuthenticatedUser = Depends(require_admin),
     session = Depends(get_db),
 ):
     """Get all LLM configurations for the current tenant."""
     repository = LLMConfigRepository(session)
     use_case = ManageLLMConfigUseCase(repository)
     
-    configs = await use_case.get_all_configs(UUID(user.tenant_id))
+    tenant_uuid = user.tenant_id if isinstance(user.tenant_id, UUID) else UUID(user.tenant_id)
+    configs = await use_case.get_all_configs(tenant_uuid)
     return [LLMConfigResponse(**c.__dict__) for c in configs]
 
 
 @router.post("", response_model=LLMConfigResponse, status_code=status.HTTP_201_CREATED)
 async def create_config(
     request: LLMConfigCreateRequest,
-    user: CurrentUser = Depends(require_admin),
+    user: AuthenticatedUser = Depends(require_admin),
     session = Depends(get_db),
 ):
     """
@@ -240,9 +233,11 @@ async def create_config(
             max_tokens=request.max_tokens,
         )
         
+        tenant_uuid = user.tenant_id if isinstance(user.tenant_id, UUID) else UUID(user.tenant_id)
+        user_uuid = user.id if isinstance(user.id, UUID) else UUID(user.id)
         config = await use_case.create_config(
-            tenant_id=UUID(user.tenant_id),
-            user_id=UUID(user.id),
+            tenant_id=tenant_uuid,
+            user_id=user_uuid,
             input_data=input_data,
         )
         
@@ -256,7 +251,7 @@ async def create_config(
 async def update_config(
     config_id: UUID,
     request: LLMConfigUpdateRequest,
-    user: CurrentUser = Depends(require_admin),
+    user: AuthenticatedUser = Depends(require_admin),
     session = Depends(get_db),
 ):
     """Update an existing LLM configuration."""
@@ -264,9 +259,10 @@ async def update_config(
     use_case = ManageLLMConfigUseCase(repository)
     
     # Get existing config to merge with updates
-    existing = await use_case.get_active_config(UUID(user.tenant_id))
+    tenant_uuid = user.tenant_id if isinstance(user.tenant_id, UUID) else UUID(user.tenant_id)
+    existing = await use_case.get_active_config(tenant_uuid)
     if not existing or existing.id != str(config_id):
-        configs = await use_case.get_all_configs(UUID(user.tenant_id))
+        configs = await use_case.get_all_configs(tenant_uuid)
         existing = next((c for c in configs if c.id == str(config_id)), None)
     
     if not existing:
@@ -282,10 +278,11 @@ async def update_config(
             max_tokens=request.max_tokens if request.max_tokens is not None else existing.max_tokens,
         )
         
+        user_uuid = user.id if isinstance(user.id, UUID) else UUID(user.id)
         config = await use_case.update_config(
-            tenant_id=UUID(user.tenant_id),
+            tenant_id=tenant_uuid,
             config_id=config_id,
-            user_id=UUID(user.id),
+            user_id=user_uuid,
             input_data=input_data,
         )
         
@@ -301,13 +298,14 @@ async def update_config(
 @router.delete("/{config_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_config(
     config_id: UUID,
-    user: CurrentUser = Depends(require_admin),
+    user: AuthenticatedUser = Depends(require_admin),
     session = Depends(get_db),
 ):
     """Delete an LLM configuration."""
     repository = LLMConfigRepository(session)
     use_case = ManageLLMConfigUseCase(repository)
     
-    deleted = await use_case.delete_config(UUID(user.tenant_id), config_id)
+    tenant_uuid = user.tenant_id if isinstance(user.tenant_id, UUID) else UUID(user.tenant_id)
+    deleted = await use_case.delete_config(tenant_uuid, config_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Configuration not found")
