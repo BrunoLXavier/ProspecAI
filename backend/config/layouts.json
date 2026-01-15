@@ -1,0 +1,149 @@
+{
+  "layouts": [
+    {
+      "id": "default_00000000-0000-0000-0000-000000000000",
+      "user_id": null,
+      "tenant_id": "00000000-0000-0000-0000-000000000000",
+      "sidebar_position": "left",
+      "sidebar_collapsed": false,
+      "sidebar_width": 240,
+      "visible_nav_items": [
+        "funding",
+        "portfolio",
+        "opportunities",
+        "analytics",
+        "feedbackManagement",
+        "settings",
+        "crm",
+        "proposals",
+        "reports",
+        "activity",
+        "ingestion",
+        "piiAnalysis",
+        "dashboard"
+      ],
+      "nav_order": [
+        "dashboard",
+        "funding",
+        "portfolio",
+        "opportunities",
+        "crm",
+        "proposals",
+        "reports",
+        "activity",
+        "ingestion",
+        "piiAnalysis",
+        "settings"
+      ],
+      "dashboard_widgets": [
+        "stats_overview",
+        "recent_activity",
+        "pipeline_chart",
+        "matching_alerts",
+        "deadlines",
+        "opportunities",
+        "analytics-kpis",
+        "matching",
+        "pipeline",
+        "metrics",
+        "activity",
+        "analytics-pipeline",
+        "analytics-trends",
+        "calendar",
+        "analytics-trl",
+        "analytics-export"
+      ],
+      "dashboard_widget_order": [
+        "pipeline",
+        "opportunities",
+        "metrics",
+        "matching",
+        "analytics-kpis",
+        "activity",
+        "analytics-pipeline",
+        "analytics-trends"
+      ],
+      "dashboard_widgets_by_role": {
+        "admin": [
+          "pipeline",
+          "opportunities",
+          "metrics",
+          "activity",
+          "matching",
+          "calendar",
+          "analytics-kpis",
+          "analytics-trends",
+          "analytics-export",
+          "analytics-trl",
+          "analytics-pipeline"
+        ],
+        "manager": [
+          "pipeline",
+          "opportunities",
+          "metrics",
+          "activity",
+          "analytics-kpis",
+          "analytics-pipeline",
+          "analytics-trends",
+          "matching"
+        ],
+        "user": [
+          "pipeline",
+          "metrics",
+          "activity",
+          "analytics-kpis",
+          "matching",
+          "analytics-trends",
+          "analytics-pipeline",
+          "opportunities"
+        ],
+        "viewer": [
+          "metrics",
+          "activity"
+        ]
+      },
+      "dashboard_layout": "default",
+      "default_page_size": 10,
+      "dense_tables": true,
+      "animations_enabled": true,
+      "compact_mode": false,
+      "created_at": "2026-01-12T04:06:08.896811Z",
+      "updated_at": "2026-01-15T17:02:38.445774Z",
+      "visible_nav_items_by_role": {
+        "admin": [
+          "dashboard",
+          "funding",
+          "portfolio",
+          "crm",
+          "opportunities",
+          "proposals",
+          "reports",
+          "settings",
+          "activity",
+          "ingestion",
+          "piiAnalysis"
+        ],
+        "manager": [
+          "dashboard",
+          "funding",
+          "portfolio",
+          "crm",
+          "opportunities",
+          "proposals",
+          "reports",
+          "activity"
+        ],
+        "user": [
+          "dashboard",
+          "opportunities",
+          "proposals",
+          "activity"
+        ],
+        "viewer": [
+          "dashboard",
+          "activity"
+        ]
+      }
+    }
+  ]
+}

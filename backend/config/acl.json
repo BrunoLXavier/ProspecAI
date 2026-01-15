@@ -1,0 +1,281 @@
+{
+  "roles": [
+    {
+      "id": "admin",
+      "name": "Administrator",
+      "description": "Full access to all resources",
+      "permissions": {
+        "funding": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "portfolio": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "crm": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "opportunities": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "proposals": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "matching": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "reports": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "analytics": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "settings": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "translations": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "acl": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ],
+        "users": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve",
+          "assign"
+        ]
+      },
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "manager",
+      "name": "Manager",
+      "description": "Can manage most resources except system settings",
+      "permissions": {
+        "funding": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export"
+        ],
+        "portfolio": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export"
+        ],
+        "crm": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export"
+        ],
+        "opportunities": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve"
+        ],
+        "proposals": [
+          "create",
+          "read",
+          "update",
+          "delete",
+          "export",
+          "approve"
+        ],
+        "matching": [
+          "read",
+          "export"
+        ],
+        "reports": [
+          "create",
+          "read",
+          "export"
+        ],
+        "analytics": [
+          "read",
+          "export"
+        ],
+        "settings": [
+          "read"
+        ],
+        "translations": [
+          "read"
+        ],
+        "acl": [
+          "read"
+        ],
+        "users": [
+          "read"
+        ]
+      },
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "analyst",
+      "name": "Analyst",
+      "description": "Can view and analyze data, create reports",
+      "permissions": {
+        "funding": [
+          "read"
+        ],
+        "portfolio": [
+          "read"
+        ],
+        "crm": [
+          "read"
+        ],
+        "opportunities": [
+          "read",
+          "update"
+        ],
+        "proposals": [
+          "create",
+          "read",
+          "update"
+        ],
+        "matching": [
+          "read"
+        ],
+        "reports": [
+          "create",
+          "read",
+          "export"
+        ],
+        "analytics": [
+          "read",
+          "export"
+        ],
+        "settings": [
+          "read"
+        ],
+        "translations": [],
+        "acl": [],
+        "users": []
+      },
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "viewer",
+      "name": "Viewer",
+      "description": "Read-only access to most resources",
+      "permissions": {
+        "funding": [
+          "read"
+        ],
+        "portfolio": [
+          "read"
+        ],
+        "crm": [
+          "read"
+        ],
+        "opportunities": [
+          "read"
+        ],
+        "proposals": [
+          "read"
+        ],
+        "matching": [
+          "read"
+        ],
+        "reports": [
+          "read"
+        ],
+        "analytics": [
+          "read"
+        ],
+        "settings": [
+          "read"
+        ],
+        "translations": [],
+        "acl": [],
+        "users": []
+      },
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "user_roles": []
+}

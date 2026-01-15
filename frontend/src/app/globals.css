@@ -1,0 +1,374 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================================
+   ProspecAI Design System - CSS Custom Properties
+   Firjan SENAI Brand Identity
+   ================================================ */
+
+:root {
+  /* Font */
+  --font-inter: 'Inter var', sans-serif;
+  
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-inverse: #0f172a;
+  
+  /* Surface Colors */
+  --surface-primary: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-overlay: rgba(255, 255, 255, 0.8);
+  
+  /* Text Colors */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #f8fafc;
+  
+  /* Border Colors */
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --border-focus: #E30613;
+  
+  /* Brand Colors */
+  --brand-primary: #E30613;
+  --brand-primary-hover: #c00510;
+  --brand-secondary: #003366;
+  --brand-secondary-hover: #002952;
+  
+  /* Sidebar */
+  --sidebar-bg: rgba(0, 51, 102, 0.95);
+  --sidebar-text: #ffffff;
+  --sidebar-hover: rgba(255, 255, 255, 0.1);
+  --sidebar-active: rgba(227, 6, 19, 0.9);
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+  
+  /* Header */
+  --header-height: 64px;
+  --header-bg: rgba(255, 255, 255, 0.8);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* Dark Mode */
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-inverse: #f8fafc;
+  
+  --surface-primary: #1e293b;
+  --surface-elevated: #334155;
+  --surface-overlay: rgba(30, 41, 59, 0.9);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+  
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  
+  --sidebar-bg: rgba(15, 23, 42, 0.95);
+  --header-bg: rgba(30, 41, 59, 0.8);
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+}
+
+body {
+  font-family: var(--font-family, var(--font-inter));
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* ================================================
+   Dynamic Theme Colors from Layout Configuration
+   Uses CSS variables set by LayoutContext
+   ================================================ */
+
+/* Dynamic Primary Color Override */
+.bg-primary-600,
+.bg-primary-700,
+.hover\:bg-primary-600:hover,
+.hover\:bg-primary-700:hover {
+  background-color: var(--color-primary, #E30613) !important;
+}
+
+.text-primary-600,
+.text-primary-700,
+.hover\:text-primary-600:hover,
+.hover\:text-primary-700:hover {
+  color: var(--color-primary, #E30613) !important;
+}
+
+.border-primary-500,
+.border-primary-600,
+.focus\:border-primary-500:focus,
+.focus\:ring-primary-500:focus {
+  border-color: var(--color-primary, #E30613) !important;
+}
+
+.ring-primary-500,
+.focus\:ring-primary-500:focus {
+  --tw-ring-color: var(--color-primary, #E30613) !important;
+}
+
+/* Dynamic Secondary Color Override */
+.bg-secondary-600,
+.bg-secondary-700,
+.hover\:bg-secondary-600:hover,
+.hover\:bg-secondary-700:hover {
+  background-color: var(--color-secondary, #003366) !important;
+}
+
+.text-secondary-600,
+.text-secondary-700,
+.hover\:text-secondary-600:hover {
+  color: var(--color-secondary, #003366) !important;
+}
+
+/* Reduce Motion for Accessibility */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Compact Mode Adjustments */
+.compact-mode {
+  --header-height: 48px;
+}
+
+.compact-mode .p-4 {
+  padding: 0.75rem;
+}
+
+.compact-mode .p-6 {
+  padding: 1rem;
+}
+
+.compact-mode .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
+}
+
+/* ================================================
+   Glass Morphism Utilities
+   ================================================ */
+
+@layer utilities {
+  .glass {
+    background: var(--surface-overlay);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .glass-dark {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .glass-sidebar {
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .glass-header {
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-primary);
+  }
+}
+
+/* ================================================
+   Elevation System (Hover Transitions)
+   ================================================ */
+
+@layer components {
+  .elevation-0 {
+    box-shadow: none;
+  }
+  
+  .elevation-1 {
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .elevation-2 {
+    box-shadow: var(--shadow-md);
+  }
+  
+  .elevation-3 {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .elevation-hover {
+    transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+  }
+  
+  .elevation-hover:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  
+  /* Card Component Base */
+  .card {
+    @apply bg-white dark:bg-slate-800 rounded-xl;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-primary);
+    transition: box-shadow var(--transition-normal), transform var(--transition-normal), border-color var(--transition-normal);
+  }
+  
+  .card:hover {
+    box-shadow: var(--shadow-md);
+  }
+  
+  .card-elevated:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  
+  /* Button Base Styles */
+  .btn {
+    @apply inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600;
+    @apply focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-500 text-white hover:bg-secondary-600;
+    @apply focus:ring-secondary-500;
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent hover:bg-gray-100 dark:hover:bg-slate-700;
+    @apply text-gray-700 dark:text-gray-300;
+  }
+  
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+  
+  .btn-md {
+    @apply px-4 py-2 text-sm;
+  }
+  
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+}
+
+/* ================================================
+   Confidence Badge Colors (RNF-04)
+   ================================================ */
+
+.badge-green {
+  @apply bg-confidence-green text-white;
+}
+
+.badge-yellow {
+  @apply bg-confidence-yellow text-white;
+}
+
+.badge-red {
+  @apply bg-confidence-red text-white;
+}
+
+/* ================================================
+   Custom Scrollbar
+   ================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+}
+
+/* ================================================
+   Focus Ring Styles
+   ================================================ */
+
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  @apply dark:focus:ring-offset-slate-900;
+}
+
+/* ================================================
+   Sidebar Animation
+   ================================================ */
+
+.sidebar-transition {
+  transition: width var(--transition-slow), padding var(--transition-slow);
+}
+
+.sidebar-item {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg;
+  @apply text-white/80 hover:text-white hover:bg-white/10;
+  @apply transition-all duration-200;
+}
+
+.sidebar-item.active {
+  @apply bg-primary-500 text-white;
+}
+
+/* ================================================
+   Header Styles
+   ================================================ */
+
+.header-icon-btn {
+  @apply p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100;
+  @apply dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-slate-700;
+  @apply transition-colors duration-200;
+}

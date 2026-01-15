@@ -1,0 +1,105 @@
+// Layout Shell Component
+// Client component that wraps Sidebar, Header, and main content
+// with proper context providers
+'use client';
+
+import React, { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { ThemeProvider } from '@/components/layout/ThemeProvider';
+import { SidebarProvider, useSidebar } from '@/components/layout/Sidebar';
+import Sidebar from '@/components/layout/Sidebar';
+import Header from '@/components/layout/Header';
+import ChatWidget from '@/components/chat/ChatWidget';
+import { FeedbackButton } from '@/components/feedback';
+import { useAuth } from '@/contexts/AuthContext';
+import { LayoutProvider, useLayout } from '@/contexts/LayoutContext';
+
+// Inner layout that uses sidebar context
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const { isCollapsed } = useSidebar();
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login'];
+  const isPublicRoute = publicRoutes.includes(pathname);
+
+  useEffect(() => {
+    // Wait for auth state to load
+    if (isLoading) return;
+    
+    // Redirect unauthenticated users to login
+    if (!isAuthenticated && !isPublicRoute) {
+      router.push('/login');
+    }
+    
+    // Redirect authenticated users away from login page
+    if (isAuthenticated && isPublicRoute) {
+      router.push('/');
+    }
+  }, [isAuthenticated, isLoading, isPublicRoute, router]);
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-slate-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+          <p className="text-gray-600 dark:text-gray-400">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // For login page, render without sidebar/header
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+
+  // Protected routes - show full layout
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main Content Area */}
+      <div 
+        className={`
+          flex-1 flex flex-col min-w-0
+          transition-all duration-350
+          ${isCollapsed ? 'ml-[72px]' : 'ml-[260px]'}
+        `}
+      >
+        {/* Header */}
+        <Header />
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto pt-16">
+          <div className="container mx-auto px-4 lg:px-6 py-6">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* AI Chat Widget */}
+      <ChatWidget />
+      
+      {/* Feedback Button */}
+      <FeedbackButton />
+    </div>
+  );
+}
+
+// Layout Shell with all providers
+export default function LayoutShell({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider defaultTheme="light">
+      <LayoutProvider>
+        <SidebarProvider defaultCollapsed={false}>
+          <LayoutContent>{children}</LayoutContent>
+        </SidebarProvider>
+      </LayoutProvider>
+    </ThemeProvider>
+  );
+}

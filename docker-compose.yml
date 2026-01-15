@@ -1,0 +1,216 @@
+# Docker Compose - ProspecAI Full Stack
+# Implements complete infrastructure with all services
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: prospecai-postgres
+    environment:
+      POSTGRES_DB: prospecai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neo4j Graph Database
+  neo4j:
+    image: neo4j:5.16.0
+    container_name: prospecai-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/changeme
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_dbms_security_procedures_allowlist: apoc.*
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # Redis for Caching
+  redis:
+    image: redis:7-alpine
+    container_name: prospecai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Apache Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: prospecai-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: prospecai-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+
+  # MailHog for Email Testing (Development)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: prospecai-mailhog
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    logging:
+      driver: none
+
+  # MinIO for File Storage
+  minio:
+    image: minio/minio:latest
+    container_name: prospecai-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  # MLflow for ML Model Tracking
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.10.0
+    container_name: prospecai-mlflow
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+
+  # Grafana for Monitoring
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: prospecai-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prospecai-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+      neo4j:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:changeme@postgres:5432/prospecai
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: changeme
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      # Cache Configuration
+      REDIS_URL: redis://redis:6379/0
+      CACHE_L1_MAX_SIZE: 1000
+      CACHE_L1_TTL_SECONDS: 300
+      CACHE_L2_TTL_SECONDS: 3600
+      CACHE_ENABLE_METRICS: "true"
+      # JWT Configuration
+      JWT_SECRET_KEY: your-super-secret-key-change-in-production
+      JWT_ALGORITHM: HS256
+      # Email Configuration (MailHog for dev)
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      FRONTEND_URL: http://localhost:3000
+      # Encryption key for sensitive data
+      ENCRYPTION_KEY: your-fernet-key-change-in-production
+      # AI Model Configuration
+      TRANSFORMERS_CACHE: /app/model_cache
+      MODEL_CACHE_DIR: /app/model_cache
+      HF_HOME: /app/model_cache/huggingface
+      MODEL_REGISTRY_PATH: /app/models/registry.json
+      # BERTimbau specific
+      BERTIMBAU_MODEL: neuralmind/bert-base-portuguese-cased
+      BERTIMBAU_NER_MODEL: neuralmind/bert-base-portuguese-cased-ner
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ai_models:/app/models
+      - model_cache:/app/model_cache
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: prospecai-frontend
+    depends_on:
+      - backend
+    environment:
+      # Server-side URL for Next.js rewrites (Docker internal network)
+      API_URL_SERVER: http://backend:8000
+      # Client-side URL for browser (external access)
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+  neo4j_data:
+  neo4j_logs:
+  minio_data:
+  mlflow_data:
+  grafana_data:
+  ai_models:
+  model_cache:

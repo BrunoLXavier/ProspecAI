@@ -1,0 +1,126 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - complementary "Sidebar" [ref=e4]:
+      - generic [ref=e5]:
+        - link "P ProspecAI" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e8]: P
+          - generic [ref=e9]: ProspecAI
+        - button "Collapse sidebar" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+      - navigation [ref=e13]:
+        - link "Dashboard" [ref=e14] [cursor=pointer]:
+          - /url: /
+          - img [ref=e15]
+          - generic [ref=e17]: Dashboard
+        - link "Fontes de Fomento" [ref=e18] [cursor=pointer]:
+          - /url: /funding
+          - img [ref=e19]
+          - generic [ref=e21]: Fontes de Fomento
+        - link "Portfólio" [ref=e22] [cursor=pointer]:
+          - /url: /portfolio
+          - img [ref=e23]
+          - generic [ref=e25]: Portfólio
+        - link "CRM" [ref=e27] [cursor=pointer]:
+          - /url: /crm
+          - img [ref=e28]
+          - generic [ref=e30]: CRM
+        - link "Oportunidades" [ref=e31] [cursor=pointer]:
+          - /url: /opportunities
+          - img [ref=e32]
+          - generic [ref=e34]: Oportunidades
+        - link "Propostas" [ref=e35] [cursor=pointer]:
+          - /url: /proposals
+          - img [ref=e36]
+          - generic [ref=e38]: Propostas
+        - link "Configurações" [ref=e39] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e40]
+          - generic [ref=e43]: Configurações
+      - generic [ref=e45] [cursor=pointer]:
+        - generic [ref=e48]: AD
+        - generic [ref=e50]:
+          - paragraph [ref=e51]: Admin User
+          - paragraph [ref=e52]: admin@prospecai.com
+    - generic [ref=e53]:
+      - banner [ref=e54]:
+        - navigation "Breadcrumb" [ref=e56]:
+          - link "Dashboard" [ref=e58] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e59]:
+            - img [ref=e60]
+            - generic [ref=e62]: Portfólio
+        - generic [ref=e63]:
+          - generic [ref=e67]:
+            - generic:
+              - img
+            - searchbox "Buscar..." [ref=e68]
+          - button "Switch to dark mode" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+          - button "2" [ref=e73] [cursor=pointer]:
+            - generic [ref=e74]:
+              - img [ref=e75]
+              - generic [ref=e77]: "2"
+          - button "AD Admin" [ref=e79] [cursor=pointer]:
+            - generic [ref=e81]: AD
+            - generic [ref=e82]: Admin
+      - main [ref=e83]:
+        - generic [ref=e85]:
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - heading "Portfólio de Projetos" [level=1] [ref=e88]
+              - paragraph [ref=e89]: Gerencie projetos de P&D e inovação
+            - button "Novo Projeto" [ref=e90] [cursor=pointer]:
+              - img [ref=e91]
+              - text: Novo Projeto
+          - generic [ref=e94]:
+            - img [ref=e95]
+            - combobox [ref=e97]:
+              - option "Todos os Status" [selected]
+              - option "Em Planejamento"
+              - option "Ativos"
+              - option "Concluídos"
+          - list [ref=e99]:
+            - listitem [ref=e100] [cursor=pointer]:
+              - generic [ref=e102]:
+                - generic [ref=e103]:
+                  - heading "Projeto Automação Industrial 4.0" [level=3] [ref=e104]
+                  - generic [ref=e105]: Ativo
+                - generic [ref=e106]:
+                  - generic [ref=e107]:
+                    - generic [ref=e108]: "TRL:"
+                    - paragraph [ref=e109]: TRL 6
+                  - generic [ref=e110]:
+                    - generic [ref=e111]: "Orçamento:"
+                    - paragraph [ref=e112]: R$ 1,5 mi
+                  - generic [ref=e113]:
+                    - generic [ref=e114]: "Área de Pesquisa:"
+                    - paragraph [ref=e115]: Indústria 4.0
+                  - generic [ref=e116]:
+                    - generic [ref=e117]: "Período:"
+                    - paragraph [ref=e118]: 14/01/2025 - 30/12/2026
+            - listitem [ref=e119] [cursor=pointer]:
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - heading "Energia Renovável para Comunidades" [level=3] [ref=e123]
+                  - generic [ref=e124]: Planejamento
+                - generic [ref=e125]:
+                  - generic [ref=e126]:
+                    - generic [ref=e127]: "TRL:"
+                    - paragraph [ref=e128]: TRL 3
+                  - generic [ref=e129]:
+                    - generic [ref=e130]: "Orçamento:"
+                    - paragraph [ref=e131]: R$ 800 mil
+                  - generic [ref=e132]:
+                    - generic [ref=e133]: "Área de Pesquisa:"
+                    - paragraph [ref=e134]: Sustentabilidade
+                  - generic [ref=e135]:
+                    - generic [ref=e136]: "Período:"
+                    - paragraph [ref=e137]: 28/02/2026 - 29/06/2027
+    - button "Abrir assistente" [ref=e138] [cursor=pointer]:
+      - img [ref=e139]
+```
