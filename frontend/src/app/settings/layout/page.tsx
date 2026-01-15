@@ -160,12 +160,9 @@ export default function LayoutPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary-100 rounded-lg"><Bars3Icon className="w-6 h-6 text-primary-600" /></div>
-          <div>
-            <h1 className="text-xl font-semibold">{t('layout.title') || 'Layout'}</h1>
-            <p className="text-sm text-gray-500">{t('layout.subtitle') || 'Customize navigation and dashboard'}</p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('layout.title') || 'Layout'}</h1>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{t('layout.subtitle') || 'Customize navigation and dashboard'}</p>
         </div>
 
         <div className="flex gap-2">
@@ -179,12 +176,12 @@ export default function LayoutPage() {
       </div>
 
       {/* Navigation Items */}
-      <section className="bg-white rounded-xl p-6">
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-blue-100 rounded-lg"><RectangleGroupIcon className="w-5 h-5 text-blue-600" /></div>
           <div>
             <h2 className="text-lg font-semibold">{t('layout.navigationItems.title') || 'Itens de Navegação'}</h2>
-            <p className="text-sm text-gray-500">{t('layout.navigationItems.description') || 'Defina quais itens estarão visíveis no menu.'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('layout.navigationItems.description') || 'Defina quais itens estarão visíveis no menu.'}</p>
           </div>
         </div>
 
@@ -222,7 +219,7 @@ export default function LayoutPage() {
                     onClick={() => toggleNavItem(id)}
                     disabled={id === 'settings'}
                     title={id === 'settings' ? 'Este item é sempre visível' : undefined}
-                    className={`px-3 py-1 rounded ${visible ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border'} ${id === 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`px-3 py-1 rounded ${visible ? 'bg-green-50 dark:bg-green-800 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' : 'bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-gray-200'} ${id === 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
                     aria-disabled={id === 'settings'}
                   >
                     {visible ? 'Visível' : 'Oculto'}
@@ -236,12 +233,12 @@ export default function LayoutPage() {
 
       {/* Navigation Items per Role (Admin) */}
       {isAdmin && (
-        <section className="bg-white rounded-xl p-6">
+        <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-blue-100 rounded-lg"><UserGroupIcon className="w-5 h-5 text-blue-600" /></div>
             <div>
               <h2 className="text-lg font-semibold">Itens de Navegação por Perfil de Usuário</h2>
-              <p className="text-sm text-gray-500">Defina quais itens estarão disponíveis por perfil.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Defina quais itens estarão disponíveis por perfil.</p>
             </div>
           </div>
 
@@ -264,7 +261,7 @@ export default function LayoutPage() {
                           disabled={!globallyVisible}
                           aria-pressed={hasAccess}
                           title={!globallyVisible ? 'Ative o item globalmente primeiro' : hasAccess ? 'Remover acesso' : 'Conceder acesso'}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm text-left min-w-0 overflow-hidden truncate ${!globallyVisible ? 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-200' : hasAccess ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm text-left min-w-0 overflow-hidden truncate ${!globallyVisible ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-gray-300' : hasAccess ? 'bg-green-50 dark:bg-green-800 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100'}`}
                         >
                           <span className="truncate">{tNav(item.id) || item.label}</span>
                           {hasAccess ? <CheckIcon className="w-4 h-4 text-green-600 inline-block" /> : null}
@@ -279,12 +276,12 @@ export default function LayoutPage() {
         </section>
       )}
       {/* Dashboard Widgets */}
-      <section className="bg-white rounded-xl p-6">
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-green-100 rounded-lg"><Squares2X2Icon className="w-5 h-5 text-green-600" /></div>
           <div>
             <h2 className="text-lg font-semibold">{t('layout.dashboardWidgets.title') || 'Dashboard Widgets'}</h2>
-            <p className="text-sm text-gray-500">{t('layout.dashboardWidgets.description') || 'Escolha quais widgets aparecem no Dashboard.'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('layout.dashboardWidgets.description') || 'Escolha quais widgets aparecem no Dashboard.'}</p>
           </div>
         </div>
 
@@ -297,7 +294,7 @@ export default function LayoutPage() {
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex flex-col">
                     <span className="font-medium truncate">{widget.label}</span>
-                    <span className="text-xs text-gray-500">{widget.size}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{widget.size}</span>
                   </div>
                 </div>
 
@@ -323,7 +320,7 @@ export default function LayoutPage() {
 
                   <button
                     onClick={() => updateConfig('dashboard_widgets', enabled ? (config.dashboard_widgets || []).filter((w: string) => w !== id) : [...(config.dashboard_widgets || []), id])}
-                    className={`px-3 py-1 rounded ${enabled ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border'}`}
+                    className={`px-3 py-1 rounded ${enabled ? 'bg-green-50 dark:bg-green-800 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' : 'bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-gray-200'}`}
                   >
                     {enabled ? 'Ativo' : 'Inativo'}
                   </button>
@@ -336,12 +333,12 @@ export default function LayoutPage() {
 
       {/* Widgets por Perfil de Usuário (Admin) - simplified restored version */}
       {isAdmin && (
-        <section className="bg-white rounded-xl p-6">
+        <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-orange-100 rounded-lg"><ShieldCheckIcon className="w-5 h-5 text-orange-600" /></div>
             <div>
               <h2 className="text-lg font-semibold">Widgets por Perfil de Usuário</h2>
-              <p className="text-sm text-gray-500">Defina quais widgets estarão disponíveis para cada perfil.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Defina quais widgets estarão disponíveis para cada perfil.</p>
             </div>
           </div>
 
@@ -366,7 +363,7 @@ export default function LayoutPage() {
                           }}
                           disabled={!enabled}
                           aria-pressed={hasRole}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm min-w-0 overflow-hidden truncate ${!enabled ? 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-200' : hasRole ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm min-w-0 overflow-hidden truncate ${!enabled ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-gray-300' : hasRole ? 'bg-green-50 dark:bg-green-800 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100'}`}
                         >
                           <span className="truncate">{widget.label}</span>
                           {hasRole ? <CheckIcon className="w-4 h-4 text-green-600 inline-block" /> : null}
@@ -382,61 +379,83 @@ export default function LayoutPage() {
       )}
 
       {/* Sidebar Configuration */}
-      <section className="bg-white rounded-xl p-6">
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-primary-100 rounded-lg"><Bars3Icon className="w-5 h-5 text-primary-600" /></div>
           <div>
             <h2 className="text-lg font-semibold">{t('layout.sidebar.title') || 'Sidebar Configuration'}</h2>
-            <p className="text-sm text-gray-500">{t('layout.sidebar.description') || 'Ajuste a posição e largura da barra lateral.'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('layout.sidebar.description') || 'Ajuste a posição e largura da barra lateral.'}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm mb-1">Position</label>
-            <div className="flex gap-2">
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Position</label>
+            <div className="flex gap-3">
               {(['left','right'] as const).map(pos => (
-                <button key={pos} onClick={() => updateConfig('sidebar_position', pos)} className={`px-3 py-2 border rounded ${config.sidebar_position === pos ? 'bg-primary-50 border-primary-500' : ''}`}>{pos}</button>
+                <button
+                  key={pos}
+                  onClick={() => updateConfig('sidebar_position', pos)}
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.sidebar_position === pos ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                >
+                  <span className="font-medium text-gray-900 dark:text-white">{pos}</span>
+                  {config.sidebar_position === pos && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm mb-1">Width: {config.sidebar_width}px</label>
-            <input type="range" min={200} max={400} value={config.sidebar_width} onChange={(e) => updateConfig('sidebar_width', parseInt(e.target.value))} className="w-full" />
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Width: {config.sidebar_width}px</label>
+            <div className="p-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800">
+              <input type="range" min={200} max={400} value={config.sidebar_width} onChange={(e) => updateConfig('sidebar_width', parseInt(e.target.value))} className="w-full" />
+            </div>
           </div>
         </div>
       </section>
 
       {/* UI Preferences */}
-      <section className="bg-white rounded-xl p-6">
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-purple-100 rounded-lg"><ArrowsPointingOutIcon className="w-5 h-5 text-purple-600" /></div>
           <div>
             <h2 className="text-lg font-semibold">{t('layout.uiPreferences.title') || 'UI Preferences'}</h2>
-            <p className="text-sm text-gray-500">{t('layout.uiPreferences.description') || 'Preferências de exibição para a aplicação.'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('layout.uiPreferences.description') || 'Preferências de exibição para a aplicação.'}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm mb-1">Default page size</label>
-            <select value={config.default_page_size} onChange={(e) => updateConfig('default_page_size', parseInt(e.target.value))} className="w-full border rounded px-2 py-1">
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Default page size</label>
+            <select
+              value={config.default_page_size}
+              onChange={(e) => updateConfig('default_page_size', parseInt(e.target.value))}
+              className="w-full border-2 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+            >
               {[10,20,25,50,100].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm mb-1">Toggles</label>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Toggles</label>
             <div className="space-y-2">
               {[
                 { key: 'dense_tables', label: t('layout.uiPreferences.denseTables') || 'Dense tables' },
                 { key: 'animations_enabled', label: t('layout.uiPreferences.enableAnimations') || 'Animations' },
                 { key: 'compact_mode', label: t('layout.uiPreferences.compactMode') || 'Compact mode' },
+                { key: 'ai_chat_enabled', label: 'Chat com Agente de IA' },
+                { key: 'feedback_button_enabled', label: 'Botão de Feedback' },
               ].map(({ key, label }) => (
-                <div key={key} className="flex items-center justify-between">
-                  <span>{label}</span>
-                  <button onClick={() => (updateConfig as any)(key, !(config as any)[key])} className={`px-3 py-1 rounded ${(config as any)[key] ? 'bg-primary-600 text-white' : 'bg-gray-100'}`}>{(config as any)[key] ? 'On' : 'Off'}</button>
+                <div key={key} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                  <span className="text-gray-700 dark:text-gray-300">{label}</span>
+                  <button
+                    onClick={() => (updateConfig as any)(key as any, !(config as any)[key])}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(config as any)[key] ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(config as any)[key] ? 'translate-x-6' : 'translate-x-1'}`}
+                    />
+                  </button>
                 </div>
               ))}
             </div>
@@ -445,65 +464,83 @@ export default function LayoutPage() {
       </section>
 
       {/* Theme & Colors */}
-      <section className="bg-white rounded-xl p-6">
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-pink-100 rounded-lg"><PaintBrushIcon className="w-5 h-5 text-pink-600" /></div>
           <div>
             <h2 className="text-lg font-semibold">{t('layout.themeColors.title') || 'Theme & Colors'}</h2>
-            <p className="text-sm text-gray-500">{t('layout.themeColors.description') || 'Personalize cores e modo.'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('layout.themeColors.description') || 'Personalize cores e modo.'}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm mb-1">Color mode</label>
-            <div className="flex gap-2">
-              {(['light','dark'] as const).map(m => <button key={m} onClick={() => (updateConfig as any)('color_mode', m)} className={`px-3 py-2 border rounded ${(config as any).color_mode === m ? 'bg-primary-50' : ''}`}>{m}</button>)}
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Color mode</label>
+            <div className="flex gap-3">
+              {(['light','dark'] as const).map(m => (
+                <button
+                  key={m}
+                  onClick={() => updateConfig('color_mode', m)}
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.color_mode === m ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                >
+                  <span className="font-medium text-gray-900 dark:text-white">{m}</span>
+                  {config.color_mode === m && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                </button>
+              ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm mb-1">Primary color</label>
-            <input type="color" value={config.primary_color} onChange={(e) => updateConfig('primary_color', e.target.value)} />
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Primary color</label>
+            <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
+              <input type="color" value={config.primary_color} onChange={(e) => updateConfig('primary_color', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Branding */}
-      <section className="bg-white rounded-xl p-6">
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-orange-100 rounded-lg"><PhotoIcon className="w-5 h-5 text-orange-600" /></div>
           <div>
             <h2 className="text-lg font-semibold">{t('layout.branding.title') || 'Branding'}</h2>
-            <p className="text-sm text-gray-500">{t('layout.branding.description') || 'Configurações de marca.'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('layout.branding.description') || 'Configurações de marca.'}</p>
           </div>
         </div>
 
         <div className="space-y-3">
           <div>
             <label className="block text-sm mb-1">Site name</label>
-            <input className="w-full border rounded px-2 py-1" value={config.site_name || ''} onChange={(e) => updateConfig('site_name', e.target.value)} />
+            <input className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100" value={config.site_name || ''} onChange={(e) => updateConfig('site_name', e.target.value)} />
           </div>
           <div>
             <label className="block text-sm mb-1">Logo URL</label>
-            <input className="w-full border rounded px-2 py-1" value={config.site_logo_url || ''} onChange={(e) => updateConfig('site_logo_url', e.target.value || null)} />
+            <input className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100" value={config.site_logo_url || ''} onChange={(e) => updateConfig('site_logo_url', e.target.value || null)} />
           </div>
         </div>
       </section>
 
       {/* Typography */}
-      <section className="bg-white rounded-xl p-6">
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-cyan-100 rounded-lg"><DocumentTextIcon className="w-5 h-5 text-cyan-600" /></div>
           <div>
             <h2 className="text-lg font-semibold">{t('layout.typography.title') || 'Typography'}</h2>
-            <p className="text-sm text-gray-500">{t('layout.typography.description') || 'Defina tamanho e família de fontes.'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('layout.typography.description') || 'Defina tamanho e família de fontes.'}</p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {(['sm','base','lg'] as const).map(sz => (
-            <button key={sz} onClick={() => updateConfig('font_size', sz)} className={`px-3 py-2 border rounded ${config.font_size === sz ? 'bg-primary-50' : ''}`}>{sz}</button>
+            <button
+              key={sz}
+              onClick={() => updateConfig('font_size', sz)}
+              className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.font_size === sz ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+            >
+              <span className="font-medium text-gray-900 dark:text-white">{sz}</span>
+              {config.font_size === sz && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+            </button>
           ))}
         </div>
       </section>

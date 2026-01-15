@@ -40,6 +40,11 @@ export interface LayoutConfig {
   dense_tables: boolean;
   animations_enabled: boolean;
   compact_mode: boolean;
+  // Theme mode
+  color_mode?: 'light' | 'dark';
+  // Feature toggles
+  ai_chat_enabled?: boolean;
+  feedback_button_enabled?: boolean;
   // Branding (new fields)
   site_name: string;
   site_logo_url: string | null;
@@ -108,6 +113,9 @@ const DEFAULT_CONFIG: LayoutConfig = {
   dense_tables: false,
   animations_enabled: true,
   compact_mode: false,
+  color_mode: 'light',
+  ai_chat_enabled: true,
+  feedback_button_enabled: true,
   site_name: 'ProspecAI',
   site_logo_url: null,
   site_favicon_url: null,
@@ -185,6 +193,13 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.style.setProperty('--color-primary', config.primary_color);
     document.documentElement.style.setProperty('--color-secondary', config.secondary_color);
 
+    // Apply light/dark mode
+    if (config.color_mode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     // Apply animations toggle
     if (!config.animations_enabled) {
       document.documentElement.classList.add('reduce-motion');
@@ -252,6 +267,9 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         font_family: config.font_family,
         primary_color: config.primary_color,
         secondary_color: config.secondary_color,
+        color_mode: config.color_mode,
+        ai_chat_enabled: config.ai_chat_enabled,
+        feedback_button_enabled: config.feedback_button_enabled,
       });
     } catch (err: any) {
       setError(err.message || 'Failed to save layout configuration');

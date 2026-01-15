@@ -5,9 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import {
-  ArrowLeftIcon,
   CheckCircleIcon,
   XCircleIcon,
   ExclamationTriangleIcon,
@@ -336,22 +334,9 @@ export default function LLMProviderSettingsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link
-          href="/settings"
-          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition"
-        >
-          <ArrowLeftIcon className="w-5 h-5 text-gray-500" />
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <CpuChipIcon className="w-8 h-8 text-primary-600" />
-            {t('llm.title')}
-          </h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {t('llm.subtitle')}
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('llm.title')}</h1>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{t('llm.subtitle')}</p>
       </div>
       
       {/* Error Banner */}

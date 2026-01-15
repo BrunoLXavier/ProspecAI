@@ -18,6 +18,7 @@ import { LayoutProvider, useLayout } from '@/contexts/LayoutContext';
 // Inner layout that uses sidebar context
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
+  const { config } = useLayout();
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -84,6 +85,15 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   // Protected routes - show full layout
+  // Compute main content margin to accommodate sidebar on either side
+  const sidebarWidth = isCollapsed ? 72 : (config?.sidebar_width || 260);
+  const mainStyle: React.CSSProperties = {};
+  if (config?.sidebar_position === 'right') {
+    mainStyle.marginRight = `${sidebarWidth}px`;
+  } else {
+    mainStyle.marginLeft = `${sidebarWidth}px`;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
@@ -91,11 +101,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <div 
-        className={`
-          flex-1 flex flex-col min-w-0
-          transition-all duration-350
-          ${isCollapsed ? 'ml-[72px]' : 'ml-[260px]'}
-        `}
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-350`}
+        style={mainStyle}
       >
         {/* Header */}
         <Header />
@@ -109,11 +116,19 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* AI Chat Widget */}
-      <ChatWidget />
-      
-      {/* Feedback Button */}
-      <FeedbackButton />
+      {/** Render these conditionally based on layout config flags **/}
+      <LayoutFeatureToggle />
     </div>
+  );
+}
+
+function LayoutFeatureToggle() {
+  const { config } = useLayout();
+  return (
+    <>
+      {config.ai_chat_enabled && <ChatWidget />}
+      {config.feedback_button_enabled && <FeedbackButton />}
+    </>
   );
 }
 
