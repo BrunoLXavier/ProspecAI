@@ -26,6 +26,7 @@ import { ViewMode } from '@/components/ui/ViewToggle';
 import IngestionBoard from '@/components/ingestion/IngestionBoard';
 import IngestionDetailModal from '@/components/ingestion/IngestionDetailModal';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import { getStoredAccessToken } from '@/contexts/AuthContext';
 
 // =============================================================================
 // Types
@@ -335,9 +336,10 @@ export default function IngestionPage() {
   
   const fetchJobs = useCallback(async () => {
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch('/api/v1/ingestion/jobs', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
       
@@ -465,11 +467,12 @@ export default function IngestionPage() {
     
     try {
       // Create job
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const createResponse = await fetch('/api/v1/ingestion/jobs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: jobName,
@@ -491,7 +494,7 @@ export default function IngestionPage() {
       const uploadResponse = await fetch(`/api/v1/ingestion/jobs/${job.id}/upload`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: formData,
       });
@@ -519,10 +522,11 @@ export default function IngestionPage() {
   
   const handleStartJob = async (jobId: string) => {
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/ingestion/jobs/${jobId}/start`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
       
@@ -542,10 +546,11 @@ export default function IngestionPage() {
     if (!confirm(t('deleteConfirmation') || 'Tem certeza que deseja excluir este job?')) return;
     
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/ingestion/jobs/${jobId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
       
@@ -567,9 +572,10 @@ export default function IngestionPage() {
     
     // Fetch sources for this job
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/ingestion/jobs/${job.id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
       

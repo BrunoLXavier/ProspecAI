@@ -38,6 +38,33 @@
   --brand-primary-hover: #c00510;
   --brand-secondary: #003366;
   --brand-secondary-hover: #002952;
+
+  /* Map common 'red' utility classes to brand primary, and 'blue' to brand secondary.
+    This provides broad theme coverage without changing many files. These rules
+    use RGB variables set by LayoutContext so translucent shades follow the
+    configured brand colors. */
+  .bg-red-50 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.06) !important; }
+  .bg-red-100 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.12) !important; }
+  .bg-red-200 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.18) !important; }
+  .bg-red-600 { background-color: var(--brand-primary, #E30613) !important; }
+  .bg-red-700 { background-color: var(--brand-primary-hover, #c00510) !important; }
+  .text-red-600 { color: var(--brand-primary, #E30613) !important; }
+  .text-red-700 { color: var(--brand-primary, #E30613) !important; }
+  .border-red-200 { border-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.18) !important; }
+  .border-red-300 { border-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.25) !important; }
+  .hover\:bg-red-50:hover { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.06) !important; }
+  .hover\:bg-red-100:hover { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.12) !important; }
+  .hover\:text-red-600:hover { color: var(--brand-primary, #E30613) !important; }
+
+  /* Blue -> secondary mapping (common info/links) */
+  .text-blue-500 { color: var(--brand-secondary, #003366) !important; }
+  .bg-blue-500 { background-color: var(--brand-secondary, #003366) !important; }
+  .hover\:text-blue-500:hover { color: var(--brand-secondary, #003366) !important; }
+
+  /* Fallback for utilities that include dark: variants */
+  .dark .bg-red-50 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.06) !important; }
+  .dark .bg-red-100 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.10) !important; }
+  .dark .text-red-600 { color: var(--brand-primary, #E30613) !important; }
   
   /* Sidebar */
   --sidebar-bg: rgba(0, 51, 102, 0.95);
@@ -93,6 +120,16 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+}
+
+/* High contrast appearance mode */
+.high-contrast {
+  --text-primary: #000000;
+  --text-secondary: #111827;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --border-primary: #000000;
+  --brand-primary-hover: #000000;
 }
 
 body {

@@ -78,7 +78,7 @@ export const ALL_WIDGET_IDS = [
   'analytics-kpis', 'analytics-pipeline', 'analytics-trl', 'analytics-trends', 'analytics-export',
 ];
 
-const DEFAULT_CONFIG: LayoutConfig = {
+export const DEFAULT_CONFIG: LayoutConfig = {
   sidebar_position: 'left',
   sidebar_collapsed: false,
   sidebar_width: 260,
@@ -190,8 +190,56 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     );
 
     // Apply primary/secondary colors as CSS variables
-    document.documentElement.style.setProperty('--color-primary', config.primary_color);
-    document.documentElement.style.setProperty('--color-secondary', config.secondary_color);
+      document.documentElement.style.setProperty('--color-primary', config.primary_color);
+      document.documentElement.style.setProperty('--color-secondary', config.secondary_color);
+
+      // Also mirror into brand-related variables used across the CSS so changes
+      // take effect in components that reference --brand-primary / --brand-secondary
+      // or --border-focus. Compute simple hover/darker variants.
+      const toRgb = (hex: string) => {
+        const h = hex.replace('#', '');
+        const bigint = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return { r, g, b };
+      };
+
+      const darken = (hex: string, amount = 0.12) => {
+        try {
+          const { r, g, b } = toRgb(hex);
+          const nr = Math.max(0, Math.min(255, Math.round(r * (1 - amount))));
+          const ng = Math.max(0, Math.min(255, Math.round(g * (1 - amount))));
+          const nb = Math.max(0, Math.min(255, Math.round(b * (1 - amount))));
+          const toHex = (v: number) => v.toString(16).padStart(2, '0');
+          return `#${toHex(nr)}${toHex(ng)}${toHex(nb)}`;
+        } catch (e) {
+          return hex;
+        }
+      };
+
+      const primary = config.primary_color || '#E30613';
+      const secondary = config.secondary_color || '#003366';
+      const primaryHover = darken(primary, 0.08);
+      const secondaryHover = darken(secondary, 0.08);
+
+      document.documentElement.style.setProperty('--brand-primary', primary);
+      document.documentElement.style.setProperty('--brand-primary-hover', primaryHover);
+      document.documentElement.style.setProperty('--brand-secondary', secondary);
+      document.documentElement.style.setProperty('--brand-secondary-hover', secondaryHover);
+      // expose RGB components for translucent variants in CSS
+      try {
+        const p = toRgb(primary);
+        const s = toRgb(secondary);
+        document.documentElement.style.setProperty('--brand-primary-rgb', `${p.r}, ${p.g}, ${p.b}`);
+        document.documentElement.style.setProperty('--brand-secondary-rgb', `${s.r}, ${s.g}, ${s.b}`);
+      } catch (e) {
+        // ignore
+      }
+      document.documentElement.style.setProperty('--border-focus', primary);
+      // Sidebar active color - translucent variant
+      document.documentElement.style.setProperty('--sidebar-active', primary + 'E6');
+      // If components reference --color-primary / --brand-primary both will be present
 
     // Apply light/dark mode
     if (config.color_mode === 'dark') {
@@ -212,6 +260,30 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.add('compact-mode');
     } else {
       document.documentElement.classList.remove('compact-mode');
+    }
+
+    // Appearance options
+    if (config.appearance === 'highContrast') {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+
+    // Update favicon dynamically when provided
+    try {
+      if (config.site_favicon_url) {
+        const existing = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+        if (existing) {
+          existing.href = config.site_favicon_url;
+        } else {
+          const link = document.createElement('link');
+          link.rel = 'icon';
+          link.href = config.site_favicon_url;
+          document.head.appendChild(link);
+        }
+      }
+    } catch (e) {
+      // ignore
     }
 
   }, [config]);

@@ -586,7 +586,13 @@
         "light": "Light",
         "dark": "Dark",
         "primaryColor": "Primary Color",
-        "secondaryColor": "Secondary Color"
+        "secondaryColor": "Secondary Color",
+        "appearance": "Appearance",
+        "appearanceOptions": {
+          "default": "Default",
+          "highContrast": "High contrast",
+          "system": "System"
+        }
       },
       "branding": {
         "title": "Branding",

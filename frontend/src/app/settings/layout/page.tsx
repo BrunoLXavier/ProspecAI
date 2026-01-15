@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Bars3Icon, RectangleGroupIcon, UserGroupIcon, CheckIcon, ArrowPathIcon, Squares2X2Icon, ShieldCheckIcon, ArrowsPointingOutIcon, PaintBrushIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import { useLayout, ALL_WIDGET_IDS } from '@/contexts/LayoutContext';
+import { useLayout, ALL_WIDGET_IDS, DEFAULT_CONFIG } from '@/contexts/LayoutContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 const availableRoles = [
@@ -475,7 +475,7 @@ export default function LayoutPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Color mode</label>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.colorMode') || 'Color mode'}</label>
             <div className="flex gap-3">
               {(['light','dark'] as const).map(m => (
                 <button
@@ -483,7 +483,7 @@ export default function LayoutPage() {
                   onClick={() => updateConfig('color_mode', m)}
                   className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.color_mode === m ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
                 >
-                  <span className="font-medium text-gray-900 dark:text-white">{m}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{t(`layout.themeColors.${m}`) || m}</span>
                   {config.color_mode === m && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
                 </button>
               ))}
@@ -491,9 +491,29 @@ export default function LayoutPage() {
           </div>
 
           <div>
-            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Primary color</label>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.primaryColor') || 'Primary color'}</label>
             <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
               <input type="color" value={config.primary_color} onChange={(e) => updateConfig('primary_color', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+            </div>
+
+            <div className="mt-3">
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.secondaryColor') || 'Secondary color'}</label>
+              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
+                <input type="color" value={config.secondary_color || '#ffffff'} onChange={(e) => updateConfig('secondary_color', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.appearance') || 'Appearance'}</label>
+              <select
+                value={config.appearance || 'default'}
+                onChange={(e) => updateConfig('appearance', e.target.value)}
+                className="w-full border-2 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="default">{t('layout.themeColors.appearanceOptions.default') || 'Default'}</option>
+                <option value="highContrast">{t('layout.themeColors.appearanceOptions.highContrast') || 'High contrast'}</option>
+                <option value="system">{t('layout.themeColors.appearanceOptions.system') || 'System'}</option>
+              </select>
             </div>
           </div>
         </div>
@@ -511,12 +531,31 @@ export default function LayoutPage() {
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm mb-1">Site name</label>
-            <input className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100" value={config.site_name || ''} onChange={(e) => updateConfig('site_name', e.target.value)} />
+            <label className="block text-sm mb-1">{t('layout.branding.siteName') || 'Site name'}</label>
+            <input
+              placeholder={DEFAULT_CONFIG.site_name}
+              className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100"
+              value={config.site_name ?? ''}
+              onChange={(e) => updateConfig('site_name', e.target.value)}
+            />
           </div>
           <div>
-            <label className="block text-sm mb-1">Logo URL</label>
-            <input className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100" value={config.site_logo_url || ''} onChange={(e) => updateConfig('site_logo_url', e.target.value || null)} />
+            <label className="block text-sm mb-1">{t('layout.branding.siteLogoUrl') || 'Logo URL'}</label>
+            <input
+              placeholder={t('layout.branding.leaveEmptyForDefault') || 'Leave empty to use default'}
+              className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100"
+              value={config.site_logo_url ?? ''}
+              onChange={(e) => updateConfig('site_logo_url', e.target.value || null)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">{t('layout.branding.siteFaviconUrl') || 'Favicon URL'}</label>
+            <input
+              placeholder={t('layout.branding.leaveEmptyForDefault') || 'Leave empty to use default'}
+              className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100"
+              value={config.site_favicon_url ?? ''}
+              onChange={(e) => updateConfig('site_favicon_url', e.target.value || null)}
+            />
           </div>
         </div>
       </section>
@@ -531,17 +570,38 @@ export default function LayoutPage() {
           </div>
         </div>
 
-        <div className="flex gap-3">
-          {(['sm','base','lg'] as const).map(sz => (
-            <button
-              key={sz}
-              onClick={() => updateConfig('font_size', sz)}
-              className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.font_size === sz ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
-            >
-              <span className="font-medium text-gray-900 dark:text-white">{sz}</span>
-              {config.font_size === sz && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
-            </button>
-          ))}
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.typography.fontSize') || 'Font size'}</label>
+            <div className="flex gap-3">
+              {(['sm','base','lg'] as const).map(sz => (
+                <button
+                  key={sz}
+                  onClick={() => updateConfig('font_size', sz)}
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.font_size === sz ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                >
+                  <span className="font-medium text-gray-900 dark:text-white">{t(`layout.typography.${sz === 'sm' ? 'small' : sz === 'base' ? 'normal' : 'large'}`) || sz}</span>
+                  {config.font_size === sz && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.typography.fontFamily') || 'Font family'}</label>
+            <div className="flex gap-3">
+              {(['sans','serif','mono'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => updateConfig('font_family', f)}
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.font_family === f ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                >
+                  <span className="font-medium text-gray-900 dark:text-white">{f === 'sans' ? (t('layout.typography.sansSerif') || 'Sans-serif') : f === 'serif' ? (t('layout.typography.serif') || 'Serif') : (t('layout.typography.monospace') || 'Monospace')}</span>
+                  {config.font_family === f && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

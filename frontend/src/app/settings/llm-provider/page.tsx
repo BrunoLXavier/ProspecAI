@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { getStoredAccessToken } from '@/contexts/AuthContext';
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -128,18 +129,42 @@ export default function LLMProviderSettingsPage() {
   const fetchConfigs = useCallback(async () => {
     try {
       setIsLoading(true);
+      // Prefer AuthContext storage keys to read access token
+      let token = getStoredAccessToken();
+      try {
+          if (!token && typeof window !== 'undefined' && (window as any).__PROSPECAI_ACCESS_TOKEN) {
+          token = (window as any).__PROSPECAI_ACCESS_TOKEN as string;
+        }
+      } catch (e) {
+        // ignore
+      }
+      if (!token) {
+        // Fallback to in-memory token set by AuthProvider; avoid legacy localStorage keys
+        token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
+      }
+
+      if (!token) {
+        throw new Error('No auth token found (check localStorage or login).');
+      }
+
       const response = await fetch('/api/v1/admin/llm-config/', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
-      
-      if (!response.ok) throw new Error('Failed to fetch LLM configurations');
-      
+
+      if (!response.ok) {
+        let body = '';
+        try { body = await response.text(); } catch (e) {}
+        throw new Error(`Failed to fetch LLM configurations (status ${response.status}): ${body || response.statusText}`);
+      }
+
       const data = await response.json();
-      setConfigs(data);
+      setConfigs(data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      console.error('LLM configs load error:', err);
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -187,11 +212,12 @@ export default function LLMProviderSettingsPage() {
     setTestResult(null);
     
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch('/api/v1/admin/llm-config/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           provider: selectedProvider,
@@ -258,11 +284,12 @@ export default function LLMProviderSettingsPage() {
       
       const method = editingConfig ? 'PUT' : 'POST';
       
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -293,10 +320,11 @@ export default function LLMProviderSettingsPage() {
   
   const handleActivate = async (configId: string) => {
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/admin/llm-config/${configId}/activate`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
       
@@ -312,10 +340,11 @@ export default function LLMProviderSettingsPage() {
     if (!confirm(t('confirm.deleteLLM'))) return;
 
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/admin/llm-config/${configId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
 

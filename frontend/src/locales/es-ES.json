@@ -585,7 +585,13 @@
         "light": "Claro",
         "dark": "Oscuro",
         "primaryColor": "Color Primario",
-        "secondaryColor": "Color Secundario"
+        "secondaryColor": "Color Secundario",
+        "appearance": "Apariencia",
+        "appearanceOptions": {
+          "default": "Predeterminado",
+          "highContrast": "Alto contraste",
+          "system": "Sistema"
+        }
       },
       "branding": {
         "title": "Marca",

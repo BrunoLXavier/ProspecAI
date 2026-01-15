@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { getStoredAccessToken } from '@/contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -569,9 +570,10 @@ export default function PIIAnalysisPage() {
       if (filters.status !== 'all') params.set('status', filters.status);
       if (filters.risk !== 'all') params.set('risk_level', filters.risk);
       
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/lgpd/detections?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
       
@@ -602,9 +604,10 @@ export default function PIIAnalysisPage() {
   
   const fetchStatistics = useCallback(async () => {
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch('/api/v1/lgpd/detections/statistics', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
       
@@ -633,11 +636,12 @@ export default function PIIAnalysisPage() {
     setIsProcessing(true);
     
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/lgpd/detections/${detection.id}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           notes: reviewNotes || undefined,
@@ -662,11 +666,12 @@ export default function PIIAnalysisPage() {
     setIsProcessing(true);
     
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/lgpd/detections/${detection.id}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           notes: reviewNotes || 'Rejeitado manualmente',
@@ -690,11 +695,12 @@ export default function PIIAnalysisPage() {
     setIsProcessing(true);
     
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch(`/api/v1/lgpd/detections/${detection.id}/anonymize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           strategy: selectedStrategy,
@@ -721,11 +727,12 @@ export default function PIIAnalysisPage() {
     setIsProcessing(true);
     
     try {
+      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
       const response = await fetch('/api/v1/lgpd/detections/batch-approve', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           detection_ids: Array.from(selectedIds),
