@@ -35,6 +35,15 @@ class RefreshTokenRepository:
     
     def _model_to_entity(self, model: RefreshTokenModel) -> RefreshToken:
         """Convert database model to domain entity."""
+        # Ensure IP addresses from the DB (which may be ipaddress.IPv4Address/IPv6Address)
+        # are converted to plain strings before passing to the Pydantic model.
+        created_by_ip = None
+        try:
+            if model.created_by_ip is not None:
+                created_by_ip = str(model.created_by_ip)
+        except Exception:
+            created_by_ip = None
+
         return RefreshToken(
             id=model.id,
             user_id=model.user_id,
@@ -43,7 +52,7 @@ class RefreshTokenRepository:
             used=model.used,
             expires_at=model.expires_at,
             created_at=model.created_at,
-            created_by_ip=model.created_by_ip
+            created_by_ip=created_by_ip
         )
     
     async def save(
@@ -82,7 +91,27 @@ class RefreshTokenRepository:
         await self.session.refresh(model)
         
         logger.info(f"Created {token_type.value} token for user: {user_id}")
-        return self._model_to_entity(model)
+        # Convert to domain entity, guarding against unexpected DB types
+        try:
+            return self._model_to_entity(model)
+        except Exception:
+            created_by_ip = None
+            try:
+                if model.created_by_ip is not None:
+                    created_by_ip = str(model.created_by_ip)
+            except Exception:
+                created_by_ip = None
+
+            return RefreshToken(
+                id=model.id,
+                user_id=model.user_id,
+                token_hash=model.token_hash,
+                token_type=TokenType(model.token_type),
+                used=model.used,
+                expires_at=model.expires_at,
+                created_at=model.created_at,
+                created_by_ip=created_by_ip
+            )
     
     async def get_by_token(self, token_hash: str) -> Optional[RefreshToken]:
         """
@@ -122,12 +151,18 @@ class RefreshTokenRepository:
             TokenExpiredException: If token is expired
             TokenAlreadyUsedException: If one-time token was already used
         """
+        try:
+            logger.info(f"[REFRESH_REPO] get_valid_token lookup: {token_hash[:10]}...{token_hash[-6:]}")
+        except Exception:
+            logger.info("[REFRESH_REPO] get_valid_token lookup: (error masking)")
         token = await self.get_by_token(token_hash)
         
         if not token:
+            logger.info("[REFRESH_REPO] token not found")
             raise TokenInvalidException("Token not found")
         
         if token.is_expired():
+            logger.info("[REFRESH_REPO] token expired")
             raise TokenExpiredException("Token has expired")
         
         # Check one-time tokens

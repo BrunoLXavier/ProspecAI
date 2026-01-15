@@ -164,38 +164,54 @@ class RegisterUser:
             PasswordTooWeakError: If password doesn't meet requirements
         """
         # Check if email exists
-        if await self.user_repo.email_exists(request.email, request.tenant_id):
+        # Use default tenant if none provided (matches DB migration default)
+        tenant_id = request.tenant_id or UUID('00000000-0000-0000-0000-000000000001')
+
+        if await self.user_repo.email_exists(tenant_id, request.email):
             raise UserExistsError("Email already registered")
         
         # Check if username exists
-        if await self.user_repo.username_exists(request.username, request.tenant_id):
+        if await self.user_repo.username_exists(tenant_id, request.username):
             raise UserExistsError("Username already taken")
         
         # Get password requirements
-        security_config = await self.config_repo.get_security_config(request.tenant_id)
-        
-        # Validate password strength
+        security_config = await self.config_repo.get_security_config(tenant_id)
+
+        # Build password strength config from system settings
         password_config = PasswordStrengthConfig(
             min_length=security_config.password_min_length,
             require_uppercase=security_config.password_require_uppercase,
             require_lowercase=security_config.password_require_lowercase,
-            require_numbers=security_config.password_require_numbers,
-            require_special=security_config.password_require_special
+            require_number=security_config.password_require_number,
+            require_special_char=security_config.password_require_special_char
         )
-        
-        is_valid, error = User.validate_password_strength(request.password, password_config)
+
+        # Validate password strength using PasswordStrengthConfig
+        is_valid, errors = password_config.validate_password(request.password)
         if not is_valid:
-            raise PasswordTooWeakError(error)
+            # errors is a list of messages
+            raise PasswordTooWeakError('; '.join(errors))
         
-        # Create user
-        user_create = UserCreate(
-            email=request.email,
-            username=request.username,
-            password=request.password,
-            full_name=request.full_name
+        # Create user (repository expects raw fields)
+        # Log password type/length (masked) for debug — do NOT log raw password
+        try:
+            pw = request.password
+            if isinstance(pw, str):
+                pw_bytes = pw.encode('utf-8')
+            else:
+                pw_bytes = bytes(pw)
+            logger.info(f"RegisterUser: password type={type(pw).__name__}, byte_length={len(pw_bytes)}")
+        except Exception:
+            logger.exception("RegisterUser: failed to inspect password before hashing")
+
+        password_hash = User.hash_password(request.password)
+        user = await self.user_repo.create(
+            tenant_id,
+            request.email,
+            request.username,
+            password_hash,
+            first_name=request.full_name
         )
-        
-        user = await self.user_repo.create(user_create, request.tenant_id)
         
         # Generate verification token
         token = secrets.token_urlsafe(32)
@@ -284,10 +300,16 @@ class LoginUser:
                 lockout_ends_at=lockout_ends
             )
         
-        # Find user
-        user = await self.user_repo.get_by_email(request.email, tenant_id)
+        # Find user. If tenant_id not provided, try to locate user across tenants
+        if tenant_id is None:
+            user = await self.user_repo.get_by_email_any_tenant(request.email)
+            # derive tenant_id for downstream operations
+            if user:
+                tenant_id = user.tenant_id
+        else:
+            user = await self.user_repo.get_by_email(tenant_id, request.email)
         
-        if not user or not user.verify_password(request.password):
+        if not user or not User.verify_password(request.password, user.password_hash):
             # Record failed attempt
             await self.attempt_repo.record_attempt(
                 email=request.email,
@@ -320,7 +342,7 @@ class LoginUser:
         await self.attempt_repo.clear_attempts(request.email)
         
         # Update last login
-        await self.user_repo.update_last_login(user.id, tenant_id)
+        await self.user_repo.update_last_login(user.id)
         
         # Generate tokens
         access_token, access_expires = self.jwt_service.create_access_token(
@@ -357,7 +379,7 @@ class LoginUser:
                 "id": str(user.id),
                 "email": user.email,
                 "username": user.username,
-                "full_name": user.full_name,
+                "full_name": user.get_full_name(),
                 "email_verified": user.email_verified,
                 "roles": user.roles
             },
@@ -465,7 +487,7 @@ class RequestPasswordReset:
             Success message
         """
         # Find user by email
-        user = await self.user_repo.get_by_email(request.email, tenant_id)
+        user = await self.user_repo.get_by_email(tenant_id, request.email)
         
         # Always return success to prevent email enumeration
         if not user:
@@ -556,20 +578,18 @@ class ConfirmPasswordReset:
         # Get password requirements
         security_config = await self.config_repo.get_security_config(tenant_id)
         
-        # Validate new password strength
+        # Validate new password strength using domain PasswordStrengthConfig
         password_config = PasswordStrengthConfig(
             min_length=security_config.password_min_length,
             require_uppercase=security_config.password_require_uppercase,
             require_lowercase=security_config.password_require_lowercase,
-            require_numbers=security_config.password_require_numbers,
-            require_special=security_config.password_require_special
+            require_number=security_config.password_require_number,
+            require_special_char=security_config.password_require_special_char
         )
-        
-        is_valid, error = User.validate_password_strength(
-            request.new_password, password_config
-        )
+
+        is_valid, errors = password_config.validate_password(request.new_password)
         if not is_valid:
-            raise PasswordTooWeakError(error)
+            raise PasswordTooWeakError('; '.join(errors))
         
         # Get user
         user = await self.user_repo.get_by_id(token.user_id, tenant_id)
@@ -577,6 +597,16 @@ class ConfirmPasswordReset:
             raise TokenInvalidError("User not found")
         
         # Update password
+        try:
+            pw = request.new_password
+            if isinstance(pw, str):
+                pw_bytes = pw.encode('utf-8')
+            else:
+                pw_bytes = bytes(pw)
+            logger.info(f"PasswordReset: new_password type={type(pw).__name__}, byte_length={len(pw_bytes)}")
+        except Exception:
+            logger.exception("PasswordReset: failed to inspect new_password before hashing")
+
         new_password_hash = User.hash_password(request.new_password)
         await self.user_repo.update(
             user_id=user.id,
@@ -629,29 +659,39 @@ class RefreshAccessToken:
             TokenInvalidError: If refresh token is invalid
         """
         # Validate refresh token JWT
+        logger.info(f"RefreshAccessToken: validating refresh token preview={request.refresh_token[:10]}...{request.refresh_token[-6:]}")
         payload = self.jwt_service.validate_refresh_token(request.refresh_token)
         if not payload:
+            logger.warning("RefreshAccessToken: JWT validation failed for provided refresh token")
             raise TokenInvalidError("Invalid or expired refresh token")
-        
+
         # Check if token is in database and not revoked
         token_hash = RefreshToken.hash_token(request.refresh_token)
+        logger.info(f"RefreshAccessToken: looking up token hash preview={token_hash[:10]}...{token_hash[-6:]}")
         try:
             stored_token = await self.token_repo.get_valid_token(token_hash)
-        except Exception:
-            raise TokenInvalidError("Token has been revoked")
+        except Exception as e:
+            logger.warning(f"RefreshAccessToken: token repository lookup failed: {e}")
+            raise TokenInvalidError("Token has been revoked or is invalid")
         
         user_id = UUID(payload["sub"])
-        
+
+        # Determine tenant from payload if present
+        tenant_from_payload = UUID(payload["tenant_id"]) if payload.get("tenant_id") else None
+
         # Get fresh user data
-        user = await self.user_repo.get_by_id(user_id, tenant_id)
+        user = await self.user_repo.get_by_id(user_id)
         if not user or not user.is_active:
             raise TokenInvalidError("User not found or deactivated")
         
+        # Determine tenant to include in new access token (prefer payload tenant)
+        tenant_for_token = tenant_from_payload or tenant_id
+
         # Generate new access token
         access_token, access_expires = self.jwt_service.create_access_token(
             user_id=user.id,
             email=user.email,
-            tenant_id=tenant_id,
+            tenant_id=tenant_for_token,
             roles=user.roles,
             email_verified=user.email_verified
         )
@@ -664,7 +704,7 @@ class RefreshAccessToken:
                 "id": str(user.id),
                 "email": user.email,
                 "username": user.username,
-                "full_name": user.full_name,
+                "full_name": user.get_full_name() if hasattr(user, 'get_full_name') else getattr(user, 'full_name', None),
                 "email_verified": user.email_verified,
                 "roles": user.roles
             },

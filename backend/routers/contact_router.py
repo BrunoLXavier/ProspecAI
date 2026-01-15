@@ -77,7 +77,7 @@ class ContactRateLimiter:
             and_(
                 LoginAttemptModel.email == email.lower().strip(),
                 LoginAttemptModel.success == True,  # True = contact form (not login attempt)
-                LoginAttemptModel.attempted_at >= since
+                        LoginAttemptModel.timestamp >= since
             )
         )
         
@@ -153,8 +153,8 @@ async def get_contact_config(
     return {
         "enabled": config.enabled,
         "fields": [field.model_dump() for field in config.fields],
-        "rate_limit_requests": config.rate_limit_requests,
-        "rate_limit_window_minutes": config.rate_limit_window_minutes
+            "rate_limit_requests": config.max_requests_per_period,
+            "rate_limit_window_minutes": config.rate_limit_per_email_minutes
     }
 
 
@@ -172,7 +172,7 @@ async def submit_contact(
 ):
     """
     Submit contact form.
-    
+                LoginAttemptModel.timestamp >= since
     - Rate limited by email address
     - Validates dynamic fields from config
     - Sends notification to admin

@@ -34,11 +34,20 @@ class ApiClient {
 
     // Request interceptor for adding auth token
     this.client.interceptors.request.use(
-      (config) => {
-        const token = getStoredAccessToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
+          async (config) => {
+            // Prefer in-memory token set by AuthContext to avoid storage race conditions
+            let token: string | null = null;
+            try {
+              if (typeof window !== 'undefined' && (window as any).__PROSPECAI_ACCESS_TOKEN) {
+                token = (window as any).__PROSPECAI_ACCESS_TOKEN as string;
+              }
+            } catch (e) {
+              // ignore
+            }
+            if (!token) token = getStoredAccessToken();
+            if (token && config && config.headers) {
+              config.headers.Authorization = `Bearer ${token}`;
+            }
         // Inject tenant header if available
         try {
           const user = require('@/contexts/AuthContext').getStoredUser();

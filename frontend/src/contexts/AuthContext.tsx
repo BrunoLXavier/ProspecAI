@@ -206,6 +206,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('Failed to load stored auth:', error);
         clearStoredAuth();
+      try {
+        if (typeof window !== 'undefined') {
+          delete (window as any).__PROSPECAI_ACCESS_TOKEN;
+          delete (window as any).__PROSPECAI_REFRESH_TOKEN;
+        }
+      } catch (e) {
+        console.error('[Auth] Failed clearing in-memory tokens:', e);
+      }
       } finally {
         console.debug('[Auth] loadStoredAuth: finished, isLoading=false');
         setIsLoading(false);
@@ -226,16 +234,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const storeAuth = (authTokens: AuthTokens, userData: User) => {
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, authTokens.accessToken);
-    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, authTokens.refreshToken);
-    localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, authTokens.expiresAt.toString());
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+    try {
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, authTokens.accessToken);
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, authTokens.refreshToken);
+      localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, String(authTokens.expiresAt));
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+    } catch (e) {
+      console.error('[Auth] Failed writing to localStorage in storeAuth:', e);
+    }
+
+    // Update React state regardless of localStorage success
     setTokens(authTokens);
     setUser(userData);
     setRequiresEmailVerification(!userData.emailVerified);
+
+    // Sanity-check persistence and retry once if needed
+    try {
+      const persisted = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      if (!persisted) {
+        console.debug('[Auth] localStorage ACCESS_TOKEN missing after storeAuth, retrying');
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, authTokens.accessToken);
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, authTokens.refreshToken);
+        localStorage.setItem(STORAGE_KEYS.EXPIRES_AT, String(authTokens.expiresAt));
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+      }
+    } catch (e) {
+      console.error('[Auth] Retry writing to localStorage failed:', e);
+    }
+    // Also set an in-memory token to avoid race with localStorage reads by ApiClient
+    try {
+      if (typeof window !== 'undefined') {
+        (window as any).__PROSPECAI_ACCESS_TOKEN = authTokens.accessToken;
+        (window as any).__PROSPECAI_REFRESH_TOKEN = authTokens.refreshToken;
+      }
+    } catch (e) {
+      console.error('[Auth] Failed to set in-memory token:', e);
+    }
   };
 
-  const refreshAccessTokenInternal = async (refreshToken: string): Promise<string | null> => {
+  const refreshAccessTokenInternal = async (refreshTokenParam?: string): Promise<string | null> => {
+    // Determine refresh token: prefer explicit param, then in-memory, then localStorage
+    let refreshToken: string | null = null;
+    if (refreshTokenParam) refreshToken = refreshTokenParam;
+    try {
+      if (!refreshToken && typeof window !== 'undefined' && (window as any).__PROSPECAI_REFRESH_TOKEN) {
+        refreshToken = (window as any).__PROSPECAI_REFRESH_TOKEN as string;
+      }
+    } catch (e) {
+      // ignore
+    }
+    
+    if (!refreshToken) refreshToken = getStoredRefreshToken();
+
+    // Debug which token will be sent (masked)
+    try {
+      const masked = refreshToken ? `${refreshToken.slice(0, 10)}...${refreshToken.slice(-6)}` : 'MISSING';
+      console.debug('[Auth] refreshAccessTokenInternal will send refresh token:', masked);
+    } catch (e) {
+      // ignore
+    }
+
+    if (!refreshToken) {
+      console.error('[Auth] No refresh token available for refreshAccessTokenInternal');
+      clearStoredAuth();
+      return null;
+    }
+
     try {
       const response = await authFetch('/refresh', {
         method: 'POST',
@@ -247,7 +311,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data = await response.json();
-      
+
       const authTokens: AuthTokens = {
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
@@ -262,11 +326,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         roles: data.user.roles || [],
         emailVerified: data.user.email_verified,
       };
-
-      // Ensure admin account receives admin role locally
-      if (userData.email === 'admin@prospecai.com' && !userData.roles.includes('admin')) {
-        userData.roles = [...userData.roles, 'admin'];
-      }
 
       storeAuth(authTokens, userData);
       return data.access_token;
@@ -543,6 +602,11 @@ export function useAuth(): AuthContextType {
 export function getStoredAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+}
+
+export function getStoredRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
 }
 
 export function getStoredUser(): User | null {

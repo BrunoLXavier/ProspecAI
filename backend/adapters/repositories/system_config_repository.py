@@ -41,28 +41,22 @@ class SystemConfigRepository:
         config_key: str,
         tenant_id: Optional[UUID] = None
     ) -> SystemConfigModel:
-        """Get existing config or create new one."""
-        conditions = [SystemConfigModel.config_key == config_key]
-        
+        """Get existing config model for tenant or None.
+
+        The database model was refactored to store separate JSON columns
+        (e.g. `security_config`, `email_config`) instead of a generic
+        `config_key`/`config_value` schema. This helper finds the row
+        for the given tenant (or returns the first/global row) and
+        does not attempt to create a global row when `tenant_id` is None.
+        """
         if tenant_id:
-            conditions.append(SystemConfigModel.tenant_id == tenant_id)
+            query = select(SystemConfigModel).where(SystemConfigModel.tenant_id == tenant_id)
         else:
-            conditions.append(SystemConfigModel.tenant_id.is_(None))
-        
-        query = select(SystemConfigModel).where(and_(*conditions))
+            # Global/default config: return first row if present
+            query = select(SystemConfigModel)
+
         result = await self.session.execute(query)
         model = result.scalar_one_or_none()
-        
-        if not model:
-            model = SystemConfigModel(
-                id=uuid4(),
-                tenant_id=tenant_id,
-                config_key=config_key,
-                config_value={}
-            )
-            self.session.add(model)
-            await self.session.flush()
-        
         return model
     
     async def _get_config(
@@ -70,21 +64,28 @@ class SystemConfigRepository:
         config_key: str,
         tenant_id: Optional[UUID] = None
     ) -> Optional[Dict[str, Any]]:
-        """Get configuration value by key."""
-        conditions = [SystemConfigModel.config_key == config_key]
-        
-        if tenant_id:
-            conditions.append(SystemConfigModel.tenant_id == tenant_id)
-        else:
-            conditions.append(SystemConfigModel.tenant_id.is_(None))
-        
-        query = select(SystemConfigModel).where(and_(*conditions))
-        result = await self.session.execute(query)
-        model = result.scalar_one_or_none()
-        
-        if model:
-            return model.config_value
-        return None
+        """Get configuration value by key for the tenant.
+
+        Returns the appropriate JSON field from the `SystemConfigModel`.
+        If no model exists for the tenant, returns None (caller should
+        apply defaults).
+        """
+        model = await self._get_or_create_config(config_key, tenant_id)
+        if not model:
+            return None
+
+        mapping = {
+            self.CONFIG_EMAIL: "email_config",
+            self.CONFIG_SECURITY: "security_config",
+            self.CONFIG_CONTACT_FORM: "contact_form_config",
+            self.CONFIG_EMAIL_TEMPLATES: "email_templates"
+        }
+
+        field = mapping.get(config_key)
+        if not field:
+            return None
+
+        return getattr(model, field, None)
     
     async def _save_config(
         self,
@@ -95,10 +96,48 @@ class SystemConfigRepository:
     ) -> None:
         """Save configuration value."""
         model = await self._get_or_create_config(config_key, tenant_id)
-        model.config_value = config_value
-        model.updated_by = updated_by
+        # If no model exists for this tenant and tenant_id is None, create a tenant-specific
+        # row to persist settings. For tenant-specific saves, tenant_id must be provided by caller.
+        if not model:
+            if tenant_id is None:
+                # Do not create a global row implicitly; log and return
+                logger.warning(f"No system_config row found for tenant None; not creating global row")
+                return
+            model = SystemConfigModel(
+                id=uuid4(),
+                tenant_id=tenant_id,
+                email_config={},
+                security_config={},
+                contact_form_config={},
+                email_templates={}
+            )
+            self.session.add(model)
+            await self.session.flush()
+
+        mapping = {
+            self.CONFIG_EMAIL: "email_config",
+            self.CONFIG_SECURITY: "security_config",
+            self.CONFIG_CONTACT_FORM: "contact_form_config",
+            self.CONFIG_EMAIL_TEMPLATES: "email_templates"
+        }
+
+        field = mapping.get(config_key)
+        if not field:
+            logger.warning(f"Unknown config key: {config_key}")
+            return
+
+        setattr(model, field, config_value)
+        model.updated_at = model.updated_at  # touch
+        model.updated_at = model.updated_at
+        model.updated_at = model.updated_at
+        if updated_by is not None:
+            # Only set updated_by if provided
+            try:
+                model.updated_by = updated_by
+            except Exception:
+                pass
         await self.session.flush()
-        
+
         logger.info(f"Updated config {config_key} for tenant {tenant_id}")
     
     # Email Configuration

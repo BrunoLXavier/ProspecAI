@@ -20,6 +20,12 @@ class EmailConfig(BaseModel):
     smtp_port: int = 1025  # Default to MailHog port for dev
     smtp_username: Optional[str] = None
     encrypted_smtp_password: Optional[str] = None  # Encrypted with EncryptionService
+    smtp_password: Optional[str] = None
+    smtp_use_tls: bool = True
+    smtp_fallback_host: Optional[str] = None
+    smtp_fallback_port: Optional[int] = None
+    smtp_fallback_username: Optional[str] = None
+    smtp_fallback_password: Optional[str] = None
     from_email: str = "noreply@prospecai.local"
     from_name: str = "ProspecAI"
     use_tls: bool = True
@@ -31,6 +37,11 @@ class EmailConfig(BaseModel):
     fallback_smtp_port: Optional[int] = None
     fallback_smtp_username: Optional[str] = None
     fallback_encrypted_smtp_password: Optional[str] = None
+
+    # App metadata for templates
+    app_name: str = "ProspecAI"
+    support_email: str = "support@prospecai.local"
+    app_url: str = "http://localhost:3000"
 
 
 class SecurityConfig(BaseModel):
@@ -309,6 +320,58 @@ Recebido em: {{ timestamp }}
 """
         )
     })
+    # Backwards-compatible named template attributes expected by EmailService
+    verification_email: EmailTemplate = Field(default_factory=lambda: EmailTemplates.templates.fget(None)[EmailTemplateType.EMAIL_VERIFICATION.value] if False else EmailTemplate(
+        subject="Verifique seu email - ProspecAI",
+        body_html="""
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <div style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); padding: 30px; text-align: center;">
+        <h1 style="color: white; margin: 0;">ProspecAI</h1>
+    </div>
+    <div style="padding: 30px; background: #f9fafb;">
+        <h2 style="color: #111827;">Olá, {{ user_name }}!</h2>
+        <p style="color: #4b5563; line-height: 1.6;">
+            Obrigado por se cadastrar no ProspecAI. Para completar seu cadastro, 
+            clique no botão abaixo para verificar seu email:
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ verification_link }}" 
+               style="background: #e11d48; color: white; padding: 12px 30px; 
+                      text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Verificar Email
+            </a>
+        </div>
+        <p style="color: #6b7280; font-size: 14px;">
+            Este link expira em {{ expiration_hours }} horas.
+        </p>
+        <p style="color: #6b7280; font-size: 14px;">
+            Se você não criou uma conta, ignore este email.
+        </p>
+    </div>
+    <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+        © ProspecAI - Sistema Inteligente de Prospecção de P&D
+    </div>
+</body>
+</html>
+""",
+        body_text="""
+Olá, {{ user_name }}!
+
+Obrigado por se cadastrar no ProspecAI. Para completar seu cadastro, 
+clique no link abaixo para verificar seu email:
+
+{{ verification_link }}
+
+Este link expira em {{ expiration_hours }} horas.
+
+Se você não criou uma conta, ignore este email.
+
+© ProspecAI - Sistema Inteligente de Prospecção de P&D
+"""
+    ) )
 
 
 class SystemConfig(BaseModel):

@@ -198,8 +198,9 @@ class EmailService:
             "support_email": self.config.support_email
         }
         
+        # Templates stored in EmailTemplates.templates mapping
         body_html = self._render_template(
-            self.templates.verification_email,
+            self.templates.templates.get('email_verification').body_html,
             context
         )
         
@@ -237,7 +238,7 @@ class EmailService:
         }
         
         body_html = self._render_template(
-            self.templates.password_reset_email,
+            self.templates.templates.get('password_reset').body_html,
             context
         )
         
@@ -271,7 +272,7 @@ class EmailService:
         }
         
         body_html = self._render_template(
-            self.templates.contact_notification_email,
+            self.templates.templates.get('contact_request').body_html,
             context
         )
         
@@ -307,7 +308,7 @@ class EmailService:
         }
         
         body_html = self._render_template(
-            self.templates.welcome_email,
+            self.templates.templates.get('welcome').body_html,
             context
         )
         

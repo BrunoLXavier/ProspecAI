@@ -6,11 +6,7 @@ from datetime import datetime
 from typing import Optional, List
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, EmailStr
-from passlib.context import CryptContext
-
-
-# Password hashing configuration using bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
 
 
 class User(BaseModel):
@@ -50,7 +46,18 @@ class User(BaseModel):
         Returns:
             Bcrypt hash of the password
         """
-        return pwd_context.hash(password)
+        # bcrypt has a 72-byte input limit; truncate to avoid ValueError
+        if isinstance(password, str):
+            pw_bytes = password.encode('utf-8')
+        else:
+            pw_bytes = bytes(password)
+
+        if len(pw_bytes) > 72:
+            pw_bytes = pw_bytes[:72]
+
+        # Use bcrypt directly to avoid passlib backend detection issues
+        hashed = bcrypt.hashpw(pw_bytes, bcrypt.gensalt())
+        return hashed.decode('utf-8')
     
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -64,7 +71,20 @@ class User(BaseModel):
         Returns:
             True if password matches, False otherwise
         """
-        return pwd_context.verify(plain_password, hashed_password)
+        # Ensure we apply same truncation rules as when hashing
+        if isinstance(plain_password, str):
+            pw_bytes = plain_password.encode('utf-8')
+        else:
+            pw_bytes = bytes(plain_password)
+
+        if len(pw_bytes) > 72:
+            pw_bytes = pw_bytes[:72]
+
+        # Verify using bcrypt directly
+        try:
+            return bcrypt.checkpw(pw_bytes, hashed_password.encode('utf-8'))
+        except Exception:
+            return False
     
     def is_deleted(self) -> bool:
         """Check if user is soft-deleted."""

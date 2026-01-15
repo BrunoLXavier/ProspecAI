@@ -53,8 +53,8 @@ class SecurityConfigUpdate(BaseModel):
     password_min_length: Optional[int] = Field(default=None, ge=6, le=32)
     password_require_uppercase: Optional[bool] = None
     password_require_lowercase: Optional[bool] = None
-    password_require_numbers: Optional[bool] = None
-    password_require_special: Optional[bool] = None
+    password_require_number: Optional[bool] = None
+    password_require_special_char: Optional[bool] = None
     password_reset_expiry_hours: Optional[int] = Field(default=None, ge=1, le=72)
     email_verification_expiry_hours: Optional[int] = Field(default=None, ge=1, le=168)
     session_timeout_minutes: Optional[int] = Field(default=None, ge=5, le=1440)
@@ -64,9 +64,9 @@ class SecurityConfigUpdate(BaseModel):
 class ContactFormConfigUpdate(BaseModel):
     """Contact form configuration update request."""
     enabled: Optional[bool] = None
-    admin_notification_email: Optional[str] = None
-    rate_limit_requests: Optional[int] = Field(default=None, ge=1, le=100)
-    rate_limit_window_minutes: Optional[int] = Field(default=None, ge=1, le=1440)
+    recipients: Optional[list[str]] = None
+    max_requests_per_period: Optional[int] = Field(default=None, ge=1, le=100)
+    rate_limit_per_email_minutes: Optional[int] = Field(default=None, ge=1, le=1440)
     fields: Optional[list[Dict[str, Any]]] = None  # Custom fields
 
 

@@ -47,8 +47,7 @@ class LoginAttemptRepository:
             id=uuid4(),
             email=email.lower().strip(),
             ip_address=ip_address,
-            success=success,
-            tenant_id=tenant_id
+            success=success
         )
         
         self.session.add(model)
@@ -80,7 +79,7 @@ class LoginAttemptRepository:
             and_(
                 LoginAttemptModel.email == email.lower().strip(),
                 LoginAttemptModel.success == False,
-                LoginAttemptModel.attempted_at >= since
+                LoginAttemptModel.timestamp >= since
             )
         )
         
@@ -112,12 +111,12 @@ class LoginAttemptRepository:
         lockout_ends_at = None
         if is_locked:
             # Get the timestamp of the most recent failed attempt
-            query = select(LoginAttemptModel.attempted_at).where(
+            query = select(LoginAttemptModel.timestamp).where(
                 and_(
                     LoginAttemptModel.email == email.lower().strip(),
                     LoginAttemptModel.success == False
                 )
-            ).order_by(LoginAttemptModel.attempted_at.desc()).limit(1)
+            ).order_by(LoginAttemptModel.timestamp.desc()).limit(1)
             
             result = await self.session.execute(query)
             last_attempt = result.scalar_one_or_none()
@@ -193,14 +192,14 @@ class LoginAttemptRepository:
         
         # Count first
         count_query = select(func.count(LoginAttemptModel.id)).where(
-            LoginAttemptModel.attempted_at < cutoff
+            LoginAttemptModel.timestamp < cutoff
         )
         result = await self.session.execute(count_query)
         count = result.scalar_one()
         
         # Delete
         delete_stmt = delete(LoginAttemptModel).where(
-            LoginAttemptModel.attempted_at < cutoff
+            LoginAttemptModel.timestamp < cutoff
         )
         await self.session.execute(delete_stmt)
         await self.session.flush()
@@ -232,7 +231,7 @@ class LoginAttemptRepository:
         query = select(func.count(LoginAttemptModel.id)).where(
             and_(
                 LoginAttemptModel.ip_address == ip_address,
-                LoginAttemptModel.attempted_at >= since
+                LoginAttemptModel.timestamp >= since
             )
         )
         

@@ -102,7 +102,7 @@ async def register(
         )
     except Exception as e:
         await session.rollback()
-        logger.error(f"Registration error: {e}")
+        logger.exception("Registration error")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Registration failed"
@@ -147,71 +147,34 @@ async def login(
             detail="Email and password required"
         )
     
-    # Get session and authenticate
+    # Delegate to use case implementation to ensure refresh token persistence and auditing
     from adapters.database.connection import AsyncSessionLocal
-    from infrastructure.jwt_service import get_jwt_service
-    from datetime import datetime, timedelta
-    import bcrypt
-    
+    from adapters.repositories.user_repository import UserRepository
+    from adapters.repositories.refresh_token_repository import RefreshTokenRepository
+    from adapters.repositories.login_attempt_repository import LoginAttemptRepository
+    from adapters.repositories.system_config_repository import SystemConfigRepository
+    from use_cases.auth_use_cases import LoginUser, LoginRequest
+
     async with AsyncSessionLocal() as session:
         try:
-            # Query user
-            from adapters.repositories.user_repository import UserRepository
+            login_req = LoginRequest(email=email, password=password)
             user_repo = UserRepository(session)
-            user = await user_repo.get_by_email_any_tenant(email)
-            
-            if not user:
-                raise InvalidCredentialsError("Invalid email or password")
-            
-            # Verify password using bcrypt directly (avoids passlib bugs)
-            password_bytes = password.encode('utf-8')
-            hash_bytes = user.password_hash.encode('utf-8')
-            if not bcrypt.checkpw(password_bytes, hash_bytes):
-                raise InvalidCredentialsError("Invalid email or password")
-            
-            # Fetch roles from DB (user_roles)
-            roles_query = await session.execute(
-                select(UserRoleModel.role_id).where(UserRoleModel.user_id == user.id)
-            )
-            roles = [r[0] for r in roles_query.all()]
+            token_repo = RefreshTokenRepository(session)
+            attempt_repo = LoginAttemptRepository(session)
+            config_repo = SystemConfigRepository(session)
 
-            # Generate tokens
-            jwt_service = get_jwt_service()
-            access_token, access_expires = jwt_service.create_access_token(
-                user_id=user.id,
-                email=user.email,
-                tenant_id=user.tenant_id,
-                roles=roles,
-                email_verified=user.email_verified
-            )
-            
-            refresh_token, refresh_expires = jwt_service.create_refresh_token(
-                user_id=user.id,
-                email=user.email,
-                tenant_id=user.tenant_id
-            )
-            
-            return {
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "token_type": "bearer",
-                "expires_at": access_expires.isoformat(),
-                "user": {
-                    "id": str(user.id),
-                    "email": user.email,
-                    "username": user.username,
-                    "roles": roles,
-                    "email_verified": user.email_verified
-                },
-                "requires_email_verification": not user.email_verified
-            }
+            use_case = LoginUser(user_repo, token_repo, attempt_repo, config_repo)
+            result = await use_case.execute(login_req)
+            await session.commit()
+            return result
         except InvalidCredentialsError as e:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=str(e)
             )
         except Exception as e:
-            logger.error(f"Login error: {e}")
+            await session.rollback()
+            logger.exception("Login error during login")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Login failed"
@@ -433,6 +396,11 @@ async def refresh_token(
     - Returns new access token
     - Same refresh token continues to be valid
     """
+    try:
+        token_preview = (data.refresh_token[:10] + '...' + data.refresh_token[-6:]) if data.refresh_token else 'MISSING'
+    except Exception:
+        token_preview = 'ERROR'
+    logger.info(f"[DEBUG_REFRESH] refresh called with token: {token_preview}")
     user_repo = UserRepository(session)
     token_repo = RefreshTokenRepository(session)
     

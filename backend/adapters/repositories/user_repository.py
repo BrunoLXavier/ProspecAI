@@ -368,7 +368,7 @@ class UserRepository:
         logger.info(f"Soft deleted user: {user_id}")
         return True
     
-    async def email_exists(self, tenant_id: UUID, email: str, exclude_user_id: Optional[UUID] = None) -> bool:
+    async def email_exists(self, tenant_id: UUID | str | None, email: Optional[str] = None, exclude_user_id: Optional[UUID] = None) -> bool:
         """
         Check if email already exists for a tenant.
         
@@ -380,11 +380,22 @@ class UserRepository:
         Returns:
             True if email exists
         """
+        # Support call signature where caller may pass (email, tenant_id) or (tenant_id, email)
+        # Normalize arguments: if `email` is None and `tenant_id` is a string, treat it as the email.
+        if email is None and isinstance(tenant_id, str):
+            email = tenant_id
+            tenant_id = None
+
+        if email is None:
+            return False
+
         conditions = [
-            UserModel.tenant_id == tenant_id,
             UserModel.email == email.lower(),
             UserModel.deleted_at.is_(None)
         ]
+
+        if tenant_id is not None:
+            conditions.insert(0, UserModel.tenant_id == tenant_id)
         
         if exclude_user_id:
             conditions.append(UserModel.id != exclude_user_id)
@@ -394,7 +405,7 @@ class UserRepository:
         
         return result.scalar_one_or_none() is not None
     
-    async def username_exists(self, tenant_id: UUID, username: str, exclude_user_id: Optional[UUID] = None) -> bool:
+    async def username_exists(self, tenant_id: UUID | str | None, username: Optional[str] = None, exclude_user_id: Optional[UUID] = None) -> bool:
         """
         Check if username already exists for a tenant.
         
@@ -406,11 +417,21 @@ class UserRepository:
         Returns:
             True if username exists
         """
+        # Normalize possible (username, tenant_id) or (tenant_id, username) calling styles
+        if username is None and isinstance(tenant_id, str):
+            username = tenant_id
+            tenant_id = None
+
+        if username is None:
+            return False
+
         conditions = [
-            UserModel.tenant_id == tenant_id,
             UserModel.username == username,
             UserModel.deleted_at.is_(None)
         ]
+
+        if tenant_id is not None:
+            conditions.insert(0, UserModel.tenant_id == tenant_id)
         
         if exclude_user_id:
             conditions.append(UserModel.id != exclude_user_id)

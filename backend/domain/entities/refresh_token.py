@@ -2,7 +2,7 @@
 # Domain Layer - Token management for authentication
 # Implements RNF-02: Secure token-based authentication
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field
@@ -63,8 +63,21 @@ class RefreshToken(BaseModel):
         return hashlib.sha256(token.encode()).hexdigest()
     
     def is_expired(self) -> bool:
-        """Check if token has expired."""
-        return datetime.utcnow() > self.expires_at
+        """Check if token has expired.
+
+        Handles both timezone-aware and naive datetimes coming from the DB.
+        If `expires_at` is timezone-aware, compare against an aware UTC now;
+        otherwise compare against naive `datetime.utcnow()`.
+        """
+        if self.expires_at is None:
+            return True
+
+        if self.expires_at.tzinfo is not None and self.expires_at.tzinfo.utcoffset(self.expires_at) is not None:
+            now = datetime.now(timezone.utc)
+        else:
+            now = datetime.utcnow()
+
+        return now > self.expires_at
     
     def is_valid(self) -> bool:
         """

@@ -212,17 +212,24 @@ class JWTService:
         """
         try:
             payload = self.decode_token(token)
-            
             if payload.get("type") != "refresh":
                 logger.warning("Token is not a refresh token")
                 return None
-            
+
+            try:
+                logger.debug(f"validate_refresh_token: payload keys={list(payload.keys())}")
+            except Exception:
+                pass
+
             return payload
         except jwt.ExpiredSignatureError:
             logger.warning("Refresh token has expired")
             return None
         except jwt.InvalidTokenError as e:
             logger.warning(f"Invalid refresh token: {e}")
+            return None
+        except Exception as e:
+            logger.exception(f"Unexpected error validating refresh token: {e}")
             return None
     
     def get_user_id_from_token(self, token: str) -> Optional[UUID]:
