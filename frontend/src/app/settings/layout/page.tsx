@@ -4,13 +4,14 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Bars3Icon, RectangleGroupIcon, UserGroupIcon, CheckIcon, ArrowPathIcon, Squares2X2Icon, ShieldCheckIcon, ArrowsPointingOutIcon, PaintBrushIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import { useLayout } from '@/contexts/LayoutContext';
+import { useLayout, ALL_WIDGET_IDS } from '@/contexts/LayoutContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 const availableRoles = [
   { id: 'admin', label: 'Administrador' },
   { id: 'manager', label: 'Gerente' },
-  { id: 'user', label: 'Usuário' },
+  { id: 'analyst', label: 'Analista' },
+  { id: 'viewer', label: 'Visualizador' },
 ];
 
 const availableNavItems = [
@@ -27,11 +28,23 @@ const availableNavItems = [
   { id: 'settings', label: 'Configurações' },
 ];
 
-const availableWidgets = [
-  { id: 'recentActivity', label: 'Atividade Recente', size: 'small' },
-  { id: 'pipeline', label: 'Pipeline', size: 'medium' },
-  { id: 'fundingSummary', label: 'Resumo de Fomento', size: 'large' },
-];
+// Build available widgets from the canonical registry in LayoutContext
+const widgetLabelMap: Record<string, { label: string; size: 'small' | 'medium' | 'large' }> = {
+  pipeline: { label: 'Pipeline', size: 'medium' },
+  opportunities: { label: 'Oportunidades', size: 'medium' },
+  metrics: { label: 'Métricas', size: 'large' },
+  activity: { label: 'Atividade', size: 'small' },
+  matching: { label: 'Matching', size: 'medium' },
+  calendar: { label: 'Calendário', size: 'small' },
+  recentActivity: { label: 'Atividade Recente', size: 'small' },
+  fundingSummary: { label: 'Resumo de Fomento', size: 'large' },
+};
+
+const availableWidgets = ALL_WIDGET_IDS.map(id => ({
+  id,
+  label: widgetLabelMap[id]?.label || id,
+  size: widgetLabelMap[id]?.size || 'small',
+}));
 
 export default function LayoutPage() {
   const t = useTranslations('settings');
@@ -159,12 +172,30 @@ export default function LayoutPage() {
             const visible = (config.visible_nav_items || []).includes(id);
             return (
               <li key={id} className="flex items-center justify-between p-2 border rounded">
-                  <div className="flex items-center gap-3">
-                  <span className="font-medium">{tNav(item.id) || item.label}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="font-medium truncate">{tNav(item.id) || item.label}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => moveNavItem(id, 'up')} disabled={idx === 0} className="px-2 py-1 border rounded">↑</button>
-                  <button onClick={() => moveNavItem(id, 'down')} disabled={idx === (navOrder.length ? navOrder.length - 1 : availableNavItems.length - 1)} className="px-2 py-1 border rounded">↓</button>
+
+                <div className="flex items-center gap-2 w-40 justify-end">
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => moveNavItem(id, 'up')}
+                      disabled={idx === 0}
+                      className="px-2 py-1 border rounded w-9 h-7 flex items-center justify-center"
+                      aria-label="Move up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={() => moveNavItem(id, 'down')}
+                      disabled={idx === (navOrder.length ? navOrder.length - 1 : availableNavItems.length - 1)}
+                      className="px-2 py-1 border rounded w-9 h-7 flex items-center justify-center"
+                      aria-label="Move down"
+                    >
+                      ↓
+                    </button>
+                  </div>
+
                   <button
                     onClick={() => toggleNavItem(id)}
                     disabled={id === 'settings'}
@@ -200,7 +231,7 @@ export default function LayoutPage() {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2"><UserGroupIcon className="w-5 h-5" /><span className="font-medium">{role.label}</span></div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {availableNavItems.map(item => {
                       const globallyVisible = (config.visible_nav_items || []).includes(item.id);
                       const hasAccess = roleNav.includes(item.id);
@@ -209,11 +240,12 @@ export default function LayoutPage() {
                           key={item.id}
                           onClick={() => toggleNavItemForRole(role.id, item.id)}
                           disabled={!globallyVisible}
-                          className={`px-3 py-1 rounded border ${!globallyVisible ? 'opacity-50 cursor-not-allowed' : hasAccess ? 'bg-green-50 border-green-200' : ''}`}
                           aria-pressed={hasAccess}
                           title={!globallyVisible ? 'Ative o item globalmente primeiro' : hasAccess ? 'Remover acesso' : 'Conceder acesso'}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm text-left min-w-0 overflow-hidden truncate ${!globallyVisible ? 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-200' : hasAccess ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}
                         >
-                          {tNav(item.id) || item.label} {hasAccess ? <CheckIcon className="w-4 h-4 text-green-600 inline-block ml-2" /> : null}
+                          <span className="truncate">{tNav(item.id) || item.label}</span>
+                          {hasAccess ? <CheckIcon className="w-4 h-4 text-green-600 inline-block" /> : null}
                         </button>
                       );
                     })}
@@ -268,7 +300,7 @@ export default function LayoutPage() {
               return (
                 <div key={role.id} className="p-3 border rounded">
                   <div className="flex items-center gap-2 mb-3"><UserGroupIcon className="w-5 h-5" /><span className="font-medium">{role.label}</span></div>
-                  <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {availableWidgets.map(widget => {
                       const enabled = (config.dashboard_widgets || []).includes(widget.id);
                       const hasRole = roleWidgets.includes(widget.id);
@@ -282,14 +314,15 @@ export default function LayoutPage() {
                             updateConfig('dashboard_widgets_by_role', { ...byRole, [role.id]: next });
                           }}
                           disabled={!enabled}
-                          className={`px-3 py-1 rounded border ${!enabled ? 'opacity-50 cursor-not-allowed' : hasRole ? 'bg-green-50 border-green-200' : ''}`}
                           aria-pressed={hasRole}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm min-w-0 overflow-hidden truncate ${!enabled ? 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-200' : hasRole ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}
                         >
-                          {widget.label} {hasRole ? <CheckIcon className="w-4 h-4 text-green-600 inline-block ml-2" /> : null}
+                          <span className="truncate">{widget.label}</span>
+                          {hasRole ? <CheckIcon className="w-4 h-4 text-green-600 inline-block" /> : null}
                         </button>
                       );
                     })}
-                  </div>
+                    </div>
                 </div>
               );
             })}

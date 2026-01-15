@@ -38,10 +38,10 @@ interface UserFormData {
 }
 
 const ROLES = [
-  { value: 'admin', label: 'Administrator', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' },
-  { value: 'manager', label: 'Manager', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
-  { value: 'analyst', label: 'Analyst', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
-  { value: 'viewer', label: 'Viewer', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+  { value: 'admin', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' },
+  { value: 'manager', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
+  { value: 'analyst', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+  { value: 'viewer', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
 ];
 
 export default function UsersPage() {
@@ -273,7 +273,7 @@ export default function UsersPage() {
           >
             <option value="">{t('users.allRoles') || 'All Roles'}</option>
             {ROLES.map(role => (
-              <option key={role.value} value={role.value}>{role.label}</option>
+              <option key={role.value} value={role.value}>{t(`users.roleTypes.${role.value}`) || role.value}</option>
             ))}
           </select>
         </div>
@@ -335,7 +335,7 @@ export default function UsersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
-                          {roleConfig.label}
+                          {t(`users.roleTypes.${roleConfig.value || roleConfig}`) || roleConfig.value}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -495,7 +495,7 @@ export default function UsersPage() {
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                 >
                   {ROLES.map(role => (
-                    <option key={role.value} value={role.value}>{role.label}</option>
+                    <option key={role.value} value={role.value}>{t(`users.roleTypes.${role.value}`) || role.value}</option>
                   ))}
                 </select>
               </div>

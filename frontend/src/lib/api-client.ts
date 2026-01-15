@@ -93,7 +93,12 @@ class ApiClient {
 
           // Redirect to login if refresh failed
           if (typeof window !== 'undefined') {
-            window.location.href = '/login';
+            // Avoid forcing a navigation to /login if we're already on a login route
+            if (!window.location.pathname.endsWith('/login')) {
+              window.location.href = '/login';
+            } else {
+              console.debug('[ApiClient] Already on login page; not redirecting');
+            }
           }
         }
         return Promise.reject(error);

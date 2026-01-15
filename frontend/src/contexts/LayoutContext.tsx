@@ -200,7 +200,28 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
 
   // Update a single config key (updates local state immediately)
   const updateConfig = useCallback(<K extends keyof LayoutConfig>(key: K, value: LayoutConfig[K]) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
+    setConfig(prev => {
+      const next = { ...prev, [key]: value };
+      // Debug: log updates so we can trace client-side toggles
+      try {
+        if (typeof window !== 'undefined') {
+          // Prefer console.debug so logs are less noisy in production devtools
+          // eslint-disable-next-line no-console
+          console.debug('[LayoutContext] updateConfig', key, value, next);
+        }
+      } catch (e) {
+        // ignore
+      }
+      // Dispatch a global event so parts of the app can react immediately
+      try {
+        if (typeof window !== 'undefined' && window?.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('layout:changed', { detail: { key, value, config: next } }));
+        }
+      } catch (e) {
+        // ignore
+      }
+      return next;
+    });
   }, []);
 
   // Save current config to backend

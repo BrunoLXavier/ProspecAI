@@ -6,6 +6,11 @@
     "crm": "CRM",
     "opportunities": "Oportunidades",
     "proposals": "Propostas",
+    "matching": "Matching",
+    "analytics": "Analytics",
+    "translations": "Traduções",
+    "acl": "Controle de Acesso",
+    "users": "Usuários",
     "settings": "Configurações",
     "ingestion": "Ingestão de Dados",
     "piiAnalysis": "Análise de PII",
@@ -517,11 +522,36 @@
     },
     "acl": {
       "title": "Controle de Acesso",
+      "aclDesc": "Gerencie permissões e papéis de usuários",
       "deleteConfirm": "Tem certeza que deseja excluir este papel?",
-      "createRole": "Criar Papel"
+      "roleDescriptions": {
+        "admin": "Acesso total a todos os recursos",
+        "manager": "Gerencia projetos e aprovações",
+        "analyst": "Acessa e analisa dados e oportunidades",
+        "viewer": "Apenas leitura nas áreas permitidas"
+      },
+      "permissions": {
+        "create": "Criar",
+        "read": "Visualizar",
+        "update": "Editar",
+        "delete": "Excluir",
+        "export": "Exportar",
+        "approve": "Aprovar",
+        "assign": "Atribuir"
+      },
+      "createRole": "Criar Papel",
+      "loading": "Carregando papéis...",
+      "noRoles": "Nenhum papel encontrado",
+      "systemBadge": "Sistema",
+      "resource": "Recurso",
+      "createRoleModalTitle": "Criar Novo Papel",
+      "roleName": "Nome do Papel",
+      "exampleRoleName": "Ex: Gerente de Conteúdo",
+      "roleDescriptionLabel": "Descrição"
     },
     "layout": {
       "title": "Configuração de Layout",
+      "subtitle": "Ajuste opções e exibição do layout",
       "description": "Personalize a estrutura visual e o layout do sistema",
       "sidebar": {
         "title": "Barra Lateral",
@@ -590,6 +620,7 @@
       "subtitle": "Gerencie usuários e suas permissões no sistema",
       "newUser": "Novo Usuário",
       "editUser": "Editar Usuário",
+      "create": "Criar",
       "user": "Usuário",
       "searchPlaceholder": "Buscar por nome ou e-mail...",
       "allRoles": "Todos os Papéis",
@@ -617,7 +648,9 @@
       },
       "feedback": "Feedback",
       "feedbackDesc": "Manage user feedback and annotations",
-      "usersDesc": "Manage users and permissions"
+      "usersDesc": "Manage users and permissions",
+      "activeUser": "Usuário ativo",
+      "leaveBlank": "Deixe em branco para manter a atual"
     },
     "statistics": {
       "title": "Permissões de Estatísticas",
@@ -683,6 +716,8 @@
       "passwordMinLength": "Senha deve ter no mínimo 8 caracteres",
       "roleRequired": "Selecione pelo menos um papel"
     },
+    "activeUser": "Usuário ativo",
+    "leaveBlank": "Deixe em branco para manter a atual",
     "messages": {
       "createSuccess": "Usuário criado com sucesso!",
       "updateSuccess": "Usuário atualizado com sucesso!",
@@ -788,10 +823,10 @@
       "analyst": "Analista",
       "viewer": "Visualizador",
       "note": "Seus papéis são definidos pelo administrador do sistema",
-      "adminDesc": "Acceso completo al sistema",
-      "analystDesc": "Análisis e informes",
-      "managerDesc": "Gestiona equipos y proyectos",
-      "viewerDesc": "Solo visualización"
+      "adminDesc": "Acesso completo ao sistema",
+      "analystDesc": "Análise e relatórios",
+      "managerDesc": "Gerencia equipes e projetos",
+      "viewerDesc": "Apenas visualização"
     },
     "security": {
       "title": "Segurança",
@@ -1044,13 +1079,13 @@
       "resetFilters": "Limpiar Filtros",
       "roles": {
         "admin": "Administrador",
-        "adminDesc": "Acceso completo al sistema",
+        "adminDesc": "Acesso completo ao sistema",
         "analyst": "Analista",
-        "analystDesc": "Análisis e informes",
+        "analystDesc": "Análise e relatórios",
         "manager": "Gerente",
-        "managerDesc": "Gestiona equipos y proyectos",
-        "viewer": "Visor",
-        "viewerDesc": "Solo visualización"
+        "managerDesc": "Gerencia equipes e projetos",
+        "viewer": "Visualizador",
+        "viewerDesc": "Apenas visualização"
       },
       "save": "Guardar",
       "search": "Buscar",
@@ -1411,7 +1446,7 @@
     },
     "roles": {
       "admin": "Administrador",
-      "adminDesc": "Acesso total ao sistema",
+      "adminDesc": "Acesso completo ao sistema",
       "manager": "Gerente",
       "managerDesc": "Gerencia equipes e projetos",
       "analyst": "Analista",
@@ -1797,7 +1832,7 @@
   },
   "roles": {
     "admin": "Administrador",
-    "adminDesc": "Acesso total ao sistema",
+    "adminDesc": "Acesso completo ao sistema",
     "manager": "Gerente",
     "managerDesc": "Gerencia equipes e projetos",
     "analyst": "Analista",

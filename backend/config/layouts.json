@@ -41,17 +41,17 @@
         "pipeline_chart",
         "matching_alerts",
         "deadlines",
-        "opportunities",
         "analytics-kpis",
-        "matching",
-        "pipeline",
-        "metrics",
-        "activity",
         "analytics-pipeline",
         "analytics-trends",
-        "calendar",
         "analytics-trl",
-        "analytics-export"
+        "analytics-export",
+        "pipeline",
+        "matching",
+        "calendar",
+        "opportunities",
+        "metrics",
+        "activity"
       ],
       "dashboard_widget_order": [
         "pipeline",
@@ -65,7 +65,6 @@
       ],
       "dashboard_widgets_by_role": {
         "admin": [
-          "pipeline",
           "opportunities",
           "metrics",
           "activity",
@@ -75,7 +74,8 @@
           "analytics-trends",
           "analytics-export",
           "analytics-trl",
-          "analytics-pipeline"
+          "analytics-pipeline",
+          "pipeline"
         ],
         "manager": [
           "pipeline",
@@ -99,7 +99,17 @@
         ],
         "viewer": [
           "metrics",
-          "activity"
+          "activity",
+          "pipeline",
+          "opportunities",
+          "matching"
+        ],
+        "analyst": [
+          "pipeline",
+          "opportunities",
+          "metrics",
+          "activity",
+          "matching"
         ]
       },
       "dashboard_layout": "default",
@@ -108,39 +118,46 @@
       "animations_enabled": true,
       "compact_mode": false,
       "created_at": "2026-01-12T04:06:08.896811Z",
-      "updated_at": "2026-01-15T17:21:00.658216Z",
+      "updated_at": "2026-01-15T18:47:19.101687Z",
       "visible_nav_items_by_role": {
         "admin": [
-          "funding",
-          "portfolio",
-          "crm",
           "opportunities",
           "proposals",
           "reports",
           "settings",
           "activity",
           "ingestion",
-          "piiAnalysis"
+          "piiAnalysis",
+          "dashboard",
+          "funding",
+          "portfolio",
+          "crm"
         ],
         "manager": [
           "dashboard",
           "funding",
           "portfolio",
-          "crm",
           "opportunities",
-          "proposals",
-          "reports",
           "activity"
         ],
         "user": [
           "dashboard",
-          "opportunities",
-          "proposals",
-          "activity"
+          "funding",
+          "portfolio"
         ],
         "viewer": [
           "dashboard",
-          "activity"
+          "funding",
+          "portfolio",
+          "activity",
+          "opportunities"
+        ],
+        "analyst": [
+          "dashboard",
+          "funding",
+          "portfolio",
+          "activity",
+          "opportunities"
         ]
       }
     }

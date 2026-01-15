@@ -157,6 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Load stored auth state on mount
   useEffect(() => {
     const loadStoredAuth = async () => {
+      console.debug('[Auth] loadStoredAuth: starting');
       try {
         const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
         const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
@@ -192,6 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to load stored auth:', error);
         clearStoredAuth();
       } finally {
+        console.debug('[Auth] loadStoredAuth: finished, isLoading=false');
         setIsLoading(false);
       }
     };
@@ -361,7 +363,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const result = await refreshAccessTokenInternal(refreshToken);
     
     if (!result) {
-      router.push('/login');
+      console.debug('[Auth] refreshAccessToken failed — redirecting to /login');
+      router.replace('/login');
     }
     
     return result;

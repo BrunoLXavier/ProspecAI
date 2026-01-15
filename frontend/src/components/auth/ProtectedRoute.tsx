@@ -19,7 +19,19 @@ export default function ProtectedRoute({ children, requiredRoles = [] }: Protect
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/login');
+      // If there's a refresh token stored, allow background refresh to complete before redirecting
+      try {
+        const hasRefresh = typeof window !== 'undefined' && !!localStorage.getItem('prospecai_refresh_token');
+        if (hasRefresh) {
+          console.debug('[ProtectedRoute] refresh token present - delaying redirect');
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      console.debug('[ProtectedRoute] redirecting to /login');
+      router.replace('/login');
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -28,7 +40,8 @@ export default function ProtectedRoute({ children, requiredRoles = [] }: Protect
     if (!isLoading && isAuthenticated && requiredRoles.length > 0 && user) {
       const hasRequiredRole = requiredRoles.some(role => user.roles.includes(role));
       if (!hasRequiredRole) {
-        router.push('/unauthorized');
+        console.debug('[ProtectedRoute] redirecting to /unauthorized');
+        router.replace('/unauthorized');
       }
     }
   }, [isLoading, isAuthenticated, user, requiredRoles, router]);

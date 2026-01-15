@@ -101,7 +101,8 @@ export default function Dashboard() {
   }, [searchParams, router, pathname]);
 
   // Get user's primary role (first role or 'user' as fallback)
-  const userRole = user?.roles?.[0] || 'admin'; // Default to admin if no user/roles
+  // Do NOT default to 'admin' for unauthenticated users — use 'user' as safe fallback
+  const userRole = user?.roles?.[0] || 'user';
 
   // Get widgets available for user's role (admin-configured)
   const availableWidgetsForRole = useMemo(() => {

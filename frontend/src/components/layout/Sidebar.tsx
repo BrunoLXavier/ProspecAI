@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useLayout } from '@/contexts/LayoutContext';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   HomeIcon,
   CurrencyDollarIcon,
@@ -123,9 +124,50 @@ export default function Sidebar() {
   const t = useTranslations('navigation');
   const { isCollapsed, toggleCollapse } = useSidebar();
   const { config } = useLayout();
+  const [, setVersion] = useState(0);
 
-  // Compute visible items applying nav_order when present
-  const visibleIds = config.visible_nav_items || [];
+  // Ensure immediate re-render when layout config updates via event
+  useEffect(() => {
+    const handler = (ev?: Event) => {
+      try {
+        // eslint-disable-next-line no-console
+        console.debug('[Sidebar] layout:changed event', (ev as CustomEvent)?.detail);
+      } catch (e) {}
+      setVersion(v => v + 1);
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('layout:changed', handler as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('layout:changed', handler as EventListener);
+      }
+    };
+  }, []);
+
+  // Debug: log visible nav items whenever they change
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[Sidebar] visible_nav_items', config.visible_nav_items);
+    } catch (e) {}
+  }, [config.visible_nav_items]);
+
+  // Compute visible items applying nav_order when present and applying role-based restrictions
+  const { user } = useAuth();
+  const globalVisible = config.visible_nav_items || [];
+  // Build allowed set from role-based config; if none configured for user's roles, allow all
+  const byRole = config.visible_nav_items_by_role || {};
+  const userRoles: string[] = (user?.roles && Array.isArray(user.roles)) ? user.roles : [];
+  let allowedByRole: Set<string> = new Set();
+  if (userRoles.length) {
+    userRoles.forEach(r => {
+      const arr = byRole[r] || [];
+      arr.forEach(i => allowedByRole.add(i));
+    });
+  }
+  const allowedAll = userRoles.length === 0 || allowedByRole.size === 0;
+  const visibleIds = globalVisible.filter(id => allowedAll || allowedByRole.has(id) || id === 'settings');
   const order = (config.nav_order && config.nav_order.length) ? config.nav_order : [];
   const orderedIds = [
     ...order.filter(id => visibleIds.includes(id)),
@@ -135,6 +177,14 @@ export default function Sidebar() {
   const visibleItems = orderedIds
     .map(id => navigationItems.find(item => item.id === id))
     .filter(Boolean) as NavigationItem[];
+
+  // Debug: log effective visible ids
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[Sidebar] effective visible ids', orderedIds);
+    } catch (e) {}
+  }, [orderedIds.join(',')]);
 
   return (
     <aside

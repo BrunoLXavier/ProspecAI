@@ -4,6 +4,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { SidebarProvider, useSidebar } from '@/components/layout/Sidebar';
@@ -20,23 +21,48 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const lastRedirectRef = useRef<number>(0);
 
   // Public routes that don't require authentication
   const publicRoutes = ['/login'];
-  const isPublicRoute = publicRoutes.includes(pathname);
+  // Allow localized prefixes (e.g. /pt-BR/login) by checking suffix
+  const isPublicRoute = publicRoutes.some(r => pathname === r || pathname.endsWith(r));
 
   useEffect(() => {
+    console.debug('[LayoutShell] auth state:', { pathname, isLoading, isAuthenticated, isPublicRoute });
     // Wait for auth state to load
     if (isLoading) return;
     
     // Redirect unauthenticated users to login
+    const now = Date.now();
+
     if (!isAuthenticated && !isPublicRoute) {
-      router.push('/login');
+      try {
+        const hasRefresh = typeof window !== 'undefined' && !!localStorage.getItem('prospecai_refresh_token');
+        if (!hasRefresh) {
+          if (!pathname?.endsWith('/login') && now - lastRedirectRef.current > 1000) {
+            lastRedirectRef.current = now;
+            router.push('/login');
+          }
+        } else {
+          console.debug('[LayoutShell] refresh token present - delaying redirect to /login');
+        }
+      } catch (e) {
+        if (!pathname?.endsWith('/login') && now - lastRedirectRef.current > 1000) {
+          lastRedirectRef.current = now;
+          router.push('/login');
+        }
+      }
     }
-    
+
     // Redirect authenticated users away from login page
     if (isAuthenticated && isPublicRoute) {
-      router.push('/');
+      if (!pathname || pathname === '/login' || pathname.endsWith('/login')) {
+        if (now - lastRedirectRef.current > 1000) {
+          lastRedirectRef.current = now;
+          router.push('/');
+        }
+      }
     }
   }, [isAuthenticated, isLoading, isPublicRoute, router]);
 

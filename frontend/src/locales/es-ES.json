@@ -6,6 +6,11 @@
     "crm": "CRM",
     "opportunities": "Oportunidades",
     "proposals": "Propuestas",
+    "matching": "Matching",
+    "analytics": "Analytics",
+    "translations": "Traducciones",
+    "acl": "Control de Acceso",
+    "users": "Usuarios",
     "settings": "Configuración",
     "ingestion": "Ingestión de Datos",
     "piiAnalysis": "Análisis de PII",
@@ -517,11 +522,36 @@
     },
     "acl": {
       "title": "Control de Acceso",
+      "aclDesc": "Administre roles y permisos de usuario",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar este rol?",
-      "createRole": "Crear Rol"
+      "roleDescriptions": {
+        "admin": "Acceso completo a todos los recursos",
+        "manager": "Gestiona proyectos y aprobaciones",
+        "analyst": "Accede y analiza datos y oportunidades",
+        "viewer": "Acceso solo lectura a las áreas permitidas"
+      },
+      "permissions": {
+        "create": "Crear",
+        "read": "Ver",
+        "update": "Editar",
+        "delete": "Eliminar",
+        "export": "Exportar",
+        "approve": "Aprobar",
+        "assign": "Asignar"
+      },
+      "createRole": "Crear Rol",
+      "loading": "Cargando roles...",
+      "noRoles": "No se encontraron roles",
+      "systemBadge": "Sistema",
+      "resource": "Recurso",
+      "createRoleModalTitle": "Crear Nuevo Rol",
+      "roleName": "Nombre del Rol",
+      "exampleRoleName": "Ej: Gestor de Contenido",
+      "roleDescriptionLabel": "Descripción"
     },
     "layout": {
       "title": "Configuración de Diseño",
+      "subtitle": "Personaliza la estructura y opciones del diseño",
       "description": "Personaliza la estructura visual y el diseño del sistema",
       "sidebar": {
         "title": "Barra Lateral",
@@ -590,6 +620,7 @@
       "subtitle": "Gestiona usuarios y sus permisos en el sistema",
       "newUser": "Nuevo Usuario",
       "editUser": "Editar Usuario",
+      "create": "Crear",
       "user": "Usuario",
       "searchPlaceholder": "Buscar por nombre o correo...",
       "allRoles": "Todos los Roles",
@@ -617,7 +648,9 @@
         "analyst": "Analista",
         "viewer": "Visualizador"
       },
-      "deleteConfirmation": "Excluir este usuário?"
+      "deleteConfirmation": "Excluir este usuário?",
+      "activeUser": "Usuario activo",
+      "leaveBlank": "Dejar en blanco para mantener la actual"
     },
     "statistics": {
       "title": "Permisos de Estadísticas",
@@ -655,7 +688,9 @@
     "status": "Estado",
     "active": "Activo",
     "inactive": "Inactivo",
-    "lastLogin": "Último Acceso",
+        "deleteConfirmation": "¿Está seguro de que desea eliminar este usuario?",
+        "activeUser": "Usuario activo",
+        "leaveBlank": "Dejar en blanco para mantener la actual",
     "createdAt": "Creado el",
     "actions": "Acciones",
     "filters": {

@@ -6,6 +6,11 @@
     "crm": "CRM",
     "opportunities": "Opportunities",
     "proposals": "Proposals",
+    "matching": "Matching",
+    "analytics": "Analytics",
+    "translations": "Translations",
+    "acl": "Access Control",
+    "users": "Users",
     "settings": "Settings",
     "ingestion": "Data Ingestion",
     "piiAnalysis": "PII Analysis",
@@ -517,11 +522,37 @@
     },
     "acl": {
       "title": "Access Control",
+      "aclDesc": "Manage roles and permissions for system resources",
       "deleteConfirm": "Are you sure you want to delete this role?",
+      "roleDescriptions": {
+        "admin": "Full access to all resources",
+        "manager": "Manage projects and approvals",
+        "analyst": "Access and analyze data and opportunities",
+        "viewer": "Read-only access to allowed areas"
+      },
+      "permissions": {
+        "create": "Create",
+        "read": "Read",
+        "update": "Update",
+        "delete": "Delete",
+        "export": "Export",
+        "approve": "Approve",
+        "assign": "Assign"
+      },
       "createRole": "Create Role"
+      ,
+      "loading": "Loading roles...",
+      "noRoles": "No roles found",
+      "systemBadge": "System",
+      "resource": "Resource",
+      "createRoleModalTitle": "Create New Role",
+      "roleName": "Role Name",
+      "exampleRoleName": "e.g., Content Manager",
+      "roleDescriptionLabel": "Description"
     },
     "layout": {
       "title": "Layout Configuration",
+      "subtitle": "Customize layout structure and options",
       "description": "Customize the visual structure and layout of the system",
       "sidebar": {
         "title": "Sidebar",
@@ -590,6 +621,7 @@
       "subtitle": "Manage users and their permissions in the system",
       "newUser": "New User",
       "editUser": "Edit User",
+      "create": "Create",
       "user": "User",
       "searchPlaceholder": "Search by name or email...",
       "allRoles": "All Roles",
@@ -617,7 +649,9 @@
         "analyst": "Analyst",
         "viewer": "Viewer"
       },
-      "deleteConfirmation": "Excluir este usuário?"
+      "deleteConfirmation": "Excluir este usuário?",
+      "activeUser": "Active user",
+      "leaveBlank": "Leave blank to keep current"
     },
     "statistics": {
       "title": "Statistics Permissions",
