@@ -44,8 +44,6 @@
         "analytics-kpis",
         "analytics-pipeline",
         "analytics-trends",
-        "analytics-trl",
-        "analytics-export",
         "pipeline",
         "matching",
         "calendar",
@@ -118,7 +116,7 @@
       "animations_enabled": true,
       "compact_mode": false,
       "created_at": "2026-01-12T04:06:08.896811Z",
-      "updated_at": "2026-01-15T19:08:21.024560Z",
+      "updated_at": "2026-01-15T22:52:58.590659Z",
       "visible_nav_items_by_role": {
         "admin": [
           "opportunities",

@@ -56,6 +56,7 @@ export default function LayoutPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [navOrder, setNavOrder] = useState<string[]>([]);
+  const [widgetsOrder, setWidgetsOrder] = useState<string[]>([]);
 
   useEffect(() => {
     if (!config) return;
@@ -70,6 +71,14 @@ export default function LayoutPage() {
     if (!visibleNow.includes('settings')) {
       updateConfig('visible_nav_items', [...visibleNow, 'settings']);
     }
+  }, [config]);
+
+  useEffect(() => {
+    if (!config) return;
+    const savedOrder = (config.dashboard_widget_order && config.dashboard_widget_order.length) ? [...config.dashboard_widget_order] : (config.dashboard_widgets && config.dashboard_widgets.length ? [...config.dashboard_widgets] : []);
+    const allAvailable = availableWidgets.map(i => i.id);
+    const merged = Array.from(new Set([...(savedOrder || []), ...allAvailable]));
+    setWidgetsOrder(merged);
   }, [config]);
 
   const isAdmin = !!user?.roles?.includes('admin');
@@ -129,6 +138,19 @@ export default function LayoutPage() {
       const copy = [...prev];
       [copy[idx], copy[swap]] = [copy[swap], copy[idx]];
       updateConfig('nav_order', copy);
+      return copy;
+    });
+  };
+
+  const moveWidget = (id: string, direction: 'up' | 'down') => {
+    setWidgetsOrder(prev => {
+      const idx = prev.indexOf(id);
+      if (idx === -1) return prev;
+      const swap = direction === 'up' ? idx - 1 : idx + 1;
+      if (swap < 0 || swap >= prev.length) return prev;
+      const copy = [...prev];
+      [copy[idx], copy[swap]] = [copy[swap], copy[idx]];
+      updateConfig('dashboard_widget_order', copy);
       return copy;
     });
   };
@@ -266,21 +288,50 @@ export default function LayoutPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {availableWidgets.map(widget => {
-            const isEnabled = (config.dashboard_widgets || []).includes(widget.id);
+        <ul className="space-y-2">
+          {(widgetsOrder.length ? widgetsOrder : availableWidgets.map(i => i.id)).map((id, idx) => {
+            const widget = availableWidgets.find(x => x.id === id) || { id, label: id, size: 'small' };
+            const enabled = (config.dashboard_widgets || []).includes(id);
             return (
-              <button
-                key={widget.id}
-                onClick={() => updateConfig('dashboard_widgets', isEnabled ? (config.dashboard_widgets || []).filter((w: string) => w !== widget.id) : [...(config.dashboard_widgets || []), widget.id])}
-                className={`flex flex-col items-start p-3 rounded-lg border-2 transition-all ${isEnabled ? 'border-primary-500 bg-primary-50' : 'border-gray-200 opacity-60'}`}
-              >
-                <span className="text-sm font-medium">{widget.label}</span>
-                <span className="text-xs text-gray-500">{widget.size}</span>
-              </button>
+              <li key={id} className="flex items-center justify-between p-2 border rounded">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex flex-col">
+                    <span className="font-medium truncate">{widget.label}</span>
+                    <span className="text-xs text-gray-500">{widget.size}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-40 justify-end">
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => moveWidget(id, 'up')}
+                      disabled={idx === 0}
+                      className="px-2 py-1 border rounded w-9 h-7 flex items-center justify-center"
+                      aria-label="Move up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={() => moveWidget(id, 'down')}
+                      disabled={idx === (widgetsOrder.length ? widgetsOrder.length - 1 : availableWidgets.length - 1)}
+                      className="px-2 py-1 border rounded w-9 h-7 flex items-center justify-center"
+                      aria-label="Move down"
+                    >
+                      ↓
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => updateConfig('dashboard_widgets', enabled ? (config.dashboard_widgets || []).filter((w: string) => w !== id) : [...(config.dashboard_widgets || []), id])}
+                    className={`px-3 py-1 rounded ${enabled ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border'}`}
+                  >
+                    {enabled ? 'Ativo' : 'Inativo'}
+                  </button>
+                </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </section>
 
       {/* Widgets por Perfil de Usuário (Admin) - simplified restored version */}
