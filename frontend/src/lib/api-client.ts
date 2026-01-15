@@ -95,7 +95,8 @@ class ApiClient {
           if (typeof window !== 'undefined') {
             // Avoid forcing a navigation to /login if we're already on a login route
             if (!window.location.pathname.endsWith('/login')) {
-              window.location.href = '/login';
+              console.debug('[ApiClient] Redirecting to /login via replace');
+              window.location.replace('/login');
             } else {
               console.debug('[ApiClient] Already on login page; not redirecting');
             }

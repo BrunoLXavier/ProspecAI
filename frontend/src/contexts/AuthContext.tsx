@@ -6,6 +6,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { setTokenRefreshFunction } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
 
 // =============================================================================
@@ -176,14 +177,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               expiresAt: expiry,
             });
 
-            // Attempt to fetch user from backend (authoritative roles)
-            const fetched = await fetchCurrentUser(accessToken);
-            if (!fetched) {
-              // fallback to stored user if fetch fails
-              const parsedUser = JSON.parse(storedUser);
-              setUser(parsedUser);
-              setRequiresEmailVerification(!parsedUser.emailVerified);
-            }
+                // Attempt to fetch user from backend (authoritative roles)
+                let fetched = await fetchCurrentUser(accessToken);
+
+                // If backend rejects access token, try refreshing using refresh token
+                if (!fetched && refreshToken) {
+                  try {
+                    const newAccess = await refreshAccessTokenInternal(refreshToken);
+                    if (newAccess) {
+                      fetched = await fetchCurrentUser(newAccess);
+                    }
+                  } catch (e) {
+                    console.debug('[Auth] refresh attempt failed during loadStoredAuth', e);
+                  }
+                }
+
+                if (!fetched) {
+                  // If we still couldn't fetch authoritative user, clear stored auth
+                  // to avoid trusting stale local data that causes redirect loops.
+                  console.debug('[Auth] Stored tokens invalid - clearing stored auth');
+                  clearStoredAuth();
+                }
           } else {
             // Token expired, try to refresh
             await refreshAccessTokenInternal(refreshToken);
@@ -266,11 +280,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (credentials: LoginCredentials): Promise<void> => {
     setIsLoading(true);
     
+    console.debug('[Auth] login called');
     try {
       const response = await authFetch('/login', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
+
+      console.debug('[Auth] login response status', response.status);
 
       if (!response.ok) {
         const error = await response.json();
@@ -369,6 +386,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     return result;
   }, [router]);
+
+  // Register token refresh function with ApiClient so it can refresh on 401
+  useEffect(() => {
+    setTokenRefreshFunction(refreshAccessToken);
+    return () => {
+      // clear the function on unmount
+      setTokenRefreshFunction(async () => null);
+    };
+  }, [refreshAccessToken]);
 
   const requestPasswordReset = async (email: string): Promise<void> => {
     const response = await authFetch('/forgot-password', {

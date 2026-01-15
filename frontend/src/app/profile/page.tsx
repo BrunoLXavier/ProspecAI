@@ -3,6 +3,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +22,7 @@ import {
 export default function ProfilePage() {
   const t = useTranslations('profile');
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
@@ -45,7 +47,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     await logout();
-    window.location.href = '/login';
+    router.replace('/login');
   };
 
   const userRoles = user?.roles || ['admin'];

@@ -68,7 +68,9 @@ interface LayoutContextType {
 
 // All available widget IDs
 export const ALL_WIDGET_IDS = [
-  'pipeline', 'opportunities', 'metrics', 'activity', 'matching', 'calendar'
+  'pipeline', 'opportunities', 'metrics', 'activity', 'matching', 'calendar',
+  // Analytics widgets (registered in the dashboard registry)
+  'analytics-kpis', 'analytics-pipeline', 'analytics-trl', 'analytics-trends', 'analytics-export',
 ];
 
 const DEFAULT_CONFIG: LayoutConfig = {
@@ -81,7 +83,8 @@ const DEFAULT_CONFIG: LayoutConfig = {
   ],
   nav_order: [],
   dashboard_widgets: [
-    'pipeline', 'opportunities', 'metrics', 'activity', 'matching', 'calendar'
+    'pipeline', 'opportunities', 'metrics', 'activity', 'matching', 'calendar',
+    'analytics-kpis', 'analytics-pipeline', 'analytics-trl', 'analytics-trends', 'analytics-export',
   ],
   dashboard_widget_order: [], // Empty means use dashboard_widgets order
   dashboard_widgets_by_role: {

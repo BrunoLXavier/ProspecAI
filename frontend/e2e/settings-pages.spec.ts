@@ -10,7 +10,7 @@ async function setupAuth(page: Page) {
     localStorage.setItem('prospecai_user', JSON.stringify({
       id: '1',
       email: 'admin@prospecai.com',
-      username: 'admin',
+      username: 'Admin@123',
       name: 'Admin User',
       tenantId: 'tenant-1',
       roles: ['admin'],
