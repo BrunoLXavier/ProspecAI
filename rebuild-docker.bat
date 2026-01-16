@@ -28,6 +28,8 @@ for %%a in (%*) do (
     if /I "%%~a"=="use-entrypoint" set USE_ENTRYPOINT=1
     if /I "%%~a"=="--use-entrypoint" set USE_ENTRYPOINT=1
     if /I "%%~a"=="/use-entrypoint" set USE_ENTRYPOINT=1
+    if /I "%%~a"=="--restart" set RESTART_FLAG=--restart
+    if /I "%%~a"=="--fresh" set RESTART_FLAG=--fresh
 )
 if %USE_ENTRYPOINT%==1 (
     echo [*] USE_ENTRYPOINT enabled for this run
@@ -86,7 +88,12 @@ if %REBUILD_FRONTEND%==1 (
 )
 
 echo [*] Starting services via start-docker.bat (handles health checks)...
-call "%~dp0start-docker.bat"
+echo Calling start-docker with flags: %RESTART_FLAG%
+call "%~dp0start-docker.bat" %RESTART_FLAG%
+if ERRORLEVEL 1 (
+    echo [ERROR] start-docker.bat failed.
+    exit /b 1
+)
 
 echo.
 echo ================================================================

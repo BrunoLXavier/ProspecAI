@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from enum import Enum
 import hashlib
 
-from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
 from pydantic import BaseModel
 
 
@@ -140,8 +139,16 @@ class BERTimbauNERService:
         """Lazy load the NER model"""
         if self._loaded:
             return
-        
+        # Allow disabling heavy AI model loading via env var (useful for low-memory dev)
+        if os.getenv("SKIP_AI_MODELS", "0") == "1":
+            print("SKIP_AI_MODELS=1; skipping transformer model load (pattern detection only)")
+            self._loaded = True
+            return
+
         try:
+            # import transformers lazily to avoid heavy imports at module import time
+            from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
+
             self.tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
             self.model = AutoModelForTokenClassification.from_pretrained(MODEL_NAME)
             self.ner_pipeline = pipeline(
@@ -154,7 +161,8 @@ class BERTimbauNERService:
         except Exception as e:
             print(f"Warning: Could not load NER model: {e}")
             print("Falling back to pattern-based detection only")
-            self._loaded = True  # Mark as loaded to avoid repeated attempts
+            # mark as loaded so we don't repeatedly attempt to load in low-memory environments
+            self._loaded = True
     
     def detect_entities(self, text: str) -> List[DetectedEntity]:
         """
