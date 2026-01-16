@@ -57,17 +57,11 @@ from sentence_transformers import SentenceTransformer; \
 model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'); \
 print('Sentence-Transformers model downloaded successfully')" || echo "Sentence-transformers download optional - will download at runtime"
 
-# 4. Verify all models are cached
-RUN python << 'EOF'
-import os
-cache_dir = '/app/.cache/huggingface'
-print('4/4 Verifying model cache...')
-if os.path.exists(cache_dir):
-    total_size = sum(os.path.getsize(os.path.join(dp, f)) for dp, dn, fn in os.walk(cache_dir) for f in fn)
-    print(f'Model cache size: {total_size / 1024 / 1024:.1f} MB')
-else:
-    print('Cache directory not found')
-EOF
+# 4. Verify all models are cached (skipped in Docker build)
+# Model cache verification at build time is optional and was removed
+# to avoid embedding multiline Python in the Dockerfile which causes
+# some static analyzers to misinterpret the file. Runtime verification
+# can be performed by the entrypoint if needed.
 
 COPY . .
 
@@ -82,5 +76,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run migrations and start server
-CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
+# Run migrations, optional seeds and start server via entrypoint
+COPY entrypoint.sh ./
+RUN chmod +x ./entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]

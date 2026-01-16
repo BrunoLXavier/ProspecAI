@@ -132,7 +132,7 @@ export default function CreateFundingModal({ isOpen, onClose }: CreateFundingMod
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormSelect
-                      label={t('status')}
+                      label={t('statusLabel')}
                       options={statusOptions}
                       error={errors.status}
                       {...register('status')}

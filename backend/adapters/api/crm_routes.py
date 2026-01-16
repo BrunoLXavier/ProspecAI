@@ -13,6 +13,7 @@ def get_stub_clients():
     return [{"id": 1, "name": "Empresa Exemplo", "cnpj": "00.000.000/0001-00"}]
 
 @router.get("/", summary="List all CRM clients", response_model=List[dict])
+@router.get("/clients", summary="List all CRM clients (clients path)", response_model=List[dict])
 def list_clients():
     return get_stub_clients()
 

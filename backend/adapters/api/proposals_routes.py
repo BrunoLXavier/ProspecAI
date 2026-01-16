@@ -120,6 +120,7 @@ class AttachmentResponse(BaseModel):
 # =============================================================================
 
 @router.get("/", summary="List all proposals", response_model=List[ProposalResponse])
+@router.get("", summary="List all proposals (no trailing slash)", response_model=List[ProposalResponse])
 async def list_proposals(
     status: Optional[str] = Query(None, description="Filter by status"),
     funding_source_id: Optional[UUID] = Query(None, description="Filter by funding source"),
@@ -143,12 +144,13 @@ async def list_proposals(
         filters["funding_source_id"] = str(funding_source_id)
     if client_id:
         filters["client_id"] = str(client_id)
-    
+    if search:
+        filters["search_text"] = search
+
     proposals = await proposal_repo.find_by_criteria(
-        filters, 
-        skip=skip, 
+        filters,
+        skip=skip,
         limit=limit,
-        search=search
     )
     
     return [

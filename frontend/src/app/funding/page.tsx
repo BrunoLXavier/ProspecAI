@@ -73,7 +73,7 @@ export default function FundingPage() {
     },
     {
       key: 'status',
-      label: t('status'),
+      label: t('statusLabel'),
       type: 'select',
       options: [
         { value: 'all', label: t('filters.allStatus') },

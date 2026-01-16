@@ -91,7 +91,12 @@
     "focusAreasPlaceholder": "Ex: Indústria 4.0, IA, Sustentabilidade",
     "url": "URL",
     "updateError": "Erro ao atualizar o edital. Tente novamente.",
-    "status": "status",
+    "statusLabel": "Status",
+    "status": {
+      "open": "Abertos",
+      "closed": "Fechados",
+      "suspended": "Suspensos"
+    },
     "types": {
       "grant": "Subvenção",
       "subsidy": "Subsídio",
@@ -267,7 +272,8 @@
     "days": "dias",
     "updateError": "Erro ao atualizar oportunidade. Tente novamente.",
     "filters": {
-      "allStages": "Todos os Estágios"
+      "allStages": "Todos os Estágios",
+      "allStatuses": "Todos os Status"
     },
     "stages": {
       "intelligence": "Inteligência",

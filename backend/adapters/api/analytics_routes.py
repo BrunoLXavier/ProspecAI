@@ -2,12 +2,16 @@
 Analytics API Routes
 Implements RF-07: Analytics and Dashboard
 """
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
+import logging
 from pydantic import BaseModel
 from typing import Dict, Any, List
 from dataclasses import asdict
 
-from infrastructure.auth import get_current_user, CurrentUser
+from adapters.api.auth_middleware import get_current_user, AuthenticatedUser
+
+
+logger = logging.getLogger(__name__)
 from infrastructure.di_container import get_db_session
 from services.analytics_service import AnalyticsService, TimeRange, KPIMetric
 
@@ -69,8 +73,9 @@ class ClientActivityData(BaseModel):
 @router.get("/overview", response_model=OverviewResponse)
 async def get_overview(
     period: TimeRange = Query(TimeRange.MONTH, description="Time period for KPIs"),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db_session),
+    request: Request = None,
 ):
     """
     Get main dashboard KPIs with trends.
@@ -83,7 +88,9 @@ async def get_overview(
     - proposals_submitted: Submitted proposals count
     - avg_match_score: Average matching score
     """
-    service = AnalyticsService(session, current_user.tenant_id)
+    logger.info(f"[analytics] Authorization header: {request.headers.get('authorization') if request else 'no-request'}")
+    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    service = AnalyticsService(session, tenant_id)
     kpis = await service.get_overview_kpis(period)
     
     return OverviewResponse(
@@ -94,42 +101,47 @@ async def get_overview(
 
 @router.get("/pipeline", response_model=List[PipelineStageData])
 async def get_pipeline_distribution(
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db_session),
+    request: Request = None,
 ):
     """
     Get opportunity distribution by pipeline stage.
     Useful for funnel visualization.
     """
-    service = AnalyticsService(session, current_user.tenant_id)
+    logger.info(f"[analytics] Authorization header: {request.headers.get('authorization') if request else 'no-request'}")
+    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    service = AnalyticsService(session, tenant_id)
     data = await service.get_pipeline_by_stage()
     return [PipelineStageData(**item) for item in data]
 
 
 @router.get("/funding-categories", response_model=List[FundingCategoryData])
 async def get_funding_by_category(
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db_session),
 ):
     """
     Get funding sources distribution by instrument type.
     Useful for pie/donut charts.
     """
-    service = AnalyticsService(session, current_user.tenant_id)
+    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    service = AnalyticsService(session, tenant_id)
     data = await service.get_funding_by_category()
     return [FundingCategoryData(**item) for item in data]
 
 
 @router.get("/trl-distribution", response_model=List[TRLDistributionData])
 async def get_trl_distribution(
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db_session),
 ):
     """
     Get project distribution by TRL level.
     Shows technology maturity across portfolio.
     """
-    service = AnalyticsService(session, current_user.tenant_id)
+    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    service = AnalyticsService(session, tenant_id)
     data = await service.get_projects_by_trl()
     return [TRLDistributionData(**item) for item in data]
 
@@ -137,14 +149,15 @@ async def get_trl_distribution(
 @router.get("/matching-trends", response_model=List[TrendData])
 async def get_matching_trends(
     days: int = Query(30, ge=7, le=365, description="Number of days"),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db_session),
 ):
     """
     Get daily matching activity trends.
     Shows matching volume and average scores over time.
     """
-    service = AnalyticsService(session, current_user.tenant_id)
+    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    service = AnalyticsService(session, tenant_id)
     data = await service.get_matching_trends(days)
     return [TrendData(**item) for item in data]
 
@@ -152,14 +165,15 @@ async def get_matching_trends(
 @router.get("/top-clients", response_model=List[ClientActivityData])
 async def get_top_clients(
     limit: int = Query(10, ge=5, le=50, description="Number of clients"),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db_session),
 ):
     """
     Get most active clients by opportunity count.
     Useful for identifying key accounts.
     """
-    service = AnalyticsService(session, current_user.tenant_id)
+    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    service = AnalyticsService(session, tenant_id)
     data = await service.get_client_activity(limit)
     return [ClientActivityData(**item) for item in data]
 
@@ -168,13 +182,14 @@ async def get_top_clients(
 async def export_analytics(
     format: str = Query("json", regex="^(json|csv)$"),
     period: TimeRange = Query(TimeRange.MONTH),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db_session),
 ):
     """
     Export analytics data in JSON or CSV format.
     """
-    service = AnalyticsService(session, current_user.tenant_id)
+    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    service = AnalyticsService(session, tenant_id)
     
     # Gather all data
     kpis = await service.get_overview_kpis(period)

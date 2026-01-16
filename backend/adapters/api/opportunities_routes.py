@@ -29,3 +29,25 @@ def get_opportunity(opportunity_id: int):
         if o["id"] == opportunity_id:
             return o
     raise HTTPException(status_code=404, detail="Opportunity not found")
+
+
+@router.get("/stats/pipeline", summary="Get pipeline statistics")
+def get_pipeline_stats():
+    """Return simple pipeline statistics (stub).
+
+    This is a small stub to satisfy frontend calls to
+    `/api/v1/opportunities/stats/pipeline` while a full
+    implementation is available in the use-case layer.
+    """
+    # Example stubbed data matching frontend expectations
+    return {
+        "total_opportunities": len(get_stub_opportunities()),
+        "by_stage": {
+            "intelligence": 0,
+            "approach": 0,
+            "proposal": 1,
+            "negotiation": 0,
+            "won": 0,
+            "lost": 0
+        }
+    }

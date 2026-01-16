@@ -91,7 +91,12 @@
     "focusAreasPlaceholder": "Ex: Industry 4.0, AI, Sustainability",
     "url": "URL",
     "updateError": "Error updating funding source. Please try again.",
-    "status": "status",
+    "statusLabel": "Status",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "suspended": "Suspended"
+    },
     "types": {
       "grant": "Grant",
       "subsidy": "Subsidy",
@@ -272,7 +277,8 @@
     "days": "days",
     "updateError": "Error updating opportunity. Please try again.",
     "filters": {
-      "allStages": "All Stages"
+      "allStages": "All Stages",
+      "allStatuses": "All Statuses"
     },
     "stages": {
       "intelligence": "Intelligence",

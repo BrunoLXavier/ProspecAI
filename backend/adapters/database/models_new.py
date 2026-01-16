@@ -12,8 +12,7 @@ from sqlalchemy import (
     Numeric, String, Text, UUID, func, text, ARRAY, CheckConstraint
 )
 from sqlalchemy.dialects.postgresql import JSONB, TSRANGE, INT4RANGE, INET
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref, declarative_base
 from sqlalchemy.sql import expression
 
 
@@ -49,6 +48,7 @@ class TenantModel(BaseModel):
         Index('idx_tenants_slug', 'slug'),
         Index('idx_tenants_status', 'status'),
     )
+
 
 
 class AuditLogModel(BaseModel):
@@ -176,9 +176,10 @@ class ProjectModel(BaseModel):
     
     # Relationships
     tenant = relationship("TenantModel")
-    portfolio_projects = relationship("ProjectModel", remote_side=[id])  # Self-referencing
     opportunities = relationship("OpportunityModel", back_populates="project")
     matching_scores = relationship("MatchingScoreModel", back_populates="project")
+    # Self-referential parent/children relationship for portfolio grouping
+    # (wired after class definitions to avoid name-resolution issues)
     
     # Constraints and indexes
     __table_args__ = (
@@ -450,7 +451,6 @@ class ProposalVersionModel(BaseModel):
     # Relationships
     tenant = relationship("TenantModel")
     proposal = relationship("ProposalModel", back_populates="versions")
-    parent_version = relationship("ProposalVersionModel", remote_side=[id])
     
     # Constraints and indexes
     __table_args__ = (
@@ -463,6 +463,9 @@ class ProposalVersionModel(BaseModel):
         Index('idx_proposal_versions_author', 'author_id'),
         Index('idx_proposal_versions_parent', 'parent_version_id'),
     )
+    # Self-referential parent/children relationship for version history
+    # (wired after class definitions to avoid name-resolution issues)
+
 
 
 # Enable Row-Level Security (RLS) for multi-tenancy

@@ -66,12 +66,15 @@ async def get_current_user(
     Returns None if no valid token provided.
     """
     if not credentials:
+        logger.info(f"No Authorization header on request {request.url.path}")
         return None
-    
+
     token = credentials.credentials
+    logger.info(f"Received Bearer token preview={token[:10]}... for {request.url.path}")
     payload = jwt_service.validate_access_token(token)
-    
+
     if not payload:
+        logger.info(f"Token validation failed for request {request.url.path}")
         return None
     
     try:
@@ -84,6 +87,7 @@ async def get_current_user(
         )
     except Exception as e:
         logger.warning(f"Error parsing token payload: {e}")
+        logger.debug(f"Token payload keys: {list(payload.__dict__.keys()) if hasattr(payload, '__dict__') else 'unknown'}")
         return None
 
 

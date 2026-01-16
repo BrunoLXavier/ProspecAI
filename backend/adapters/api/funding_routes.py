@@ -13,6 +13,7 @@ def get_stub_funding():
     return [{"id": 1, "name": "Edital Exemplo", "trl": 5}]
 
 @router.get("/", summary="List all funding opportunities", response_model=List[dict])
+@router.get("", summary="List all funding opportunities (no trailing slash)", response_model=List[dict])
 def list_funding():
     return get_stub_funding()
 

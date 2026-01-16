@@ -6,156 +6,107 @@
       "tenant_id": "00000000-0000-0000-0000-000000000000",
       "sidebar_position": "left",
       "sidebar_collapsed": false,
-      "sidebar_width": 240,
+      "sidebar_width": 260,
       "visible_nav_items": [
-        "funding",
-        "portfolio",
-        "opportunities",
-        "analytics",
-        "feedbackManagement",
-        "settings",
-        "crm",
-        "proposals",
-        "reports",
-        "activity",
-        "ingestion",
-        "piiAnalysis",
-        "dashboard"
-      ],
-      "nav_order": [
         "dashboard",
         "funding",
         "portfolio",
-        "opportunities",
         "crm",
+        "opportunities",
         "proposals",
-        "reports",
-        "activity",
+        "feedbackManagement",
         "ingestion",
         "piiAnalysis",
+        "reports",
+        "activity",
         "settings"
       ],
+      "nav_order": [],
       "dashboard_widgets": [
-        "stats_overview",
-        "recent_activity",
-        "pipeline_chart",
-        "matching_alerts",
-        "deadlines",
-        "analytics-kpis",
-        "analytics-pipeline",
-        "analytics-trends",
         "pipeline",
+        "opportunities",
+        "metrics",
+        "activity",
         "matching",
         "calendar",
-        "opportunities",
-        "metrics",
-        "activity"
-      ],
-      "dashboard_widget_order": [
-        "pipeline",
-        "opportunities",
-        "metrics",
-        "matching",
         "analytics-kpis",
-        "activity",
         "analytics-pipeline",
-        "analytics-trends"
+        "analytics-trl",
+        "analytics-trends",
+        "analytics-export"
       ],
+      "dashboard_widget_order": [],
       "dashboard_widgets_by_role": {
         "admin": [
+          "pipeline",
           "opportunities",
           "metrics",
           "activity",
           "matching",
           "calendar",
           "analytics-kpis",
-          "analytics-trends",
-          "analytics-export",
-          "analytics-trl",
           "analytics-pipeline",
-          "pipeline"
+          "analytics-trl",
+          "analytics-trends",
+          "analytics-export"
         ],
         "manager": [
           "pipeline",
           "opportunities",
           "metrics",
           "activity",
-          "analytics-kpis",
-          "analytics-pipeline",
-          "analytics-trends",
           "matching"
         ],
         "user": [
           "pipeline",
           "metrics",
-          "activity",
-          "analytics-kpis",
-          "matching",
-          "analytics-trends",
-          "analytics-pipeline",
-          "opportunities"
+          "activity"
         ],
         "viewer": [
           "metrics",
-          "activity",
-          "pipeline",
-          "opportunities",
-          "matching"
-        ],
-        "analyst": [
-          "pipeline",
-          "opportunities",
-          "metrics",
-          "activity",
-          "matching"
+          "activity"
         ]
       },
       "dashboard_layout": "default",
-      "default_page_size": 10,
-      "dense_tables": true,
+      "default_page_size": 20,
+      "dense_tables": false,
       "animations_enabled": true,
       "compact_mode": false,
       "created_at": "2026-01-12T04:06:08.896811Z",
-      "updated_at": "2026-01-15T23:39:55.886164Z",
+      "updated_at": "2026-01-16T00:55:15.817968Z",
       "visible_nav_items_by_role": {
         "admin": [
-          "opportunities",
-          "proposals",
-          "reports",
-          "settings",
-          "activity",
-          "ingestion",
-          "piiAnalysis",
           "dashboard",
           "funding",
           "portfolio",
-          "crm"
+          "crm",
+          "opportunities",
+          "proposals",
+          "reports",
+          "activity",
+          "ingestion",
+          "piiAnalysis",
+          "settings"
         ],
         "manager": [
           "dashboard",
           "funding",
           "portfolio",
+          "crm",
           "opportunities",
+          "proposals",
+          "reports",
           "activity"
         ],
         "user": [
           "dashboard",
-          "funding",
-          "portfolio"
+          "opportunities",
+          "proposals",
+          "activity"
         ],
         "viewer": [
           "dashboard",
-          "funding",
-          "portfolio",
-          "activity",
-          "opportunities"
-        ],
-        "analyst": [
-          "dashboard",
-          "funding",
-          "portfolio",
-          "activity",
-          "opportunities"
+          "activity"
         ]
       }
     }

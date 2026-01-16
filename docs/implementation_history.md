@@ -198,6 +198,15 @@
 **Configuration Pages Created:**
 - `app/profile/statistics/page.tsx` - User preferences page:
   - Tab-based module selection
+
+---
+
+### Data Seeding and Test User Script (Session 2026-01-15)
+
+- **Seed templates added:** `alembic/versions/20260115_01_seed_users.py`, `alembic/versions/20260115_02_seed_funding_sources.py` implementing tenant-aware `seed_for_tenant(engine, tenant_id)` helpers (idempotent, pseudonymized values).
+- **Test user creation script:** `backend/scripts/create_test_users.py` — async script that uses application DB session to create/rotate/cleanup test users per tenant, hashes passwords via domain helper, and emits `.env.test` or export lines for CI/E2E.
+- **Notes:** Seeds use placeholder password hashes for safety. The script generates secure passwords at runtime and should be invoked by CI after migrations. Seeds are non-production pseudonymized data only.
+
   - Category grouping within each module
   - Toggle visibility per statistic
   - Auto-save to localStorage

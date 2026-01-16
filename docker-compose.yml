@@ -183,6 +183,25 @@ services:
       - model_cache:/app/model_cache
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
+  # One-off seed runner for CI/dev. Run with SEED_TENANT_IDS env var set.
+  backend_seed:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prospecai-backend-seed
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:changeme@postgres:5432/prospecai
+      # Provide tenant IDs as comma-separated UUIDs, e.g.: 00000000-0000-0000-0000-000000000001
+      SEED_TENANT_IDS: "${SEED_TENANT_IDS:-}"
+    volumes:
+      - ./backend:/app
+    # Run seeds if SEED_TENANT_IDS is set; otherwise exit quickly.
+    command: ["/bin/sh", "-c", "if [ -n \"$SEED_TENANT_IDS\" ]; then python -m backend.scripts.run_seeds --tenants \"$SEED_TENANT_IDS\"; else echo 'SEED_TENANT_IDS not set; skipping seeds'; fi"]
+    restart: "no"
+
   # Frontend
   frontend:
     build:
