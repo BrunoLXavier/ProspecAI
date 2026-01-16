@@ -94,6 +94,16 @@ export default function ReportsPage() {
     },
   });
 
+  // Normalize templates response to always be an array.
+  const templatesArray: ReportTemplate[] = (() => {
+    if (!templates) return [];
+    if (Array.isArray(templates)) return templates as ReportTemplate[];
+    const maybe = templates as any;
+    if (Array.isArray(maybe.templates)) return maybe.templates;
+    if (Array.isArray(maybe.data)) return maybe.data;
+    return [];
+  })();
+
   // Generate report mutation
   const generateMutation = useMutation({
     mutationFn: async () => {
@@ -160,10 +170,10 @@ export default function ReportsPage() {
   };
 
   // Get selected template details
-  const currentTemplate = templates?.find((t) => t.id === selectedTemplate);
+  const currentTemplate = templatesArray.find((t) => t.id === selectedTemplate);
 
   const stats = {
-    templates: templates?.length || 0,
+    templates: templatesArray.length || 0,
     recent: recentReports.length,
   };
 
@@ -196,7 +206,7 @@ export default function ReportsPage() {
       />
 
       <div className="max-w-7xl mx-auto px-4">
-        <ConfigurableStatisticsBar module="proposals" data={templates || []} />
+        <ConfigurableStatisticsBar module="proposals" data={templatesArray} />
 
         <div className="mt-4">
           <FilterPanel
@@ -211,8 +221,8 @@ export default function ReportsPage() {
       <main className="max-w-7xl mx-auto px-4 py-2">
         {viewMode === 'board' ? (
           <div className="w-full">
-            <ReportsBoard
-              templates={templates || []}
+              <ReportsBoard
+              templates={templatesArray}
               loading={templatesLoading}
               onItemClick={(t) => { setDetailTemplate(t); setIsDetailOpen(true); }}
               onSelect={(id) => handleSelectTemplate(id)}
@@ -223,7 +233,7 @@ export default function ReportsPage() {
             {/* Template Selection */}
             <div className="lg:col-span-1 space-y-6">
               <ReportsList
-                templates={templates || []}
+                templates={templatesArray}
                 loading={templatesLoading}
                 selectedId={selectedTemplate}
                 onSelect={(id) => handleSelectTemplate(id)}
@@ -245,7 +255,7 @@ export default function ReportsPage() {
                         <ClockIcon className="h-4 w-4 text-gray-400" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-700">
-                            {templates?.find((t) => t.id === report.template_id)?.name}
+                            {templatesArray.find((t) => t.id === report.template_id)?.name}
                           </p>
                           <p className="text-xs text-gray-400">
                             {new Date(report.generated_at).toLocaleString()}

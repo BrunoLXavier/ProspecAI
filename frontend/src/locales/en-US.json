@@ -778,6 +778,8 @@
     "loading": "Loading activities...",
     "empty": "No activities found",
     "filters": {
+      "entity": "Entity",
+      "type": "Action",
       "allEntities": "All Entities",
       "allActions": "All Actions"
     },
