@@ -220,6 +220,27 @@ def upgrade() -> None:
     # ==========================================================================
     # SEED DEFAULT TENANT
     # ==========================================================================
+    # Ensure tenants table and is_active column exist before seeding
+    conn = op.get_bind()
+    tenants_exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'tenants')")).scalar()
+    if not tenants_exists:
+        # Create minimal tenants table to satisfy seeds if another migration didn't create it yet
+        op.create_table('tenants',
+            sa.Column('id', UUID(), primary_key=True, server_default=text('uuid_generate_v4()')),
+            sa.Column('name', sa.String(200), nullable=False),
+            sa.Column('slug', sa.String(100), nullable=False, unique=True),
+            sa.Column('is_active', sa.Boolean(), default=True, nullable=False),
+            sa.Column('created_at', sa.DateTime(timezone=True), server_default=text('NOW()'), nullable=False),
+            sa.Column('updated_at', sa.DateTime(timezone=True), server_default=text('NOW()'), nullable=False),
+        )
+        op.create_index('idx_tenants_slug', 'tenants', ['slug'])
+        op.create_index('idx_tenants_active', 'tenants', ['is_active'])
+
+    # If tenants exists but column is missing, add the column
+    col_exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name='tenants' AND column_name='is_active')")).scalar()
+    if not col_exists:
+        op.add_column('tenants', sa.Column('is_active', sa.Boolean(), default=True, nullable=False))
+
     op.execute(text(f"""
         INSERT INTO tenants (id, name, slug, is_active, created_at, updated_at)
         VALUES (

@@ -6,6 +6,11 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: prospecai-postgres
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     environment:
       POSTGRES_DB: prospecai
       POSTGRES_USER: postgres
@@ -25,11 +30,20 @@ services:
   neo4j:
     image: neo4j:5.16.0
     container_name: prospecai-neo4j
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     environment:
       NEO4J_AUTH: neo4j/changeme
       NEO4J_PLUGINS: '["apoc"]'
       NEO4J_dbms_security_procedures_unrestricted: apoc.*
       NEO4J_dbms_security_procedures_allowlist: apoc.*
+      # Reduce Neo4j memory footprint for low-memory dev environments
+      # Use double-underscore to preserve '_' in config key name (maps to dbms.memory.heap.max_size)
+      NEO4J_dbms_memory_heap_max__size: 256m
+      NEO4J_dbms_memory_pagecache_size: 128M
     ports:
       - "7474:7474"
       - "7687:7687"
@@ -47,6 +61,11 @@ services:
   redis:
     image: redis:7-alpine
     container_name: prospecai-redis
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     ports:
       - "6379:6379"
     volumes:
@@ -62,6 +81,11 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: prospecai-zookeeper
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -73,6 +97,11 @@ services:
     container_name: prospecai-kafka
     depends_on:
       - zookeeper
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     ports:
       - "9092:9092"
     environment:
@@ -86,6 +115,11 @@ services:
   mailhog:
     image: mailhog/mailhog:latest
     container_name: prospecai-mailhog
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     ports:
       - "1025:1025"  # SMTP server
       - "8025:8025"  # Web UI
@@ -96,6 +130,11 @@ services:
   minio:
     image: minio/minio:latest
     container_name: prospecai-minio
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -110,6 +149,11 @@ services:
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.10.0
     container_name: prospecai-mlflow
+    mem_limit: 1g
+    deploy:
+      resources:
+        limits:
+          memory: 1g
     command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts
     ports:
       - "5000:5000"
@@ -120,6 +164,11 @@ services:
   grafana:
     image: grafana/grafana:10.2.3
     container_name: prospecai-grafana
+    mem_limit: 1g
+    deploy:
+      resources:
+        limits:
+          memory: 1g
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_INSTALL_PLUGINS: grafana-clock-panel
@@ -134,6 +183,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: prospecai-backend
+    mem_limit: 8g
+    deploy:
+      resources:
+        limits:
+          memory: 8g
     depends_on:
       postgres:
         condition: service_healthy
@@ -181,8 +235,11 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - ./frontend:/app/frontend:ro
-      - ./frontend/src/locales:/app/translations:rw
+      # Avoid mounting the full frontend workspace into the backend container
+      # because large host bind-mounts can trigger Watchpack/chmod OOMs inside WSL2.
+      # Translations are baked into the frontend image at build time and copied
+      # into backend by the entrypoint when necessary. If you need live
+      # translations during development, mount only the specific files.
       - ai_models:/app/models
       - model_cache:/app/model_cache
     command: uvicorn main:app --host 0.0.0.0 --port 8000
@@ -199,6 +256,11 @@ services:
     container_name: prospecai-frontend
     depends_on:
       - backend
+    mem_limit: 8g
+    deploy:
+      resources:
+        limits:
+          memory: 8g
     environment:
       # Server-side URL for Next.js rewrites (Docker internal network)
       API_URL_SERVER: http://backend:8000
@@ -207,11 +269,12 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+      # Only mount locales for convenience; avoid mounting the whole frontend
+      # workspace to prevent the container from running the dev watcher and
+      # causing heavy filesystem scans inside the WSL2 VM.
       - ./frontend/src/locales:/app/src/locales:rw
-    command: npm run dev
+    # Run production build and start to avoid the dev watcher (reduces memory usage)
+    command: ["/bin/sh", "-lc", "npm run build && npm start"]
 
 volumes:
   postgres_data:

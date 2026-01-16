@@ -21,6 +21,10 @@ def _load_bertimbau_model():
     
     if _bertimbau_ner_pipeline is not None:
         return _bertimbau_ner_pipeline
+    # Honor SKIP_AI_MODELS to avoid heavy imports on low-memory hosts
+    if os.environ.get("SKIP_AI_MODELS") == "1":
+        logger.info("SKIP_AI_MODELS=1; skipping BERTimbau model load")
+        return None
     
     try:
         from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline

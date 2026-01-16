@@ -71,23 +71,48 @@ def upgrade() -> None:
     else:
         print("ℹ️ Tenants table already exists, skipping creation.")
     
+    # Ensure `is_active` column exists — some DBs may have a tenants table without this column
+    is_active_exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name='tenants' AND column_name='is_active')")).scalar()
+    if not is_active_exists:
+        op.add_column('tenants', sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')))
+        try:
+            op.create_index('idx_tenants_active', 'tenants', ['is_active'])
+        except Exception:
+            # index may already exist in some schemas; ignore
+            pass
+        print("✅ Added missing 'is_active' column to tenants and backfilled defaults.")
+    
     # ==========================================================================
     # SEED DEFAULT TENANT
     # ==========================================================================
-    
-    op.execute(text(f"""
-        INSERT INTO tenants (id, name, slug, is_active, subscription_tier, created_at, updated_at)
-        VALUES (
-            '{DEFAULT_TENANT_ID}'::uuid,
-            'SENAI ProspecAI',
-            'senai-prospecai',
-            true,
-            'enterprise',
-            NOW(),
-            NOW()
-        )
-        ON CONFLICT (id) DO NOTHING;
-    """))
+    # Inspect NOT NULL columns without defaults and set safe defaults before inserting
+    problematic = conn.execute(text("SELECT column_name, data_type FROM information_schema.columns WHERE table_name='tenants' AND is_nullable='NO' AND column_default IS NULL")).fetchall()
+    skip_cols = {'id', 'name', 'slug', 'created_at', 'updated_at'}
+    for col_name, data_type in problematic:
+        if col_name in skip_cols:
+            continue
+        # Determine a safe default based on data type
+        if data_type in ('character varying', 'text'):
+            default_sql = "'active'"
+        elif data_type in ('uuid'):
+            default_sql = f"'{DEFAULT_TENANT_ID}'::uuid"
+        elif data_type in ('integer', 'bigint', 'smallint'):
+            default_sql = '0'
+        elif data_type.startswith('timestamp'):
+            default_sql = 'NOW()'
+        elif data_type == 'boolean':
+            default_sql = 'true'
+        else:
+            default_sql = "'active'"
+
+        # Apply default and backfill existing rows
+        op.execute(text(f"ALTER TABLE tenants ALTER COLUMN {col_name} SET DEFAULT {default_sql};"))
+        conn.execute(text(f"UPDATE tenants SET {col_name} = {default_sql} WHERE {col_name} IS NULL;"))
+        op.execute(text(f"ALTER TABLE tenants ALTER COLUMN {col_name} SET NOT NULL;"))
+
+    # Now perform a minimal, safe insert using known columns
+    insert_sql = f"INSERT INTO tenants (id, name, slug, is_active, subscription_tier, created_at, updated_at) VALUES ('{DEFAULT_TENANT_ID}'::uuid, 'SENAI ProspecAI', 'senai-prospecai', true, 'enterprise', NOW(), NOW()) ON CONFLICT (id) DO NOTHING;"
+    conn.execute(text(insert_sql))
     
     print("✅ Default tenant seeded!")
     

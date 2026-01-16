@@ -14,10 +14,28 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-from adapters.database.models_new import BaseModel
-target_metadata = BaseModel.metadata
+import os
+from sqlalchemy import MetaData
+
+# Lazily obtain the application's MetaData to avoid importing heavy
+# application modules (which may import large ML libraries) at Alembic
+# import time. If `SKIP_AI_MODELS=1` is set we return an empty MetaData
+# so migrations that don't need autogeneration can run without loading
+# the full application stack.
+
+def get_target_metadata():
+    if os.environ.get("SKIP_AI_MODELS") == "1":
+        return MetaData()
+    try:
+        from adapters.database.models_new import BaseModel
+        return BaseModel.metadata
+    except Exception:
+        # Fallback to empty metadata to avoid crashing Alembic when imports
+        # fail due to environment constraints (e.g., low memory)
+        return MetaData()
+
+# Obtain metadata lazily to avoid importing the full application at Alembic import
+target_metadata = get_target_metadata()
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

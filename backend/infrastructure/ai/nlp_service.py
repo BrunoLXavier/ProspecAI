@@ -36,6 +36,10 @@ def _get_ner_pipeline():
     
     if _ner_pipeline is not None:
         return _ner_pipeline
+    # Honor SKIP_AI_MODELS to avoid heavy imports on low-memory hosts
+    if os.environ.get("SKIP_AI_MODELS") == "1":
+        logger.info("SKIP_AI_MODELS=1; skipping NER pipeline initialization")
+        return None
     
     if not _check_transformers():
         return None
@@ -66,6 +70,10 @@ def _get_sentiment_pipeline():
     
     if _sentiment_pipeline is not None:
         return _sentiment_pipeline
+    # Honor SKIP_AI_MODELS to avoid heavy imports on low-memory hosts
+    if os.environ.get("SKIP_AI_MODELS") == "1":
+        logger.info("SKIP_AI_MODELS=1; skipping sentiment pipeline initialization")
+        return None
     
     if not _check_transformers():
         return None

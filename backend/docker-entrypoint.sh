@@ -27,8 +27,12 @@ echo "[entrypoint] Starting application"
     if [ -d /app/frontend/src/locales ]; then
       echo "[entrypoint] Populating translations from /app/frontend/src/locales -> $TRANSLATIONS_DIR"
       mkdir -p "$TRANSLATIONS_DIR"
-      cp -a /app/frontend/src/locales/. "$TRANSLATIONS_DIR"/ || echo "[entrypoint] Warning: copy of locales failed"
-      chmod -R a+rw "$TRANSLATIONS_DIR" || true
+      if cp -a /app/frontend/src/locales/. "$TRANSLATIONS_DIR"/; then
+        echo "[entrypoint] Locales copied successfully; setting permissions"
+        chmod -R a+rw "$TRANSLATIONS_DIR" || true
+      else
+        echo "[entrypoint] Warning: copy of locales failed; skipping chmod"
+      fi
     else
       echo "[entrypoint] No frontend locales found at /app/frontend/src/locales; skipping translations copy"
     fi

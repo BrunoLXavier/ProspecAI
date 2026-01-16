@@ -35,6 +35,10 @@ def _get_embedding_model():
     
     if _embedding_model is not None:
         return _embedding_model
+    # Honor SKIP_AI_MODELS to avoid heavy imports on low-memory hosts
+    if os.environ.get("SKIP_AI_MODELS") == "1":
+        logger.info("SKIP_AI_MODELS=1; skipping embedding model initialization")
+        return None
     
     if not _check_sentence_transformers():
         return None

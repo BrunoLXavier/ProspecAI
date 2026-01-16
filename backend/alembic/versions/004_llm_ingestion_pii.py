@@ -21,6 +21,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Create LLM Config, Ingestion, and PII Detection tables."""
+    # If this migration has already been partially applied (tables exist), skip to avoid DuplicateTable errors
+    conn = op.get_bind()
+    exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'llm_configs')")).scalar()
+    if exists:
+        print("ℹ️ llm_configs table already exists; skipping migration 004 to avoid DuplicateTable")
+        return
     
     # ==========================================================================
     # LLM CONFIGURATION TABLE

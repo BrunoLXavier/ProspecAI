@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # PostgreSQL Initialization Script
 # Creates all required databases for ProspecAI services
@@ -13,3 +14,4 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 EOSQL
 
 echo "Database initialization complete!"
+

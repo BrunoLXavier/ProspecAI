@@ -44,6 +44,7 @@ const MODULE_INFO: Record<StatisticsModule, { labelKey: string; icon: React.Comp
   'proposals': { labelKey: 'modules.proposals', icon: DocumentTextIcon },
   'ingestion': { labelKey: 'modules.ingestion', icon: CloudArrowUpIcon },
   'pii-analysis': { labelKey: 'modules.piiAnalysis', icon: ShieldExclamationIcon },
+  'translations': { labelKey: 'modules.translations', icon: DocumentTextIcon },
 };
 
 // =============================================================================

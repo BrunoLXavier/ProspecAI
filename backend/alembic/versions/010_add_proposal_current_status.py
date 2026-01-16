@@ -7,6 +7,7 @@ Create Date: 2026-01-15 00:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.sql import text
 
 # revision identifiers, used by Alembic.
 revision = '010_add_proposal_current_status'
@@ -16,6 +17,18 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Defensive: only modify table if it exists and column is missing
+    conn = op.get_bind()
+    table_exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='proposals')")).scalar()
+    if not table_exists:
+        print("ℹ️ proposals table does not exist; skipping migration 010.")
+        return
+
+    col_exists = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name='proposals' AND column_name='current_status')")).scalar()
+    if col_exists:
+        print("ℹ️ proposals.current_status already exists; skipping.")
+        return
+
     # Add `current_status` with a sensible default, then remove server_default
     op.add_column(
         'proposals',

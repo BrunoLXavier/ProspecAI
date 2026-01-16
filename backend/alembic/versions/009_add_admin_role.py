@@ -22,6 +22,7 @@ def upgrade() -> None:
     This migration is idempotent: it inserts the specific role row only if it
     does not already exist.
     """
+    # Only insert the legacy admin role if the referenced user actually exists.
     op.execute(text("""
     INSERT INTO user_roles (id, user_id, role_id, tenant_id, assigned_by)
     SELECT '922e0383-e517-41e9-a1f3-1013d0e94b91'::uuid,
@@ -29,7 +30,8 @@ def upgrade() -> None:
            'admin',
            '00000000-0000-0000-0000-000000000001'::uuid,
            NULL
-    WHERE NOT EXISTS (
+    WHERE EXISTS (SELECT 1 FROM users WHERE id = '5c66e647-6015-4c98-83cf-77de29680ccd'::uuid)
+      AND NOT EXISTS (
         SELECT 1 FROM user_roles
         WHERE user_id = '5c66e647-6015-4c98-83cf-77de29680ccd'::uuid
           AND role_id = 'admin'

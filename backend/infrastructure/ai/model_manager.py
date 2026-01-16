@@ -17,14 +17,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID, uuid4
 
-import torch
-from transformers import (
-    AutoConfig,
-    AutoModelForTokenClassification,
-    AutoTokenizer,
-    pipeline,
-    Pipeline
-)
+# Heavy ML libs (torch, transformers) are imported lazily inside methods
+# to avoid importing them at module import time which can cause OOM
+# during migrations or tooling that imports the package.
 
 
 logger = logging.getLogger(__name__)
@@ -265,9 +260,9 @@ class ModelManager:
         self._pipelines: Dict[str, Pipeline] = {}
         self._pipeline_lock = threading.Lock()
         
-        # Device management
-        self.device = self._detect_device()
-        logger.info(f"Using device: {self.device}")
+        # Device management (detect lazily)
+        self.device = None
+        logger.info("ModelManager initialized (device detection deferred)")
         
         # Performance tracking
         self._inference_times: Dict[str, List[float]] = {}
@@ -277,12 +272,21 @@ class ModelManager:
     
     def _detect_device(self) -> str:
         """Auto-detect optimal device for inference"""
-        if torch.cuda.is_available():
-            return f"cuda:{torch.cuda.current_device()}"
-        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-            return "mps"
-        else:
+        try:
+            import torch
+        except Exception:
             return "cpu"
+
+        try:
+            if torch.cuda.is_available():
+                return f"cuda:{torch.cuda.current_device()}"
+            elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                return "mps"
+        except Exception:
+            # In constrained environments, probing device can fail; fallback to CPU
+            return "cpu"
+
+        return "cpu"
     
     def _register_default_models(self) -> None:
         """Register default BERTimbau models"""
@@ -349,7 +353,7 @@ class ModelManager:
             target_groups=["lgpd", "production"]
         ))
     
-    async def load_model(self, model_id: str) -> Pipeline:
+    async def load_model(self, model_id: str) -> Any:
         """
         Load and cache a model pipeline with performance optimization
         
@@ -374,36 +378,52 @@ class ModelManager:
                 logger.info(f"Loading model {config.name} v{config.version}...")
                 
                 model_path = self.models_dir / config.path
-                
-                # Determine device
+
+                # Determine device (detect if not already set)
+                if self.device is None:
+                    self.device = self._detect_device()
                 device = config.device if config.device != "auto" else self.device
-                
-                # Load tokenizer
-                tokenizer_class = getattr(__import__('transformers'), config.tokenizer_class)
-                tokenizer = tokenizer_class.from_pretrained(
+
+                # Lazy import heavy libraries
+                try:
+                    import torch
+                except Exception as e:
+                    raise RuntimeError("torch is required to load models") from e
+
+                try:
+                    import transformers as _transformers
+                except Exception as e:
+                    raise RuntimeError("transformers is required to load models") from e
+
+                # Load tokenizer and model via transformers
+                tokenizer_cls = getattr(_transformers, config.tokenizer_class)
+                tokenizer = tokenizer_cls.from_pretrained(
                     str(model_path),
                     local_files_only=True,
-                    cache_dir=self.models_dir / "cache"
+                    cache_dir=str(self.models_dir / "cache")
                 )
-                
-                # Load model
-                model_class = getattr(__import__('transformers'), config.model_class)
-                model = model_class.from_pretrained(
+
+                model_cls = getattr(_transformers, config.model_class)
+                model = model_cls.from_pretrained(
                     str(model_path),
                     local_files_only=True,
-                    cache_dir=self.models_dir / "cache"
+                    cache_dir=str(self.models_dir / "cache")
                 )
-                
+
                 # Move to device
-                if device != "cpu":
-                    model.to(device)
+                try:
+                    if device != "cpu":
+                        model.to(device)
+                except Exception:
+                    # ignore device move failures and continue on cpu
+                    pass
                 
-                # Create pipeline
-                pipe = pipeline(
+                # Create pipeline (lazy import of pipeline function)
+                pipe = _transformers.pipeline(
                     config.task.value,
                     model=model,
                     tokenizer=tokenizer,
-                    device=0 if device.startswith("cuda") else -1,
+                    device=0 if isinstance(device, str) and device.startswith("cuda") else -1,
                     batch_size=config.batch_size,
                     max_length=config.max_length,
                     **config.pipeline_kwargs
@@ -621,9 +641,12 @@ async def get_model_manager() -> ModelManager:
             registry_path=registry_path,
             enable_caching=True
         )
-        
-        # Preload critical models
-        await _model_manager.preload_models()
+        # Preload critical models unless SKIP_AI_MODELS is set
+        if os.environ.get("SKIP_AI_MODELS") != "1":
+            try:
+                await _model_manager.preload_models()
+            except Exception as e:
+                logger.warning(f"Preloading models failed or skipped: {e}")
     
     return _model_manager
 
