@@ -120,6 +120,16 @@ exit /b 1
 
 :backend_ready
 
+REM Run Alembic migrations using the backend image (no separate migrate container)
+echo [*] Running database migrations (alembic upgrade head)...
+docker-compose run --rm backend alembic upgrade head
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] Alembic migrations failed
+    docker-compose logs backend
+    exit /b 1
+)
+
+
 REM Give backend time to fully initialize
 echo [*] Giving backend time to fully initialize...
 timeout /t 5 /nobreak >nul
