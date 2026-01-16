@@ -1,2 +1,0 @@
-NAME                 IMAGE                COMMAND                  SERVICE    CREATED          STATUS                    PORTS
-prospecai-postgres   postgres:15-alpine   "docker-entrypoint.s…"   postgres   24 minutes ago   Up 24 minutes (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp

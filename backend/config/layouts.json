@@ -8,6 +8,20 @@
       "sidebar_collapsed": false,
       "sidebar_width": 260,
       "visible_nav_items": [
+        "portfolio",
+        "crm",
+        "opportunities",
+        "proposals",
+        "feedbackManagement",
+        "ingestion",
+        "piiAnalysis",
+        "reports",
+        "activity",
+        "settings",
+        "dashboard",
+        "funding"
+      ],
+      "nav_order": [
         "dashboard",
         "funding",
         "portfolio",
@@ -21,7 +35,6 @@
         "activity",
         "settings"
       ],
-      "nav_order": [],
       "dashboard_widgets": [
         "pipeline",
         "opportunities",
@@ -73,7 +86,7 @@
       "animations_enabled": true,
       "compact_mode": false,
       "created_at": "2026-01-12T04:06:08.896811Z",
-      "updated_at": "2026-01-16T12:57:55.439872Z",
+      "updated_at": "2026-01-16T17:53:14.172941Z",
       "visible_nav_items_by_role": {
         "admin": [
           "dashboard",
