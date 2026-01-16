@@ -507,7 +507,7 @@ export default function LayoutPage() {
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.appearance') || 'Appearance'}</label>
               <select
                 value={config.appearance || 'default'}
-                onChange={(e) => updateConfig('appearance', e.target.value)}
+                onChange={(e) => updateConfig('appearance', e.target.value as 'default' | 'highContrast' | 'system')}
                 className="w-full border-2 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="default">{t('layout.themeColors.appearanceOptions.default') || 'Default'}</option>

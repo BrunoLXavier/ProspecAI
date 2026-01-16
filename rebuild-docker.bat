@@ -22,6 +22,17 @@ if "%~1"=="backend" (
 )
 if /I "%~2"=="no-cache" set NO_CACHE=1
 
+REM --- Optional flags parsing (supports --use-entrypoint or use-entrypoint anywhere) ---
+set USE_ENTRYPOINT=0
+for %%a in (%*) do (
+    if /I "%%~a"=="use-entrypoint" set USE_ENTRYPOINT=1
+    if /I "%%~a"=="--use-entrypoint" set USE_ENTRYPOINT=1
+    if /I "%%~a"=="/use-entrypoint" set USE_ENTRYPOINT=1
+)
+if %USE_ENTRYPOINT%==1 (
+    echo [*] USE_ENTRYPOINT enabled for this run
+)
+
 echo.
 echo ================================================================
 echo       ProspecAI Docker Rebuild

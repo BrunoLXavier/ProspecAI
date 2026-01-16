@@ -11,7 +11,8 @@ export type StatisticsModule =
   | 'opportunities'
   | 'proposals'
   | 'ingestion'
-  | 'pii-analysis';
+  | 'pii-analysis'
+  | 'translations';
 
 /**
  * User roles for permission-based statistics visibility

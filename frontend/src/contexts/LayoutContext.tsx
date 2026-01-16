@@ -40,6 +40,8 @@ export interface LayoutConfig {
   dense_tables: boolean;
   animations_enabled: boolean;
   compact_mode: boolean;
+  // Appearance preset (theme appearance options)
+  appearance?: 'default' | 'highContrast' | 'system';
   // Theme mode
   color_mode?: 'light' | 'dark';
   // Feature toggles
@@ -114,6 +116,7 @@ export const DEFAULT_CONFIG: LayoutConfig = {
   animations_enabled: true,
   compact_mode: false,
   color_mode: 'light',
+  appearance: 'default',
   ai_chat_enabled: true,
   feedback_button_enabled: true,
   site_name: 'ProspecAI',

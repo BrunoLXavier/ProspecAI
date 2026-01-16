@@ -65,13 +65,9 @@ print('Sentence-Transformers model downloaded successfully')" || echo "Sentence-
 
 COPY . .
 
-# Ensure a minimal entrypoint exists in the build context if it's missing.
-# This prevents Docker build failures when `entrypoint.sh` isn't present
-# in some CI/build contexts. If a real `entrypoint.sh` is provided in the
-# repository, this step is a no-op.
-RUN if [ ! -f /usr/local/bin/entrypoint.sh ]; then \
-            printf '%s\n' "#!/bin/sh" "set -e" "echo \"Default entrypoint: running migrations (if any) and starting server\"" "if command -v alembic >/dev/null 2>&1; then" "  alembic upgrade head || echo \"alembic upgrade failed; continuing\"" "fi" "exec uvicorn main:app --host 0.0.0.0 --port 8000" > /usr/local/bin/entrypoint.sh; \
-        fi && chmod +x /usr/local/bin/entrypoint.sh || true
+# Install our entrypoint which runs migrations and optionally seeds
+COPY docker-entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh || true
 
 # Environment variables for models
 ENV BERTIMBAU_NER_MODEL=neuralmind/bert-base-portuguese-cased

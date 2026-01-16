@@ -4,6 +4,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useLayout } from '@/contexts/LayoutContext';
 import { useTranslations } from 'next-intl';
 import {
   MagnifyingGlassIcon,
@@ -16,6 +17,9 @@ import {
   ArrowUpTrayIcon,
   FunnelIcon,
 } from '@heroicons/react/24/outline';
+import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
+import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import TranslationDetailModal from '@/components/translations/TranslationDetailModal';
 import { apiClient } from '@/lib/api-client';
 
 interface TranslationKey {
@@ -181,6 +185,7 @@ export default function TranslationsPage() {
   const [locales, setLocales] = useState<string[]>(['pt-BR', 'en-US', 'es-ES']);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { config } = useLayout();
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -203,6 +208,15 @@ export default function TranslationsPage() {
   const [previewLocale, setPreviewLocale] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<any>(null);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(config?.default_page_size || 20);
+  const [total, setTotal] = useState<number>(0);
+
+  // Detail modal
+  const [selectedTranslation, setSelectedTranslation] = useState<TranslationKey | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
   // Load translations
   const loadTranslations = async () => {
     setLoading(true);
@@ -212,6 +226,10 @@ export default function TranslationsPage() {
       const params = new URLSearchParams();
       if (selectedNamespace) params.append('namespace', selectedNamespace);
       if (searchQuery) params.append('search', searchQuery);
+      // Pagination params
+      const skip = (page - 1) * pageSize;
+      params.append('skip', String(skip));
+      params.append('limit', String(pageSize));
       
       const response = await apiClient.get<TranslationsResponse>(
         `/api/v1/translations?${params.toString()}`
@@ -220,6 +238,7 @@ export default function TranslationsPage() {
       setTranslations(response.translations);
       setNamespaces(response.namespaces);
       setLocales(response.locales);
+      setTotal(response.total ?? response.translations.length ?? 0);
     } catch (err: any) {
       // Use mock data on API failure for testing
       console.warn('Using mock translations data for testing:', err);
@@ -238,9 +257,12 @@ export default function TranslationsPage() {
         );
       }
       
-      setTranslations(mockData);
       setNamespaces(MOCK_NAMESPACES);
       setLocales(['pt-BR', 'en-US', 'es-ES']);
+      // Mock pagination
+      setTotal(mockData.length);
+      const start = (page - 1) * pageSize;
+      setTranslations(mockData.slice(start, start + pageSize));
       setError(null); // Clear error since we're using mock data
     } finally {
       setLoading(false);
@@ -248,7 +270,8 @@ export default function TranslationsPage() {
   };
 
   useEffect(() => {
-    loadTranslations();
+    // reset to first page if namespace changed; load will be triggered by page effect
+    setPage(1);
   }, [selectedNamespace]);
 
   // Debounced search
@@ -258,6 +281,15 @@ export default function TranslationsPage() {
     }, 300);
     return () => clearTimeout(timeout);
   }, [searchQuery]);
+
+  // reload when page or pageSize or layout config changes
+  useEffect(() => {
+    setPageSize(config?.default_page_size || 20);
+  }, [config?.default_page_size]);
+
+  useEffect(() => {
+    loadTranslations();
+  }, [page, pageSize]);
 
   // Auto-clear toast messages
   useEffect(() => {
@@ -270,6 +302,11 @@ export default function TranslationsPage() {
   const filteredTranslations = useMemo(() => {
     return translations;
   }, [translations]);
+
+  const filterFields: FilterField[] = [
+    { key: 'search', label: 'Search', type: 'text', placeholder: 'Search keys or values...' },
+    { key: 'namespace', label: 'Namespace', type: 'select', options: namespaces.map(ns => ({ value: ns, label: ns })) },
+  ];
 
   // Start editing
   const startEditing = (translation: TranslationKey) => {
@@ -441,7 +478,8 @@ export default function TranslationsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <>
+      <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -487,52 +525,40 @@ export default function TranslationsPage() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search keys or values..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          
-          {/* Namespace Filter */}
-          <div className="flex items-center gap-2">
-            <FunnelIcon className="w-5 h-5 text-gray-400" />
-            <select
-              value={selectedNamespace}
-              onChange={(e) => setSelectedNamespace(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="">All Namespaces</option>
-              {namespaces.map(ns => (
-                <option key={ns} value={ns}>{ns}</option>
-              ))}
-            </select>
-          </div>
+      {/* Filters + Export/Import + Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
+          <FilterPanel
+            fields={filterFields}
+            values={{ search: searchQuery, namespace: selectedNamespace }}
+            onChange={(key, value) => {
+              if (key === 'search') setSearchQuery(String(value));
+              if (key === 'namespace') setSelectedNamespace(String(value));
+            }}
+            onReset={() => { setSearchQuery(''); setSelectedNamespace(''); }}
+            title="Translations Filters"
+            defaultExpanded={true}
+          />
+        </div>
 
-          {/* Export/Import */}
-          <div className="flex gap-2 items-center">
-            {locales.map(locale => (
-              <div key={locale} className="inline-flex items-center gap-2">
-                <button
-                  onClick={() => exportLocale(locale)}
-                  className="inline-flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-                  title={`Export ${locale}`}
-                >
-                  <ArrowDownTrayIcon className="w-4 h-4" />
-                  {LOCALE_FLAGS[locale]}
-                </button>
+        <div className="space-y-4">
+          <ConfigurableStatisticsBar module="translations" data={translations} />
 
-                {/* Import button with hidden file input */}
-                <label className="inline-flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors" title={`Import ${locale}`}>
-                  <ArrowUpTrayIcon className="w-4 h-4" />
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-4">
+            <div className="flex gap-2 items-center">
+              {locales.map(locale => (
+                <div key={locale} className="inline-flex items-center gap-2">
+                  <button
+                    onClick={() => exportLocale(locale)}
+                    className="inline-flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    title={`Export ${locale}`}
+                  >
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                    {LOCALE_FLAGS[locale] ?? locale}
+                  </button>
+
+                  <label className="inline-flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors" title={`Import ${locale}`}>
+                    <ArrowUpTrayIcon className="w-4 h-4" />
                     <input
                       type="file"
                       accept="application/json,.json"
@@ -541,12 +567,10 @@ export default function TranslationsPage() {
                         const file = e.target.files ? e.target.files[0] : null;
                         if (!file) return;
 
-                        // Read and parse the file, then show preview modal
                         try {
                           const text = await file.text();
                           const data = JSON.parse(text);
 
-                          // Basic validation
                           if (!data || typeof data !== 'object' || Array.isArray(data)) {
                             setError('Locale JSON must be an object');
                             setToastType('error');
@@ -565,9 +589,10 @@ export default function TranslationsPage() {
                         if (e.target) e.target.value = '';
                       }}
                     />
-                </label>
-              </div>
-            ))}
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -603,7 +628,7 @@ export default function TranslationsPage() {
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredTranslations.map((translation) => (
                   <tr key={translation.path} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                    <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">
+                    <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white cursor-pointer" onClick={() => { setSelectedTranslation(translation); setShowDetailModal(true); }}>
                       {translation.path}
                     </td>
                     {locales.map(locale => (
@@ -669,11 +694,26 @@ export default function TranslationsPage() {
           </div>
         )}
         
-        {/* Summary */}
-        <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-gray-600">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t('translations.showing')} {filteredTranslations.length} {t('translations.translationKeys')}
-          </p>
+        {/* Summary & Pagination */}
+        <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-gray-600 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {t('translations.showing')} {(total === 0) ? 0 : ( (page - 1) * pageSize + 1 )} - {Math.min(total, (page * pageSize))} {t('translations.of') || 'of'} {total} {t('translations.translationKeys')}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-gray-600 dark:text-gray-400">{t('layout.uiPreferences.itemsPerPage') || 'items per page'}</div>
+            <select value={pageSize} onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }} className="px-2 py-1 border rounded bg-white dark:bg-slate-700">
+              {[10,20,25,50,100].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">‹</button>
+              <span className="px-2 text-sm text-gray-700 dark:text-gray-300">{page}</span>
+              <button onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize) || 1, p + 1))} disabled={page >= Math.ceil(total / pageSize)} className="px-2 py-1 border rounded disabled:opacity-50">›</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -772,5 +812,14 @@ export default function TranslationsPage() {
         </div>
       )}
     </div>
+    
+    <TranslationDetailModal
+      isOpen={showDetailModal}
+      onClose={() => { setShowDetailModal(false); setSelectedTranslation(null); }}
+      translation={selectedTranslation}
+      onUpdated={() => loadTranslations()}
+      onDeleted={() => loadTranslations()}
+    />
+    </>
   );
 }

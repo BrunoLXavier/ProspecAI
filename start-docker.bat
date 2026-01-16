@@ -121,18 +121,49 @@ exit /b 1
 :backend_ready
 
 REM Run Alembic migrations using the backend image (no separate migrate container)
-echo [*] Running database migrations (alembic upgrade head)...
-docker-compose run --rm backend alembic upgrade head
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Alembic migrations failed
-    docker-compose logs backend
-    exit /b 1
+if not defined USE_ENTRYPOINT (
+    echo [*] Running database migrations (alembic upgrade head)...
+    docker-compose run --rm backend alembic upgrade head
+    if %ERRORLEVEL% NEQ 0 (
+        echo [ERROR] Alembic migrations failed
+        docker-compose logs backend
+        exit /b 1
+    )
+) else (
+    echo [*] USE_ENTRYPOINT is set; skipping explicit alembic run (image entrypoint will handle migrations)
 )
 
 
 REM Give backend time to fully initialize
 echo [*] Giving backend time to fully initialize...
 timeout /t 5 /nobreak >nul
+
+REM Run DB seeds if requested via env vars (skip if USE_ENTRYPOINT is set)
+if not defined USE_ENTRYPOINT (
+    if defined SEED_TENANT_IDS (
+    echo [*] SEED_TENANT_IDS detected: running DB seeds for %SEED_TENANT_IDS%...
+    docker-compose run --rm backend python /app/scripts/run_seeds_fixed.py --tenants %SEED_TENANT_IDS%
+    if %ERRORLEVEL% NEQ 0 (
+        echo [WARN] Seed runner returned non-zero exit code
+    ) else (
+        echo [OK] Seeds executed
+    )
+) else (
+    if defined RUN_SEEDS_ON_START (
+        echo [*] RUN_SEEDS_ON_START set: running DB seeds (reads SEED_TENANT_IDS from container env if present)...
+        docker-compose run --rm backend python /app/scripts/run_seeds_fixed.py
+        if %ERRORLEVEL% NEQ 0 (
+            echo [WARN] Seed runner returned non-zero exit code
+        ) else (
+            echo [OK] Seeds executed
+        )
+    ) else (
+        echo [*] SEED_TENANT_IDS not set and RUN_SEEDS_ON_START not set; skipping DB seeds
+    )
+)
+) else (
+    echo [*] USE_ENTRYPOINT is set; skipping explicit DB seed runner (entrypoint handles seeds)
+)
 
 REM Start Frontend
 echo [*] Starting Frontend...
