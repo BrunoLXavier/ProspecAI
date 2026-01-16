@@ -6,7 +6,15 @@
 import axios, { AxiosInstance } from 'axios';
 import { getStoredAccessToken } from '@/contexts/AuthContext';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BYPASS_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+if (typeof window !== 'undefined') {
+  // Log the effective base URL so we can confirm requests bypass the Next proxy when needed
+  // (set NEXT_PUBLIC_API_BYPASS_URL in your dev env to force direct backend calls)
+  // This log is intentional for debugging and can be removed later.
+  // eslint-disable-next-line no-console
+  console.info('[ApiClient] Effective baseURL:', API_BASE_URL);
+}
 
 // Token refresh function reference (set by AuthContext)
 let refreshTokenFn: (() => Promise<string | null>) | null = null;
@@ -47,6 +55,15 @@ class ApiClient {
             if (!token) token = getStoredAccessToken();
             if (token && config && config.headers) {
               config.headers.Authorization = `Bearer ${token}`;
+            }
+            // Temporary logging to verify outgoing headers (client-side)
+            try {
+              const authHeader = config?.headers?.Authorization ?? null;
+              const tenantHeader = config?.headers?.['X-Tenant-ID'] ?? null;
+              // Use console.* so this appears in browser console during client requests
+              console.info('[ApiClient] Outgoing headers', { url: config?.url, Authorization: authHeader, 'X-Tenant-ID': tenantHeader });
+            } catch (e) {
+              // ignore logging failures
             }
         // Inject tenant header if available
         try {

@@ -1,17 +1,20 @@
 # Data Ingestion API Routes
+from __future__ import annotations
 # Implements RF-01: Data Ingestion and Multi-source Orchestration
 from typing import Optional, List
 from uuid import UUID
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks, Request
 from pydantic import BaseModel, Field
 
-from infrastructure.auth import get_current_user, CurrentUser
+from adapters.api.auth_middleware import get_current_user, AuthenticatedUser
+from infrastructure.auth import CurrentUser
 from adapters.database.connection import get_db
 from adapters.repositories.ingestion_repository import IngestionRepository
 from adapters.repositories.pii_detection_repository import PIIDetectionRepository
 from use_cases.manage_ingestion import ManageIngestionUseCase
+from infrastructure.jwt_service import get_jwt_service
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +114,7 @@ class StartProcessingResponse(BaseModel):
 @router.post("/jobs", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def create_job(
     request: CreateJobRequest,
-    user: CurrentUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db),
 ):
     """
@@ -127,7 +130,7 @@ async def create_job(
         
         result = await use_case.create_job(
             tenant_id=user.tenant_id,
-            user_id=user.id,
+            user_id=user.user_id,
             name=request.name,
             description=request.description,
             files=files,
@@ -148,11 +151,28 @@ async def get_jobs(
     job_status: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-    user: CurrentUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_current_user),
+    request: Request = None,
     session = Depends(get_db),
 ):
     """Get list of ingestion jobs with optional filtering."""
     try:
+        # Debug: log incoming Authorization header for troubleshooting 401s
+        try:
+            auth_raw = request.headers.get('authorization') if request is not None else None
+            logger.info(f"Incoming Authorization header for /api/v1/ingestion/jobs: {auth_raw}")
+
+            # If an auth header exists, attempt to validate it with local JWTService
+            if auth_raw:
+                try:
+                    token = auth_raw.split(' ', 1)[1] if ' ' in auth_raw else auth_raw
+                    jwt_service = get_jwt_service()
+                    payload = jwt_service.validate_access_token(token)
+                    logger.info(f"Explicit token validation result for /api/v1/ingestion/jobs: {payload}")
+                except Exception as ex:
+                    logger.exception(f"Explicit token validation failed for /api/v1/ingestion/jobs: {ex}")
+        except Exception:
+            logger.debug("Could not read Authorization header from request")
         ingestion_repo = IngestionRepository(session)
         pii_repo = PIIDetectionRepository(session)
         use_case = ManageIngestionUseCase(ingestion_repo, pii_repo)
@@ -176,7 +196,7 @@ async def get_jobs(
 @router.get("/jobs/{job_id}", response_model=dict)
 async def get_job(
     job_id: UUID,
-    user: CurrentUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db),
 ):
     """Get details of a specific ingestion job including sources."""
@@ -204,7 +224,7 @@ async def get_job(
 @router.delete("/jobs/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_job(
     job_id: UUID,
-    user: CurrentUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db),
 ):
     """Delete an ingestion job."""
@@ -233,7 +253,7 @@ async def delete_job(
 async def start_processing(
     job_id: UUID,
     background_tasks: BackgroundTasks,
-    user: CurrentUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db),
 ):
     """
@@ -250,7 +270,7 @@ async def start_processing(
         result = await use_case.start_processing(
             tenant_id=user.tenant_id,
             job_id=job_id,
-            user_id=user.id,
+            user_id=user.user_id,
         )
         
         if not result.get("success"):
@@ -273,7 +293,7 @@ async def start_processing(
 
 @router.get("/statistics", response_model=dict)
 async def get_statistics(
-    user: CurrentUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db),
 ):
     """Get aggregated ingestion statistics for the current tenant."""
@@ -298,7 +318,7 @@ async def upload_files(
     files: List[UploadFile] = File(...),
     job_name: str = Form(...),
     job_description: Optional[str] = Form(None),
-    user: CurrentUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db),
 ):
     """
@@ -340,7 +360,7 @@ async def upload_files(
         
         result = await use_case.create_job(
             tenant_id=user.tenant_id,
-            user_id=user.id,
+            user_id=user.user_id,
             name=job_name,
             description=job_description,
             files=uploaded_files,

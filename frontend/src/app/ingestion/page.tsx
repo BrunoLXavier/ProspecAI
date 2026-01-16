@@ -27,6 +27,7 @@ import IngestionBoard from '@/components/ingestion/IngestionBoard';
 import IngestionDetailModal from '@/components/ingestion/IngestionDetailModal';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import { getStoredAccessToken } from '@/contexts/AuthContext';
+import apiClient from '@/lib/api-client';
 
 // =============================================================================
 // Types
@@ -337,16 +338,22 @@ export default function IngestionPage() {
   const fetchJobs = useCallback(async () => {
     try {
       const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
-      const response = await fetch('/api/v1/ingestion/jobs', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch ingestion jobs');
-      
-      const data = await response.json();
-      setJobs(data.length > 0 ? data : mockJobs);
+
+      // If there is no access token, avoid calling the API (prevents 401)
+      if (!token) {
+        console.debug('[Ingestion] No access token found, using mock jobs');
+        setJobs(mockJobs);
+        return;
+      }
+
+      // Prefer using central apiClient which handles token refresh and headers
+      try {
+        const data = await apiClient.get<IngestionJob[]>('/api/v1/ingestion/jobs');
+        setJobs(data && data.length > 0 ? data : mockJobs);
+      } catch (e) {
+        console.warn('[Ingestion] apiClient failed to fetch jobs', e);
+        setJobs(mockJobs);
+      }
     } catch (err) {
       // Use mock data on error for development
       setJobs(mockJobs);
@@ -465,55 +472,32 @@ export default function IngestionPage() {
     setIsCreatingJob(true);
     setError(null);
     
-    try {
-      // Create job
-      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
-      const createResponse = await fetch('/api/v1/ingestion/jobs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      try {
+        // Create job via apiClient (handles auth + retries)
+        const job = await apiClient.post('/api/v1/ingestion/jobs', {
           name: jobName,
           description: jobDescription || undefined,
           source_type: 'file',
-        }),
-      });
-      
-      if (!createResponse.ok) throw new Error('Failed to create job');
-      
-      const job = await createResponse.json();
-      
-      // Upload files
-      const formData = new FormData();
-      uploadingFiles.forEach(uf => {
-        formData.append('files', uf.file);
-      });
-      
-      const uploadResponse = await fetch(`/api/v1/ingestion/jobs/${job.id}/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
-      
-      if (!uploadResponse.ok) throw new Error('Failed to upload files');
-      
-      // Reset form
-      setJobName('');
-      setJobDescription('');
-      setUploadingFiles([]);
-      
-      // Refresh jobs
-      await fetchJobs();
-      
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setIsCreatingJob(false);
-    }
+        });
+
+        // Upload files using form data and apiClient (axios will set Authorization)
+        const formData = new FormData();
+        uploadingFiles.forEach(uf => formData.append('files', uf.file));
+
+        await apiClient.post(`/api/v1/ingestion/jobs/${job.id}/upload`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        setJobName('');
+        setJobDescription('');
+        setUploadingFiles([]);
+
+        await fetchJobs();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setIsCreatingJob(false);
+      }
   };
   
   // ==========================================================================
@@ -522,20 +506,8 @@ export default function IngestionPage() {
   
   const handleStartJob = async (jobId: string) => {
     try {
-      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
-      const response = await fetch(`/api/v1/ingestion/jobs/${jobId}/start`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) throw new Error('Failed to start job');
-      
-      // Connect WebSocket for progress updates
+      await apiClient.post(`/api/v1/ingestion/jobs/${jobId}/start`);
       connectWebSocket(jobId);
-      
-      // Refresh jobs
       await fetchJobs();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -546,20 +518,8 @@ export default function IngestionPage() {
     if (!confirm(t('deleteConfirmation') || 'Tem certeza que deseja excluir este job?')) return;
     
     try {
-      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
-      const response = await fetch(`/api/v1/ingestion/jobs/${jobId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) throw new Error('Failed to delete job');
-      
-      if (selectedJob?.id === jobId) {
-        setSelectedJob(null);
-      }
-      
+      await apiClient.delete(`/api/v1/ingestion/jobs/${jobId}`);
+      if (selectedJob?.id === jobId) setSelectedJob(null);
       await fetchJobs();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -572,17 +532,8 @@ export default function IngestionPage() {
     
     // Fetch sources for this job
     try {
-      const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
-      const response = await fetch(`/api/v1/ingestion/jobs/${job.id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setJobSources(data.sources || []);
-      }
+      const data = await apiClient.get(`/api/v1/ingestion/jobs/${job.id}`);
+      setJobSources(data.sources || []);
     } catch (err) {
       console.error('Failed to fetch job sources', err);
     }
