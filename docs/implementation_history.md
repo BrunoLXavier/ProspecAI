@@ -1136,21 +1136,9 @@ ai_confidence_score: float = 0.85
 algorithm_version: str = "v1.0"
 ```
 
-### Frontend E2E Test Suite
-```
-Test Framework: Playwright
-Browsers: Chromium, Firefox, WebKit, Mobile Safari
-Workers: 12 parallel
-Total Test Files: 12 (.spec.ts files)
-Total Tests: 855+
+### Frontend E2E Test Suite (removed)
 
-Sample Execution (auth.spec.ts):
-├─ Chromium: ✅ PASSED (12 tests)
-├─ Firefox: ✅ PASSED (12 tests)
-├─ WebKit: ⚠️ 2 FAILED (element visibility)
-├─ Mobile Safari: ⚠️ 2 FAILED (element visibility)
-└─ Overall: 48 PASSED / 2 FAILED (96%)
-```
+E2E tests and Playwright-based suites were removed from the repository. Reintroduce an E2E framework and files under `frontend/` if needed.
 
 **Test Coverage by Module:**
 | File | Tests | Status |

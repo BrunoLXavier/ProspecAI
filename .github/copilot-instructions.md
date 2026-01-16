@@ -10,11 +10,8 @@ Você é um **Engenheiro de Software Sênior** especializado em **Clean Architec
 ## 2. CRITICAL: Ferramentas e Fluxos MCP
 Sempre utilize os servidores MCP para análise e testes antes de sugerir ou implementar código:
 
-### 2.1 Playwright (#playwright) - Testes E2E e Debugging
-Para investigação de testes E2E, debugging e análise de fluxo:
-1.  **Descoberta Semântica**: Localize arquivos de teste, seletores/locators baseados em papéis e chamadas de API associadas a um fluxo.
-2.  **Análise de Trace**: Compare traces de execuções bem-sucedidas e falhas para identificar causas raiz.
-3.  **Manutenção de Conhecimento**: Após cada sessão de debug, escreva uma memória sobre padrões de flaky tests ou melhorias de locators.
+### 2.1 E2E Testing and Debugging (removed)
+E2E test flow guidance previously referenced Playwright. E2E testing has been removed from this repository; reintroduce an E2E framework if needed and document tooling-specific flows here.
 
 ## 3. Diretrizes de Arquitetura e Código
 ### 3.1 Clean Architecture

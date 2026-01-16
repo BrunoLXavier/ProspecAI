@@ -268,10 +268,8 @@ docker-compose exec redis redis-cli ping
 # Backend tests
 docker-compose exec backend pytest tests/ -v
 
-# Frontend E2E tests
-cd frontend
-npm run test:e2e
-npx playwright show-report
+# Frontend E2E tests: removed from repository
+# To re-enable, add an E2E framework and scripts under `frontend/`
 ```
 
 ### Service URLs

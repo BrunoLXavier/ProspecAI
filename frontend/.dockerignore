@@ -1,0 +1,10 @@
+node_modules
+.next
+package-lock.json
+tsconfig.tsbuildinfo
+test-results
+*.webm
+*.mp4
+*.png
+*.jpg
+*.jpeg
