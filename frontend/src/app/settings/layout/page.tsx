@@ -174,6 +174,7 @@ export default function LayoutPage() {
           </button>
         </div>
       </div>
+      {/* (Merged) Theme & Colors - primary block will include modal color controls */}
 
       {/* Navigation Items */}
       <section className="bg-white dark:bg-slate-800 rounded-xl p-6">
@@ -474,45 +475,103 @@ export default function LayoutPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Light mode column */}
           <div>
-            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.colorMode') || 'Color mode'}</label>
-            <div className="flex gap-3">
-              {(['light','dark'] as const).map(m => (
-                <button
-                  key={m}
-                  onClick={() => updateConfig('color_mode', m)}
-                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.color_mode === m ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
-                >
-                  <span className="font-medium text-gray-900 dark:text-white">{t(`layout.themeColors.${m}`) || m}</span>
-                  {config.color_mode === m && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.primaryColor') || 'Primary color'}</label>
-            <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
-              <input type="color" value={config.primary_color} onChange={(e) => updateConfig('primary_color', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
-            </div>
-
-            <div className="mt-3">
-              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.secondaryColor') || 'Secondary color'}</label>
-              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
-                <input type="color" value={config.secondary_color || '#ffffff'} onChange={(e) => updateConfig('secondary_color', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.lightTitle') || 'Light mode'}</h3>
+            <div>
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.primary') || 'Primary color'}</label>
+              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white inline-block">
+                <input type="color" value={config.primary_color_light || config.primary_color} onChange={(e) => updateConfig('primary_color_light', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
               </div>
             </div>
 
             <div className="mt-3">
-              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.appearance') || 'Appearance'}</label>
-              <select
-                value={config.appearance || 'default'}
-                onChange={(e) => updateConfig('appearance', e.target.value as 'default' | 'highContrast' | 'system')}
-                className="w-full border-2 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
-              >
-                <option value="default">{t('layout.themeColors.appearanceOptions.default') || 'Default'}</option>
-                <option value="highContrast">{t('layout.themeColors.appearanceOptions.highContrast') || 'High contrast'}</option>
-                <option value="system">{t('layout.themeColors.appearanceOptions.system') || 'System'}</option>
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.secondary') || 'Secondary color'}</label>
+              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white inline-block">
+                <input type="color" value={config.secondary_color_light || config.secondary_color} onChange={(e) => updateConfig('secondary_color_light', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+              </div>
+            </div>
+
+            <div className="mt-4 border-t pt-4">
+              <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{t('layout.theme.modalTitle') || 'Modal appearance'}</h4>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBgLight') || 'Background'}</label>
+                  <input type="color" value={config.modal_bg_light} onChange={(e) => updateConfig('modal_bg_light', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalTextLight') || 'Text'}</label>
+                  <input type="color" value={config.modal_text_light} onChange={(e) => updateConfig('modal_text_light', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBorderLight') || 'Border'}</label>
+                  <input type="color" value={config.modal_border_light} onChange={(e) => updateConfig('modal_border_light', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dark mode column */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.darkTitle') || 'Dark mode'}</h3>
+            <div>
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.primary') || 'Primary color'}</label>
+              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
+                <input type="color" value={config.primary_color_dark || config.primary_color} onChange={(e) => updateConfig('primary_color_dark', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.secondary') || 'Secondary color'}</label>
+              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
+                <input type="color" value={config.secondary_color_dark || config.secondary_color} onChange={(e) => updateConfig('secondary_color_dark', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+              </div>
+            </div>
+
+            <div className="mt-4 border-t pt-4">
+              <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{t('layout.theme.modalTitle') || 'Modal appearance'}</h4>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBgDark') || 'Background'}</label>
+                  <input type="color" value={config.modal_bg_dark} onChange={(e) => updateConfig('modal_bg_dark', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalTextDark') || 'Text'}</label>
+                  <input type="color" value={config.modal_text_dark} onChange={(e) => updateConfig('modal_text_dark', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBorderDark') || 'Border'}</label>
+                  <input type="color" value={config.modal_border_dark} onChange={(e) => updateConfig('modal_border_dark', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Shared appearance + overlay/elevation controls */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.appearance') || 'Appearance'}</label>
+            <select
+              value={config.appearance || 'default'}
+              onChange={(e) => updateConfig('appearance', e.target.value as 'default' | 'highContrast' | 'system')}
+              className="w-full border-2 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+            >
+              <option value="default">{t('layout.themeColors.appearanceOptions.default') || 'Default'}</option>
+              <option value="highContrast">{t('layout.themeColors.appearanceOptions.highContrast') || 'High contrast'}</option>
+              <option value="system">{t('layout.themeColors.appearanceOptions.system') || 'System'}</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalOverlay') || 'Overlay opacity'}</label>
+            <input type="range" min="0" max="100" value={Math.round((config.modal_overlay_opacity ?? 0.4) * 100)} onChange={(e) => updateConfig('modal_overlay_opacity', parseInt(e.target.value) / 100)} className="w-full" />
+            <div className="mt-2">
+              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalElevation') || 'Elevation'}</label>
+              <select value={config.modal_elevation} onChange={(e) => updateConfig('modal_elevation', e.target.value as any)} className="w-full border rounded px-2 py-1">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
               </select>
             </div>
           </div>

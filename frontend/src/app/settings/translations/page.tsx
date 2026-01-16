@@ -8,11 +8,7 @@ import { useLayout } from '@/contexts/LayoutContext';
 import { useTranslations } from 'next-intl';
 import {
   MagnifyingGlassIcon,
-  PencilIcon,
-  TrashIcon,
   PlusIcon,
-  CheckIcon,
-  XMarkIcon,
   ArrowDownTrayIcon,
   ArrowUpTrayIcon,
   FunnelIcon,
@@ -191,10 +187,7 @@ export default function TranslationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNamespace, setSelectedNamespace] = useState<string>('');
   
-  // Edit state
-  const [editingPath, setEditingPath] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
+  // Edit state handled in detail modal; inline editing removed
   // Toasts / feedback
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
@@ -203,10 +196,12 @@ export default function TranslationsPage() {
   const [showNewKeyModal, setShowNewKeyModal] = useState(false);
   const [newKeyPath, setNewKeyPath] = useState('');
   const [newKeyValues, setNewKeyValues] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
   // Import preview modal state
   const [showImportPreview, setShowImportPreview] = useState(false);
   const [previewLocale, setPreviewLocale] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<any>(null);
+  const [previewMode, setPreviewMode] = useState<'import' | 'export' | null>(null);
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -216,6 +211,8 @@ export default function TranslationsPage() {
   // Detail modal
   const [selectedTranslation, setSelectedTranslation] = useState<TranslationKey | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  // Unified import/export menu visibility
+  const [showImportExportMenu, setShowImportExportMenu] = useState(false);
 
   // Load translations
   const loadTranslations = async () => {
@@ -235,10 +232,30 @@ export default function TranslationsPage() {
         `/api/v1/translations?${params.toString()}`
       );
       
-      setTranslations(response.translations);
-      setNamespaces(response.namespaces);
-      setLocales(response.locales);
-      setTotal(response.total ?? response.translations.length ?? 0);
+      const respTranslations = response.translations ?? [];
+      const respNamespaces = response.namespaces ?? [];
+      const respLocales = response.locales ?? [];
+
+      // If backend provides `total`, trust that the returned `translations` are already paged.
+      // Some environments may return the full list ignoring `skip/limit`; handle that gracefully
+      if (response.total != null) {
+        setTotal(response.total);
+        setTranslations(respTranslations);
+      } else {
+        // Backend didn't provide a total — server might have returned all items.
+        if (respTranslations.length > pageSize) {
+          setTotal(respTranslations.length);
+          const start = (page - 1) * pageSize;
+          setTranslations(respTranslations.slice(start, start + pageSize));
+        } else {
+          setTotal(respTranslations.length);
+          setTranslations(respTranslations);
+        }
+      }
+
+      setNamespaces(respNamespaces);
+      // Ensure known locales are present (fallback/merge)
+      setLocales(Array.from(new Set([...respLocales, 'pt-BR', 'en-US', 'es-ES'])));
     } catch (err: any) {
       // Use mock data on API failure for testing
       console.warn('Using mock translations data for testing:', err);
@@ -270,9 +287,16 @@ export default function TranslationsPage() {
   };
 
   useEffect(() => {
-    // reset to first page if namespace changed; load will be triggered by page effect
+    // reset to first page and reload when namespace changed
     setPage(1);
+    loadTranslations();
   }, [selectedNamespace]);
+
+  // Ensure current page is within bounds when total or pageSize changes
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil((total || 0) / pageSize));
+    if (page > maxPage) setPage(maxPage);
+  }, [total, pageSize]);
 
   // Debounced search
   useEffect(() => {
@@ -300,81 +324,30 @@ export default function TranslationsPage() {
 
   // Filtered translations
   const filteredTranslations = useMemo(() => {
-    return translations;
+    // Ensure we never render more rows than the current page size.
+    // Backend may return already-paged results or the full list; handle both cases.
+    if (!translations || translations.length === 0) return [];
+
+    // If translations length is <= pageSize, just return as-is.
+    if (translations.length <= pageSize) return translations;
+
+    const start = (page - 1) * pageSize;
+    return translations.slice(start, start + pageSize);
   }, [translations]);
 
   const filterFields: FilterField[] = [
-    { key: 'search', label: 'Search', type: 'text', placeholder: 'Search keys or values...' },
-    { key: 'namespace', label: 'Namespace', type: 'select', options: namespaces.map(ns => ({ value: ns, label: ns })) },
+    { key: 'search', label: tCommon('search') || 'Search', type: 'text', placeholder: t('translations.searchPlaceholder') || 'Search keys or values...' },
+    { key: 'namespace', label: t('translations.namespace') || 'Namespace', type: 'select', options: [{ value: '', label: tCommon('all') || 'All' }, ...namespaces.map(ns => ({ value: ns, label: ns }))] },
   ];
 
-  // Start editing
-  const startEditing = (translation: TranslationKey) => {
-    setEditingPath(translation.path);
-    setEditValues({ ...translation.values });
-  };
+  const maxPage = Math.max(1, Math.ceil((total || 0) / pageSize));
 
   // Helper to show success toasts
   const showSuccess = (msg: string) => {
     setToastType('success');
     setToastMsg(msg);
   };
-
-  // Cancel editing
-  const cancelEditing = () => {
-    setEditingPath(null);
-    setEditValues({});
-  };
-
-  // Save edits
-  const saveEdits = async () => {
-    if (!editingPath) return;
-    
-    setSaving(true);
-    try {
-      // Update each locale that changed
-      const original = translations.find(t => t.path === editingPath);
-      if (!original) return;
-
-      for (const locale of locales) {
-        if (editValues[locale] !== original.values[locale]) {
-          const params = new URLSearchParams({
-            locale,
-            value: editValues[locale] || ''
-          });
-          await apiClient.put(
-            `/api/v1/translations/${editingPath}?${params.toString()}`
-          );
-        }
-      }
-
-      // Reload translations
-      await loadTranslations();
-      cancelEditing();
-      showSuccess('Translation updated');
-    } catch (err: any) {
-      setError(err.message || 'Failed to save translation');
-      setToastType('error');
-      setToastMsg(err.message || 'Failed to save translation');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Delete translation
-  const deleteTranslation = async (path: string) => {
-    if (!confirm(`${t('translations.deleteConfirm')} "${path}"?`)) return;
-    
-    try {
-      await apiClient.delete(`/api/v1/translations/${path}`);
-      await loadTranslations();
-        showSuccess('Translation deleted');
-    } catch (err: any) {
-        setError(err.message || 'Failed to delete translation');
-        setToastType('error');
-        setToastMsg(err.message || 'Failed to delete translation');
-    }
-  };
+  // Delete is handled via the detail modal; inline delete removed
 
   // Create new translation
   const createTranslation = async () => {
@@ -405,14 +378,11 @@ export default function TranslationsPage() {
   const exportLocale = async (locale: string) => {
     try {
       const data = await apiClient.get(`/api/v1/translations/export/${locale}`);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${locale}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showSuccess(`Locale ${locale} exported`);
+      // open preview modal in export mode
+      setPreviewData(data);
+      setPreviewLocale(locale);
+      setPreviewMode('export');
+      setShowImportPreview(true);
     } catch (err: any) {
       setError(err.message || 'Failed to export locale');
       setToastType('error');
@@ -479,25 +449,80 @@ export default function TranslationsPage() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6 pb-24">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Translations
+            {t('translations.title') || 'Translations'}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Manage internationalization keys for all supported languages
+            {t('translations.description') || 'Manage internationalization keys for all supported languages'}
           </p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <div className="relative">
+            <button
+              onClick={() => setShowImportExportMenu(v => !v)}
+              className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 transition"
+            >
+              <ArrowDownTrayIcon className="w-4 h-4" />
+              {t('translations.importExport') || 'Import / Export'}
+            </button>
+
+            {showImportExportMenu && (
+              <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-50 p-2">
+                {locales.map(locale => (
+                  <div key={locale} className="flex items-center justify-between px-2 py-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{LOCALE_FLAGS[locale]} {LOCALE_NAMES[locale]}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => { exportLocale(locale); setShowImportExportMenu(false); }} className="px-2 py-1 text-sm border rounded">Export</button>
+                      <label className="px-2 py-1 text-sm border rounded cursor-pointer">
+                        Import
+                        <input type="file" accept="application/json,.json" className="hidden" onChange={async (e) => {
+                          const file = e.target.files ? e.target.files[0] : null;
+                          if (!file) return;
+                          try {
+                            const text = await file.text();
+                            const data = JSON.parse(text);
+                            if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                              setError('Locale JSON must be an object');
+                              setToastType('error');
+                              setToastMsg('Locale JSON must be an object');
+                            } else {
+                              setPreviewLocale(locale);
+                              setPreviewData(data);
+                              setPreviewMode('import');
+                              setShowImportPreview(true);
+                              setShowImportExportMenu(false);
+                            }
+                          } catch (err: any) {
+                            setError('Invalid JSON file');
+                            setToastType('error');
+                            setToastMsg('Invalid JSON file');
+                          }
+                          if (e.target) e.target.value = '';
+                        }} />
+                      </label>
+                    </div>
+                  </div>
+                ))}
+                <div className="mt-2 text-right">
+                  <button onClick={() => setShowImportExportMenu(false)} className="px-3 py-1 text-sm text-gray-600">Close</button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => setShowNewKeyModal(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             <PlusIcon className="w-5 h-5" />
-            New Key
+            {t('translations.addNewKey') || 'New Key'}
           </button>
         </div>
       </div>
@@ -525,77 +550,21 @@ export default function TranslationsPage() {
         </div>
       )}
 
-      {/* Filters + Export/Import + Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <FilterPanel
-            fields={filterFields}
-            values={{ search: searchQuery, namespace: selectedNamespace }}
-            onChange={(key, value) => {
-              if (key === 'search') setSearchQuery(String(value));
-              if (key === 'namespace') setSelectedNamespace(String(value));
-            }}
-            onReset={() => { setSearchQuery(''); setSelectedNamespace(''); }}
-            title="Translations Filters"
-            defaultExpanded={true}
-          />
-        </div>
+      {/* Statistics bar */}
+      <ConfigurableStatisticsBar module="translations" data={translations} />
 
-        <div className="space-y-4">
-          <ConfigurableStatisticsBar module="translations" data={translations} />
-
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-4">
-            <div className="flex gap-2 items-center">
-              {locales.map(locale => (
-                <div key={locale} className="inline-flex items-center gap-2">
-                  <button
-                    onClick={() => exportLocale(locale)}
-                    className="inline-flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-                    title={`Export ${locale}`}
-                  >
-                    <ArrowDownTrayIcon className="w-4 h-4" />
-                    {LOCALE_FLAGS[locale] ?? locale}
-                  </button>
-
-                  <label className="inline-flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors" title={`Import ${locale}`}>
-                    <ArrowUpTrayIcon className="w-4 h-4" />
-                    <input
-                      type="file"
-                      accept="application/json,.json"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files ? e.target.files[0] : null;
-                        if (!file) return;
-
-                        try {
-                          const text = await file.text();
-                          const data = JSON.parse(text);
-
-                          if (!data || typeof data !== 'object' || Array.isArray(data)) {
-                            setError('Locale JSON must be an object');
-                            setToastType('error');
-                            setToastMsg('Locale JSON must be an object');
-                          } else {
-                            setPreviewLocale(locale);
-                            setPreviewData(data);
-                            setShowImportPreview(true);
-                          }
-                        } catch (err: any) {
-                          setError('Invalid JSON file');
-                          setToastType('error');
-                          setToastMsg('Invalid JSON file');
-                        }
-
-                        if (e.target) e.target.value = '';
-                      }}
-                    />
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Filters */}
+      <FilterPanel
+        fields={filterFields}
+        values={{ search: searchQuery, namespace: selectedNamespace }}
+        onChange={(key, value) => {
+          if (key === 'search') setSearchQuery(String(value));
+          if (key === 'namespace') setSelectedNamespace(String(value));
+        }}
+        onReset={() => { setSearchQuery(''); setSelectedNamespace(''); }}
+        title={t('translations.filtersTitle') || 'Translations Filters'}
+        defaultExpanded={false}
+      />
 
       {/* Translations Table */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
@@ -608,85 +577,40 @@ export default function TranslationsPage() {
             No translations found
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-hidden">
+            <table className="w-full table-fixed">
               <thead className="bg-gray-50 dark:bg-slate-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-1/3 min-w-0">
                     {t('translations.keyPath')}
                   </th>
                   {locales.map(locale => (
-                    <th key={locale} className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th key={locale} className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-0 max-w-[14rem]">
                       {LOCALE_FLAGS[locale]} {LOCALE_NAMES[locale]}
                     </th>
                   ))}
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {t('settings.admin.acl')}
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredTranslations.map((translation) => (
-                  <tr key={translation.path} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                    <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white cursor-pointer" onClick={() => { setSelectedTranslation(translation); setShowDetailModal(true); }}>
+                  <tr
+                    key={translation.path}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedTranslation(translation); setShowDetailModal(true); } }}
+                    onClick={() => { setSelectedTranslation(translation); setShowDetailModal(true); }}
+                    className="hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                  >
+                    <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white w-1/3 min-w-0 break-words whitespace-normal">
                       {translation.path}
                     </td>
                     {locales.map(locale => (
-                      <td key={locale} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                        {editingPath === translation.path ? (
-                          <input
-                            type="text"
-                            value={editValues[locale] || ''}
-                            onChange={(e) => setEditValues(prev => ({ ...prev, [locale]: e.target.value }))}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-600 text-gray-900 dark:text-white text-sm"
-                          />
-                        ) : (
-                          <span className={!translation.values[locale] ? 'text-red-500 italic' : ''}>
-                            {translation.values[locale] || tCommon('noResults')}
-                          </span>
-                        )}
+                      <td key={locale} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 min-w-0 break-words max-w-[14rem] whitespace-normal">
+                        <span className={!translation.values[locale] ? 'text-red-500 italic' : ''}>
+                          {translation.values[locale] || tCommon('noResults')}
+                        </span>
                       </td>
                     ))}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        {editingPath === translation.path ? (
-                          <>
-                            <button
-                              onClick={saveEdits}
-                              disabled={saving}
-                              className="p-1 text-green-600 hover:text-green-800 disabled:opacity-50"
-                              title="Save"
-                            >
-                              <CheckIcon className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={cancelEditing}
-                              className="p-1 text-gray-600 hover:text-gray-800"
-                              title="Cancel"
-                            >
-                              <XMarkIcon className="w-5 h-5" />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => startEditing(translation)}
-                              className="p-1 text-primary-600 hover:text-primary-800"
-                              title="Edit"
-                            >
-                              <PencilIcon className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => deleteTranslation(translation.path)}
-                              className="p-1 text-red-600 hover:text-red-800"
-                              title="Delete"
-                            >
-                              <TrashIcon className="w-5 h-5" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -703,15 +627,17 @@ export default function TranslationsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="text-sm text-gray-600 dark:text-gray-400">{t('layout.uiPreferences.itemsPerPage') || 'items per page'}</div>
-            <select value={pageSize} onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }} className="px-2 py-1 border rounded bg-white dark:bg-slate-700">
+            <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{t('layout.uiPreferences.itemsPerPage') || 'items per page'}</div>
+            <select value={pageSize} onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }} className="px-2 py-1 border rounded bg-white dark:bg-slate-700 w-20 text-sm">
               {[10,20,25,50,100].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
 
             <div className="flex items-center gap-1">
+              <button onClick={() => setPage(1)} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">«</button>
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">‹</button>
-              <span className="px-2 text-sm text-gray-700 dark:text-gray-300">{page}</span>
-              <button onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize) || 1, p + 1))} disabled={page >= Math.ceil(total / pageSize)} className="px-2 py-1 border rounded disabled:opacity-50">›</button>
+              <span className="px-3 text-sm text-gray-700 dark:text-gray-300">{page} / {maxPage}</span>
+              <button onClick={() => setPage(p => Math.min(maxPage, p + 1))} disabled={page >= maxPage} className="px-2 py-1 border rounded disabled:opacity-50">›</button>
+              <button onClick={() => setPage(maxPage)} disabled={page >= maxPage} className="px-2 py-1 border rounded disabled:opacity-50">»</button>
             </div>
           </div>
         </div>
@@ -751,6 +677,49 @@ export default function TranslationsPage() {
                     onChange={(e) => setNewKeyValues(prev => ({ ...prev, [locale]: e.target.value }))}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                   />
+
+                      {locale === 'pt-BR' && (
+                    <div className="mt-2">
+                      <button
+                        type="button"
+                        disabled={!newKeyValues['pt-BR'] || newKeyValues['pt-BR'].trim().length === 0}
+                        onClick={async () => {
+                          const source = newKeyValues['pt-BR'] || '';
+                          if (!source.trim()) return;
+                          try {
+                            // Show temporary UI feedback
+                            setSaving(true);
+                            const resp = await apiClient.post('/api/v1/ai/translate', {
+                              text: source,
+                              from_locale: 'pt-BR',
+                              targets: ['en-US', 'es-ES']
+                            });
+                            const data = resp as any;
+                            if (data && data.translations) {
+                              setNewKeyValues(prev => ({
+                                ...prev,
+                                ['en-US']: data.translations['en-US'] || prev['en-US'] || '',
+                                ['es-ES']: data.translations['es-ES'] || prev['es-ES'] || ''
+                              }));
+                              setToastType('success');
+                              setToastMsg('Auto-translation applied');
+                            } else {
+                              setToastType('error');
+                              setToastMsg('Auto-translation failed');
+                            }
+                          } catch (err: any) {
+                            setToastType('error');
+                            setToastMsg(err?.message || 'Auto-translation failed');
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                        className="px-3 py-1 mt-1 text-sm bg-primary-600 text-white rounded-lg disabled:opacity-50"
+                      >
+                        {t('translations.autoTranslate') || 'Traduzir automaticamente'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -783,7 +752,7 @@ export default function TranslationsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-3xl p-6 m-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Preview locale: {previewLocale}</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">This will overwrite the existing locale file. Review the content below and confirm to proceed.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{previewMode === 'import' ? 'This will overwrite the existing locale file. Review the content below and confirm to proceed.' : 'Preview exported locale JSON. You can download it from here.'}</p>
 
             <div className="max-h-72 overflow-auto bg-gray-50 dark:bg-slate-700 p-3 rounded mb-4">
               <pre className="text-xs whitespace-pre-wrap text-gray-800 dark:text-gray-100">{JSON.stringify(previewData, null, 2)}</pre>
@@ -795,18 +764,45 @@ export default function TranslationsPage() {
                   setShowImportPreview(false);
                   setPreviewLocale(null);
                   setPreviewData(null);
+                  setPreviewMode(null);
                 }}
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
-              <button
-                onClick={confirmImport}
-                disabled={saving}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                {saving ? 'Importing...' : 'Overwrite and Import'}
-              </button>
+              {previewMode === 'import' ? (
+                <button
+                  onClick={confirmImport}
+                  disabled={saving}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  {saving ? 'Importing...' : 'Overwrite and Import'}
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    try {
+                      const blob = new Blob([JSON.stringify(previewData, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${previewLocale}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      setShowImportPreview(false);
+                      setPreviewLocale(null);
+                      setPreviewData(null);
+                      setPreviewMode(null);
+                      showSuccess(`Locale ${previewLocale} downloaded`);
+                    } catch (e) {
+                      setError('Failed to download file');
+                    }
+                  }}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Download JSON
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -817,6 +813,7 @@ export default function TranslationsPage() {
       isOpen={showDetailModal}
       onClose={() => { setShowDetailModal(false); setSelectedTranslation(null); }}
       translation={selectedTranslation}
+      locales={locales}
       onUpdated={() => loadTranslations()}
       onDeleted={() => loadTranslations()}
     />

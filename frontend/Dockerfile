@@ -12,6 +12,12 @@ RUN npm install --omit=dev --no-audit --no-fund
 # Copy source code
 COPY . .
 
+# Ensure locales are present inside the image for non-bind-mount deployments
+RUN if [ -d src/locales ]; then \
+			mkdir -p /app/src/locales && cp -a src/locales/. /app/src/locales/ || true; \
+		else \
+			echo "[docker build] No src/locales directory found; skipping locales copy"; \
+		fi
 # Expose port
 EXPOSE 3000
 

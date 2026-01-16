@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     postgresql-client \
+    libxml2-dev \
+    libxslt1-dev \
+    libffi-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -64,6 +67,16 @@ print('Sentence-Transformers model downloaded successfully')" || echo "Sentence-
 # can be performed by the entrypoint if needed.
 
 COPY . .
+
+# Build-time argument for deterministic Argos .argosmodel URLs
+ARG ARGOS_MODEL_URLS="https://argos-net.com/v1/translate-pt_en-1_9.argosmodel,https://argos-net.com/v1/translate-pt_es-1_9.argosmodel"
+# Export as environment variable so the installer script can read it
+ENV ARGOS_MODEL_URLS=${ARGOS_MODEL_URLS}
+
+# Install Argos Translate language packages (optional) during build
+RUN if [ -f ./scripts/install_argos_models.py ]; then \
+            python ./scripts/install_argos_models.py || echo "Argos models installation step failed - will attempt at runtime"; \
+        fi
 
 # Install our entrypoint which runs migrations and optionally seeds
 COPY docker-entrypoint.sh /usr/local/bin/entrypoint.sh

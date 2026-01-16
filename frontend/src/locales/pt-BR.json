@@ -522,9 +522,17 @@
       "addNewKey": "Adicionar Nova Chave de Tradução",
       "create": "Criar",
       "deleteConfirm": "Tem certeza que deseja excluir",
+      "searchPlaceholder": "Buscar chaves ou valores...",
+      "namespace": "Namespace",
+      "description": "Gerencie e edite traduções do sistema",
+      "importExport": "Importar/Exportar",
+      "filtersTitle": "Filtros",
+      "of": "de",
       "actions": "Ações",
       "showing": "Exibindo",
-      "translationKeys": "chaves de tradução"
+      "translationKeys": "chaves de tradução",
+      "autoTranslate": "Auto tradução",
+      "values": "Valores das traduções"
     },
     "acl": {
       "title": "Controle de Acesso",
@@ -728,8 +736,8 @@
       "passwordMinLength": "Senha deve ter no mínimo 8 caracteres",
       "roleRequired": "Selecione pelo menos um papel"
     },
-    "activeUser": "Usuário ativo",
-    "leaveBlank": "Deixe em branco para manter a atual",
+    "activeUser": "activeUser",
+    "leaveBlank": "leaveBlank",
     "messages": {
       "createSuccess": "Usuário criado com sucesso!",
       "updateSuccess": "Usuário atualizado com sucesso!",
@@ -739,11 +747,9 @@
       "deleteError": "Erro ao excluir usuário",
       "emailExists": "Este e-mail já está em uso"
     },
-    "activeUser": "activeUser",
     "allRoles": "allRoles",
     "create": "create",
     "deleteConfirmation": "deleteConfirmation",
-    "leaveBlank": "leaveBlank",
     "never": "never",
     "noUsers": "noUsers",
     "of": "of",
@@ -1056,6 +1062,7 @@
       }
     },
     "common": {
+      "all": "Todos",
       "activeFilters": "filtros activos",
       "allowed": "Permitido",
       "cancel": "Cancelar",
@@ -1481,7 +1488,8 @@
     "chars": "chars",
     "moveLeft": "moveLeft",
     "moveRight": "moveRight",
-    "view": "view"
+    "view": "view",
+    "all": "Todos"
   },
   "auth": {
     "login": {
@@ -2276,7 +2284,43 @@
       "light": "light",
       "primaryColor": "primaryColor",
       "secondaryColor": "secondaryColor",
-      "title": "title"
+      "title": "title",
+      "appearance": "Aparência",
+      "appearanceOptions": {
+        "default": "Padrão",
+        "highContrast": "Alto contraste",
+        "system": "Sistema"
+      }
+    },
+    "theme": {
+      "lightTitle": "Modo claro",
+      "primary": "Cor primária",
+      "secondary": "Cor secundária",
+      "darkTitle": "Modo escuro",
+      "modalTitle": "Aparência do modal",
+      "modalBgLight": "Fundo",
+      "modalTextLight": "Texto",
+      "modalBorderLight": "Borda",
+      "modalBgDark": "Fundo",
+      "modalTextDark": "Texto",
+      "modalBorderDark": "Borda",
+      "modalOverlay": "Opacidade do overlay",
+      "modalElevation": "Elevação"
+    },
+    "theme": {
+      "lightTitle": "Modo claro",
+      "darkTitle": "Modo escuro",
+      "primary": "Cor primária",
+      "secondary": "Cor secundária",
+      "modalTitle": "Aparência do modal",
+      "modalBgLight": "Fundo",
+      "modalTextLight": "Texto",
+      "modalBorderLight": "Borda",
+      "modalBgDark": "Fundo",
+      "modalTextDark": "Texto",
+      "modalBorderDark": "Borda",
+      "modalOverlay": "Opacidade do overlay",
+      "modalElevation": "Elevação"
     },
     "title": "title",
     "typography": {

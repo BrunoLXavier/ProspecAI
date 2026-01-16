@@ -57,6 +57,18 @@ export interface LayoutConfig {
   // Colors
   primary_color: string;
   secondary_color: string;
+  primary_color_light?: string;
+  primary_color_dark?: string;
+  secondary_color_light?: string;
+  secondary_color_dark?: string;
+  modal_bg_light?: string;
+  modal_bg_dark?: string;
+  modal_text_light?: string;
+  modal_text_dark?: string;
+  modal_border_light?: string;
+  modal_border_dark?: string;
+  modal_overlay_opacity?: number;
+  modal_elevation?: 'low' | 'medium' | 'high';
 }
 
 interface LayoutContextType {
@@ -126,6 +138,18 @@ export const DEFAULT_CONFIG: LayoutConfig = {
   font_family: 'sans',
   primary_color: '#E30613',
   secondary_color: '#003366',
+  primary_color_light: '#E30613',
+  primary_color_dark: '#E30613',
+  secondary_color_light: '#003366',
+  secondary_color_dark: '#003366',
+  modal_bg_light: '#ffffff',
+  modal_bg_dark: '#1e293b',
+  modal_text_light: '#0f172a',
+  modal_text_dark: '#f8fafc',
+  modal_border_light: '#e2e8f0',
+  modal_border_dark: '#334155',
+  modal_overlay_opacity: 0.4,
+  modal_elevation: 'medium',
 };
 
 // =============================================================================
@@ -192,9 +216,18 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       'Inter, system-ui, sans-serif'
     );
 
-    // Apply primary/secondary colors as CSS variables
-      document.documentElement.style.setProperty('--color-primary', config.primary_color);
-      document.documentElement.style.setProperty('--color-secondary', config.secondary_color);
+    // Apply primary/secondary colors as CSS variables (support light/dark variants)
+      document.documentElement.style.setProperty('--color-primary-light', config.primary_color_light || config.primary_color || '#E30613');
+      document.documentElement.style.setProperty('--color-primary-dark', config.primary_color_dark || config.primary_color || '#E30613');
+      document.documentElement.style.setProperty('--color-secondary-light', config.secondary_color_light || config.secondary_color || '#003366');
+      document.documentElement.style.setProperty('--color-secondary-dark', config.secondary_color_dark || config.secondary_color || '#003366');
+
+      // Determine active mode and expose active color variables
+      const isDark = config.color_mode === 'dark';
+      const activePrimary = isDark ? (config.primary_color_dark || config.primary_color || '#E30613') : (config.primary_color_light || config.primary_color || '#E30613');
+      const activeSecondary = isDark ? (config.secondary_color_dark || config.secondary_color || '#003366') : (config.secondary_color_light || config.secondary_color || '#003366');
+      document.documentElement.style.setProperty('--color-primary', activePrimary);
+      document.documentElement.style.setProperty('--color-secondary', activeSecondary);
 
       // Also mirror into brand-related variables used across the CSS so changes
       // take effect in components that reference --brand-primary / --brand-secondary
@@ -221,8 +254,8 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         }
       };
 
-      const primary = config.primary_color || '#E30613';
-      const secondary = config.secondary_color || '#003366';
+      const primary = activePrimary;
+      const secondary = activeSecondary;
       const primaryHover = darken(primary, 0.08);
       const secondaryHover = darken(secondary, 0.08);
 
@@ -230,7 +263,7 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.style.setProperty('--brand-primary-hover', primaryHover);
       document.documentElement.style.setProperty('--brand-secondary', secondary);
       document.documentElement.style.setProperty('--brand-secondary-hover', secondaryHover);
-      // expose RGB components for translucent variants in CSS
+      // expose RGB components for translucent variants in CSS (use active colors)
       try {
         const p = toRgb(primary);
         const s = toRgb(secondary);
@@ -243,6 +276,33 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       // Sidebar active color - translucent variant
       document.documentElement.style.setProperty('--sidebar-active', primary + 'E6');
       // If components reference --color-primary / --brand-primary both will be present
+
+      // Modal color variables (light/dark) - allow Layout settings to override
+      try {
+        document.documentElement.style.setProperty('--modal-bg-light', String(config.modal_bg_light ?? DEFAULT_CONFIG.modal_bg_light ?? '#ffffff'));
+        document.documentElement.style.setProperty('--modal-bg-dark', String(config.modal_bg_dark ?? DEFAULT_CONFIG.modal_bg_dark ?? '#1e293b'));
+        document.documentElement.style.setProperty('--modal-text-light', String(config.modal_text_light ?? DEFAULT_CONFIG.modal_text_light ?? '#0f172a'));
+        document.documentElement.style.setProperty('--modal-text-dark', String(config.modal_text_dark ?? DEFAULT_CONFIG.modal_text_dark ?? '#f8fafc'));
+        document.documentElement.style.setProperty('--modal-border-light', String(config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light ?? '#e2e8f0'));
+        document.documentElement.style.setProperty('--modal-border-dark', String(config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark ?? '#334155'));
+        // Active variables used by components (immediate reflect)
+        const isDark = config.color_mode === 'dark';
+        document.documentElement.style.setProperty('--modal-bg', String(isDark ? (config.modal_bg_dark ?? DEFAULT_CONFIG.modal_bg_dark) : (config.modal_bg_light ?? DEFAULT_CONFIG.modal_bg_light)));
+        document.documentElement.style.setProperty('--modal-text', String(isDark ? (config.modal_text_dark ?? DEFAULT_CONFIG.modal_text_dark) : (config.modal_text_light ?? DEFAULT_CONFIG.modal_text_light)));
+        document.documentElement.style.setProperty('--modal-border', String(isDark ? (config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark) : (config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light)));
+        // Overlay opacity and elevation
+        document.documentElement.style.setProperty('--modal-overlay-opacity', String(config.modal_overlay_opacity ?? DEFAULT_CONFIG.modal_overlay_opacity));
+        // Map elevation to a shadow value
+        const elevation = config.modal_elevation || DEFAULT_CONFIG.modal_elevation || 'medium';
+        const shadowMap: Record<string, string> = {
+          low: '0 4px 12px -6px rgba(0,0,0,0.08)',
+          medium: '0 8px 24px -4px rgba(0,0,0,0.12)',
+          high: '0 12px 40px -8px rgba(0,0,0,0.16)',
+        };
+        document.documentElement.style.setProperty('--modal-shadow', shadowMap[elevation]);
+      } catch (e) {
+        // ignore
+      }
 
     // Apply light/dark mode
     if (config.color_mode === 'dark') {
@@ -364,7 +424,19 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         font_size: config.font_size,
         font_family: config.font_family,
         primary_color: config.primary_color,
+        primary_color_light: config.primary_color_light,
+        primary_color_dark: config.primary_color_dark,
         secondary_color: config.secondary_color,
+        secondary_color_light: config.secondary_color_light,
+        secondary_color_dark: config.secondary_color_dark,
+        modal_bg_light: config.modal_bg_light,
+        modal_bg_dark: config.modal_bg_dark,
+        modal_text_light: config.modal_text_light,
+        modal_text_dark: config.modal_text_dark,
+        modal_border_light: config.modal_border_light,
+        modal_border_dark: config.modal_border_dark,
+        modal_overlay_opacity: config.modal_overlay_opacity,
+        modal_elevation: config.modal_elevation,
         color_mode: config.color_mode,
         ai_chat_enabled: config.ai_chat_enabled,
         feedback_button_enabled: config.feedback_button_enabled,

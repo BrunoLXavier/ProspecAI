@@ -522,9 +522,17 @@
       "addNewKey": "Add New Translation Key",
       "create": "Create",
       "deleteConfirm": "Are you sure you want to delete",
+      "searchPlaceholder": "Search keys or values...",
+      "namespace": "Namespace",
+      "description": "Manage and edit system translations",
+      "importExport": "Import/Export",
+      "filtersTitle": "Filters",
+      "of": "of",
       "actions": "Actions",
       "showing": "Showing",
-      "translationKeys": "translation keys"
+      "translationKeys": "translation keys",
+      "autoTranslate": "Auto translation",
+      "values": "Translation values"
     },
     "acl": {
       "title": "Access Control",
@@ -545,8 +553,7 @@
         "approve": "Approve",
         "assign": "Assign"
       },
-      "createRole": "Create Role"
-      ,
+      "createRole": "Create Role",
       "loading": "Loading roles...",
       "noRoles": "No roles found",
       "systemBadge": "System",
@@ -1480,7 +1487,8 @@
     "chars": "chars",
     "moveLeft": "moveLeft",
     "moveRight": "moveRight",
-    "view": "view"
+    "view": "view",
+    "all": "All"
   },
   "auth": {
     "login": {
@@ -2275,7 +2283,43 @@
       "light": "light",
       "primaryColor": "primaryColor",
       "secondaryColor": "secondaryColor",
-      "title": "title"
+      "title": "title",
+      "appearance": "Appearance",
+      "appearanceOptions": {
+        "default": "Default",
+        "highContrast": "High contrast",
+        "system": "System"
+      }
+    },
+    "theme": {
+      "lightTitle": "Light mode",
+      "primary": "Primary color",
+      "secondary": "Secondary color",
+      "darkTitle": "Dark mode",
+      "modalTitle": "Modal appearance",
+      "modalBgLight": "Background",
+      "modalTextLight": "Text",
+      "modalBorderLight": "Border",
+      "modalBgDark": "Background",
+      "modalTextDark": "Text",
+      "modalBorderDark": "Border",
+      "modalOverlay": "Overlay opacity",
+      "modalElevation": "Elevation"
+    },
+    "theme": {
+      "lightTitle": "Light mode",
+      "darkTitle": "Dark mode",
+      "primary": "Primary color",
+      "secondary": "Secondary color",
+      "modalTitle": "Modal appearance",
+      "modalBgLight": "Background",
+      "modalTextLight": "Text",
+      "modalBorderLight": "Border",
+      "modalBgDark": "Background",
+      "modalTextDark": "Text",
+      "modalBorderDark": "Border",
+      "modalOverlay": "Overlay opacity",
+      "modalElevation": "Elevation"
     },
     "title": "title",
     "typography": {

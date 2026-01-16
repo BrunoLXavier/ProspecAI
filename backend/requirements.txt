@@ -45,10 +45,11 @@ mlflow==2.10.0
 scikit-learn==1.4.0
 numpy==1.26.3
 pandas==2.2.0
-sentencepiece==0.1.99
+sentencepiece==0.2.0
 tokenizers==0.15.0
 accelerate==0.25.0
 datasets==2.16.1
+argostranslate==1.10.0
 
 # Utils
 python-dotenv==1.0.0

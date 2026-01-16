@@ -14,8 +14,49 @@ logger = logging.getLogger(__name__)
 # Supported locales
 SUPPORTED_LOCALES = ["pt-BR", "en-US", "es-ES"]
 
-# Path to frontend locales directory
-LOCALES_DIR = Path(__file__).parent.parent.parent / "frontend" / "src" / "locales"
+# Path to frontend locales directory (can be overridden by env var TRANSLATIONS_DIR)
+def _find_locales_dir() -> Path:
+    """Find the frontend locales directory by trying several likely locations.
+
+    This helps when the backend runs inside Docker and the frontend folder
+    may be mounted at different paths (e.g., `/app/frontend`).
+    """
+    candidates = []
+    # Default (repo layout when running locally)
+    candidates.append(Path(__file__).parent.parent.parent / "frontend" / "src" / "locales")
+    # Common container mount used in docker-compose (we mount frontend to /app/frontend)
+    candidates.append(Path("/app/frontend/src/locales"))
+    # Also try relative to module path with different up-level assumptions
+    candidates.append(Path(__file__).parent.parent / "frontend" / "src" / "locales")
+    candidates.append(Path(__file__).parent / "../frontend/src/locales")
+
+    for c in candidates:
+        try:
+            p = c.resolve()
+        except Exception:
+            p = c
+        if p.exists() and p.is_dir():
+            logger.info(f"Found locales directory: {p}")
+            return p
+
+    # Fallback to the first candidate (may not exist)
+    fallback = candidates[0]
+    logger.warning(f"Locales directory not found in candidates; using fallback: {fallback}")
+    return fallback
+
+
+# Allow overriding the locales directory via environment variable for containerized
+# or permission-restricted environments. If set, prefer it (even if it doesn't
+# yet exist) so operators can control where the backend stores locale files.
+env_dir = os.getenv("TRANSLATIONS_DIR")
+if env_dir:
+    try:
+        LOCALES_DIR = Path(env_dir)
+        logger.info(f"Using TRANSLATIONS_DIR from env: {LOCALES_DIR}")
+    except Exception:
+        LOCALES_DIR = _find_locales_dir()
+else:
+    LOCALES_DIR = _find_locales_dir()
 
 
 class TranslationKey(BaseModel):
@@ -61,13 +102,20 @@ class TranslationsService:
     def _save_locale(self, locale: str, data: Dict[str, Any]) -> None:
         """Save a locale JSON file."""
         file_path = self._get_locale_file_path(locale)
-        
-        # Ensure directory exists
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        
+        # Ensure directory exists and is writable
+        try:
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except OSError as e:
+            msg = (
+                f"Failed to write locale file '{file_path}': {e}.\n"
+                "Set the environment variable TRANSLATIONS_DIR to a writable path "
+                "or ensure the configured frontend 'locales' directory is mounted and writable."
+            )
+            logger.error(msg)
+            raise RuntimeError(msg)
+
         logger.info(f"Saved locale file: {file_path}")
     
     def _flatten_dict(self, d: Dict[str, Any], parent_key: str = "") -> Dict[str, str]:

@@ -32,12 +32,34 @@
   --border-primary: #e2e8f0;
   --border-secondary: #cbd5e1;
   --border-focus: #E30613;
+
+    /* Modal specific tokens (configurable via Theme settings)
+      Provides light/dark variants that can be overridden by LayoutContext */
+    --modal-bg-light: var(--surface-primary);
+    --modal-text-light: var(--text-primary);
+    --modal-border-light: var(--border-primary);
+    --modal-bg-dark: var(--surface-elevated);
+    --modal-text-dark: var(--text-inverse);
+    --modal-border-dark: var(--border-secondary);
+    /* Active variables used by components */
+    --modal-bg: var(--modal-bg-light);
+    --modal-text: var(--modal-text-light);
+    --modal-border: var(--modal-border-light);
+    --modal-overlay-opacity: 0.4;
+    --modal-shadow: 0 8px 24px -4px rgba(0,0,0,0.12);
   
   /* Brand Colors */
   --brand-primary: #E30613;
   --brand-primary-hover: #c00510;
   --brand-secondary: #003366;
   --brand-secondary-hover: #002952;
+  /* Per-mode color tokens (active value mapped by LayoutContext) */
+  --color-primary-light: #E30613;
+  --color-primary-dark: #E30613;
+  --color-secondary-light: #003366;
+  --color-secondary-dark: #003366;
+  --color-primary: var(--color-primary-light);
+  --color-secondary: var(--color-secondary-light);
 
   /* Map common 'red' utility classes to brand primary, and 'blue' to brand secondary.
     This provides broad theme coverage without changing many files. These rules
@@ -116,10 +138,19 @@
   
   --sidebar-bg: rgba(15, 23, 42, 0.95);
   --header-bg: rgba(30, 41, 59, 0.8);
+
+  /* ensure color tokens have sensible defaults in dark mode */
+  --color-primary: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary-dark);
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+
+  /* Modal overrides for dark mode */
+  --modal-bg: var(--modal-bg-dark);
+  --modal-text: var(--modal-text-dark);
+  --modal-border: var(--modal-border-dark);
 }
 
 /* High contrast appearance mode */

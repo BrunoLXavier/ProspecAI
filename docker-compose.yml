@@ -175,10 +175,14 @@ services:
       # BERTimbau specific
       BERTIMBAU_MODEL: neuralmind/bert-base-portuguese-cased
       BERTIMBAU_NER_MODEL: neuralmind/bert-base-portuguese-cased-ner
+      # Translations directory (must be writable by backend)
+      TRANSLATIONS_DIR: /app/translations
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./frontend:/app/frontend:ro
+      - ./frontend/src/locales:/app/translations:rw
       - ai_models:/app/models
       - model_cache:/app/model_cache
     command: uvicorn main:app --host 0.0.0.0 --port 8000
@@ -206,6 +210,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
+      - ./frontend/src/locales:/app/src/locales:rw
     command: npm run dev
 
 volumes:
@@ -218,3 +223,4 @@ volumes:
   grafana_data:
   ai_models:
   model_cache:
+  translations_data:

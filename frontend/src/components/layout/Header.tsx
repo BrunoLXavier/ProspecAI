@@ -34,6 +34,7 @@ const breadcrumbMap: Record<string, string> = {
   '/proposals': 'proposals',
   '/settings': 'settings',
   '/reports': 'reports',
+  '/settings/translations': 'translations',
 };
 
 // Mock notifications

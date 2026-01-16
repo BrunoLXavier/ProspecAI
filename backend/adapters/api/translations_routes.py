@@ -78,6 +78,34 @@ async def list_locales():
     return SUPPORTED_LOCALES
 
 
+@router.get("/export/{locale}", response_model=Dict[str, Any])
+async def export_locale(locale: str):
+    """Export a complete locale file as JSON."""
+    if locale not in SUPPORTED_LOCALES:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Unsupported locale: {locale}. Supported: {SUPPORTED_LOCALES}"
+        )
+    
+    return translations_service.export_locale(locale)
+
+
+@router.post("/import/{locale}", status_code=201)
+async def import_locale(locale: str, data: Dict[str, Any]):
+    """Import/replace a complete locale file."""
+    if locale not in SUPPORTED_LOCALES:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Unsupported locale: {locale}. Supported: {SUPPORTED_LOCALES}"
+        )
+    
+    try:
+        translations_service.import_locale(locale, data)
+        return {"message": f"Locale {locale} imported successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{path:path}", response_model=TranslationKey)
 async def get_translation(path: str):
     """Get a specific translation by path."""
@@ -149,31 +177,4 @@ async def bulk_update_translations(request: BulkUpdateRequest):
             errors.append(f"{update.path} ({update.locale}): {str(e)}")
     
     return BulkUpdateResponse(updated=updated, errors=errors)
-
-
-@router.get("/export/{locale}", response_model=Dict[str, Any])
-async def export_locale(locale: str):
-    """Export a complete locale file as JSON."""
-    if locale not in SUPPORTED_LOCALES:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Unsupported locale: {locale}. Supported: {SUPPORTED_LOCALES}"
-        )
-    
-    return translations_service.export_locale(locale)
-
-
-@router.post("/import/{locale}", status_code=201)
-async def import_locale(locale: str, data: Dict[str, Any]):
-    """Import/replace a complete locale file."""
-    if locale not in SUPPORTED_LOCALES:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Unsupported locale: {locale}. Supported: {SUPPORTED_LOCALES}"
-        )
-    
-    try:
-        translations_service.import_locale(locale, data)
-        return {"message": f"Locale {locale} imported successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+ 

@@ -20,4 +20,20 @@ else
 fi
 
 echo "[entrypoint] Starting application"
-exec uvicorn main:app --host 0.0.0.0 --port 8000
+  # If TRANSLATIONS_DIR is not populated, attempt to copy locales from the frontend
+  # This helps non-bind-mount deployments where locales should be baked into the image
+  TRANSLATIONS_DIR=${TRANSLATIONS_DIR:-/app/translations}
+  if [ ! -d "$TRANSLATIONS_DIR" ] || [ -z "$(ls -A "$TRANSLATIONS_DIR" 2>/dev/null)" ]; then
+    if [ -d /app/frontend/src/locales ]; then
+      echo "[entrypoint] Populating translations from /app/frontend/src/locales -> $TRANSLATIONS_DIR"
+      mkdir -p "$TRANSLATIONS_DIR"
+      cp -a /app/frontend/src/locales/. "$TRANSLATIONS_DIR"/ || echo "[entrypoint] Warning: copy of locales failed"
+      chmod -R a+rw "$TRANSLATIONS_DIR" || true
+    else
+      echo "[entrypoint] No frontend locales found at /app/frontend/src/locales; skipping translations copy"
+    fi
+  else
+    echo "[entrypoint] $TRANSLATIONS_DIR already populated; skipping translations copy"
+  fi
+
+  exec uvicorn main:app --host 0.0.0.0 --port 8000

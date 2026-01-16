@@ -522,9 +522,17 @@
       "addNewKey": "Agregar Nueva Clave de Traducción",
       "create": "Crear",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar",
+      "searchPlaceholder": "Buscar claves o valores...",
+      "namespace": "Namespace",
+      "description": "Administre y edite las traducciones del sistema",
+      "importExport": "Importar/Exportar",
+      "filtersTitle": "Filtros",
+      "of": "de",
       "actions": "Acciones",
       "showing": "Mostrando",
-      "translationKeys": "claves de traducción"
+      "translationKeys": "claves de traducción",
+      "autoTranslate": "Auto tradução",
+      "values": "Valores das traduções"
     },
     "acl": {
       "title": "Control de Acceso",
@@ -700,9 +708,9 @@
     "status": "Estado",
     "active": "Activo",
     "inactive": "Inactivo",
-        "deleteConfirmation": "¿Está seguro de que desea eliminar este usuario?",
-        "activeUser": "Usuario activo",
-        "leaveBlank": "Dejar en blanco para mantener la actual",
+    "deleteConfirmation": "deleteConfirmation",
+    "activeUser": "activeUser",
+    "leaveBlank": "leaveBlank",
     "createdAt": "Creado el",
     "actions": "Acciones",
     "filters": {
@@ -739,11 +747,8 @@
       "deleteError": "Error al eliminar usuario",
       "emailExists": "Este correo ya está en uso"
     },
-    "activeUser": "activeUser",
     "allRoles": "allRoles",
     "create": "create",
-    "deleteConfirmation": "deleteConfirmation",
-    "leaveBlank": "leaveBlank",
     "never": "never",
     "noUsers": "noUsers",
     "of": "of",
@@ -1826,7 +1831,8 @@
     },
     "statisticsPermissions": "Statistics Permissions",
     "statisticsPreferences": "Statistics Preferences",
-    "userRole": "User Role"
+    "userRole": "User Role",
+    "all": "Todos"
   },
   "confirm": {
     "deleteLLM": "deleteLLM"
@@ -2083,7 +2089,43 @@
       "light": "light",
       "primaryColor": "primaryColor",
       "secondaryColor": "secondaryColor",
-      "title": "title"
+      "title": "title",
+      "appearance": "Apariencia",
+      "appearanceOptions": {
+        "default": "Predeterminado",
+        "highContrast": "Alto contraste",
+        "system": "Sistema"
+      }
+    },
+    "theme": {
+      "lightTitle": "Modo claro",
+      "primary": "Color primario",
+      "secondary": "Color secundario",
+      "darkTitle": "Modo oscuro",
+      "modalTitle": "Apariencia del modal",
+      "modalBgLight": "Fondo",
+      "modalTextLight": "Texto",
+      "modalBorderLight": "Borde",
+      "modalBgDark": "Fondo",
+      "modalTextDark": "Texto",
+      "modalBorderDark": "Borde",
+      "modalOverlay": "Opacidad del overlay",
+      "modalElevation": "Elevación"
+    },
+    "theme": {
+      "lightTitle": "Modo claro",
+      "darkTitle": "Modo oscuro",
+      "primary": "Color primario",
+      "secondary": "Color secundario",
+      "modalTitle": "Apariencia del modal",
+      "modalBgLight": "Fondo",
+      "modalTextLight": "Texto",
+      "modalBorderLight": "Borde",
+      "modalBgDark": "Fondo",
+      "modalTextDark": "Texto",
+      "modalBorderDark": "Borde",
+      "modalOverlay": "Opacidad de overlay",
+      "modalElevation": "Elevación"
     },
     "title": "title",
     "typography": {

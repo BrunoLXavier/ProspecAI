@@ -1,0 +1,2 @@
+NAME                 IMAGE                  COMMAND                  SERVICE    CREATED          STATUS          PORTS
+prospecai-frontend   prospecia20-frontend   "docker-entrypoint.s…"   frontend   51 seconds ago   Up 47 seconds   0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp

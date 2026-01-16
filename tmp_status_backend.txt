@@ -1,0 +1,2 @@
+NAME                IMAGE                 COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+prospecai-backend   prospecia20-backend   "/usr/local/bin/entr…"   backend   16 minutes ago   Up 16 minutes (healthy)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
