@@ -34,12 +34,9 @@ dist/
 build/
 *.egg-info/
 
-# Playwright / test artifacts
-frontend/playwright-report/
+# Test artifacts
 frontend/test-results/
 test-results/
-playwright-report/
-.playwright/
 *.webm
 *.mp4
 *.png

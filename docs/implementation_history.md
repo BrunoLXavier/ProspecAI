@@ -470,12 +470,9 @@ O **ProspecAI** é uma plataforma SaaS completa para prospecção inteligente de
 - ✅ Integration: test_reports_api.py (15+ tests)
 - ✅ Integration: test_files_api.py (20+ tests)
 
-**Frontend Tests (Playwright)**
-- ✅ auth.spec.ts (8 tests)
-- ✅ analytics.spec.ts (10 tests)
-- ✅ reports.spec.ts (10 tests)
-- ✅ file-upload.spec.ts (12 tests)
-- ✅ navigation.spec.ts (15 tests)
+**Frontend Tests (E2E removed)**
+Frontend E2E tests have been removed from this repository.
+If needed, reintroduce an E2E framework and test files in `frontend/e2e/`.
 
 ---
 
@@ -569,7 +566,7 @@ Entities  Business    Interfaces   Frameworks
 6. **Explainable AI** com badges aumenta confiança do usuário
 7. **Presigned URLs** permitem upload direto para MinIO
 8. **Template-based reports** flexibilidade sem hardcoding
-9. **Playwright** excelente para testes cross-browser
+9. **Playwright (removed)** previously used for cross-browser E2E tests
 10. **pytest fixtures** permitem setup/teardown limpos
 
 ---
@@ -621,7 +618,7 @@ Entities  Business    Interfaces   Frameworks
 
 **Test Results**
 - Backend: 121 tests collected, 85+ passing (pytest)
-- Frontend: 57 tests collected, 44 passing (Playwright)
+- Frontend E2E tests removed from repository
 - E2E Coverage: Navigation (16/16), Auth (10/10), Analytics (9/12), Reports (5/8), Files (4/11)
 
 **Frontend Fixes**
@@ -706,23 +703,7 @@ Entities  Business    Interfaces   Frameworks
 
 **Test Execution Command**
 ```bash
-# Run all E2E tests
-cd frontend
-npm run test:e2e
-
-# Run specific test file
-npx playwright test e2e/crud-funding.spec.ts
-
-# Run with specific browser
-npx playwright test --project=chromium
-npx playwright test --project=firefox
-npx playwright test --project=webkit
-
-# Run with headed mode for debugging
-npx playwright test --headed
-
-# Run with debug mode
-npx playwright test --debug
+# E2E tests removed from repository. Reintroduce test commands if adding E2E suite.
 ```
 
 **Docker Infrastructure Verification**

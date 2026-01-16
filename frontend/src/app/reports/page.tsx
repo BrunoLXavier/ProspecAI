@@ -85,12 +85,17 @@ export default function ReportsPage() {
   const { data: templates, isLoading: templatesLoading } = useQuery({
     queryKey: ['report-templates'],
     queryFn: async () => {
-      const response = await fetch('/api/v1/reports/templates', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('prospecai_access_token')}`,
-        },
-      });
-      return response.json() as Promise<ReportTemplate[]>;
+      try {
+        const data = await apiClient.get<ReportTemplate[]>('/api/v1/reports/templates');
+        return data;
+      } catch (err: any) {
+        // If unauthorized, return empty array and let ApiClient handle redirect/refresh
+        console.error('Failed fetching report templates', err);
+        if (err?.response?.status === 401) {
+          return [] as ReportTemplate[];
+        }
+        throw err;
+      }
     },
   });
 

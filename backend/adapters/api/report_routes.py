@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
-from infrastructure.auth import get_current_user, CurrentUser
+from adapters.api.auth_middleware import get_current_user, AuthenticatedUser as CurrentUser
 from services.report_service import (
     get_report_generator, ReportFormat, ReportType, ReportTemplate
 )

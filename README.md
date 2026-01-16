@@ -254,31 +254,13 @@ pytest tests/unit/ -v
 pytest tests/integration/ -v
 ```
 
-### Frontend (Playwright E2E)
-
-```bash
-cd frontend
-
-# Install browsers
-npx playwright install
-
-# Run all E2E tests
-npm run test:e2e
-
-# Interactive UI mode
-npm run test:e2e:ui
-
-# Headed mode (visible browser)
-npm run test:e2e:headed
-```
-
 ### Test Coverage
 
 | Level | Framework | Files | Test Cases |
 |-------|-----------|-------|------------|
 | Unit Tests | pytest | 1 | 20+ |
 | Integration | pytest-asyncio | 3 | 50+ |
-| E2E Tests | Playwright | 5 | 55+ |
+| E2E Tests | none | 0 | 0 |
 | **Total** | - | **9** | **125+** |
 
 See [docs/TESTING.md](docs/TESTING.md) for detailed testing guide.

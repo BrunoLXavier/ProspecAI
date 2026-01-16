@@ -1,11 +1,13 @@
 # Frontend Dockerfile
 FROM node:20-bullseye-slim
 
+# Set working directory
 WORKDIR /app
 
-# Copy package files and install only production dependencies (omit dev deps like Playwright)
-COPY package*.json ./
-RUN npm ci --omit=dev
+# Copy only the package.json and install production dependencies (omit dev deps)
+# Use `npm install` instead of `npm ci` so the build does not rely on a lockfile
+COPY package.json ./
+RUN npm install --omit=dev --no-audit --no-fund
 
 # Copy source code
 COPY . .

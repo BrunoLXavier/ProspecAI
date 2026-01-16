@@ -207,49 +207,10 @@ pytest tests/integration/ -v
 pytest tests/unit/test_entities.py::TestFundingSource -v
 ```
 
-### 7.2 Frontend Testing (Playwright)
+### 7.2 Frontend Testing (E2E removed)
 
-**Estrutura de Testes:**
-```
-frontend/e2e/
-├── auth.spec.ts           # Autenticação
-├── analytics.spec.ts      # Dashboard analytics
-├── reports.spec.ts        # Geração de relatórios
-├── file-upload.spec.ts    # Upload de arquivos
-├── navigation.spec.ts     # Navegação + a11y
-├── crud-funding.spec.ts   # Funding Sources (100+ tests)
-├── crud-crm.spec.ts       # CRM/Clients (100+ tests)
-├── crud-portfolio.spec.ts # Portfolio (100+ tests)
-├── crud-opportunities.spec.ts # Opportunities (100+ tests)
-├── crud-proposals.spec.ts # Proposals (100+ tests)
-├── settings-pages.spec.ts # Settings/Profile/Activity (200+ tests)
-└── ai-matching.spec.ts    # AI Matching (150+ tests)
-```
+Frontend E2E tests have been removed from this repository. If you need to add E2E tests later, reintroduce a test framework and related configuration.
 
-**Executando Testes:**
-```bash
-cd frontend
-
-# Instalar browsers
-npx playwright install
-
-# Todos os testes
-npm run test:e2e
-
-# Com UI interativa
-npm run test:e2e:ui
-
-# Modo headed (browser visível)
-npm run test:e2e:headed
-
-# Teste específico
-npx playwright test e2e/auth.spec.ts
-
-# Browsers específicos
-npx playwright test --project=chromium
-npx playwright test --project=firefox
-npx playwright test --project=webkit
-```
 
 ### 7.3 Coverage Goals
 

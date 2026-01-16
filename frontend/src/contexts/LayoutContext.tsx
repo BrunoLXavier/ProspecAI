@@ -288,6 +288,29 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
 
   }, [config]);
 
+  // Listen to external layout:changed events (for example emitted by ThemeProvider)
+  // and synchronize the config.color_mode when they occur so both contexts
+  // remain consistent when either the header or the settings page changes theme.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const ev = e as CustomEvent;
+        if (ev?.detail?.key === 'color_mode') {
+          const v = ev.detail.value as LayoutConfig['color_mode'];
+          setConfig(prev => {
+            if (prev.color_mode === v) return prev;
+            return { ...prev, color_mode: v } as LayoutConfig;
+          });
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    window.addEventListener('layout:changed', handler as EventListener);
+    return () => window.removeEventListener('layout:changed', handler as EventListener);
+  }, []);
+
   // Update a single config key (updates local state immediately)
   const updateConfig = useCallback(<K extends keyof LayoutConfig>(key: K, value: LayoutConfig[K]) => {
     setConfig(prev => {

@@ -50,11 +50,39 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
     setThemeState(newTheme);
     localStorage.setItem('theme', newTheme);
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    try {
+      if (typeof window !== 'undefined' && window?.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('layout:changed', { detail: { key: 'color_mode', value: newTheme } }));
+      }
+    } catch (e) {
+      // ignore
+    }
   };
 
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
+  // Keep ThemeProvider state in sync with LayoutContext updates.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const ev = e as CustomEvent;
+        if (ev?.detail?.key === 'color_mode') {
+          const v = ev.detail.value as Theme;
+          if (v && v !== theme) {
+            setThemeState(v);
+            localStorage.setItem('theme', v);
+            document.documentElement.classList.toggle('dark', v === 'dark');
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    window.addEventListener('layout:changed', handler as EventListener);
+    return () => window.removeEventListener('layout:changed', handler as EventListener);
+  }, [theme]);
 
   // Prevent flash of wrong theme
   if (!mounted) {
