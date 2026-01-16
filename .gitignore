@@ -65,6 +65,10 @@ docker-compose.override.yml
 # Misc
 *.log
 *.lock
+token.txt
+# Additional virtualenvs
+.venv311/
+.venv-3.11/
 
 # Playwright MCP snapshots
 .playwright-mcp/
