@@ -22,7 +22,6 @@ __pycache__/
 *.pyd
 *.pdb
 env/
-.venv/
 venv/
 ENV/
 .python-version
