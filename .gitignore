@@ -69,6 +69,7 @@ token.txt
 # Additional virtualenvs
 .venv311/
 .venv-3.11/
+.venv-3.14/
 
 # Playwright MCP snapshots
 .playwright-mcp/
