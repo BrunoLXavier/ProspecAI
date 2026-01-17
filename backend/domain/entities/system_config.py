@@ -26,7 +26,7 @@ class EmailConfig(BaseModel):
     smtp_fallback_port: Optional[int] = None
     smtp_fallback_username: Optional[str] = None
     smtp_fallback_password: Optional[str] = None
-    from_email: str = "noreply@prospecai.local"
+    from_email: str = "noreply@prospecai.com"
     from_name: str = "ProspecAI"
     use_tls: bool = True
     use_ssl: bool = False
@@ -40,7 +40,7 @@ class EmailConfig(BaseModel):
 
     # App metadata for templates
     app_name: str = "ProspecAI"
-    support_email: str = "support@prospecai.local"
+    support_email: str = "support@prospecai.com"
     app_url: str = "http://localhost:3000"
 
 

@@ -40,4 +40,9 @@ echo "[entrypoint] Starting application"
     echo "[entrypoint] $TRANSLATIONS_DIR already populated; skipping translations copy"
   fi
 
+  if [ "${RUN_SERVER:-true}" = "false" ]; then
+    echo "[entrypoint] RUN_SERVER=false; exiting after migrations and seeds without starting server."
+    exit 0
+  fi
+
   exec uvicorn main:app --host 0.0.0.0 --port 8000

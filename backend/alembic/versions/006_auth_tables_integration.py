@@ -22,7 +22,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 # Default credentials
-ADMIN_EMAIL = 'admin@prospecai.local'
+ADMIN_EMAIL = 'admin@prospecai.com'
 ADMIN_USERNAME = 'admin'
 # bcrypt hash for 'Admin@123'
 ADMIN_PASSWORD_HASH = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4OoYwOjN4R1COKKS'
@@ -322,7 +322,7 @@ def upgrade() -> None:
             '{str(uuid.uuid4())}'::uuid,
             NULL,
             'email_config',
-            '{{"smtp_host": "mailhog", "smtp_port": 1025, "smtp_username": "", "smtp_password_encrypted": "", "smtp_use_tls": false, "smtp_use_ssl": false, "from_email": "noreply@prospecai.local", "from_name": "ProspecAI", "fallback_smtp_host": null, "fallback_smtp_port": null}}'::jsonb,
+            '{{"smtp_host": "mailhog", "smtp_port": 1025, "smtp_username": "", "smtp_password_encrypted": "", "smtp_use_tls": false, "smtp_use_ssl": false, "from_email": "noreply@prospecai.example.test", "from_name": "ProspecAI", "fallback_smtp_host": null, "fallback_smtp_port": null}}'::jsonb,
             NOW(),
             NOW()
         )

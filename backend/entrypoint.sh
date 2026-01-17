@@ -74,4 +74,9 @@ else
 fi
 
 echo "Starting backend server..."
+if [ "${RUN_SERVER:-true}" = "false" ]; then
+  echo "RUN_SERVER=false; exiting after migrations and seeds without starting server."
+  exit 0
+fi
+
 exec uvicorn main:app --host 0.0.0.0 --port 8000

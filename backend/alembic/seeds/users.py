@@ -20,7 +20,12 @@ DEFAULT_USERS = [
 
 def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
     # Ensure a single admin account (align with current users schema)
-    admin_email = f"admin@{tenant_name.lower().replace(' ', '')}.local"
+    # For the primary/default tenant, use the canonical admin address used in deployments.
+    if tenant_name.lower().startswith("default"):
+        admin_email = "admin@prospecai.com"
+    else:
+        # Use reserved testing TLD to avoid accidental production-like domains for non-default tenants
+        admin_email = f"admin@{tenant_name.lower().replace(' ', '')}.example.test"
     conn.execute(
         text(
             """

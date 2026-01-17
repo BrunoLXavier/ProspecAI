@@ -232,7 +232,7 @@ async def get_current_user(
     if dev_bypass:
         return CurrentUser(
             id="00000000-0000-0000-0000-000000000001",
-            email="dev@prospecai.local",
+            email="dev@prospecai.com",
             username="developer",
             name="Development User",
             tenant_id="00000000-0000-0000-0000-000000000000",
@@ -349,7 +349,7 @@ async def get_dev_user(request: Request) -> CurrentUser:
     
     return CurrentUser(
         id="00000000-0000-0000-0000-000000000001",
-        email="dev@prospecai.local",
+        email="dev@prospecai.com",
         username="developer",
         name="Development User",
         tenant_id="00000000-0000-0000-0000-000000000000",
