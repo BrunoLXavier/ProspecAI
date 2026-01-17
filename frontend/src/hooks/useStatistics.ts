@@ -13,6 +13,8 @@ import {
   getModuleStatistics,
   STAT_CATEGORIES,
 } from '@/types/statistics';
+import apiClient from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 
 // =============================================================================
 // Types
@@ -52,35 +54,35 @@ interface UseStatisticsReturn {
 }
 
 // =============================================================================
-// Mock Storage (replace with API calls)
+// Preferences storage via backend API
 // =============================================================================
 
-const STORAGE_KEY_PREFIX = 'prospecai_stat_prefs_';
-
-function loadPreferences(module: StatisticsModule, userId: string): UserStatisticsPreferences | null {
-  if (typeof window === 'undefined') return null;
-  
-  const key = `${STORAGE_KEY_PREFIX}${userId}_${module}`;
-  const stored = localStorage.getItem(key);
-  
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return null;
-    }
+async function loadPreferencesFromApi(module: StatisticsModule, userId: string | null) {
+  try {
+    const res = await apiClient.getUserStatisticsPreferences(userId, module);
+    return res as UserStatisticsPreferences;
+  } catch (err: any) {
+    // If not found, API may return 404; frontend will fallback to defaults
+    return null;
   }
-  return null;
 }
 
-function savePreferences(prefs: UserStatisticsPreferences): void {
-  if (typeof window === 'undefined') return;
-  
-  const key = `${STORAGE_KEY_PREFIX}${prefs.userId}_${prefs.module}`;
-  localStorage.setItem(key, JSON.stringify({
-    ...prefs,
-    updatedAt: new Date().toISOString(),
-  }));
+async function savePreferencesToApi(prefs: UserStatisticsPreferences) {
+  try {
+    const payload = {
+      user_id: prefs.userId,
+      module: prefs.module,
+      visibleStatIds: prefs.visibleStatIds,
+      orderOverride: prefs.orderOverride,
+      reorderEnabled: prefs.reorderEnabled,
+      updated_at: prefs.updatedAt,
+    };
+    const res = await apiClient.saveUserStatisticsPreferences(payload);
+    return res as UserStatisticsPreferences;
+  } catch (err) {
+    // swallow save errors; caller handles isSaving state
+    return prefs;
+  }
 }
 
 // =============================================================================
@@ -201,47 +203,55 @@ export function useStatistics({
   // Get definitions for this module
   const definitions = useMemo(() => getModuleStatistics(module), [module]);
   
-  // Mock user ID (replace with actual auth)
-  const userId = 'current-user';
+  // Get real user id from AuthContext
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   
-  // Load preferences on mount
+  // Load preferences on mount (from API)
   useEffect(() => {
+    let mounted = true;
     setIsLoading(true);
-    
-    // Load from storage/API
-    const prefs = loadPreferences(module, userId);
-    
-    if (prefs) {
-      setPreferences(prefs);
-    } else {
-      // Create default preferences from definitions
-      const defaultVisible = definitions
-        .filter(d => d.defaultVisible)
-        .map(d => d.id);
-      
-      setPreferences({
-        userId,
-        module,
-        visibleStatIds: defaultVisible,
-        orderOverride: {},
-        reorderEnabled: false,
-        updatedAt: new Date().toISOString(),
-      });
-    }
-    
-    // TODO: Load profile permissions from API
-    // For now, allow all statistics
-    setPermissions({
-      profileId: 'default',
-      role: 'admin',
-      module,
-      allowedStatIds: definitions.map(d => d.id),
-      requiredStatIds: [],
-      updatedAt: new Date().toISOString(),
-      updatedBy: 'system',
-    });
-    
-    setIsLoading(false);
+
+    (async () => {
+      // Try load from API
+      const prefs = await loadPreferencesFromApi(module, userId);
+
+      if (mounted) {
+        if (prefs) {
+          setPreferences(prefs);
+        } else {
+          // Create default preferences from definitions
+          const defaultVisible = definitions
+            .filter(d => d.defaultVisible)
+            .map(d => d.id);
+
+          setPreferences({
+            userId,
+            module,
+            visibleStatIds: defaultVisible,
+            orderOverride: {},
+            reorderEnabled: false,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+
+        // TODO: Load profile permissions from API
+        // For now, allow all statistics
+        setPermissions({
+          profileId: 'default',
+          role: 'admin',
+          module,
+          allowedStatIds: definitions.map(d => d.id),
+          requiredStatIds: [],
+          updatedAt: new Date().toISOString(),
+          updatedBy: 'system',
+        });
+
+        setIsLoading(false);
+      }
+    })();
+
+    return () => { mounted = false; };
   }, [module, definitions, userId]);
   
   // Filter definitions by permissions
@@ -327,9 +337,9 @@ export function useStatistics({
       updatedAt: new Date().toISOString(),
     };
     
-    // TODO: Save to API
-    savePreferences(newPrefs);
-    setPreferences(newPrefs);
+    // Save to API
+    const saved = await savePreferencesToApi(newPrefs);
+    setPreferences(saved);
     
     setIsSaving(false);
   }, [userId, module, preferences]);
@@ -354,7 +364,7 @@ export function useStatistics({
   }, [preferences, permissions, updatePreferences]);
   
   // Reorder statistics
-  const reorderStatistics = useCallback((newOrder: string[]) => {
+  const reorderStatistics = useCallback(async (newOrder: string[]) => {
     if (!preferences) return;
     
     const orderOverride: Record<string, number> = {};
@@ -367,22 +377,22 @@ export function useStatistics({
       orderOverride,
       updatedAt: new Date().toISOString(),
     };
-    
-    savePreferences(newPrefs);
-    setPreferences(newPrefs);
+    const saved = await savePreferencesToApi(newPrefs);
+    setPreferences(saved);
   }, [preferences]);
 
   const setReorderEnabled = useCallback((enabled: boolean) => {
     if (!preferences) return;
+    (async () => {
+      const newPrefs: UserStatisticsPreferences = {
+        ...preferences,
+        reorderEnabled: enabled,
+        updatedAt: new Date().toISOString(),
+      };
 
-    const newPrefs: UserStatisticsPreferences = {
-      ...preferences,
-      reorderEnabled: enabled,
-      updatedAt: new Date().toISOString(),
-    };
-
-    savePreferences(newPrefs);
-    setPreferences(newPrefs);
+      const saved = await savePreferencesToApi(newPrefs);
+      setPreferences(saved);
+    })();
   }, [preferences]);
   
   return {

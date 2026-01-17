@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import apiClient from '@/lib/api-client';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
 import CreateFundingModal from '@/components/funding/CreateFundingModal';
 import ViewEditFundingModal from '@/components/funding/ViewEditFundingModal';
@@ -132,36 +133,21 @@ export default function FundingPage() {
   const { data: fundingSources = [], isLoading } = useQuery<FundingSource[]>({
     queryKey: ['funding', filters],
     queryFn: async () => {
-      // TODO: Replace with actual API call using filters
-      // const params = new URLSearchParams();
-      // Object.entries(filters).forEach(([key, value]) => {
-      //   if (value && value !== 'all') params.append(key, value);
-      // });
-      // return apiClient.get(`/funding?${params.toString()}`);
-      return [
-        {
-          id: '1',
-          name: 'FINEP Inovação 2026',
-          instrumentType: 'grant',
-          status: 'open',
-          totalAmount: 5000000,
-          trlMin: 3,
-          trlMax: 9,
-          submissionEnd: '2026-03-31T23:59:59Z',
-          aiConfidenceScore: 0.92,
-        },
-        {
-          id: '2',
-          name: 'CNPq Pesquisa Aplicada',
-          instrumentType: 'grant',
-          status: 'open',
-          totalAmount: 2000000,
-          trlMin: 1,
-          trlMax: 6,
-          submissionEnd: '2026-04-15T23:59:59Z',
-          aiConfidenceScore: 0.78,
-        },
-      ];
+      // Build params mapping from UI filters
+      const params: Record<string, any> = {};
+      if (filters.status && filters.status !== 'all') params.status = filters.status;
+      if (filters.instrumentType && filters.instrumentType !== 'all') params.instrument_type = filters.instrumentType;
+      if (filters.deadlineFrom) params.deadline_after = filters.deadlineFrom;
+      if (filters.deadlineTo) params.deadline_before = filters.deadlineTo;
+      if (filters.minAmount) params.min_amount = Number(filters.minAmount);
+      if (filters.maxAmount) params.max_amount = Number(filters.maxAmount);
+      if (filters.trlMin) params.trl_min = Number(filters.trlMin);
+      if (filters.trlMax) params.trl_max = Number(filters.trlMax);
+
+      const res = await apiClient.listFundingSources(params);
+      // Backend returns a paginated response `{ items: [...], total, ... }` or an array.
+      if (Array.isArray(res)) return res;
+      return res.items ?? [];
     }
   });
 

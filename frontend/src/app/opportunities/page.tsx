@@ -150,31 +150,16 @@ export default function OpportunitiesPage() {
   const { data: opportunities = [], isLoading } = useQuery<Opportunity[]>({
     queryKey: ['opportunities', filters],
     queryFn: async () => {
-      // TODO: Replace with actual API call using filters
-      return [
-        {
-          id: '1',
-          title: 'Projeto de Inovação - Indústria 4.0',
-          client_name: 'Empresa Inovadora Ltda',
-          stage: 'proposal',
-          status: 'active',
-          estimated_value: 500000,
-          probability: 75,
-          deadline: '2026-03-15',
-          owner: 'João Silva',
-        },
-        {
-          id: '2',
-          title: 'P&D em Energia Renovável',
-          client_name: 'Energia Verde S.A.',
-          stage: 'negotiation',
-          status: 'active',
-          estimated_value: 1200000,
-          probability: 85,
-          deadline: '2026-04-20',
-          owner: 'Maria Santos',
-        },
-      ];
+      const params: Record<string, any> = {};
+      if (filters.stage && filters.stage !== 'all') params.stage = filters.stage;
+      if (filters.minValue) params.min_value = Number(filters.minValue);
+      if (filters.maxValue) params.max_value = Number(filters.maxValue);
+      if (filters.dateFrom) params.created_after = filters.dateFrom;
+      if (filters.dateTo) params.created_before = filters.dateTo;
+      if (filters.search) params.search = filters.search;
+
+      const res = await apiClient.listOpportunities(params);
+      return Array.isArray(res) ? res : (res.items ?? []);
     }
   });
 

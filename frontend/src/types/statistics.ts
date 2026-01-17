@@ -68,7 +68,7 @@ export interface StatisticDefinition {
  * User preferences for statistics visibility
  */
 export interface UserStatisticsPreferences {
-  userId: string;
+  userId: string | null;
   module: StatisticsModule;
   visibleStatIds: string[];
   orderOverride?: Record<string, number>;

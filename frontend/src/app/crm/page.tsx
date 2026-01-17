@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import apiClient from '@/lib/api-client';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
 import CreateClientModal from '@/components/crm/CreateClientModal';
 import ViewEditClientModal from '@/components/crm/ViewEditClientModal';
@@ -113,29 +114,15 @@ export default function CRMClientsPage() {
   const { data: clients = [], isLoading } = useQuery<Client[]>({
     queryKey: ['clients', filters],
     queryFn: async () => {
-      // TODO: Replace with actual API call using filters
-      return [
-        {
-          id: '1',
-          name: 'Empresa Inovadora Ltda',
-          cnpj: '12.345.678/0001-90',
-          segment: 'Tecnologia',
-          annualRevenue: 15000000,
-          maturityLevel: 'growth',
-          aiEnrichedData: true,
-          aiConfidenceScore: 0.88,
-        },
-        {
-          id: '2',
-          name: 'Indústria Sustentável S.A.',
-          cnpj: '98.765.432/0001-10',
-          segment: 'Manufatura',
-          annualRevenue: 30000000,
-          maturityLevel: 'mature',
-          aiEnrichedData: true,
-          aiConfidenceScore: 0.95,
-        },
-      ];
+      const params: Record<string, any> = {};
+      if (filters.segment && filters.segment !== 'all') params.segment = filters.segment;
+      if (filters.maturityLevel && filters.maturityLevel !== 'all') params.maturity_level = filters.maturityLevel;
+      if (filters.minRevenue) params.min_revenue = Number(filters.minRevenue);
+      if (filters.maxRevenue) params.max_revenue = Number(filters.maxRevenue);
+      if (filters.aiEnriched) params.has_ai_enrichment = true;
+
+      const res = await apiClient.listClients(params);
+      return Array.isArray(res) ? res : (res.items ?? []);
     }
   });
 

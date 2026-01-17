@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import apiClient from '@/lib/api-client';
 import CreateProjectModal from '@/components/portfolio/CreateProjectModal';
 import ViewEditProjectModal from '@/components/portfolio/ViewEditProjectModal';
 import PortfolioBoard from '@/components/portfolio/PortfolioBoard';
@@ -130,29 +131,18 @@ export default function PortfolioPage() {
   const { data: projects = [], isLoading } = useQuery<Project[]>({
     queryKey: ['projects', filters],
     queryFn: async () => {
-      // TODO: Replace with actual API call using filters
-      return [
-        {
-          id: '1',
-          title: 'Projeto Automação Industrial 4.0',
-          status: 'active',
-          trl: 6,
-          budget: 1500000,
-          startDate: '2025-01-15',
-          endDate: '2026-12-31',
-          researchArea: 'Indústria 4.0',
-        },
-        {
-          id: '2',
-          title: 'Energia Renovável para Comunidades',
-          status: 'planning',
-          trl: 3,
-          budget: 800000,
-          startDate: '2026-03-01',
-          endDate: '2027-06-30',
-          researchArea: 'Sustentabilidade',
-        },
-      ];
+      const params: Record<string, any> = {};
+      if (filters.status && filters.status !== 'all') params.status = filters.status;
+      if (filters.researchArea && filters.researchArea !== 'all') params.research_area = filters.researchArea;
+      if (filters.trlMin) params.trl_min = Number(filters.trlMin);
+      if (filters.trlMax) params.trl_max = Number(filters.trlMax);
+      if (filters.startDateFrom) params.start_after = filters.startDateFrom;
+      if (filters.startDateTo) params.end_before = filters.startDateTo;
+      if (filters.minBudget) params.min_budget = Number(filters.minBudget);
+      if (filters.maxBudget) params.max_budget = Number(filters.maxBudget);
+
+      const res = await apiClient.listProjects(params);
+      return Array.isArray(res) ? res : (res.items ?? []);
     }
   });
 

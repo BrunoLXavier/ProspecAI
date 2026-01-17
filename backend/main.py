@@ -132,6 +132,7 @@ from adapters.api.activity_routes import router as activity_routes
 from adapters.api.translations_routes import router as translations_routes
 from adapters.api.acl_routes import router as acl_routes
 from adapters.api.layout_routes import router as layout_routes
+from adapters.api.preferences_routes import router as preferences_routes
 from adapters.api.calendar_routes import router as calendar_routes
 from adapters.api.llm_config_routes import router as llm_config_routes
 from adapters.api.ai_routes import router as ai_routes
@@ -162,6 +163,7 @@ app.include_router(translations_routes)
 app.include_router(activity_routes)
 app.include_router(acl_routes)
 app.include_router(layout_routes)
+app.include_router(preferences_routes)
 app.include_router(calendar_routes)
 app.include_router(llm_config_routes)
 app.include_router(ai_routes)

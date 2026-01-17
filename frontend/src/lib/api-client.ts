@@ -72,7 +72,7 @@ class ApiClient {
             // TS: headers may be typed, cast to any for runtime assignment
             (config.headers as any)['X-Tenant-ID'] = user.tenantId;
           }
-        } catch (e) {
+          } catch (e) {
           // fail silently
         }
         return config;
@@ -157,6 +157,19 @@ class ApiClient {
 
   async delete<T = any>(url: string): Promise<T> {
     const response = await this.client.delete(url);
+    return response.data;
+  }
+
+  // Statistics API
+  async getUserStatisticsPreferences(userId: string | null, module: string) {
+    const params: Record<string, any> = { module };
+    if (userId) params.user_id = userId;
+    const response = await this.client.get('/api/v1/user/preferences/statistics', { params });
+    return response.data;
+  }
+
+  async saveUserStatisticsPreferences(data: any) {
+    const response = await this.client.put('/api/v1/user/preferences/statistics', data);
     return response.data;
   }
 
