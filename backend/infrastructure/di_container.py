@@ -29,6 +29,20 @@ from infrastructure.ai.lgpd_agent import LGPDAgent
 import os
 
 
+class NoOpAuditService:
+    """Minimal audit service that performs no-op async methods.
+    Used during development to satisfy use-case dependencies.
+    """
+    async def log_creation(self, *args, **kwargs):
+        return None
+
+    async def log_update(self, *args, **kwargs):
+        return None
+
+    async def log_delete(self, *args, **kwargs):
+        return None
+
+
 # Alias for compatibility with legacy imports
 # Use `get_db` (dependency generator) as the FastAPI dependency so FastAPI
 # can call it without trying to inspect the async_sessionmaker object which
@@ -61,6 +75,8 @@ class DependencyContainer:
         # AI services
         encryption_key = os.getenv("ENCRYPTION_KEY", "default-dev-key")
         self._lgpd_agent = LGPDAgent(encryption_key)
+        # Simple audit service used until a full implementation is available
+        self._audit_service = NoOpAuditService()
     
     # Repository getters
     @property
@@ -102,6 +118,8 @@ class DependencyContainer:
         """
         return ManageFundingUseCase(
             funding_repository=self._funding_repo,
+            ai_extractor=self._lgpd_agent,
+            audit_service=self._audit_service,
         )
     
     def get_manage_portfolio_use_case(self) -> ManagePortfolioUseCase:

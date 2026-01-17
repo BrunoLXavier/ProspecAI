@@ -576,6 +576,7 @@
     },
     "layout": {
       "title": "Configuración de Diseño",
+      "subtitle": "Ajusta la apariencia y organización de la aplicación para tu equipo",
       "description": "Personaliza la estructura visual y el diseño del sistema",
       "sidebar": {
         "title": "Barra Lateral",
@@ -602,6 +603,21 @@
         "enableAnimations": "Activar Animaciones",
         "compactMode": "Modo Compacto"
       },
+      "theme": {
+        "lightTitle": "Tema Claro",
+        "primary": "Color Primario",
+        "secondary": "Color Secundario",
+        "modalTitle": "Configuración de Modal (Claro)",
+        "modalBgLight": "Fondo del Modal (Claro)",
+        "modalTextLight": "Texto del Modal (Claro)",
+        "modalBorderLight": "Borde del Modal (Claro)",
+        "darkTitle": "Tema Oscuro",
+        "modalBgDark": "Fondo del Modal (Oscuro)",
+        "modalTextDark": "Texto del Modal (Oscuro)",
+        "modalBorderDark": "Borde del Modal (Oscuro)",
+        "modalOverlay": "Superposición del Modal",
+        "modalElevation": "Elevación del Modal"
+      },
       "themeColors": {
         "title": "Tema y Colores",
         "description": "Configura el esquema de colores y la apariencia",
@@ -610,6 +626,12 @@
         "dark": "Oscuro",
         "primaryColor": "Color Primario",
         "secondaryColor": "Color Secundario"
+        ,"appearance": "Apariencia",
+        "appearanceOptions": {
+          "default": "Predeterminado",
+          "highContrast": "Alto Contraste",
+          "system": "Sistema"
+        }
       },
       "branding": {
         "title": "Marca",

@@ -51,7 +51,7 @@
     "outputFormatsPlaceholder": "html, pdf",
     "paramPlaceholder": "Digite e pressione Enter",
     "parameters": "Parâmetros",
-    "parametersHelp": "Adicione um parâmetro e pressione Enter. Exemplos:",
+    "parametersHelp": "Adicione um parâmetro e pressione Enter.",
     "saveChanges": "Salvar alterações",
     "select": "Selecionar",
     "": "",
@@ -90,10 +90,10 @@
     "@/components/dashboard/CalendarWidget": "@/components/dashboard/CalendarWidget",
     "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/MatchingScoreWidget",
     "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/OpportunitiesWidget",
-    "inputPlaceholder": "inputPlaceholder",
-    "period": "period",
-    "welcomeSubtitle": "welcomeSubtitle",
-    "welcomeTitle": "welcomeTitle"
+    "inputPlaceholder": "",
+    "period": "",
+    "welcomeSubtitle": "",
+    "welcomeTitle": ""
   },
   "pipeline": {
     "title": "Pipeline de Oportunidades",
@@ -135,8 +135,8 @@
     "focusAreas": "Áreas de Foco",
     "description": "Descrição",
     "descriptionPlaceholder": "Descreva a fonte de fomento...",
-    "sourcePlaceholder": "Ex: FAPESP, FINEP, CNPq",
-    "focusAreasPlaceholder": "Ex: Indústria 4.0, IA, Sustentabilidade",
+    "sourcePlaceholder": "",
+    "focusAreasPlaceholder": "",
     "url": "URL",
     "updateError": "Erro ao atualizar o edital. Tente novamente.",
     "status": "status",
@@ -170,7 +170,7 @@
     "contactEmailPlaceholder": "contato@empresa.com",
     "phonePlaceholder": "(XX) XXXXX-XXXX",
     "industryLabel": "Setor / Indústria",
-    "industryPlaceholder": "Ex: Tecnologia, Manufatura",
+    "industryPlaceholder": "",
     "website": "Website",
     "websitePlaceholder": "https://...",
     "addressPlaceholder": "Rua, número, cidade/UF",
@@ -232,7 +232,7 @@
     "endDate": "Data de Término",
     "descriptionPlaceholder": "Descreva o projeto...",
     "projectTitlePlaceholder": "Nome descritivo do projeto",
-    "areaPlaceholder": "Ex: Indústria 4.0, IA, Sustentabilidade",
+    "areaPlaceholder": "",
     "keywords": "Palavras-chave",
     "keywordsPlaceholder": "Adicionar palavras-chave",
     "lessonsLearned": "Lições Aprendidas",
@@ -575,6 +575,7 @@
     },
     "layout": {
       "title": "Configuração de Layout",
+      "subtitle": "Ajuste a aparência e organização do aplicativo para sua equipe",
       "description": "Personalize a estrutura visual e o layout do sistema",
       "sidebar": {
         "title": "Barra Lateral",
@@ -601,6 +602,21 @@
         "enableAnimations": "Ativar Animações",
         "compactMode": "Modo Compacto"
       },
+      "theme": {
+        "lightTitle": "Tema Claro",
+        "primary": "Cor Primária",
+        "secondary": "Cor Secundária",
+        "modalTitle": "Configuração de Modal (Claro)",
+        "modalBgLight": "Fundo do Modal (Claro)",
+        "modalTextLight": "Texto do Modal (Claro)",
+        "modalBorderLight": "Borda do Modal (Claro)",
+        "darkTitle": "Tema Escuro",
+        "modalBgDark": "Fundo do Modal (Escuro)",
+        "modalTextDark": "Texto do Modal (Escuro)",
+        "modalBorderDark": "Borda do Modal (Escuro)",
+        "modalOverlay": "Sobreposição do Modal",
+        "modalElevation": "Elevação do Modal"
+      },
       "themeColors": {
         "title": "Tema e Cores",
         "description": "Configure o esquema de cores e aparência",
@@ -608,7 +624,13 @@
         "light": "Claro",
         "dark": "Escuro",
         "primaryColor": "Cor Primária",
-        "secondaryColor": "Cor Secundária"
+        "secondaryColor": "Cor Secundária",
+        "appearance": "Aparência",
+        "appearanceOptions": {
+          "default": "Padrão",
+          "highContrast": "Alto Contraste",
+          "system": "Sistema"
+        }
       },
       "branding": {
         "title": "Marca",
@@ -1251,7 +1273,7 @@
         "outputFormatsPlaceholder": "html, pdf",
         "paramPlaceholder": "Digite e pressione Enter",
         "parameters": "Parâmetros",
-        "parametersHelp": "Adicione um parâmetro e pressione Enter. Exemplos:",
+        "parametersHelp": "Adicione um parâmetro e pressione Enter.",
         "saveChanges": "Salvar alterações",
         "select": "Selecionar"
       },

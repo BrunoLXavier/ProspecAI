@@ -72,6 +72,9 @@ class ApiClient {
             // TS: headers may be typed, cast to any for runtime assignment
             (config.headers as any)['X-Tenant-ID'] = user.tenantId;
           }
+          if (user && user.id) {
+            (config.headers as any)['X-User-ID'] = user.id;
+          }
           } catch (e) {
           // fail silently
         }

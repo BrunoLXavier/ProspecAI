@@ -4,7 +4,7 @@ Provides dependency injection for routes
 """
 from typing import AsyncGenerator
 from uuid import UUID
-from fastapi import Depends, Header
+from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from adapters.database.connection import get_session
@@ -21,31 +21,36 @@ __all__ = ['get_container', 'get_current_user_id', 'get_current_tenant_id', 'get
 
 
 async def get_current_user_id(
-    x_user_id: str = Header(default="00000000-0000-0000-0000-000000000001", alias="X-User-ID")
+    x_user_id: str | None = Header(default=None, alias="X-User-ID")
 ) -> UUID:
     """
-    Get current user ID from request headers
-    In production, this would validate against Keycloak token
+    Get current user ID from request headers.
+    Raises 401 if header is missing or invalid. In production, replace
+    this with Keycloak token validation.
     """
+    if not x_user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing X-User-ID header")
     try:
         return UUID(x_user_id)
     except ValueError:
-        return UUID("00000000-0000-0000-0000-000000000001")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid X-User-ID header")
 
 
 async def get_current_tenant_id(
-    x_tenant_id: str = Header(default="00000000-0000-0000-0000-000000000001", alias="X-Tenant-ID")
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-ID")
 ) -> str:
     """
-    Get current tenant ID from request headers (string).
-    Many route handlers expect a string tenant_id and convert to UUID themselves.
+    Get current tenant ID from request headers.
+    Raises 401 if header missing or invalid. Returns the raw string tenant ID.
     """
+    if not x_tenant_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing X-Tenant-ID header")
     try:
-        # Return string representation for compatibility with existing handlers
+        # Validate is a UUID string
         UUID(x_tenant_id)
         return x_tenant_id
     except Exception:
-        return "00000000-0000-0000-0000-000000000001"
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid X-Tenant-ID header")
 
 
 async def get_di_container(

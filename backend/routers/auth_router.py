@@ -18,6 +18,7 @@ from adapters.repositories.system_config_repository import SystemConfigRepositor
 from adapters.api.auth_middleware import (
     get_current_user, require_auth, get_client_ip, AuthenticatedUser
 )
+from infrastructure.dependencies import get_current_tenant_id
 from adapters.database.models import UserRoleModel
 from use_cases.auth_use_cases import (
     RegisterUser, LoginUser, VerifyEmail, RequestPasswordReset,
@@ -68,7 +69,8 @@ def get_base_url(request: Request) -> str:
 async def register(
     request: Request,
     data: RegisterRequest,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    tenant_id: str = Depends(get_current_tenant_id)
 ):
     """
     Register a new user.
@@ -85,6 +87,13 @@ async def register(
     
     try:
         base_url = get_base_url(request)
+        # Ensure tenant_id provided by auth/context is forwarded to use case
+        if tenant_id:
+            from uuid import UUID as _UUID
+            try:
+                data.tenant_id = _UUID(tenant_id)
+            except Exception:
+                pass
         result = await use_case.execute(data, base_url)
         await session.commit()
         return result

@@ -51,7 +51,7 @@
     "outputFormatsPlaceholder": "html, pdf",
     "paramPlaceholder": "Type and press Enter",
     "parameters": "Parameters",
-    "parametersHelp": "Add a parameter and press Enter. Examples:",
+    "parametersHelp": "Add a parameter and press Enter.",
     "saveChanges": "Save changes",
     "select": "Select",
     "": "",
@@ -90,10 +90,10 @@
     "@/components/dashboard/CalendarWidget": "@/components/dashboard/CalendarWidget",
     "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/MatchingScoreWidget",
     "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/OpportunitiesWidget",
-    "inputPlaceholder": "inputPlaceholder",
-    "period": "period",
-    "welcomeSubtitle": "welcomeSubtitle",
-    "welcomeTitle": "welcomeTitle"
+    "inputPlaceholder": "",
+    "period": "",
+    "welcomeSubtitle": "",
+    "welcomeTitle": ""
   },
   "pipeline": {
     "title": "Opportunity Pipeline",
@@ -135,8 +135,8 @@
     "focusAreas": "Focus Areas",
     "description": "Description",
     "descriptionPlaceholder": "Describe the funding source...",
-    "sourcePlaceholder": "Ex: FAPESP, FINEP, CNPq",
-    "focusAreasPlaceholder": "Ex: Industry 4.0, AI, Sustainability",
+    "sourcePlaceholder": "",
+    "focusAreasPlaceholder": "",
     "url": "URL",
     "updateError": "Error updating funding source. Please try again.",
     "status": "status",
@@ -170,7 +170,7 @@
     "contactEmailPlaceholder": "contact@company.com",
     "phonePlaceholder": "(XX) XXXXX-XXXX",
     "industryLabel": "Industry / Sector",
-    "industryPlaceholder": "e.g. Technology, Manufacturing",
+    "industryPlaceholder": "",
     "website": "Website",
     "websitePlaceholder": "https://...",
     "addressPlaceholder": "Street, number, city/State",
@@ -232,7 +232,7 @@
     "endDate": "End Date",
     "descriptionPlaceholder": "Describe the project...",
     "projectTitlePlaceholder": "Descriptive project name",
-    "areaPlaceholder": "Ex: Industry 4.0, AI, Sustainability",
+    "areaPlaceholder": "",
     "keywords": "Keywords",
     "keywordsPlaceholder": "Add keywords",
     "lessonsLearned": "Lessons Learned",
@@ -575,6 +575,7 @@
     },
     "layout": {
       "title": "Layout Configuration",
+      "subtitle": "Adjust the app appearance and organization for your team",
       "description": "Customize the visual structure and layout of the system",
       "sidebar": {
         "title": "Sidebar",
@@ -601,6 +602,21 @@
         "enableAnimations": "Enable Animations",
         "compactMode": "Compact Mode"
       },
+      "theme": {
+        "lightTitle": "Light Theme",
+        "primary": "Primary Color",
+        "secondary": "Secondary Color",
+        "modalTitle": "Modal Settings (Light)",
+        "modalBgLight": "Modal Background (Light)",
+        "modalTextLight": "Modal Text (Light)",
+        "modalBorderLight": "Modal Border (Light)",
+        "darkTitle": "Dark Theme",
+        "modalBgDark": "Modal Background (Dark)",
+        "modalTextDark": "Modal Text (Dark)",
+        "modalBorderDark": "Modal Border (Dark)",
+        "modalOverlay": "Modal Overlay",
+        "modalElevation": "Modal Elevation"
+      },
       "themeColors": {
         "title": "Theme & Colors",
         "description": "Configure color scheme and appearance",
@@ -609,6 +625,12 @@
         "dark": "Dark",
         "primaryColor": "Primary Color",
         "secondaryColor": "Secondary Color"
+        ,"appearance": "Appearance",
+        "appearanceOptions": {
+          "default": "Default",
+          "highContrast": "High Contrast",
+          "system": "System"
+        }
       },
       "branding": {
         "title": "Branding",

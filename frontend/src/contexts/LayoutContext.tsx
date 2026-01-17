@@ -7,6 +7,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
+import { getStoredUser } from '@/contexts/AuthContext';
 
 // =============================================================================
 // Types
@@ -181,7 +182,9 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      const response = await apiClient.get<{ config: LayoutConfig }>('/api/v1/layout');
+      const user = getStoredUser();
+      const path = user?.id ? `/api/v1/layout?user_id=${user.id}` : '/api/v1/layout';
+      const response = await apiClient.get<{ config: LayoutConfig }>(path);
       const backendConfig = { ...DEFAULT_CONFIG, ...response.config };
       setConfig(backendConfig);
     } catch (backendErr) {
@@ -403,7 +406,9 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
   // Save current config to backend
   const saveConfig = useCallback(async () => {
     try {
-      await apiClient.put('/api/v1/layout', {
+      const user = getStoredUser();
+      const query = user?.id ? `?user_id=${user.id}` : '';
+      const saved = await apiClient.put(`/api/v1/layout${query}`, {
         sidebar_position: config.sidebar_position,
         sidebar_collapsed: config.sidebar_collapsed,
         sidebar_width: config.sidebar_width,
@@ -441,6 +446,16 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         ai_chat_enabled: config.ai_chat_enabled,
         feedback_button_enabled: config.feedback_button_enabled,
       });
+      // Update local state with authoritative saved config returned by backend
+      try {
+        // backend returns the LayoutConfig object
+        setConfig(prev => ({ ...prev, ...(saved || {}) } as LayoutConfig));
+        // debug log for tracing
+        // eslint-disable-next-line no-console
+        console.info('[LayoutContext] saveConfig: saved config from backend', saved);
+      } catch (e) {
+        // ignore update failures
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to save layout configuration');
       throw err;

@@ -5,11 +5,15 @@ Implements RF-02: Gestão de Fontes de Fomento
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from datetime import date
+from datetime import date, datetime
+
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+from adapters.database.connection import get_db as get_db_session
+from infrastructure.dependencies import get_current_user_id, get_current_tenant_id
+import json
 
 from domain.entities.funding_source import FundingSource, InstrumentType
-from use_cases.manage_funding import ManageFundingUseCase
-from infrastructure.dependencies import get_funding_use_case
 
 router = APIRouter()
 
@@ -115,7 +119,9 @@ async def list_funding_sources(
     ),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
-    use_case: ManageFundingUseCase = Depends(get_funding_use_case),
+    session: AsyncSession = Depends(get_db_session),
+    current_user: str = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     List all funding sources with advanced filters.
@@ -158,12 +164,41 @@ async def list_funding_sources(
     # Calculate skip
     skip = (page - 1) * page_size
     
-    # Get funding sources with filters
-    funding_sources, total = await use_case.list_funding_sources_filtered(
-        filters=filters,
-        skip=skip,
-        limit=page_size
+    # Perform a direct DB query to avoid ORMs mismatch with current schema
+    q = text(
+        """
+        SELECT id, name, source_organization AS institution, instrument_type, status,
+               total_amount, submission_start, submission_end, trl_min, trl_max,
+               ai_confidence_score, created_at, updated_at
+        FROM funding_sources
+        WHERE deleted_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT :limit OFFSET :offset
+        """
     )
+    result = await session.execute(q, {"limit": page_size, "offset": skip})
+    rows = result.fetchall()
+    items = []
+    for r in rows:
+        items.append({
+            "id": str(r.id),
+            "name": r.name,
+            "institution": r.institution,
+            "instrument_type": r.instrument_type,
+            "status": r.status,
+            "total_amount": float(r.total_amount) if r.total_amount is not None else 0.0,
+            "submission_start": r.submission_start.date() if r.submission_start else None,
+            "submission_end": r.submission_end.date() if r.submission_end else None,
+            "trl_min": int(r.trl_min) if r.trl_min is not None else None,
+            "trl_max": int(r.trl_max) if r.trl_max is not None else None,
+            "ai_confidence_score": float(r.ai_confidence_score) if r.ai_confidence_score is not None else None,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+        })
+    # Count total
+    cnt = await session.execute(text("SELECT COUNT(1) FROM funding_sources WHERE deleted_at IS NULL"))
+    total = cnt.scalar() or 0
+    funding_sources = items
     
     has_next = (page * page_size) < total
     
@@ -179,14 +214,36 @@ async def list_funding_sources(
 @router.get("/{funding_id}", response_model=FundingSourceResponse)
 async def get_funding_source(
     funding_id: str,
-    use_case: ManageFundingUseCase = Depends(get_funding_use_case),
+    session: AsyncSession = Depends(get_db_session),
 ):
     """
     Get detailed information about a specific funding source
     
     Implements RF-02.02: Detalhamento de editais
     """
-    funding = await use_case.get_funding_source(funding_id)
+    q = text(
+        "SELECT id, name, source_organization AS institution, instrument_type, status, total_amount, submission_start, submission_end, trl_min, trl_max, ai_confidence_score, created_at, updated_at FROM funding_sources WHERE id = :id AND deleted_at IS NULL"
+    )
+    res = await session.execute(q, {"id": funding_id})
+    row = res.fetchone()
+    if not row:
+        funding = None
+    else:
+        funding = {
+            "id": str(row.id),
+            "name": row.name,
+            "institution": row.institution,
+            "instrument_type": row.instrument_type,
+            "status": row.status,
+            "total_amount": float(row.total_amount) if row.total_amount is not None else 0.0,
+            "submission_start": row.submission_start.date() if row.submission_start else None,
+            "submission_end": row.submission_end.date() if row.submission_end else None,
+            "trl_min": int(row.trl_min) if row.trl_min is not None else None,
+            "trl_max": int(row.trl_max) if row.trl_max is not None else None,
+            "ai_confidence_score": float(row.ai_confidence_score) if row.ai_confidence_score is not None else None,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+            "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+        }
     
     if not funding:
         raise HTTPException(
@@ -200,45 +257,97 @@ async def get_funding_source(
 @router.post("/", response_model=FundingSourceResponse, status_code=status.HTTP_201_CREATED)
 async def create_funding_source(
     data: FundingSourceCreate,
-    use_case: ManageFundingUseCase = Depends(get_funding_use_case),
+    session: AsyncSession = Depends(get_db_session),
 ):
     """
     Create a new funding source with AI field extraction
     
     Implements RF-02.03: Criação de editais com assistência IA
     """
-    funding = await use_case.create_funding_source(
-        name=data.name,
-        institution=data.institution,
-        instrument_type=data.instrument_type,
-        total_amount=data.total_amount,
-        submission_start=data.submission_start,
-        submission_end=data.submission_end,
-        trl_min=data.trl_min,
-        trl_max=data.trl_max,
-        description=data.description,
-        requirements=data.requirements,
-        eligibility_criteria=data.eligibility_criteria,
+    insert_q = text(
+        "INSERT INTO funding_sources (id, tenant_id, name, source_organization, instrument_type, status, total_amount, currency, submission_start, submission_end, trl_min, trl_max, description, requirements, eligibility_criteria, created_by, updated_by, created_at, updated_at) VALUES (gen_random_uuid(), :tenant_id, :name, :institution, :instrument_type, 'draft', :total_amount, 'BRL', :submission_start, :submission_end, :trl_min, :trl_max, :description, :requirements::jsonb, :eligibility_criteria::jsonb, :created_by, :updated_by, now(), now()) RETURNING id, name, source_organization AS institution, instrument_type, status, total_amount, submission_start, submission_end, trl_min, trl_max, ai_confidence_score, created_at, updated_at"
     )
-    
-    return funding
+    # Use placeholder tenant and user in this dev environment
+    params = {
+        "tenant_id": tenant_id,
+        "name": data.name,
+        "institution": data.institution,
+        "instrument_type": data.instrument_type,
+        "total_amount": data.total_amount,
+        "submission_start": data.submission_start,
+        "submission_end": data.submission_end,
+        "trl_min": data.trl_min,
+        "trl_max": data.trl_max,
+        "description": data.description,
+        "requirements": json.dumps(data.requirements),
+        "eligibility_criteria": json.dumps(data.eligibility_criteria),
+        "created_by": str(current_user),
+        "updated_by": str(current_user),
+    }
+    import json
+    res = await session.execute(insert_q, params)
+    await session.commit()
+    row = res.fetchone()
+    return {
+        "id": str(row.id),
+        "name": row.name,
+        "institution": row.institution,
+        "instrument_type": row.instrument_type,
+        "status": row.status,
+        "total_amount": float(row.total_amount) if row.total_amount is not None else 0.0,
+        "submission_start": row.submission_start.date() if row.submission_start else None,
+        "submission_end": row.submission_end.date() if row.submission_end else None,
+        "trl_min": int(row.trl_min) if row.trl_min is not None else None,
+        "trl_max": int(row.trl_max) if row.trl_max is not None else None,
+        "ai_confidence_score": float(row.ai_confidence_score) if row.ai_confidence_score is not None else None,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+    }
 
 
 @router.patch("/{funding_id}", response_model=FundingSourceResponse)
 async def update_funding_source(
     funding_id: str,
     data: FundingSourceUpdate,
-    use_case: ManageFundingUseCase = Depends(get_funding_use_case),
+    session: AsyncSession = Depends(get_db_session),
+    current_user: str = Depends(get_current_user_id),
 ):
     """
     Update an existing funding source
     
     Implements RF-02.04: Atualização de editais
     """
-    funding = await use_case.update_funding_source(
-        funding_id=funding_id,
-        **data.model_dump(exclude_unset=True)
-    )
+    # Build dynamic SET clause
+    updates = []
+    params = {"id": funding_id}
+    for k, v in data.model_dump(exclude_unset=True).items():
+        updates.append(f"{k} = :{k}")
+        params[k] = v
+    if not updates:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+    q = text(f"UPDATE funding_sources SET {', '.join(updates)}, updated_at = now(), updated_by = :updated_by WHERE id = :id AND deleted_at IS NULL RETURNING id, name, source_organization AS institution, instrument_type, status, total_amount, submission_start, submission_end, trl_min, trl_max, ai_confidence_score, created_at, updated_at")
+    params['updated_by'] = str(current_user)
+    res = await session.execute(q, params)
+    await session.commit()
+    row = res.fetchone()
+    if not row:
+        funding = None
+    else:
+        funding = {
+            "id": str(row.id),
+            "name": row.name,
+            "institution": row.institution,
+            "instrument_type": row.instrument_type,
+            "status": row.status,
+            "total_amount": float(row.total_amount) if row.total_amount is not None else 0.0,
+            "submission_start": row.submission_start.isoformat() if row.submission_start else None,
+            "submission_end": row.submission_end.isoformat() if row.submission_end else None,
+            "trl_min": int(row.trl_min) if row.trl_min is not None else None,
+            "trl_max": int(row.trl_max) if row.trl_max is not None else None,
+            "ai_confidence_score": float(row.ai_confidence_score) if row.ai_confidence_score is not None else None,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+            "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+        }
     
     if not funding:
         raise HTTPException(
@@ -252,17 +361,17 @@ async def update_funding_source(
 @router.delete("/{funding_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_funding_source(
     funding_id: str,
-    use_case: ManageFundingUseCase = Depends(get_funding_use_case),
+    session: AsyncSession = Depends(get_db_session),
+    current_user: str = Depends(get_current_user_id),
 ):
     """
     Soft delete a funding source
     
     Implements RF-02.05: Exclusão lógica de editais
     """
-    success = await use_case.delete_funding_source(funding_id)
-    
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Funding source {funding_id} not found"
-        )
+    q = text("UPDATE funding_sources SET deleted_at = now() WHERE id = :id AND deleted_at IS NULL RETURNING id")
+    res = await session.execute(q, {"id": funding_id})
+    await session.commit()
+    row = res.fetchone()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Funding source {funding_id} not found")

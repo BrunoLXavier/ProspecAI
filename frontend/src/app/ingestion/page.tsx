@@ -678,7 +678,7 @@ export default function IngestionPage() {
                   type="text"
                   value={jobName}
                   onChange={(e) => setJobName(e.target.value)}
-                  placeholder="Ex: Importação de Clientes Q1"
+                  placeholder=""
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -691,7 +691,7 @@ export default function IngestionPage() {
                 <textarea
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Descreva o conteúdo dos arquivos..."
+                  placeholder=""
                   rows={2}
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />

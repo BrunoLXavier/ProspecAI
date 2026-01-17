@@ -10,7 +10,9 @@ from dotenv import load_dotenv
 import logging
 
 from adapters.database.connection import engine
-from adapters.database.models import Base
+# Use the enhanced schema when available so repositories and models stay in sync
+# `models_new` exposes `BaseModel` as the declarative base; alias it to `Base`
+from adapters.database.models_new import BaseModel as Base
 from adapters.database.neo4j_connection import neo4j_connection
 
 load_dotenv()
@@ -63,7 +65,7 @@ app = FastAPI(
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
     lifespan=lifespan,
-    redirect_slashes=False  # Disable automatic trailing slash redirects for proxy compatibility
+    redirect_slashes=True  # Allow automatic trailing-slash redirects so both variants work
 )
 
 # CORS Middleware
@@ -94,9 +96,10 @@ async def add_process_time_header(request: Request, call_next):
 @app.middleware("http")
 async def set_tenant_context(request: Request, call_next):
     """Set tenant context for Row-Level Security."""
-    # Extract tenant_id from JWT or header
-    tenant_id = request.headers.get("X-Tenant-ID", "00000000-0000-0000-0000-000000000000")
-    
+    # Extract tenant_id from header (auth should provide it). Do not fall back
+    # to placeholder values - require upstream auth to populate header.
+    tenant_id = request.headers.get("X-Tenant-ID")
+
     # Set in request state for use in routes
     request.state.tenant_id = tenant_id
     
@@ -116,7 +119,7 @@ async def health_check():
 
 
 # API Routes (to be implemented)
-from adapters.api.funding_routes import router as funding_routes
+from routers.funding import router as funding_routes
 from adapters.api.portfolio_routes import router as portfolio_routes
 from routers.crm import router as crm_routes
 from routers.opportunities import router as opportunities_routes
@@ -148,7 +151,7 @@ from routers.notifications import router as notifications_routes
 app.include_router(auth_routes)
 app.include_router(contact_routes)
 app.include_router(admin_settings_routes)
-app.include_router(funding_routes)
+app.include_router(funding_routes, prefix="/api/v1/funding")
 app.include_router(portfolio_routes)
 app.include_router(crm_routes, prefix="/api/v1/crm")
 app.include_router(opportunities_routes)
