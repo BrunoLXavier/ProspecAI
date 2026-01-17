@@ -78,6 +78,17 @@ async def list_templates(
     ]
 
 
+@router.get("", response_model=List[dict])
+async def list_generated_reports(
+    current_user: CurrentUser = Depends(get_current_user),
+):
+    """
+    Return a list of previously generated reports.
+    Minimal implementation: return empty list when none are stored.
+    """
+    return []
+
+
 @router.get("/templates/{template_id}", response_model=TemplateResponse)
 async def get_template(
     template_id: str,

@@ -67,8 +67,6 @@ token.txt
 .venv-3.11/
 .venv-3.14/
 
-# Playwright MCP snapshots (kept for developer artifacts)
-# .playwright-mcp/
 
 # Backend env and coverage
 backend/.env

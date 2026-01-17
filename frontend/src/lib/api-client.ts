@@ -4,7 +4,7 @@
  * Integrates with AuthContext for token management
  */
 import axios, { AxiosInstance } from 'axios';
-import { getStoredAccessToken } from '@/contexts/AuthContext';
+import { getStoredAccessToken, getStoredUser } from '@/contexts/AuthContext';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BYPASS_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -67,9 +67,10 @@ class ApiClient {
             }
         // Inject tenant header if available
         try {
-          const user = require('@/contexts/AuthContext').getStoredUser();
+          const user = getStoredUser();
           if (user && user.tenantId) {
-            config.headers['X-Tenant-ID'] = user.tenantId;
+            // TS: headers may be typed, cast to any for runtime assignment
+            (config.headers as any)['X-Tenant-ID'] = user.tenantId;
           }
         } catch (e) {
           // fail silently

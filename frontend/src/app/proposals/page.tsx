@@ -27,87 +27,7 @@ interface ProposalFilters {
   dateTo: string;
 }
 
-// =============================================================================
-// Mock Data for Testing
-// =============================================================================
-
-const MOCK_PROPOSALS = [
-  {
-    id: 'prop-001',
-    title: 'Proposta de P&D - Inteligência Artificial para Indústria 4.0',
-    opportunity_id: 'opp-001',
-    opportunity_name: 'FINEP - Inovação Tecnológica 2026',
-    funding_source: 'FINEP',
-    status: 'draft',
-    version: 1,
-    content: 'Desenvolvimento de soluções de IA para otimização de processos industriais',
-    total_value: 1500000,
-    ai_confidence: 0.85,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-    author: 'Dr. João Silva',
-  },
-  {
-    id: 'prop-002',
-    title: 'Projeto de Eficiência Energética em Edificações',
-    opportunity_id: 'opp-002',
-    opportunity_name: 'FAPESP - Pesquisa Inovativa',
-    funding_source: 'FAPESP',
-    status: 'in_review',
-    version: 2,
-    content: 'Implementação de sistemas inteligentes para gestão de energia em prédios comerciais',
-    total_value: 850000,
-    ai_confidence: 0.78,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    author: 'Dra. Maria Santos',
-  },
-  {
-    id: 'prop-003',
-    title: 'Biotecnologia Aplicada à Agricultura Sustentável',
-    opportunity_id: 'opp-003',
-    opportunity_name: 'CNPq - Desenvolvimento Científico',
-    funding_source: 'CNPq',
-    status: 'submitted',
-    version: 3,
-    content: 'Pesquisa em biofertilizantes para redução do uso de agroquímicos',
-    total_value: 620000,
-    ai_confidence: 0.92,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    author: 'Prof. Carlos Oliveira',
-  },
-  {
-    id: 'prop-004',
-    title: 'Sistema de Monitoramento Ambiental com IoT',
-    opportunity_id: 'opp-004',
-    opportunity_name: 'BNDES - Fundo Clima',
-    funding_source: 'BNDES',
-    status: 'approved',
-    version: 1,
-    content: 'Rede de sensores IoT para monitoramento de qualidade do ar e água',
-    total_value: 2200000,
-    ai_confidence: 0.88,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-    author: 'Dra. Ana Rodrigues',
-  },
-  {
-    id: 'prop-005',
-    title: 'Plataforma de Capacitação em Manufatura Digital',
-    opportunity_id: 'opp-005',
-    opportunity_name: 'EMBRAPII - Projetos Especiais',
-    funding_source: 'EMBRAPII',
-    status: 'rejected',
-    version: 2,
-    content: 'Desenvolvimento de plataforma de treinamento em tecnologias 4.0',
-    total_value: 450000,
-    ai_confidence: 0.65,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
-    author: 'Dr. Pedro Mendes',
-  },
-];
+// No inline mock proposals; page relies on backend API and shows appropriate empty/error states.
 
 export default function ProposalsPage() {
   const t = useTranslations('proposals');
@@ -157,23 +77,13 @@ export default function ProposalsPage() {
     { key: 'dateTo', label: t('filters.dateTo'), type: 'date' },
   ];
 
-  const { data: proposals = [], isLoading } = useQuery({
+  const { data: proposals = [], isLoading, isError, error } = useQuery({
     queryKey: ['proposals', filters.status],
     queryFn: async () => {
-      try {
-        const result = await apiClient.listProposals({
-          status: filters.status || undefined,
-        });
-        return result;
-      } catch (error) {
-        // Use mock data on API failure for testing
-        console.warn('Using mock proposals data for testing:', error);
-        let mockData = MOCK_PROPOSALS;
-        if (filters.status) {
-          mockData = mockData.filter(p => p.status === filters.status);
-        }
-        return mockData;
-      }
+      const result = await apiClient.listProposals({
+        status: filters.status || undefined,
+      });
+      return result ?? [];
     },
   });
 
@@ -284,6 +194,12 @@ export default function ProposalsPage() {
         module="proposals"
         data={filteredProposals}
       />
+
+      {isError && error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-700 dark:text-red-300">{String((error as any)?.message || error)}</p>
+        </div>
+      )}
 
       {/* Filters */}
       <FilterPanel

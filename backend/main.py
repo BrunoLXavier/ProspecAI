@@ -137,9 +137,11 @@ from adapters.api.llm_config_routes import router as llm_config_routes
 from adapters.api.ai_routes import router as ai_routes
 from adapters.api.ingestion_routes import router as ingestion_routes
 from adapters.api.feedback_routes import router as feedback_routes
+from adapters.api.compatibility_routes import router as compatibility_routes
 from routers.auth_router import router as auth_routes
 from routers.contact_router import router as contact_routes
 from routers.admin_settings_router import router as admin_settings_routes
+from routers.notifications import router as notifications_routes
 
 # Register API routers
 app.include_router(auth_routes)
@@ -166,6 +168,8 @@ app.include_router(ai_routes)
 app.include_router(ingestion_routes)
 app.include_router(feedback_routes)
 app.include_router(websocket_routes)
+app.include_router(compatibility_routes)
+app.include_router(notifications_routes)
 
 
 @app.get("/api/v1")

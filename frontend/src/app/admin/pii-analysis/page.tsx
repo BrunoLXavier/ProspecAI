@@ -269,251 +269,7 @@ const ANONYMIZATION_STRATEGIES = [
   { id: 'hash', label: 'Hash', description: 'Converte em hash irreversível' },
 ];
 
-// =============================================================================
-// Mock Data for Testing
-// =============================================================================
-
-const MOCK_PII_DETECTIONS: PIIDetection[] = [
-  {
-    id: 'pii-001',
-    source_id: 'doc-123',
-    source_type: 'client_document',
-    entities: [
-      { type: 'cpf', value: '123.456.789-00', start: 45, end: 59, confidence: 0.98, suggested_strategy: 'mask' },
-      { type: 'name', value: 'João da Silva', start: 10, end: 23, confidence: 0.95, suggested_strategy: 'pseudonymize' },
-      { type: 'email', value: 'joao.silva@email.com', start: 120, end: 140, confidence: 0.99, suggested_strategy: 'mask' },
-    ],
-    risk_level: 'high',
-    anonymization_status: 'pending_review',
-    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    id: 'pii-002',
-    source_id: 'doc-456',
-    source_type: 'proposal_attachment',
-    entities: [
-      { type: 'cnpj', value: '12.345.678/0001-90', start: 200, end: 218, confidence: 0.97, suggested_strategy: 'mask' },
-      { type: 'phone', value: '(11) 98765-4321', start: 340, end: 355, confidence: 0.92, suggested_strategy: 'remove' },
-    ],
-    risk_level: 'medium',
-    anonymization_status: 'pending_review',
-    created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-  },
-  {
-    id: 'pii-003',
-    source_id: 'doc-789',
-    source_type: 'ingestion_file',
-    entities: [
-      { type: 'credit_card', value: '4111 **** **** 1234', start: 500, end: 519, confidence: 0.99, suggested_strategy: 'remove' },
-    ],
-    risk_level: 'critical',
-    anonymization_status: 'pending_review',
-    created_at: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-  },
-  {
-    id: 'pii-004',
-    source_id: 'doc-101',
-    source_type: 'client_document',
-    entities: [
-      { type: 'address', value: 'Rua das Flores, 123, São Paulo - SP', start: 80, end: 115, confidence: 0.88, suggested_strategy: 'pseudonymize' },
-    ],
-    risk_level: 'low',
-    anonymization_status: 'approved',
-    anonymization_strategy: 'pseudonymize',
-    reviewed_by: 'admin@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    review_notes: 'Aprovado para pseudonimização - dados de endereço comercial',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-  },
-  {
-    id: 'pii-005',
-    source_id: 'doc-202',
-    source_type: 'proposal_attachment',
-    entities: [
-      { type: 'rg', value: '12.345.678-9', start: 25, end: 37, confidence: 0.91, suggested_strategy: 'mask' },
-      { type: 'date_of_birth', value: '15/03/1985', start: 60, end: 70, confidence: 0.85, suggested_strategy: 'remove' },
-    ],
-    risk_level: 'high',
-    anonymization_status: 'anonymized',
-    anonymization_strategy: 'mask',
-    reviewed_by: 'lgpd@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-  },
-  {
-    id: 'pii-006',
-    source_id: 'doc-303',
-    source_type: 'ingestion_file',
-    entities: [
-      { type: 'ip_address', value: '192.168.1.100', start: 150, end: 163, confidence: 0.94, suggested_strategy: 'hash' },
-    ],
-    risk_level: 'low',
-    anonymization_status: 'rejected',
-    reviewed_by: 'admin@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-    review_notes: 'IP interno - não requer anonimização',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-  },
-  {
-    id: 'pii-007',
-    source_id: 'doc-404',
-    source_type: 'database_export',
-    entities: [
-      { type: 'cpf', value: '987.654.321-00', start: 15, end: 29, confidence: 0.96, suggested_strategy: 'mask' },
-      { type: 'name', value: 'Maria Oliveira Santos', start: 50, end: 71, confidence: 0.97, suggested_strategy: 'pseudonymize' },
-      { type: 'phone', value: '(21) 99876-5432', start: 90, end: 105, confidence: 0.94, suggested_strategy: 'remove' },
-      { type: 'email', value: 'maria.santos@empresa.com.br', start: 130, end: 157, confidence: 0.99, suggested_strategy: 'mask' },
-    ],
-    risk_level: 'critical',
-    anonymization_status: 'pending_review',
-    created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-  {
-    id: 'pii-008',
-    source_id: 'doc-505',
-    source_type: 'api_response',
-    entities: [
-      { type: 'bank_account', value: 'Ag: 1234 / CC: 56789-0', start: 200, end: 222, confidence: 0.93, suggested_strategy: 'remove' },
-    ],
-    risk_level: 'critical',
-    anonymization_status: 'anonymized',
-    anonymization_strategy: 'remove',
-    reviewed_by: 'lgpd@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-    review_notes: 'Dados bancários removidos completamente por segurança',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(),
-  },
-  {
-    id: 'pii-009',
-    source_id: 'doc-606',
-    source_type: 'form_submission',
-    entities: [
-      { type: 'name', value: 'Carlos Alberto Pereira', start: 5, end: 27, confidence: 0.94, suggested_strategy: 'pseudonymize' },
-      { type: 'address', value: 'Av. Brasil, 500, Apto 301, Rio de Janeiro - RJ', start: 45, end: 92, confidence: 0.89, suggested_strategy: 'pseudonymize' },
-    ],
-    risk_level: 'medium',
-    anonymization_status: 'approved',
-    anonymization_strategy: 'pseudonymize',
-    reviewed_by: 'admin@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    review_notes: 'Dados de contato de cliente - pseudonimizar para relatórios',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-  },
-  {
-    id: 'pii-010',
-    source_id: 'doc-707',
-    source_type: 'client_document',
-    entities: [
-      { type: 'cnpj', value: '98.765.432/0001-10', start: 100, end: 118, confidence: 0.98, suggested_strategy: 'mask' },
-      { type: 'email', value: 'contato@empresa.com.br', start: 150, end: 172, confidence: 0.99, suggested_strategy: 'mask' },
-      { type: 'phone', value: '(31) 3456-7890', start: 200, end: 215, confidence: 0.91, suggested_strategy: 'remove' },
-    ],
-    risk_level: 'medium',
-    anonymization_status: 'pending_review',
-    created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-  },
-  {
-    id: 'pii-011',
-    source_id: 'doc-808',
-    source_type: 'ingestion_file',
-    entities: [
-      { type: 'cpf', value: '456.789.123-45', start: 30, end: 44, confidence: 0.97, suggested_strategy: 'mask' },
-      { type: 'rg', value: '45.678.901-2', start: 60, end: 72, confidence: 0.88, suggested_strategy: 'mask' },
-      { type: 'date_of_birth', value: '22/07/1990', start: 85, end: 95, confidence: 0.92, suggested_strategy: 'remove' },
-    ],
-    risk_level: 'high',
-    anonymization_status: 'anonymization_failed',
-    reviewed_by: 'lgpd@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString(),
-    review_notes: 'Falha na anonimização - arquivo corrompido',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-  {
-    id: 'pii-012',
-    source_id: 'doc-909',
-    source_type: 'database_export',
-    entities: [
-      { type: 'name', value: 'Ana Paula Costa', start: 10, end: 25, confidence: 0.96, suggested_strategy: 'pseudonymize' },
-      { type: 'email', value: 'ana.costa@gmail.com', start: 40, end: 59, confidence: 0.99, suggested_strategy: 'mask' },
-    ],
-    risk_level: 'medium',
-    anonymization_status: 'anonymized',
-    anonymization_strategy: 'mask',
-    reviewed_by: 'admin@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 15).toISOString(),
-  },
-  {
-    id: 'pii-013',
-    source_id: 'doc-1010',
-    source_type: 'api_response',
-    entities: [
-      { type: 'ip_address', value: '200.158.10.55', start: 80, end: 93, confidence: 0.95, suggested_strategy: 'hash' },
-      { type: 'ip_address', value: '189.40.120.200', start: 120, end: 134, confidence: 0.95, suggested_strategy: 'hash' },
-    ],
-    risk_level: 'low',
-    anonymization_status: 'approved',
-    anonymization_strategy: 'hash',
-    reviewed_by: 'admin@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-    review_notes: 'IPs externos - hashear para análise anônima',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-  },
-  {
-    id: 'pii-014',
-    source_id: 'doc-1111',
-    source_type: 'form_submission',
-    entities: [
-      { type: 'credit_card', value: '5500 **** **** 5678', start: 150, end: 169, confidence: 0.99, suggested_strategy: 'remove' },
-      { type: 'name', value: 'Roberto Fernandes Lima', start: 20, end: 42, confidence: 0.94, suggested_strategy: 'pseudonymize' },
-    ],
-    risk_level: 'critical',
-    anonymization_status: 'pending_review',
-    created_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-  },
-  {
-    id: 'pii-015',
-    source_id: 'doc-1212',
-    source_type: 'proposal_attachment',
-    entities: [
-      { type: 'address', value: 'Rua XV de Novembro, 1500, Curitiba - PR, 80020-310', start: 200, end: 250, confidence: 0.87, suggested_strategy: 'pseudonymize' },
-      { type: 'phone', value: '(41) 3333-4444', start: 280, end: 295, confidence: 0.93, suggested_strategy: 'remove' },
-    ],
-    risk_level: 'low',
-    anonymization_status: 'rejected',
-    reviewed_by: 'lgpd@prospecai.com',
-    reviewed_at: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString(),
-    review_notes: 'Endereço comercial público - não requer anonimização',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 9).toISOString(),
-  },
-];
-
-const MOCK_PII_STATISTICS: PIIStatistics = {
-  total: 15,
-  pending_review: 6,
-  approved: 4,
-  rejected: 2,
-  anonymized: 3,
-  by_risk_level: {
-    low: 4,
-    medium: 4,
-    high: 3,
-    critical: 4,
-  },
-  by_type: {
-    cpf: 3,
-    cnpj: 2,
-    email: 4,
-    phone: 4,
-    name: 5,
-    address: 3,
-    rg: 2,
-    credit_card: 2,
-    ip_address: 3,
-    date_of_birth: 2,
-    bank_account: 1,
-  },
-};
+// No inline mock PII detections/statistics; use backend endpoints for tenant-aware data.
 
 // =============================================================================
 // Helper Functions
@@ -578,25 +334,14 @@ export default function PIIAnalysisPage() {
       });
       
       if (!response.ok) throw new Error('Failed to fetch PII detections');
-      
+
       const apiData: APIDetection[] = await response.json();
       const transformedData = apiData.map(transformAPIDetection);
       setDetections(transformedData);
-    } catch (err) {
-      // Use mock data on API failure for testing
-      console.warn('Using mock PII detections data for testing:', err);
-      let mockData = MOCK_PII_DETECTIONS;
-      
-      // Apply filters to mock data
-      if (filters.status !== 'all') {
-        mockData = mockData.filter(d => d.anonymization_status === filters.status);
-      }
-      if (filters.risk !== 'all') {
-        mockData = mockData.filter(d => d.risk_level === filters.risk);
-      }
-      
-      setDetections(mockData);
-      setError(null); // Clear error since we're using mock data
+    } catch (err: any) {
+      console.error('Failed to fetch PII detections:', err);
+      setDetections([]);
+      setError(err?.message || 'Failed to load PII detections');
     } finally {
       setIsLoading(false);
     }
@@ -612,14 +357,14 @@ export default function PIIAnalysisPage() {
       });
       
       if (!response.ok) throw new Error('Failed to fetch statistics');
-      
+
       const apiData: APIStatistics = await response.json();
       const transformedStats = transformAPIStatistics(apiData);
       setStatistics(transformedStats);
-    } catch (err) {
-      // Use mock statistics on API failure for testing
-      console.warn('Using mock PII statistics for testing:', err);
-      setStatistics(MOCK_PII_STATISTICS);
+    } catch (err: any) {
+      console.error('Failed to fetch PII statistics:', err);
+      setStatistics(null);
+      setError(err?.message || 'Failed to load PII statistics');
     }
   }, []);
   

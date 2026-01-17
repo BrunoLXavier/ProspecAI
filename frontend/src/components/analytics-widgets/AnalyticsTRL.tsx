@@ -40,7 +40,7 @@ function TRLSkeleton() {
 export default function AnalyticsTRL({ className = '' }: AnalyticsWidgetProps) {
   const t = useTranslations('analytics');
 
-  const { data: trlData, isLoading } = useQuery({
+  const { data: trlData, isLoading, isError, error } = useQuery({
     queryKey: ['analytics-trl'],
     queryFn: () => apiClient.get('/api/v1/analytics/trl-distribution'),
   });
@@ -49,18 +49,16 @@ export default function AnalyticsTRL({ className = '' }: AnalyticsWidgetProps) {
     return <TRLSkeleton />;
   }
 
-  // Fallback mock data for development
-  const data: TRLData[] = trlData || [
-    { trl: 1, count: 3 },
-    { trl: 2, count: 5 },
-    { trl: 3, count: 8 },
-    { trl: 4, count: 6 },
-    { trl: 5, count: 4 },
-    { trl: 6, count: 3 },
-    { trl: 7, count: 2 },
-    { trl: 8, count: 1 },
-    { trl: 9, count: 1 },
-  ];
+  const data: TRLData[] = trlData ?? [];
+
+  if (isError || data.length === 0) {
+    return (
+      <div className={`bg-white rounded-xl shadow-sm p-6 border border-gray-100 dark:bg-gray-800 dark:border-gray-700 ${className}`} data-testid="analytics-trl">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('trl.title')}</h3>
+        <p className="text-gray-500 dark:text-gray-400">{isError ? String((error as any)?.message || 'Failed to load TRL distribution') : t('trl.noData')}</p>
+      </div>
+    );
+  }
 
   const maxCount = Math.max(...data.map(d => d.count), 1);
 

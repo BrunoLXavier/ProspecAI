@@ -90,7 +90,14 @@ export default function RecentActivity() {
   };
 
   const ActivityItem = ({ activity }: { activity: Activity }) => {
-    const { icon: Icon, colors } = activityIcons[activity.type] || { icon: DocumentPlusIcon, colors: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' };
+    if (!activity) return null;
+    if (!activity.type) {
+      // Log malformed activity for debugging
+      // eslint-disable-next-line no-console
+      console.warn('RecentActivity: activity missing type', activity);
+    }
+
+    const { icon: Icon, colors } = activityIcons[activity.type as string] || { icon: DocumentPlusIcon, colors: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' };
     
     const content = (
       <>
@@ -142,8 +149,8 @@ export default function RecentActivity() {
       />
 
       <div className="space-y-1">
-        {activities.map((activity) => (
-          <ActivityItem key={activity.id} activity={activity} />
+        {activities.filter(Boolean).map((activity) => (
+          <ActivityItem key={activity?.id ?? Math.random().toString(36).slice(2,9)} activity={activity as Activity} />
         ))}
       </div>
 

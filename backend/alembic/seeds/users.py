@@ -23,6 +23,8 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
     # For the primary/default tenant, use the canonical admin address used in deployments.
     if tenant_name.lower().startswith("default"):
         admin_email = "admin@prospecai.com"
+        # Also ensure legacy alias used in some test scripts is present
+        alias_email = "admin@prospecia"
         # Use a stable admin id for the default tenant so dev-bypass auth can map to it
         admin_id = os.getenv("SEED_ADMIN_ID", "00000000-0000-0000-0000-000000000001")
     else:
@@ -50,6 +52,32 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
             "last_name": "Administrator",
         },
     )
+
+    # Legacy alias insertion (for convenience in local dev/tests)
+    try:
+        conn.execute(
+            text(
+                """
+                INSERT INTO users (id, tenant_id, email, username, password_hash, first_name, last_name, is_active, email_verified, created_at, updated_at)
+                SELECT :id2, :tenant_id, :alias_email, :username, :password_hash, :first_name, :last_name, true, true, now(), now()
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM users WHERE tenant_id = :tenant_id AND email = :alias_email
+                )
+                """
+            ),
+            {
+                "id2": str(uuid.uuid4()),
+                "tenant_id": tenant_id,
+                "alias_email": alias_email,
+                "username": "admin",
+                "password_hash": DEFAULT_USER_PASS_HASH,
+                "first_name": tenant_name,
+                "last_name": "Administrator",
+            },
+        )
+    except Exception:
+        # best effort, continue if alias insert fails
+        pass
 
     # Ensure the admin role association exists for the admin user. Use the existing user id when present.
     # Insert a user_roles row only if not already present.

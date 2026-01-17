@@ -43,134 +43,7 @@ const LOCALE_NAMES: Record<string, string> = {
   'es-ES': 'Español',
 };
 
-// =============================================================================
-// Mock Data for Testing - Extracted from locale files
-// =============================================================================
-
-const MOCK_TRANSLATIONS: TranslationKey[] = [
-  {
-    key: 'dashboard.title',
-    path: 'dashboard.title',
-    values: { 'pt-BR': 'Dashboard', 'en-US': 'Dashboard', 'es-ES': 'Panel' },
-  },
-  {
-    key: 'navigation.funding',
-    path: 'navigation.funding',
-    values: { 'pt-BR': 'Fontes de Fomento', 'en-US': 'Funding Sources', 'es-ES': 'Fuentes de Financiamiento' },
-  },
-  {
-    key: 'navigation.portfolio',
-    path: 'navigation.portfolio',
-    values: { 'pt-BR': 'Portfólio', 'en-US': 'Portfolio', 'es-ES': 'Portafolio' },
-  },
-  {
-    key: 'navigation.crm',
-    path: 'navigation.crm',
-    values: { 'pt-BR': 'CRM', 'en-US': 'CRM', 'es-ES': 'CRM' },
-  },
-  {
-    key: 'navigation.opportunities',
-    path: 'navigation.opportunities',
-    values: { 'pt-BR': 'Oportunidades', 'en-US': 'Opportunities', 'es-ES': 'Oportunidades' },
-  },
-  {
-    key: 'navigation.proposals',
-    path: 'navigation.proposals',
-    values: { 'pt-BR': 'Propostas', 'en-US': 'Proposals', 'es-ES': 'Propuestas' },
-  },
-  {
-    key: 'navigation.settings',
-    path: 'navigation.settings',
-    values: { 'pt-BR': 'Configurações', 'en-US': 'Settings', 'es-ES': 'Configuración' },
-  },
-  {
-    key: 'settings.title',
-    path: 'settings.title',
-    values: { 'pt-BR': 'Configurações', 'en-US': 'Settings', 'es-ES': 'Configuración' },
-  },
-  {
-    key: 'users.title',
-    path: 'users.title',
-    values: { 'pt-BR': 'Gestão de Usuários', 'en-US': 'User Management', 'es-ES': 'Gestión de Usuarios' },
-  },
-  {
-    key: 'users.subtitle',
-    path: 'users.subtitle',
-    values: { 'pt-BR': 'Gerencie usuários e suas permissões', 'en-US': 'Manage users and their permissions', 'es-ES': 'Gestiona usuarios y sus permisos' },
-  },
-  {
-    key: 'users.newUser',
-    path: 'users.newUser',
-    values: { 'pt-BR': 'Novo Usuário', 'en-US': 'New User', 'es-ES': 'Nuevo Usuario' },
-  },
-  {
-    key: 'users.email',
-    path: 'users.email',
-    values: { 'pt-BR': 'E-mail', 'en-US': 'Email', 'es-ES': 'Correo electrónico' },
-  },
-  {
-    key: 'users.name',
-    path: 'users.name',
-    values: { 'pt-BR': 'Nome', 'en-US': 'Name', 'es-ES': 'Nombre' },
-  },
-  {
-    key: 'users.role',
-    path: 'users.role',
-    values: { 'pt-BR': 'Papel', 'en-US': 'Role', 'es-ES': 'Rol' },
-  },
-  {
-    key: 'users.status',
-    path: 'users.status',
-    values: { 'pt-BR': 'Status', 'en-US': 'Status', 'es-ES': 'Estado' },
-  },
-  {
-    key: 'users.active',
-    path: 'users.active',
-    values: { 'pt-BR': 'Ativo', 'en-US': 'Active', 'es-ES': 'Activo' },
-  },
-  {
-    key: 'users.inactive',
-    path: 'users.inactive',
-    values: { 'pt-BR': 'Inativo', 'en-US': 'Inactive', 'es-ES': 'Inactivo' },
-  },
-  {
-    key: 'common.save',
-    path: 'common.save',
-    values: { 'pt-BR': 'Salvar', 'en-US': 'Save', 'es-ES': 'Guardar' },
-  },
-  {
-    key: 'common.cancel',
-    path: 'common.cancel',
-    values: { 'pt-BR': 'Cancelar', 'en-US': 'Cancel', 'es-ES': 'Cancelar' },
-  },
-  {
-    key: 'common.delete',
-    path: 'common.delete',
-    values: { 'pt-BR': 'Excluir', 'en-US': 'Delete', 'es-ES': 'Eliminar' },
-  },
-  {
-    key: 'common.edit',
-    path: 'common.edit',
-    values: { 'pt-BR': 'Editar', 'en-US': 'Edit', 'es-ES': 'Editar' },
-  },
-  {
-    key: 'common.search',
-    path: 'common.search',
-    values: { 'pt-BR': 'Buscar', 'en-US': 'Search', 'es-ES': 'Buscar' },
-  },
-  {
-    key: 'common.loading',
-    path: 'common.loading',
-    values: { 'pt-BR': 'Carregando...', 'en-US': 'Loading...', 'es-ES': 'Cargando...' },
-  },
-  {
-    key: 'common.noResults',
-    path: 'common.noResults',
-    values: { 'pt-BR': 'Nenhum resultado encontrado', 'en-US': 'No results found', 'es-ES': 'No se encontraron resultados' },
-  },
-];
-
-const MOCK_NAMESPACES = ['navigation', 'dashboard', 'settings', 'users', 'common', 'funding', 'crm', 'portfolio'];
+// No inline mock translations; real API is used for translations management.
 
 export default function TranslationsPage() {
   const t = useTranslations('settings');
@@ -257,30 +130,13 @@ export default function TranslationsPage() {
       // Ensure known locales are present (fallback/merge)
       setLocales(Array.from(new Set([...respLocales, 'pt-BR', 'en-US', 'es-ES'])));
     } catch (err: any) {
-      // Use mock data on API failure for testing
-      console.warn('Using mock translations data for testing:', err);
-      
-      let mockData = MOCK_TRANSLATIONS;
-      
-      // Apply filters to mock data
-      if (selectedNamespace) {
-        mockData = mockData.filter(t => t.path.startsWith(selectedNamespace + '.'));
-      }
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        mockData = mockData.filter(t => 
-          t.path.toLowerCase().includes(query) ||
-          Object.values(t.values).some(v => v.toLowerCase().includes(query))
-        );
-      }
-      
-      setNamespaces(MOCK_NAMESPACES);
+      // On failure, do not use mock/demo data. Show empty results and surface error.
+      console.error('Failed to load translations:', err);
+      setNamespaces([]);
       setLocales(['pt-BR', 'en-US', 'es-ES']);
-      // Mock pagination
-      setTotal(mockData.length);
-      const start = (page - 1) * pageSize;
-      setTranslations(mockData.slice(start, start + pageSize));
-      setError(null); // Clear error since we're using mock data
+      setTotal(0);
+      setTranslations([]);
+      setError(err?.message || 'Failed to load translations');
     } finally {
       setLoading(false);
     }

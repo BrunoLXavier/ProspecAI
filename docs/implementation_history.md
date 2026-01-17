@@ -566,7 +566,7 @@ Entities  Business    Interfaces   Frameworks
 6. **Explainable AI** com badges aumenta confiança do usuário
 7. **Presigned URLs** permitem upload direto para MinIO
 8. **Template-based reports** flexibilidade sem hardcoding
-9. **Playwright (removed)** previously used for cross-browser E2E tests
+9. **E2E tests (removed)** previously used for cross-browser testing
 10. **pytest fixtures** permitem setup/teardown limpos
 
 ---
@@ -1138,7 +1138,7 @@ algorithm_version: str = "v1.0"
 
 ### Frontend E2E Test Suite (removed)
 
-E2E tests and Playwright-based suites were removed from the repository. Reintroduce an E2E framework and files under `frontend/` if needed.
+E2E tests have been removed from this repository. Reintroduce an E2E framework and files under `frontend/` if needed.
 
 **Test Coverage by Module:**
 | File | Tests | Status |

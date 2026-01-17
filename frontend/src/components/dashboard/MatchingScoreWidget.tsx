@@ -90,43 +90,8 @@ export default function MatchingScoreWidget() {
       } catch (err) {
         console.error('Failed to fetch matching results:', err);
         setError('Erro ao carregar resultados de matching');
-        // Keep previous demo fallback
-        setData({
-          matches: [
-            {
-              id: '1',
-              opportunity_title: 'Projeto IoT Industrial',
-              funding_source_title: 'FINEP Inovação 2026',
-              score: 92,
-              viability_technical: 95,
-              viability_financial: 88,
-              viability_strategic: 93,
-              created_at: new Date().toISOString(),
-            },
-            {
-              id: '2',
-              opportunity_title: 'Sistema de Automação',
-              funding_source_title: 'Embrapii IA',
-              score: 78,
-              viability_technical: 82,
-              viability_financial: 75,
-              viability_strategic: 77,
-              created_at: new Date().toISOString(),
-            },
-            {
-              id: '3',
-              opportunity_title: 'Plataforma IA',
-              funding_source_title: 'CNPq Universal',
-              score: 65,
-              viability_technical: 70,
-              viability_financial: 55,
-              viability_strategic: 70,
-              created_at: new Date().toISOString(),
-            },
-          ],
-          total: 45,
-          avg_score: 78,
-        });
+        // No demo fallback: show empty results on error
+        setData({ matches: [], total: 0, avg_score: 0 });
       } finally {
         setIsLoading(false);
       }
@@ -246,7 +211,7 @@ export default function MatchingScoreWidget() {
         </span>
         {error && (
           <span className="text-xs text-amber-600 dark:text-amber-400">
-            ⚠️ Dados de demonstração
+            {error}
           </span>
         )}
       </div>

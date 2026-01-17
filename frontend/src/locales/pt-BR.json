@@ -786,7 +786,9 @@
     "empty": "Nenhuma atividade encontrada",
     "filters": {
       "allEntities": "Todas as Entidades",
-      "allActions": "Todas as Ações"
+      "allActions": "Todas as Ações",
+      "entity": "Entidade",
+      "type": "Ação"
     },
     "entities": {
       "funding": "Edital",

@@ -72,45 +72,8 @@ export default function CalendarWidget() {
       } catch (err) {
         console.error('Failed to fetch calendar events:', err);
         setError('Erro ao carregar eventos');
-        // Mock data for demo
-        const today = new Date();
-        setData({
-          events: [
-            { 
-              id: '1', 
-              title: 'Prazo FINEP Inovação', 
-              date: new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(), 
-              type: 'deadline', 
-              related_entity: 'funding',
-              priority: 'high' 
-            },
-            { 
-              id: '2', 
-              title: 'Reunião TechCorp', 
-              date: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(), 
-              type: 'meeting', 
-              related_entity: 'client',
-              priority: 'medium' 
-            },
-            { 
-              id: '3', 
-              title: 'Entrega Projeto Alpha', 
-              date: new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(), 
-              type: 'milestone', 
-              related_entity: 'project',
-              priority: 'high' 
-            },
-            { 
-              id: '4', 
-              title: 'Renovar Contrato AutoMax', 
-              date: new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString(), 
-              type: 'reminder', 
-              related_entity: 'client',
-              priority: 'low' 
-            },
-          ],
-          upcoming_deadlines: 3,
-        });
+        // No demo data: return empty set on error
+        setData({ events: [], upcoming_deadlines: 0 });
       } finally {
         setIsLoading(false);
       }
@@ -254,7 +217,7 @@ export default function CalendarWidget() {
       {/* Footer */}
       {error && (
         <p className="mt-3 text-xs text-amber-600 dark:text-amber-400 text-center">
-          ⚠️ Usando dados de demonstração
+          {error}
         </p>
       )}
     </div>

@@ -8,7 +8,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks, Request
 from pydantic import BaseModel, Field
 
-from adapters.api.auth_middleware import get_current_user, AuthenticatedUser
+from adapters.api.auth_middleware import get_current_user, AuthenticatedUser, require_auth
 from infrastructure.auth import CurrentUser
 from adapters.database.connection import get_db
 from adapters.repositories.ingestion_repository import IngestionRepository
@@ -114,7 +114,7 @@ class StartProcessingResponse(BaseModel):
 @router.post("/jobs", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def create_job(
     request: CreateJobRequest,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_auth),
     session = Depends(get_db),
 ):
     """
@@ -151,7 +151,7 @@ async def get_jobs(
     job_status: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_auth),
     request: Request = None,
     session = Depends(get_db),
 ):
@@ -196,7 +196,7 @@ async def get_jobs(
 @router.get("/jobs/{job_id}", response_model=dict)
 async def get_job(
     job_id: UUID,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_auth),
     session = Depends(get_db),
 ):
     """Get details of a specific ingestion job including sources."""
@@ -224,7 +224,7 @@ async def get_job(
 @router.delete("/jobs/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_job(
     job_id: UUID,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_auth),
     session = Depends(get_db),
 ):
     """Delete an ingestion job."""
@@ -253,7 +253,7 @@ async def delete_job(
 async def start_processing(
     job_id: UUID,
     background_tasks: BackgroundTasks,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_auth),
     session = Depends(get_db),
 ):
     """
@@ -293,7 +293,7 @@ async def start_processing(
 
 @router.get("/statistics", response_model=dict)
 async def get_statistics(
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_auth),
     session = Depends(get_db),
 ):
     """Get aggregated ingestion statistics for the current tenant."""
@@ -318,7 +318,7 @@ async def upload_files(
     files: List[UploadFile] = File(...),
     job_name: str = Form(...),
     job_description: Optional[str] = Form(None),
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: AuthenticatedUser = Depends(require_auth),
     session = Depends(get_db),
 ):
     """

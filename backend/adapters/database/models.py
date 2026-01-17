@@ -72,9 +72,20 @@ class ProjectModel(BaseModel):
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=False)
     status = Column(String(50), nullable=False)
+    # Optional link to a containing portfolio (nullable)
+    portfolio_id = Column(PGUUID(as_uuid=True), nullable=True)
     
     trl_current = Column(Integer, nullable=False)
     trl_target = Column(Integer, nullable=True)
+    # Business fields used by repository/use-cases
+    research_area = Column(String(200), nullable=True)
+    start_date = Column(DateTime(timezone=True), nullable=True)
+    end_date = Column(DateTime(timezone=True), nullable=True)
+    budget = Column(Numeric(20, 2), nullable=True)
+    objectives = Column(JSON, default=list)
+    methodology = Column(Text, nullable=True)
+    expected_results = Column(JSON, default=list)
+    trl_history = Column(JSON, default=list)
     
     team_members = Column(JSON, default=list)
     competencies = Column(JSON, default=list)

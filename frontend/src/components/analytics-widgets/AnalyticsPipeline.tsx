@@ -38,7 +38,7 @@ function PipelineSkeleton() {
 export default function AnalyticsPipeline({ className = '' }: AnalyticsWidgetProps) {
   const t = useTranslations('analytics');
 
-  const { data: pipeline, isLoading } = useQuery({
+  const { data: pipeline, isLoading, isError, error } = useQuery({
     queryKey: ['analytics-pipeline'],
     queryFn: () => apiClient.get('/api/v1/analytics/pipeline'),
   });
@@ -65,14 +65,16 @@ export default function AnalyticsPipeline({ className = '' }: AnalyticsWidgetPro
     return <PipelineSkeleton />;
   }
 
-  // Fallback mock data for development
-  const data: PipelineStage[] = pipeline || [
-    { stage: 'intelligence', count: 12, value: 500000 },
-    { stage: 'qualification', count: 8, value: 350000 },
-    { stage: 'proposal', count: 5, value: 200000 },
-    { stage: 'negotiation', count: 3, value: 150000 },
-    { stage: 'won', count: 2, value: 100000 },
-  ];
+  const data: PipelineStage[] = pipeline ?? [];
+
+  if (isError || data.length === 0) {
+    return (
+      <div className={`bg-white rounded-xl shadow-sm p-6 border border-gray-100 dark:bg-gray-800 dark:border-gray-700 ${className}`} data-testid="analytics-pipeline">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('pipeline.title')}</h3>
+        <p className="text-gray-500 dark:text-gray-400">{isError ? String((error as any)?.message || 'Failed to load pipeline data') : t('pipeline.noData')}</p>
+      </div>
+    );
+  }
 
   const maxCount = Math.max(...data.map(d => d.count), 1);
 

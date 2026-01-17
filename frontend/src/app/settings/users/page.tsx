@@ -77,36 +77,7 @@ export default function UsersPage() {
         return response.users || response || [];
       } catch (error) {
         console.error('Failed to fetch users:', error);
-        // Return mock data for development
-        return [
-          {
-            id: '1',
-            email: 'admin@prospecai.com',
-            name: 'System Administrator',
-            role: 'admin',
-            is_active: true,
-            created_at: '2025-01-01T00:00:00Z',
-            last_login: '2026-01-13T10:00:00Z',
-          },
-          {
-            id: '2',
-            email: 'manager@prospecai.com',
-            name: 'Project Manager',
-            role: 'manager',
-            is_active: true,
-            created_at: '2025-03-15T00:00:00Z',
-            last_login: '2026-01-12T15:30:00Z',
-          },
-          {
-            id: '3',
-            email: 'analyst@prospecai.com',
-            name: 'Data Analyst',
-            role: 'analyst',
-            is_active: true,
-            created_at: '2025-06-01T00:00:00Z',
-            last_login: '2026-01-10T09:00:00Z',
-          },
-        ];
+        return [];
       }
     },
   });

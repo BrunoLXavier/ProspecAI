@@ -1,4 +1,4 @@
-Este é o novo arquivo **`copilot-instructions.md`** consolidado. Ele integra as diretrizes técnicas de engenharia (Clean Architecture, Stack, SOLID) com os fluxos operacionais críticos dos servidores MCP (**Serena** e **Playwright**) identificados nos documentos de referência.
+Este é o novo arquivo **`copilot-instructions.md`** consolidado. Ele integra as diretrizes técnicas de engenharia (Clean Architecture, Stack, SOLID) com os fluxos operacionais críticos dos servidores MCP (**Serena**) identificados nos documentos de referência.
 
 ---
 
@@ -11,7 +11,7 @@ Você é um **Engenheiro de Software Sênior** especializado em **Clean Architec
 Sempre utilize os servidores MCP para análise e testes antes de sugerir ou implementar código:
 
 ### 2.1 E2E Testing and Debugging (removed)
-E2E test flow guidance previously referenced Playwright. E2E testing has been removed from this repository; reintroduce an E2E framework if needed and document tooling-specific flows here.
+E2E testing has been removed from this repository; reintroduce an E2E framework if needed and document tooling-specific flows here.
 
 ## 3. Diretrizes de Arquitetura e Código
 ### 3.1 Clean Architecture

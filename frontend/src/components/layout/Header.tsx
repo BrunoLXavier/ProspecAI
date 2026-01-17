@@ -23,6 +23,8 @@ import { SearchInput } from '../ui/Input';
 import { useTheme } from './ThemeProvider';
 import { LanguageToggle } from '../ui/LanguageToggle';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '@/lib/api-client';
 
 // Breadcrumb configuration - keys for i18n translation
 const breadcrumbMap: Record<string, string> = {
@@ -37,12 +39,14 @@ const breadcrumbMap: Record<string, string> = {
   '/settings/translations': 'translations',
 };
 
-// Mock notifications
-const notifications = [
-  { id: 1, title: 'Novo edital disponível', description: 'FINEP Inovação 2026 foi publicado', time: '5 min', unread: true },
-  { id: 2, title: 'Matching concluído', description: 'Score de 85% para Projeto X', time: '1h', unread: true },
-  { id: 3, title: 'Proposta aprovada', description: 'Edital CNPq - Fase 2', time: '3h', unread: false },
-];
+interface HeaderNotification {
+  id: string | number;
+  title: string;
+  description?: string;
+  time?: string;
+  unread?: boolean;
+  link?: string;
+}
 
 export default function Header() {
   const pathname = usePathname();
@@ -78,7 +82,21 @@ export default function Header() {
   };
 
   const breadcrumbs = getBreadcrumbs();
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const { data: notifications = [] } = useQuery<HeaderNotification[]>({
+    queryKey: ['notifications', 'header'],
+    queryFn: async () => {
+      try {
+        const resp = await apiClient.get<HeaderNotification[]>('/api/v1/notifications');
+        return resp ?? [];
+      } catch (err) {
+        console.error('Failed to load header notifications', err);
+        return [];
+      }
+    },
+    staleTime: 60_000,
+  });
+
+  const unreadCount = (notifications || []).filter((n: any) => n.unread).length;
 
   return (
     <header className={`

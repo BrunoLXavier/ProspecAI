@@ -40,7 +40,7 @@ run_migrations() {
   n=0
   until [ "$n" -ge "$MIGRATION_RETRIES" ]
   do
-    if alembic upgrade head; then
+    if alembic upgrade heads; then
       echo "Migrations applied successfully."
       return 0
     fi

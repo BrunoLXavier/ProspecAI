@@ -71,8 +71,9 @@ export default function ReportsPage() {
       const arr = Array.isArray(data) ? data : data?.data || [];
       setGeneratedReports(arr);
     } catch (err) {
-      console.warn('Failed to load generated reports, using mock data', err);
+      console.error('Failed to load generated reports:', err);
       setGeneratedReports([]);
+      setError((err as any)?.message || 'Failed to load generated reports');
     } finally {
       setIsLoadingReports(false);
     }
@@ -131,6 +132,14 @@ export default function ReportsPage() {
       />
 
       <ConfigurableStatisticsBar module="reports" data={generatedReports} />
+
+      {error && (
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+            <p className="text-red-700 dark:text-red-300">{error}</p>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4">
         <div className="mt-4">

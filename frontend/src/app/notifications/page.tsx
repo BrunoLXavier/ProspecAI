@@ -15,6 +15,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import apiClient from '@/lib/api-client';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
 
@@ -37,59 +38,18 @@ export default function NotificationsPage() {
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['notifications', filters.type, filters.read],
     queryFn: async (): Promise<Notification[]> => {
-      // Mock data - replace with actual API call
-      const data: Notification[] = [
-        {
-          id: '1',
-          type: 'success',
-          title: 'Matching encontrado',
-          message: 'Novo matching de 92% encontrado para "Projeto Inovação Digital" com edital FINEP 2026.',
-          read: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          link: '/opportunities/1',
-        },
-        {
-          id: '2',
-          type: 'warning',
-          title: 'Prazo se aproximando',
-          message: 'O edital CNPq Pesquisa Aplicada encerra em 5 dias.',
-          read: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-          link: '/funding/2',
-        },
-        {
-          id: '3',
-          type: 'info',
-          title: 'Nova atualização do sistema',
-          message: 'ProspecAI v2.1 está disponível com melhorias de performance.',
-          read: true,
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-          link: undefined,
-        },
-        {
-          id: '4',
-          type: 'success',
-          title: 'Proposta aprovada',
-          message: 'A proposta "Automação Industrial 4.0" foi aprovada pelo comitê.',
-          read: true,
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-          link: '/proposals/3',
-        },
-        {
-          id: '5',
-          type: 'error',
-          title: 'Erro de sincronização',
-          message: 'Não foi possível sincronizar dados do CRM. Tente novamente.',
-          read: true,
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-          link: undefined,
-        },
-      ];
-      return data.filter(n => {
-        if (filters.type !== 'all' && n.type !== filters.type) return false;
-        if (filters.read === 'unread' && n.read) return false;
-        return true;
-      });
+      try {
+        const resp = await apiClient.get<Notification[]>('/api/v1/notifications');
+        const data = resp ?? [];
+        return data.filter(n => {
+          if (filters.type !== 'all' && n.type !== filters.type) return false;
+          if (filters.read === 'unread' && n.read) return false;
+          return true;
+        });
+      } catch (err) {
+        console.error('Failed to load notifications', err);
+        return [];
+      }
     },
   });
 

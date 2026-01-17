@@ -81,17 +81,8 @@ export default function OpportunitiesWidget() {
       } catch (err) {
         console.error('Failed to fetch opportunities:', err);
         setError('Erro ao carregar oportunidades');
-        // Set mock data for demo
-        setData({
-          opportunities: [
-            { id: '1', title: 'Projeto IoT Industrial', client_name: 'TechCorp', stage: 'proposal', value: 150000, probability: 75, created_at: new Date().toISOString() },
-            { id: '2', title: 'Sistema de Automação', client_name: 'AutoMax', stage: 'qualification', value: 85000, probability: 50, created_at: new Date().toISOString() },
-            { id: '3', title: 'Plataforma IA', client_name: 'DataSoft', stage: 'negotiation', value: 220000, probability: 80, created_at: new Date().toISOString() },
-          ],
-          total: 15,
-          total_value: 455000,
-          avg_probability: 68,
-        });
+        // Use empty result on error (no demo data)
+        setData({ opportunities: [], total: 0, total_value: 0, avg_probability: 0 });
       } finally {
         setIsLoading(false);
       }
@@ -198,7 +189,7 @@ export default function OpportunitiesWidget() {
       {/* Error message */}
       {error && (
         <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-          ⚠️ Usando dados de demonstração
+          {error}
         </p>
       )}
     </div>

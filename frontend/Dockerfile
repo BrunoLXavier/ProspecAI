@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy only the package.json and install production dependencies (omit dev deps)
 # Use `npm install` instead of `npm ci` so the build does not rely on a lockfile
 COPY package.json ./
-# Install all dependencies (including devDependencies) at build time
-# This prevents Next.js from attempting to install missing devDeps at runtime
+# Install dependencies including devDependencies so build-time tools (tailwind, postcss) are available.
+# We avoid installing Playwright or other E2E tooling in the image; those are not present in package.json devDependencies.
 RUN npm install --no-audit --no-fund
 
 # Copy source code

@@ -48,72 +48,24 @@ export default function ActivityPage() {
   const { data: activities = [], isLoading } = useQuery<Activity[]>({
     queryKey: ['activities', filters.entity, filters.type],
     queryFn: async () => {
-      // Mock data - replace with actual API call
-      const allActivities: Activity[] = [
-        {
-          id: '1',
-          type: 'create',
-          entity: 'funding',
-          entityId: '1',
-          entityName: 'FINEP Inovação 2026',
-          actor: { id: '1', name: 'João Silva', type: 'user' },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        },
-        {
-          id: '2',
-          type: 'match',
-          entity: 'opportunity',
-          entityId: '1',
-          entityName: 'Projeto Inovação Digital',
-          actor: { id: 'system', name: 'Sistema IA', type: 'system' },
-          metadata: { score: 92, fundingSource: 'FINEP Inovação 2026' },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-        },
-        {
-          id: '3',
-          type: 'submit',
-          entity: 'proposal',
-          entityId: '1',
-          entityName: 'Proposta Automação Industrial',
-          actor: { id: '2', name: 'Maria Santos', type: 'user' },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-        },
-        {
-          id: '4',
-          type: 'transition',
-          entity: 'opportunity',
-          entityId: '2',
-          entityName: 'Sustentabilidade Energética',
-          actor: { id: '3', name: 'Carlos Oliveira', type: 'user' },
-          metadata: { from: 'Validação', to: 'Abordagem' },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
-        },
-        {
-          id: '5',
-          type: 'create',
-          entity: 'client',
-          entityId: '1',
-          entityName: 'Empresa ABC Ltda',
-          actor: { id: '3', name: 'Carlos Oliveira', type: 'user' },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-        },
-        {
-          id: '6',
-          type: 'update',
-          entity: 'project',
-          entityId: '1',
-          entityName: 'Projeto IoT Industrial',
-          actor: { id: '1', name: 'João Silva', type: 'user' },
-          metadata: { field: 'TRL', oldValue: '4', newValue: '5' },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-        },
-      ];
-
-      return allActivities.filter(a => {
-        if (filters.entity !== 'all' && a.entity !== filters.entity) return false;
-        if (filters.type !== 'all' && a.type !== filters.type) return false;
-        return true;
-      });
+      // Fetch recent activity from backend (tenant-aware)
+      try {
+        const resp = await (await import('@/lib/api-client')).apiClient.get<Activity[]>('/api/v1/activity/recent');
+        const list = Array.isArray(resp)
+          ? resp
+          : (Array.isArray((resp as any)?.activities) ? (resp as any).activities : []);
+        // apply client-side filters if backend doesn't support them yet
+        return list.filter((a: Activity | null | undefined) => {
+          // guard against malformed items
+          if (!a || typeof a !== 'object') return false;
+          if (filters.entity !== 'all' && a.entity !== filters.entity) return false;
+          if (filters.type !== 'all' && a.type !== filters.type) return false;
+          return true;
+        });
+      } catch (e) {
+        console.error('Failed to fetch activity feed:', e);
+        return [];
+      }
     },
   });
 
@@ -199,13 +151,41 @@ export default function ActivityPage() {
     return `${diffDays}d atrás`;
   };
 
-  const stats = useMemo(() => {
-    const total = activities.length;
-    const system = activities.filter(a => a.actor.type === 'system').length;
-    const user = total - system;
-    const matches = activities.filter(a => a.type === 'match').length;
-    return { total, system, user, matches };
+  // Normalize and filter incoming activities to avoid runtime errors
+  const safeActivities = useMemo(() => {
+    const list = (activities || []).map((a, idx) => {
+      if (!a || typeof a !== 'object') {
+        // eslint-disable-next-line no-console
+        console.warn('ActivityPage: skipping invalid activity at index', idx, a);
+        return null;
+      }
+
+      if (!('type' in a) || !a.type) {
+        // eslint-disable-next-line no-console
+        console.warn('ActivityPage: activity missing type, skipping', a);
+        return null;
+      }
+
+      if (!a.actor || typeof a.actor !== 'object') {
+        // provide a safe default actor
+        // eslint-disable-next-line no-console
+        console.warn('ActivityPage: activity missing actor, injecting default', a.id);
+        (a as any).actor = { id: 'system', name: 'Sistema', type: 'system' };
+      }
+
+      return a as Activity;
+    }).filter(Boolean) as Activity[];
+
+    return list;
   }, [activities]);
+
+  const stats = useMemo(() => {
+    const total = safeActivities.length;
+    const system = safeActivities.filter(a => a.actor && a.actor.type === 'system').length;
+    const user = total - system;
+    const matches = safeActivities.filter(a => a.type === 'match').length;
+    return { total, system, user, matches };
+  }, [safeActivities]);
 
   const getActivityDescription = (activity: Activity) => {
     switch (activity.type) {
@@ -259,7 +239,7 @@ export default function ActivityPage() {
       />
 
       {/* Configurable Statistics Bar */}
-      <ConfigurableStatisticsBar module="proposals" data={activities || []} />
+      <ConfigurableStatisticsBar module="proposals" data={safeActivities} />
 
       {/* Filters */}
       <FilterPanel
@@ -274,7 +254,7 @@ export default function ActivityPage() {
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('loading')}</div>
-        ) : activities.length === 0 ? (
+        ) : safeActivities.length === 0 ? (
           <div className="p-12 text-center">
             <ClockIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-gray-400">{t('empty')}</p>
@@ -285,7 +265,9 @@ export default function ActivityPage() {
               <div className="relative">
                 <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
                 <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {activities.map((activity) => (
+                  {safeActivities.map((activity) => (
+                    // defensive: skip any malformed entries
+                    !activity ? null : (
                     <li key={activity.id} className="relative p-6 pl-16 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer" onClick={() => setSelectedActivity(activity)}>
                       <div className={`absolute left-6 w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 ${activity.actor.type === 'system' ? 'bg-yellow-400' : 'bg-primary-500'}`} />
 
@@ -313,17 +295,18 @@ export default function ActivityPage() {
                         </div>
                       </div>
                     </li>
+                    )
                   ))}
                 </ul>
               </div>
             ) : (
               // Board view: group by entity
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from(new Set(activities.map(a => a.entity))).map((entity) => (
+                {Array.from(new Set(safeActivities.map(a => a.entity))).map((entity) => (
                   <div key={entity} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 capitalize">{t(`entities.${entity}`)}</h3>
                     <div className="space-y-3">
-                      {activities.filter(a => a.entity === entity).map((a) => (
+                      {safeActivities.filter(a => a.entity === entity).map((a) => (
                         <div key={a.id} onClick={() => setSelectedActivity(a)} className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg cursor-pointer hover:shadow">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">

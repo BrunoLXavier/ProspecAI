@@ -339,25 +339,28 @@ export default function IngestionPage() {
     try {
       const token = getStoredAccessToken() || (typeof window !== 'undefined' ? (window as any).__PROSPECAI_ACCESS_TOKEN : null);
 
-      // If there is no access token, avoid calling the API (prevents 401)
+      // If there is no access token, do not use mock data; return empty and surface error
       if (!token) {
-        console.debug('[Ingestion] No access token found, using mock jobs');
-        setJobs(mockJobs);
+        console.debug('[Ingestion] No access token found');
+        setJobs([]);
+        setError('Not authenticated');
+        setIsLoading(false);
         return;
       }
 
-      // Prefer using central apiClient which handles token refresh and headers
+      // Use central apiClient which handles token refresh and headers
       try {
         const data = await apiClient.get<IngestionJob[]>('/api/v1/ingestion/jobs');
-        setJobs(data && data.length > 0 ? data : mockJobs);
-      } catch (e) {
-        console.warn('[Ingestion] apiClient failed to fetch jobs', e);
-        setJobs(mockJobs);
+        setJobs(data ?? []);
+      } catch (e: any) {
+        console.error('[Ingestion] apiClient failed to fetch jobs', e);
+        setJobs([]);
+        setError(e?.message || 'Failed to fetch ingestion jobs');
       }
-    } catch (err) {
-      // Use mock data on error for development
-      setJobs(mockJobs);
-      console.warn('Using mock ingestion data:', err);
+    } catch (err: any) {
+      setJobs([]);
+      setError(err?.message || 'Failed to load ingestion jobs');
+      console.error('Failed to fetch ingestion data:', err);
     } finally {
       setIsLoading(false);
     }

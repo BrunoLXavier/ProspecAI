@@ -86,10 +86,10 @@ class ProjectRepository:
             conditions.append(ProjectModel.research_area == research_area)
         
         if trl_min is not None:
-            conditions.append(ProjectModel.current_trl >= trl_min)
+            conditions.append(ProjectModel.trl_current >= trl_min)
         
         if trl_max is not None:
-            conditions.append(ProjectModel.current_trl <= trl_max)
+            conditions.append(ProjectModel.trl_current <= trl_max)
         
         stmt = (
             select(ProjectModel)
@@ -116,7 +116,7 @@ class ProjectRepository:
         model.title = project.title
         model.description = project.description
         model.status = project.status
-        model.current_trl = project.current_trl
+        model.trl_current = project.current_trl
         model.budget = project.budget
         model.lessons_learned = project.lessons_learned
         model.trl_history = project.trl_history
@@ -189,23 +189,31 @@ class ProjectRepository:
         """
         Convert database model to domain entity
         """
+        # Provide safe defaults for audit and optional fields to avoid Pydantic validation errors
+        created_by = getattr(model, 'created_by', None) or getattr(model, 'tenant_id', None)
+        updated_by = getattr(model, 'updated_by', None) or getattr(model, 'tenant_id', None)
+        trl_current = getattr(model, 'trl_current', None) or 1
+        lessons = getattr(model, 'lessons_learned', None) or []
+
         return Project(
             id=model.id,
             tenant_id=model.tenant_id,
-            portfolio_id=model.portfolio_id,
-            title=model.title,
-            description=model.description,
-            research_area=model.research_area,
-            current_trl=model.current_trl,
-            status=model.status,
-            start_date=model.start_date,
-            end_date=model.end_date,
-            budget=model.budget,
-            objectives=model.objectives,
-            methodology=model.methodology,
-            expected_results=model.expected_results,
-            lessons_learned=model.lessons_learned,
-            trl_history=model.trl_history,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
+            portfolio_id=getattr(model, 'portfolio_id', None),
+            title=getattr(model, 'title', ''),
+            description=getattr(model, 'description', ''),
+            research_area=getattr(model, 'research_area', None),
+            trl_current=trl_current,
+            status=getattr(model, 'status', 'planned'),
+            start_date=getattr(model, 'start_date', None),
+            end_date=getattr(model, 'end_date', None),
+            budget=getattr(model, 'budget', None),
+            objectives=getattr(model, 'objectives', None) or [],
+            methodology=getattr(model, 'methodology', None),
+            expected_results=getattr(model, 'expected_results', None) or [],
+            lessons_learned=lessons,
+            trl_history=getattr(model, 'trl_history', None) or [],
+            created_at=getattr(model, 'created_at', None),
+            updated_at=getattr(model, 'updated_at', None),
+            created_by=created_by,
+            updated_by=updated_by,
         )

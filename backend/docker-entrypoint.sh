@@ -3,7 +3,7 @@ set -e
 
 echo "[entrypoint] Running alembic migrations (if available)..."
 if command -v alembic >/dev/null 2>&1; then
-  alembic upgrade head || echo "[entrypoint] alembic upgrade failed; continuing"
+  alembic upgrade heads || echo "[entrypoint] alembic upgrade failed; continuing"
 fi
 
 if [ "${RUN_SEEDS_ON_START:-}" = "1" ] || [ "${RUN_SEEDS_ON_START:-}" = "true" ]; then

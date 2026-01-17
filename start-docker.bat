@@ -148,13 +148,13 @@ if "%RUN_MIGRATIONS%"=="1" goto :do_migrate
 goto :after_migrate
 
 :do_migrate
-call :log [*] RUN_MIGRATIONS=1; running database migrations (alembic upgrade head)...
+call :log [*] RUN_MIGRATIONS=1; running database migrations (alembic upgrade heads)...
 rem Use RUN_ENV_ARGS to inject requested env vars into the run invocation (if any)
 if defined RUN_ENV_ARGS (
-  docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend alembic upgrade head
+  docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend alembic upgrade heads
 ) else (
   rem no special envs to pass
-  docker compose run --rm --entrypoint "" backend alembic upgrade head
+  docker compose run --rm --entrypoint "" backend alembic upgrade heads
 )
 if %ERRORLEVEL% NEQ 0 goto :migrate_failed
 call :log [*] Migrations completed
@@ -174,6 +174,30 @@ rem Ensure frontend is started (compose up -d might have already started it)
 call :log [*] Ensuring Frontend is up...
 docker compose up -d frontend >nul 2>&1
 
+rem Run seed runner to ensure sample data is inserted (idempotent)
+call :log [*] Running seed scripts (if available)...
+set "DEFAULT_SEED_TENANTS=00000000-0000-0000-0000-000000000001"
+if defined SEED_TENANT_IDS (
+  set "SEED_TENANTS=%SEED_TENANT_IDS%"
+) else (
+  set "SEED_TENANTS=%DEFAULT_SEED_TENANTS%"
+)
+if exist "%~dp0scripts\run_seeds_fixed.py" (
+  if defined RUN_ENV_ARGS (
+    call :log Invoking seed runner with RUN_ENV_ARGS
+    docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend python scripts/run_seeds_fixed.py --tenants "%SEED_TENANTS%"
+  ) else (
+    call :log Invoking seed runner
+    docker compose run --rm --entrypoint "" backend python scripts/run_seeds_fixed.py --tenants "%SEED_TENANTS%"
+  )
+  if %ERRORLEVEL% NEQ 0 (
+    echo [WARN] Seed runner returned non-zero; continuing.
+  ) else (
+    call :log Seed runner completed.
+  )
+) else (
+  call :log No seed runner found; skipping seeds.
+)
 
 rem Clean up temporary status files
 del /q "%~dp0\tmp_status_*.txt" >nul 2>&1
