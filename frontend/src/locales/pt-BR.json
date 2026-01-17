@@ -6,20 +6,68 @@
     "crm": "CRM",
     "opportunities": "Oportunidades",
     "proposals": "Propostas",
-    "matching": "Matching",
-    "analytics": "Analytics",
-    "translations": "Traduções",
-    "acl": "Controle de Acesso",
-    "users": "Usuários",
     "settings": "Configurações",
     "ingestion": "Ingestão de Dados",
     "piiAnalysis": "Análise de PII",
     "reports": "Relatórios",
+    "reportTemplates": "Modelos de Relatórios",
     "activity": "Atividades Recentes",
     "feedbackManagement": "Gestão de Feedbacks",
     "/": "/",
     "admin": "admin"
   },
+  "reports": {
+    "title": "Relatórios",
+    "subtitle": "Relatórios gerados e históricos",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar relatórios..."
+    },
+    "noReports": "Nenhum relatório gerado.",
+    "loading": "Carregando...",
+    "view": "Ver",
+    "delete": "Excluir",
+    "generated": "Gerado",
+    "templateLabel": "Modelo",
+    "statusLabel": "Status",
+    "available": "Disponível",
+    "processed": "Processado",
+    "templatesTitle": "Modelos de Relatórios",
+    "templatesSubtitle": "Gerencie modelos de relatórios e exportações rápidas",
+    "createTemplate": "Criar modelo",
+    "deleteConfirmation": "Tem certeza de que deseja excluir este modelo?",
+    "description": "Descrição",
+    "details": "Detalhes",
+    "editTemplate": "Editar modelo",
+    "formats": "Formatos",
+    "loadingTemplates": "Carregando modelos...",
+    "name": "Nome",
+    "newTemplate": "Novo Modelo",
+    "newReport": "Novo Relatório",
+    "noTemplates": "Nenhum modelo cadastrado.",
+    "none": "Nenhum",
+    "outputFormats": "Formatos de saída",
+    "outputFormatsHelp": "Adicione formatos suportados (html, pdf, xlsx). Pressione Enter.",
+    "outputFormatsPlaceholder": "html, pdf",
+    "paramPlaceholder": "Digite e pressione Enter",
+    "parameters": "Parâmetros",
+    "parametersHelp": "Adicione um parâmetro e pressione Enter. Exemplos:",
+    "saveChanges": "Salvar alterações",
+    "select": "Selecionar",
+    "": "",
+    "/api/v1/reports": "/api/v1/reports",
+    "/api/v1/reports/templates": "/api/v1/reports/templates",
+    "Erro ao gerar relatório": "Erro ao gerar relatório",
+    ",": ""
+  },
+  "reports.title": "Relatórios",
+  "reports.subtitle": "Relatórios gerados e históricos",
+  "reports.newReport": "Novo Relatório",
+  "reports.templatesTitle": "Modelos de Relatórios",
+  "reports.templatesSubtitle": "Gerencie modelos de relatórios e exportações rápidas",
+  "reports.filters.search": "Buscar",
+  "reports.filters.searchPlaceholder": "Buscar relatórios...",
+  "reports.noReports": "Nenhum relatório gerado.",
   "dashboard": {
     "title": "Dashboard",
     "lastUpdate": "Última atualização",
@@ -91,12 +139,7 @@
     "focusAreasPlaceholder": "Ex: Indústria 4.0, IA, Sustentabilidade",
     "url": "URL",
     "updateError": "Erro ao atualizar o edital. Tente novamente.",
-    "statusLabel": "Status",
-    "status": {
-      "open": "Abertos",
-      "closed": "Fechados",
-      "suspended": "Suspensos"
-    },
+    "status": "status",
     "types": {
       "grant": "Subvenção",
       "subsidy": "Subsídio",
@@ -272,8 +315,7 @@
     "days": "dias",
     "updateError": "Erro ao atualizar oportunidade. Tente novamente.",
     "filters": {
-      "allStages": "Todos os Estágios",
-      "allStatuses": "Todos os Status"
+      "allStages": "Todos os Estágios"
     },
     "stages": {
       "intelligence": "Inteligência",
@@ -522,50 +564,17 @@
       "addNewKey": "Adicionar Nova Chave de Tradução",
       "create": "Criar",
       "deleteConfirm": "Tem certeza que deseja excluir",
-      "searchPlaceholder": "Buscar chaves ou valores...",
-      "namespace": "Namespace",
-      "description": "Gerencie e edite traduções do sistema",
-      "importExport": "Importar/Exportar",
-      "filtersTitle": "Filtros",
-      "of": "de",
       "actions": "Ações",
       "showing": "Exibindo",
-      "translationKeys": "chaves de tradução",
-      "autoTranslate": "Auto tradução",
-      "values": "Valores das traduções"
+      "translationKeys": "chaves de tradução"
     },
     "acl": {
       "title": "Controle de Acesso",
-      "aclDesc": "Gerencie permissões e papéis de usuários",
       "deleteConfirm": "Tem certeza que deseja excluir este papel?",
-      "roleDescriptions": {
-        "admin": "Acesso total a todos os recursos",
-        "manager": "Gerencia projetos e aprovações",
-        "analyst": "Acessa e analisa dados e oportunidades",
-        "viewer": "Apenas leitura nas áreas permitidas"
-      },
-      "permissions": {
-        "create": "Criar",
-        "read": "Visualizar",
-        "update": "Editar",
-        "delete": "Excluir",
-        "export": "Exportar",
-        "approve": "Aprovar",
-        "assign": "Atribuir"
-      },
-      "createRole": "Criar Papel",
-      "loading": "Carregando papéis...",
-      "noRoles": "Nenhum papel encontrado",
-      "systemBadge": "Sistema",
-      "resource": "Recurso",
-      "createRoleModalTitle": "Criar Novo Papel",
-      "roleName": "Nome do Papel",
-      "exampleRoleName": "Ex: Gerente de Conteúdo",
-      "roleDescriptionLabel": "Descrição"
+      "createRole": "Criar Papel"
     },
     "layout": {
       "title": "Configuração de Layout",
-      "subtitle": "Ajuste opções e exibição do layout",
       "description": "Personalize a estrutura visual e o layout do sistema",
       "sidebar": {
         "title": "Barra Lateral",
@@ -599,13 +608,7 @@
         "light": "Claro",
         "dark": "Escuro",
         "primaryColor": "Cor Primária",
-        "secondaryColor": "Cor Secundária",
-        "appearance": "Aparência",
-        "appearanceOptions": {
-          "default": "Padrão",
-          "highContrast": "Alto Contraste",
-          "system": "Sistema"
-        }
+        "secondaryColor": "Cor Secundária"
       },
       "branding": {
         "title": "Marca",
@@ -640,7 +643,6 @@
       "subtitle": "Gerencie usuários e suas permissões no sistema",
       "newUser": "Novo Usuário",
       "editUser": "Editar Usuário",
-      "create": "Criar",
       "user": "Usuário",
       "searchPlaceholder": "Buscar por nome ou e-mail...",
       "allRoles": "Todos os Papéis",
@@ -668,9 +670,7 @@
       },
       "feedback": "Feedback",
       "feedbackDesc": "Manage user feedback and annotations",
-      "usersDesc": "Manage users and permissions",
-      "activeUser": "Usuário ativo",
-      "leaveBlank": "Deixe em branco para manter a atual"
+      "usersDesc": "Manage users and permissions"
     },
     "statistics": {
       "title": "Permissões de Estatísticas",
@@ -736,8 +736,6 @@
       "passwordMinLength": "Senha deve ter no mínimo 8 caracteres",
       "roleRequired": "Selecione pelo menos um papel"
     },
-    "activeUser": "activeUser",
-    "leaveBlank": "leaveBlank",
     "messages": {
       "createSuccess": "Usuário criado com sucesso!",
       "updateSuccess": "Usuário atualizado com sucesso!",
@@ -747,9 +745,11 @@
       "deleteError": "Erro ao excluir usuário",
       "emailExists": "Este e-mail já está em uso"
     },
+    "activeUser": "activeUser",
     "allRoles": "allRoles",
     "create": "create",
     "deleteConfirmation": "deleteConfirmation",
+    "leaveBlank": "leaveBlank",
     "never": "never",
     "noUsers": "noUsers",
     "of": "of",
@@ -785,8 +785,6 @@
     "loading": "Carregando atividades...",
     "empty": "Nenhuma atividade encontrada",
     "filters": {
-      "entity": "Entidade",
-      "type": "Ação",
       "allEntities": "Todas as Entidades",
       "allActions": "Todas as Ações"
     },
@@ -843,10 +841,10 @@
       "analyst": "Analista",
       "viewer": "Visualizador",
       "note": "Seus papéis são definidos pelo administrador do sistema",
-      "adminDesc": "Acesso completo ao sistema",
-      "analystDesc": "Análise e relatórios",
-      "managerDesc": "Gerencia equipes e projetos",
-      "viewerDesc": "Apenas visualização"
+      "adminDesc": "Acceso completo al sistema",
+      "analystDesc": "Análisis e informes",
+      "managerDesc": "Gestiona equipos y proyectos",
+      "viewerDesc": "Solo visualización"
     },
     "security": {
       "title": "Segurança",
@@ -1062,7 +1060,6 @@
       }
     },
     "common": {
-      "all": "Todos",
       "activeFilters": "filtros activos",
       "allowed": "Permitido",
       "cancel": "Cancelar",
@@ -1100,13 +1097,13 @@
       "resetFilters": "Limpiar Filtros",
       "roles": {
         "admin": "Administrador",
-        "adminDesc": "Acesso completo ao sistema",
+        "adminDesc": "Acceso completo al sistema",
         "analyst": "Analista",
-        "analystDesc": "Análise e relatórios",
+        "analystDesc": "Análisis e informes",
         "manager": "Gerente",
-        "managerDesc": "Gerencia equipes e projetos",
-        "viewer": "Visualizador",
-        "viewerDesc": "Apenas visualização"
+        "managerDesc": "Gestiona equipos y proyectos",
+        "viewer": "Visor",
+        "viewerDesc": "Solo visualización"
       },
       "save": "Guardar",
       "search": "Buscar",
@@ -1218,25 +1215,43 @@
         "title": "Enviar Feedback"
       },
       "reports": {
-        "createTemplate": "Crear plantilla",
-        "deleteConfirmation": "¿Está seguro de que desea eliminar esta plantilla?",
-        "description": "Descripción",
-        "details": "Detalles",
-        "editTemplate": "Editar plantilla",
+        "title": "Relatórios",
+        "subtitle": "Relatórios gerados e históricos",
+        "filters": {
+          "search": "Buscar",
+          "searchPlaceholder": "Buscar relatórios..."
+        },
+        "noReports": "Nenhum relatório gerado.",
+        "loading": "Carregando...",
+        "view": "Ver",
+        "delete": "Excluir",
+        "generated": "Gerado",
+        "templateLabel": "Modelo",
+        "statusLabel": "Status",
+        "available": "Disponível",
+        "processed": "Processado",
+        "templatesTitle": "Modelos de Relatórios",
+        "templatesSubtitle": "Gerencie modelos de relatórios e exportações rápidas",
+        "createTemplate": "Criar modelo",
+        "deleteConfirmation": "Tem certeza de que deseja excluir este modelo?",
+        "description": "Descrição",
+        "details": "Detalhes",
+        "editTemplate": "Editar modelo",
         "formats": "Formatos",
-        "loadingTemplates": "Cargando plantillas...",
-        "name": "Nombre",
-        "newTemplate": "Nueva plantilla",
-        "noTemplates": "No hay plantillas registradas.",
-        "none": "Ninguno",
-        "outputFormats": "Formatos de salida",
-        "outputFormatsHelp": "Agregue formatos compatibles (html, pdf, xlsx). Presione Enter.",
+        "loadingTemplates": "Carregando modelos...",
+        "name": "Nome",
+        "newTemplate": "Novo Modelo",
+        "newReport": "Novo Relatório",
+        "noTemplates": "Nenhum modelo cadastrado.",
+        "none": "Nenhum",
+        "outputFormats": "Formatos de saída",
+        "outputFormatsHelp": "Adicione formatos suportados (html, pdf, xlsx). Pressione Enter.",
         "outputFormatsPlaceholder": "html, pdf",
-        "paramPlaceholder": "Escriba y presione Enter",
-        "parameters": "Parámetros",
-        "parametersHelp": "Agregue un parámetro y presione Enter. Ejemplos:",
-        "saveChanges": "Guardar cambios",
-        "select": "Seleccionar"
+        "paramPlaceholder": "Digite e pressione Enter",
+        "parameters": "Parâmetros",
+        "parametersHelp": "Adicione um parâmetro e pressione Enter. Exemplos:",
+        "saveChanges": "Salvar alterações",
+        "select": "Selecionar"
       },
       "severity": {
         "critical": "Crítica",
@@ -1467,7 +1482,7 @@
     },
     "roles": {
       "admin": "Administrador",
-      "adminDesc": "Acesso completo ao sistema",
+      "adminDesc": "Acesso total ao sistema",
       "manager": "Gerente",
       "managerDesc": "Gerencia equipes e projetos",
       "analyst": "Analista",
@@ -1488,8 +1503,7 @@
     "chars": "chars",
     "moveLeft": "moveLeft",
     "moveRight": "moveRight",
-    "view": "view",
-    "all": "Todos"
+    "view": "view"
   },
   "auth": {
     "login": {
@@ -1854,7 +1868,7 @@
   },
   "roles": {
     "admin": "Administrador",
-    "adminDesc": "Acesso completo ao sistema",
+    "adminDesc": "Acesso total ao sistema",
     "manager": "Gerente",
     "managerDesc": "Gerencia equipes e projetos",
     "analyst": "Analista",
@@ -2011,28 +2025,6 @@
     "loading": "Carregando eventos...",
     "error": "Erro ao carregar eventos",
     "T": "T"
-  },
-  "reports": {
-    "loadingTemplates": "Carregando templates...",
-    "noTemplates": "Nenhum template cadastrado.",
-    "select": "Selecionar",
-    "details": "Detalhes",
-    "editTemplate": "Editar Template",
-    "newTemplate": "Novo Template",
-    "name": "Nome",
-    "description": "Descrição",
-    "parameters": "Parâmetros",
-    "parametersHelp": "Adicione um parâmetro e pressione Enter. Exemplos:",
-    "paramPlaceholder": "Digite e pressione Enter",
-    "outputFormats": "Formatos de Saída",
-    "outputFormatsHelp": "Adicione formatos suportados (html, pdf, xlsx). Pressione Enter.",
-    "outputFormatsPlaceholder": "html, pdf",
-    "saveChanges": "Salvar alterações",
-    "createTemplate": "Criar template",
-    "none": "Nenhum",
-    "formats": "Formatos",
-    "deleteConfirmation": "Tem certeza que deseja excluir este template?",
-    ",": ","
   },
   "chat": {
     "title": "Assistente ProspecAI",
@@ -2284,43 +2276,7 @@
       "light": "light",
       "primaryColor": "primaryColor",
       "secondaryColor": "secondaryColor",
-      "title": "title",
-      "appearance": "Aparência",
-      "appearanceOptions": {
-        "default": "Padrão",
-        "highContrast": "Alto contraste",
-        "system": "Sistema"
-      }
-    },
-    "theme": {
-      "lightTitle": "Modo claro",
-      "primary": "Cor primária",
-      "secondary": "Cor secundária",
-      "darkTitle": "Modo escuro",
-      "modalTitle": "Aparência do modal",
-      "modalBgLight": "Fundo",
-      "modalTextLight": "Texto",
-      "modalBorderLight": "Borda",
-      "modalBgDark": "Fundo",
-      "modalTextDark": "Texto",
-      "modalBorderDark": "Borda",
-      "modalOverlay": "Opacidade do overlay",
-      "modalElevation": "Elevação"
-    },
-    "theme": {
-      "lightTitle": "Modo claro",
-      "darkTitle": "Modo escuro",
-      "primary": "Cor primária",
-      "secondary": "Cor secundária",
-      "modalTitle": "Aparência do modal",
-      "modalBgLight": "Fundo",
-      "modalTextLight": "Texto",
-      "modalBorderLight": "Borda",
-      "modalBgDark": "Fundo",
-      "modalTextDark": "Texto",
-      "modalBorderDark": "Borda",
-      "modalOverlay": "Opacidade do overlay",
-      "modalElevation": "Elevação"
+      "title": "title"
     },
     "title": "title",
     "typography": {

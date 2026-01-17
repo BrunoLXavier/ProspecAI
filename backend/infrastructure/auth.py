@@ -230,12 +230,14 @@ async def get_current_user(
     
     # Use mock auth in development if bypass is enabled
     if dev_bypass:
+        seed_admin_id = os.getenv("SEED_ADMIN_ID", "00000000-0000-0000-0000-000000000001")
+        seed_tenant_id = os.getenv("SEED_TENANT_ID", "00000000-0000-0000-0000-000000000000")
         return CurrentUser(
-            id="00000000-0000-0000-0000-000000000001",
-            email="dev@prospecai.com",
-            username="developer",
+            id=seed_admin_id,
+            email=os.getenv("SEED_ADMIN_EMAIL", "dev@prospecai.com"),
+            username=os.getenv("SEED_ADMIN_USERNAME", "developer"),
             name="Development User",
-            tenant_id="00000000-0000-0000-0000-000000000000",
+            tenant_id=seed_tenant_id,
             roles=["admin", "user"],
             permissions=["*"],
         )
@@ -346,13 +348,15 @@ async def get_dev_user(request: Request) -> CurrentUser:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Dev auth not available in production"
         )
-    
+    seed_admin_id = os.getenv("SEED_ADMIN_ID", "00000000-0000-0000-0000-000000000001")
+    seed_tenant_id = os.getenv("SEED_TENANT_ID", "00000000-0000-0000-0000-000000000000")
+
     return CurrentUser(
-        id="00000000-0000-0000-0000-000000000001",
-        email="dev@prospecai.com",
-        username="developer",
+        id=seed_admin_id,
+        email=os.getenv("SEED_ADMIN_EMAIL", "dev@prospecai.com"),
+        username=os.getenv("SEED_ADMIN_USERNAME", "developer"),
         name="Development User",
-        tenant_id="00000000-0000-0000-0000-000000000000",
+        tenant_id=seed_tenant_id,
         roles=["admin", "user"],
         permissions=["*"],
     )

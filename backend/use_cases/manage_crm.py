@@ -17,9 +17,9 @@ class ManageCRMUseCase:
         self,
         client_repository,
         interaction_repository,
-        cnpj_api_client,
-        nlp_service,
-        audit_service
+        cnpj_api_client=None,
+        nlp_service=None,
+        audit_service=None,
     ):
         self.client_repository = client_repository
         self.interaction_repository = interaction_repository

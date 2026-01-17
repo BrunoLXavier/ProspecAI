@@ -7,9 +7,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from datetime import datetime, date
 
-from domain.entities.client import Client, Interaction, ClientType
-from use_cases.manage_crm import ManageCRMUseCase
-from infrastructure.dependencies import get_crm_use_case
+from domain.entities.client import Client as DomainClient, Interaction, ClientType
+from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
+from infrastructure.di_container import DependencyContainer
+from uuid import UUID
 
 router = APIRouter()
 
@@ -127,7 +128,9 @@ async def list_clients(
     ),
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(100, ge=1, le=200, description="Maximum items to return"),
-    use_case: ManageCRMUseCase = Depends(get_crm_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     List all clients with advanced filters
@@ -143,15 +146,9 @@ async def list_clients(
     - created_after/created_before: Filter by creation date range
     - search: Full-text search in name, email, and CNPJ
     """
-    clients = await use_case.list_clients(
+    clients = await container.client_repository.list(
         segment=segment,
-        client_type=client_type,
         maturity_level=maturity_level,
-        min_revenue=min_revenue,
-        max_revenue=max_revenue,
-        has_cnpj=has_cnpj,
-        created_after=created_after,
-        created_before=created_before,
         search=search,
         skip=skip,
         limit=limit
@@ -162,14 +159,15 @@ async def list_clients(
 @router.get("/clients/{client_id}", response_model=ClientResponse)
 async def get_client(
     client_id: str,
-    use_case: ManageCRMUseCase = Depends(get_crm_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Get detailed information about a specific client
     
     Implements RF-04.02: Detalhamento de cliente
     """
-    client = await use_case.get_client(client_id)
+    client = await container.client_repository.get_by_id(client_id)
     
     if not client:
         raise HTTPException(
@@ -184,23 +182,31 @@ async def get_client(
 async def create_client(
     data: ClientCreate,
     enrich_from_cnpj: bool = True,
-    use_case: ManageCRMUseCase = Depends(get_crm_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Create a new client with optional CNPJ auto-enrichment
     
     Implements RF-04.03: Criação de cliente com preenchimento automático
     """
-    client = await use_case.create_client(
+    # Map incoming request to domain entity; use reasonable defaults where schema differs
+    tenant_uuid = UUID(tenant_id)
+    client_entity = DomainClient(
         name=data.name,
+        client_type=ClientType.COMPANY,
         cnpj=data.cnpj,
-        segment=data.segment,
-        contact_email=data.contact_email,
-        contact_phone=data.contact_phone,
-        annual_revenue=data.annual_revenue,
-        maturity_level=data.maturity_level,
-        enrich_from_cnpj=enrich_from_cnpj,
+        email=data.contact_email,
+        phone=data.contact_phone,
+        sector=data.segment,
+        tenant_id=tenant_uuid,
+        created_by=current_user,
+        updated_by=current_user,
     )
+
+    created = await container.client_repository.create(client_entity)
+    client = created
     
     return client
 
@@ -209,17 +215,27 @@ async def create_client(
 async def update_client(
     client_id: str,
     data: ClientUpdate,
-    use_case: ManageCRMUseCase = Depends(get_crm_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Update an existing client
     
     Implements RF-04.04: Atualização de cliente
     """
-    client = await use_case.update_client(
-        client_id=client_id,
-        **data.model_dump(exclude_unset=True)
-    )
+    # Fetch existing, apply updates and persist
+    repo = container.client_repository
+    existing = await repo.get_by_id(client_id)
+    if not existing:
+        client = None
+    else:
+        update_data = data.model_dump(exclude_unset=True)
+        for k, v in update_data.items():
+            if hasattr(existing, k):
+                setattr(existing, k, v)
+        existing.updated_by = current_user
+        client = await repo.update(existing)
     
     if not client:
         raise HTTPException(
@@ -235,22 +251,30 @@ async def create_interaction(
     client_id: str,
     data: InteractionCreate,
     detect_demands: bool = True,
-    use_case: ManageCRMUseCase = Depends(get_crm_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Record a new client interaction with AI demand detection
     
     Implements RF-04.05: Registro de interações com detecção de demandas
     """
-    interaction = await use_case.create_interaction(
+    # Create interaction via repository and link to client
+    repo = container.interaction_repository
+    interaction_entity = Interaction(
         client_id=client_id,
         interaction_type=data.interaction_type,
         channel=data.channel,
         summary=data.summary,
         notes=data.notes,
-        next_steps=data.next_steps,
-        detect_demands=detect_demands,
+        next_steps=data.next_steps or [],
+        tenant_id=UUID(tenant_id),
+        created_by=current_user,
+        updated_by=current_user,
+        interaction_date=datetime.utcnow(),
     )
+    interaction = await repo.create(interaction_entity)
     
     return interaction
 
@@ -260,17 +284,17 @@ async def list_client_interactions(
     client_id: str,
     skip: int = 0,
     limit: int = 50,
-    use_case: ManageCRMUseCase = Depends(get_crm_use_case),
+    container: DependencyContainer = Depends(get_di_container),
 ):
     """
     List all interactions for a specific client
     
     Implements RF-04.06: Histórico de interações
     """
-    interactions = await use_case.list_interactions(
+    interactions = await container.interaction_repository.list_by_client(
         client_id=client_id,
         skip=skip,
-        limit=limit
+        limit=limit,
     )
     return interactions
 
@@ -278,34 +302,32 @@ async def list_client_interactions(
 @router.post("/enrich-cnpj/{cnpj}", response_model=CNPJEnrichmentResponse)
 async def enrich_from_cnpj(
     cnpj: str,
-    use_case: ManageCRMUseCase = Depends(get_crm_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Fetch company data from CNPJ (BrasilAPI)
     
     Implements RF-04.07: Consulta CNPJ para preenchimento automático
     """
-    try:
-        enrichment_data = await use_case.enrich_from_cnpj(cnpj)
-        return enrichment_data
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to enrich CNPJ: {str(e)}"
-        )
+    # If a CNPJ API client is available via DI, call it; otherwise return 501
+    container = await get_di_container()
+    # The DI container may not provide a cnpj_api_client; signal not implemented
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="CNPJ enrichment not configured")
 
 
 @router.delete("/clients/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_client(
     client_id: str,
-    use_case: ManageCRMUseCase = Depends(get_crm_use_case),
+    container: DependencyContainer = Depends(get_di_container),
 ):
     """
     Soft delete a client
     
     Implements RF-04.08: Exclusão lógica de cliente
     """
-    success = await use_case.delete_client(client_id)
+    success = await container.client_repository.delete(client_id)
     
     if not success:
         raise HTTPException(

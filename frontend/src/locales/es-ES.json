@@ -6,20 +6,69 @@
     "crm": "CRM",
     "opportunities": "Oportunidades",
     "proposals": "Propuestas",
-    "matching": "Matching",
-    "analytics": "Analytics",
-    "translations": "Traducciones",
-    "acl": "Control de Acceso",
-    "users": "Usuarios",
     "settings": "Configuración",
     "ingestion": "Ingestión de Datos",
     "piiAnalysis": "Análisis de PII",
     "reports": "Reportes",
+    "reportTemplates": "Plantillas de Reportes",
     "activity": "Actividades Recientes",
     "feedbackManagement": "Gestión de Feedbacks",
     "/": "/",
     "admin": "admin"
   },
+  "reports": {
+    "title": "Reportes",
+    "subtitle": "Reportes generados e historial",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar reportes..."
+    },
+    "noReports": "No hay reportes generados.",
+    "loading": "Cargando...",
+    "view": "Ver",
+    "delete": "Eliminar",
+    "generated": "Generado",
+    "templateLabel": "Plantilla",
+    "statusLabel": "Estado",
+    "available": "Disponible",
+    "processed": "Procesado",
+    "templatesTitle": "Plantillas de Reportes",
+    "templatesSubtitle": "Gestiona plantillas de reportes y exportaciones rápidas",
+    "createTemplate": "Crear plantilla",
+    "deleteConfirmation": "¿Está seguro de que desea eliminar esta plantilla?",
+    "description": "Descripción",
+    "details": "Detalles",
+    "editTemplate": "Editar plantilla",
+    "formats": "Formatos",
+    "loadingTemplates": "Cargando plantillas...",
+    "name": "Nombre",
+    "newTemplate": "Nueva Plantilla",
+    "newReport": "Nuevo Reporte",
+    "noTemplates": "No hay plantillas registradas.",
+    "none": "Ninguno",
+    "outputFormats": "Formatos de salida",
+    "outputFormatsHelp": "Agregue formatos compatibles (html, pdf, xlsx). Presione Enter.",
+    "outputFormatsPlaceholder": "html, pdf",
+    "paramPlaceholder": "Escriba y presione Enter",
+    "parameters": "Parámetros",
+    "parametersHelp": "Agregue un parámetro y presione Enter. Ejemplos:",
+    "saveChanges": "Guardar cambios",
+    "select": "Seleccionar",
+    "": "",
+    "/api/v1/reports": "/api/v1/reports",
+    "/api/v1/reports/templates": "/api/v1/reports/templates",
+    "Erro ao generar el informe": "Error al generar el informe",
+    ",": "",
+    "Erro ao gerar relatório": "Error al generar el informe"
+  },
+  "reports.title": "Reportes",
+  "reports.subtitle": "Reportes generados e historial",
+  "reports.newReport": "Nuevo Reporte",
+  "reports.templatesTitle": "Plantillas de Reportes",
+  "reports.templatesSubtitle": "Gestiona plantillas de reportes y exportaciones rápidas",
+  "reports.filters.search": "Buscar",
+  "reports.filters.searchPlaceholder": "Buscar reportes...",
+  "reports.noReports": "No hay reportes generados.",
   "dashboard": {
     "title": "Panel",
     "lastUpdate": "Última actualización",
@@ -91,12 +140,7 @@
     "focusAreasPlaceholder": "Ej: Industria 4.0, IA, Sostenibilidad",
     "url": "URL",
     "updateError": "Error al actualizar la convocatoria. Inténtelo de nuevo.",
-    "statusLabel": "Estado",
-    "status": {
-      "open": "Abierto",
-      "closed": "Cerrado",
-      "suspended": "Suspendido"
-    },
+    "status": "status",
     "types": {
       "grant": "Subvención",
       "subsidy": "Subsidio",
@@ -272,8 +316,7 @@
     "days": "días",
     "updateError": "Error al actualizar la oportunidad. Inténtelo de nuevo.",
     "filters": {
-      "allStages": "Todas las Etapas",
-      "allStatuses": "Todos los Estados"
+      "allStages": "Todas las Etapas"
     },
     "stages": {
       "intelligence": "Inteligencia",
@@ -522,50 +565,17 @@
       "addNewKey": "Agregar Nueva Clave de Traducción",
       "create": "Crear",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar",
-      "searchPlaceholder": "Buscar claves o valores...",
-      "namespace": "Namespace",
-      "description": "Administre y edite las traducciones del sistema",
-      "importExport": "Importar/Exportar",
-      "filtersTitle": "Filtros",
-      "of": "de",
       "actions": "Acciones",
       "showing": "Mostrando",
-      "translationKeys": "claves de traducción",
-      "autoTranslate": "Auto tradução",
-      "values": "Valores das traduções"
+      "translationKeys": "claves de traducción"
     },
     "acl": {
       "title": "Control de Acceso",
-      "aclDesc": "Administre roles y permisos de usuario",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar este rol?",
-      "roleDescriptions": {
-        "admin": "Acceso completo a todos los recursos",
-        "manager": "Gestiona proyectos y aprobaciones",
-        "analyst": "Accede y analiza datos y oportunidades",
-        "viewer": "Acceso solo lectura a las áreas permitidas"
-      },
-      "permissions": {
-        "create": "Crear",
-        "read": "Ver",
-        "update": "Editar",
-        "delete": "Eliminar",
-        "export": "Exportar",
-        "approve": "Aprobar",
-        "assign": "Asignar"
-      },
-      "createRole": "Crear Rol",
-      "loading": "Cargando roles...",
-      "noRoles": "No se encontraron roles",
-      "systemBadge": "Sistema",
-      "resource": "Recurso",
-      "createRoleModalTitle": "Crear Nuevo Rol",
-      "roleName": "Nombre del Rol",
-      "exampleRoleName": "Ej: Gestor de Contenido",
-      "roleDescriptionLabel": "Descripción"
+      "createRole": "Crear Rol"
     },
     "layout": {
       "title": "Configuración de Diseño",
-      "subtitle": "Personaliza la estructura y opciones del diseño",
       "description": "Personaliza la estructura visual y el diseño del sistema",
       "sidebar": {
         "title": "Barra Lateral",
@@ -599,13 +609,7 @@
         "light": "Claro",
         "dark": "Oscuro",
         "primaryColor": "Color Primario",
-        "secondaryColor": "Color Secundario",
-        "appearance": "Apariencia",
-        "appearanceOptions": {
-          "default": "Predeterminado",
-          "highContrast": "Alto contraste",
-          "system": "Sistema"
-        }
+        "secondaryColor": "Color Secundario"
       },
       "branding": {
         "title": "Marca",
@@ -640,7 +644,6 @@
       "subtitle": "Gestiona usuarios y sus permisos en el sistema",
       "newUser": "Nuevo Usuario",
       "editUser": "Editar Usuario",
-      "create": "Crear",
       "user": "Usuario",
       "searchPlaceholder": "Buscar por nombre o correo...",
       "allRoles": "Todos los Roles",
@@ -668,9 +671,7 @@
         "analyst": "Analista",
         "viewer": "Visualizador"
       },
-      "deleteConfirmation": "Excluir este usuário?",
-      "activeUser": "Usuario activo",
-      "leaveBlank": "Dejar en blanco para mantener la actual"
+      "deleteConfirmation": "Excluir este usuário?"
     },
     "statistics": {
       "title": "Permisos de Estadísticas",
@@ -708,9 +709,7 @@
     "status": "Estado",
     "active": "Activo",
     "inactive": "Inactivo",
-    "deleteConfirmation": "deleteConfirmation",
-    "activeUser": "activeUser",
-    "leaveBlank": "leaveBlank",
+    "lastLogin": "Último Acceso",
     "createdAt": "Creado el",
     "actions": "Acciones",
     "filters": {
@@ -747,8 +746,11 @@
       "deleteError": "Error al eliminar usuario",
       "emailExists": "Este correo ya está en uso"
     },
+    "activeUser": "activeUser",
     "allRoles": "allRoles",
     "create": "create",
+    "deleteConfirmation": "deleteConfirmation",
+    "leaveBlank": "leaveBlank",
     "never": "never",
     "noUsers": "noUsers",
     "of": "of",
@@ -784,8 +786,6 @@
     "loading": "Cargando actividades...",
     "empty": "No se encontraron actividades",
     "filters": {
-      "entity": "Entidad",
-      "type": "Acción",
       "allEntities": "Todas las Entidades",
       "allActions": "Todas las Acciones"
     },
@@ -1831,8 +1831,7 @@
     },
     "statisticsPermissions": "Statistics Permissions",
     "statisticsPreferences": "Statistics Preferences",
-    "userRole": "User Role",
-    "all": "Todos"
+    "userRole": "User Role"
   },
   "confirm": {
     "deleteLLM": "deleteLLM"
@@ -2089,43 +2088,7 @@
       "light": "light",
       "primaryColor": "primaryColor",
       "secondaryColor": "secondaryColor",
-      "title": "title",
-      "appearance": "Apariencia",
-      "appearanceOptions": {
-        "default": "Predeterminado",
-        "highContrast": "Alto contraste",
-        "system": "Sistema"
-      }
-    },
-    "theme": {
-      "lightTitle": "Modo claro",
-      "primary": "Color primario",
-      "secondary": "Color secundario",
-      "darkTitle": "Modo oscuro",
-      "modalTitle": "Apariencia del modal",
-      "modalBgLight": "Fondo",
-      "modalTextLight": "Texto",
-      "modalBorderLight": "Borde",
-      "modalBgDark": "Fondo",
-      "modalTextDark": "Texto",
-      "modalBorderDark": "Borde",
-      "modalOverlay": "Opacidad del overlay",
-      "modalElevation": "Elevación"
-    },
-    "theme": {
-      "lightTitle": "Modo claro",
-      "darkTitle": "Modo oscuro",
-      "primary": "Color primario",
-      "secondary": "Color secundario",
-      "modalTitle": "Apariencia del modal",
-      "modalBgLight": "Fondo",
-      "modalTextLight": "Texto",
-      "modalBorderLight": "Borde",
-      "modalBgDark": "Fondo",
-      "modalTextDark": "Texto",
-      "modalBorderDark": "Borde",
-      "modalOverlay": "Opacidad de overlay",
-      "modalElevation": "Elevación"
+      "title": "title"
     },
     "title": "title",
     "typography": {
@@ -2221,28 +2184,6 @@
     "statistics": "statistics",
     "statisticsDesc": "statisticsDesc",
     "title": "title"
-  },
-  "reports": {
-    ",": ",",
-    "createTemplate": "Create template",
-    "deleteConfirmation": "Are you sure you want to delete this template?",
-    "description": "Description",
-    "details": "Details",
-    "editTemplate": "Edit Template",
-    "formats": "Formats",
-    "loadingTemplates": "Loading templates...",
-    "name": "Name",
-    "newTemplate": "New Template",
-    "noTemplates": "No templates registered.",
-    "none": "None",
-    "outputFormats": "Output Formats",
-    "outputFormatsHelp": "Add supported formats (html, pdf, xlsx). Press Enter.",
-    "outputFormatsPlaceholder": "html, pdf",
-    "paramPlaceholder": "Type and press Enter",
-    "parameters": "Parameters",
-    "parametersHelp": "Add a parameter and press Enter. Examples:",
-    "saveChanges": "Save changes",
-    "select": "Select"
   },
   "roles": {
     "${role}": "${role}",

@@ -118,8 +118,8 @@ async def health_check():
 # API Routes (to be implemented)
 from adapters.api.funding_routes import router as funding_routes
 from adapters.api.portfolio_routes import router as portfolio_routes
-from adapters.api.crm_routes import router as crm_routes
-from adapters.api.opportunities_routes import router as opportunities_routes
+from routers.crm import router as crm_routes
+from routers.opportunities import router as opportunities_routes
 from adapters.api.proposals_routes import router as proposals_routes
 from adapters.api.matching_routes import router as matching_routes
 from adapters.api.websocket_routes import router as websocket_routes
@@ -128,6 +128,7 @@ from adapters.api.lgpd_routes import router as lgpd_routes
 from adapters.api.analytics_routes import router as analytics_routes
 from adapters.api.report_routes import router as report_routes
 from adapters.api.file_routes import router as file_routes
+from adapters.api.activity_routes import router as activity_routes
 from adapters.api.translations_routes import router as translations_routes
 from adapters.api.acl_routes import router as acl_routes
 from adapters.api.layout_routes import router as layout_routes
@@ -146,7 +147,7 @@ app.include_router(contact_routes)
 app.include_router(admin_settings_routes)
 app.include_router(funding_routes)
 app.include_router(portfolio_routes)
-app.include_router(crm_routes)
+app.include_router(crm_routes, prefix="/api/v1/crm")
 app.include_router(opportunities_routes)
 app.include_router(proposals_routes)
 app.include_router(matching_routes)
@@ -156,6 +157,7 @@ app.include_router(analytics_routes)
 app.include_router(report_routes)
 app.include_router(file_routes)
 app.include_router(translations_routes)
+app.include_router(activity_routes)
 app.include_router(acl_routes)
 app.include_router(layout_routes)
 app.include_router(calendar_routes)

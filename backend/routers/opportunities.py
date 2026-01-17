@@ -6,10 +6,11 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from datetime import datetime, date
+from uuid import UUID
 
 from domain.entities.opportunity import Opportunity, OpportunityStage, OpportunityPriority
-from use_cases.manage_pipeline import ManagePipelineUseCase
-from infrastructure.di_container import get_container
+from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
+from infrastructure.di_container import DependencyContainer
 
 router = APIRouter()
 
@@ -64,11 +65,8 @@ class PipelineStatsResponse(BaseModel):
     average_time_by_stage: dict
 
 
-# Dependency injection
-async def get_pipeline_use_case() -> ManagePipelineUseCase:
-    """Get ManagePipelineUseCase with injected dependencies."""
-    async with get_container() as container:
-        return container.get_manage_pipeline_use_case()
+# Note: endpoints use repository methods via the DI container and require
+# `X-User-ID` and `X-Tenant-ID` headers (defaults provided in dependencies).
 
 
 @router.get("/", response_model=List[OpportunityResponse])
@@ -119,7 +117,9 @@ async def list_opportunities(
     ),
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(100, ge=1, le=200, description="Maximum items to return"),
-    use_case: ManagePipelineUseCase = Depends(get_pipeline_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     List all opportunities with advanced filters
@@ -136,34 +136,39 @@ async def list_opportunities(
     - created_after/created_before: Filter by creation date range
     - search: Full-text search in title and description
     """
-    opportunities = await use_case.list_opportunities(
-        stage=stage,
-        client_id=client_id,
-        funding_source_id=funding_source_id,
-        priority=priority,
-        min_value=min_value,
-        max_value=max_value,
-        min_probability=min_probability,
-        created_after=created_after,
-        created_before=created_before,
-        search=search,
-        skip=skip,
-        limit=limit
+    # Build repository criteria
+    criteria = {
+        "tenant_id": tenant_id,
+        "stage": stage,
+        "client_id": client_id,
+        "funding_source_id": funding_source_id,
+        "estimated_value_gte": min_value,
+        "estimated_value_lte": max_value,
+        "probability_score_gte": min_probability,
+        "created_at_gte": created_after,
+        "created_at_lte": created_before,
+        "search_text": search,
+    }
+
+    opportunities = await container.opportunity_repository.find_by_criteria(
+        criteria, skip=skip, limit=limit
     )
+
     return opportunities
 
 
 @router.get("/{opportunity_id}", response_model=OpportunityResponse)
 async def get_opportunity(
     opportunity_id: str,
-    use_case: ManagePipelineUseCase = Depends(get_pipeline_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Get detailed information about a specific opportunity
     
     Implements RF-05.02: Detalhamento de oportunidade
     """
-    opportunity = await use_case.get_opportunity(opportunity_id)
+    opportunity = await container.opportunity_repository.get_by_id(tenant_id, opportunity_id)
     
     if not opportunity:
         raise HTTPException(
@@ -178,42 +183,58 @@ async def get_opportunity(
 async def create_opportunity(
     data: OpportunityCreate,
     calculate_priority: bool = True,
-    use_case: ManagePipelineUseCase = Depends(get_pipeline_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Create a new opportunity with AI priority calculation
     
     Implements RF-05.03: Criação de oportunidade com priorização transparente
     """
-    opportunity = await use_case.create_opportunity(
+    # Build domain entity and persist via repository
+    opp_entity = Opportunity(
+        id=None,
+        tenant_id=tenant_id,
         title=data.title,
         description=data.description,
         client_id=data.client_id,
         funding_source_id=data.funding_source_id,
         estimated_value=data.estimated_value,
-        probability=data.probability,
-        priority_score=data.priority_score,
-        calculate_priority=calculate_priority,
+        probability_score=data.probability,
+        priority_score=data.priority_score or 0.0,
+        created_by=current_user,
+        updated_by=current_user,
     )
-    
-    return opportunity
+
+    created = await container.opportunity_repository.create(opp_entity, tenant_id, current_user)
+    return created
 
 
 @router.patch("/{opportunity_id}", response_model=OpportunityResponse)
 async def update_opportunity(
     opportunity_id: str,
     data: OpportunityUpdate,
-    use_case: ManagePipelineUseCase = Depends(get_pipeline_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Update an existing opportunity
     
     Implements RF-05.04: Atualização de oportunidade
     """
-    opportunity = await use_case.update_opportunity(
-        opportunity_id=opportunity_id,
-        **data.model_dump(exclude_unset=True)
-    )
+    existing = await container.opportunity_repository.get_by_id(tenant_id, opportunity_id)
+    if not existing:
+        opportunity = None
+    else:
+        # apply updates
+        upd = data.model_dump(exclude_unset=True)
+        for k, v in upd.items():
+            if hasattr(existing, k):
+                setattr(existing, k, v)
+        existing.updated_by = current_user
+        opportunity = await container.opportunity_repository.update(existing, tenant_id, current_user)
     
     if not opportunity:
         raise HTTPException(
@@ -228,17 +249,17 @@ async def update_opportunity(
 async def transition_stage(
     opportunity_id: str,
     data: StageTransition,
-    use_case: ManagePipelineUseCase = Depends(get_pipeline_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Move opportunity to a new pipeline stage
     
     Implements RF-05.05: Transição entre estágios do pipeline
     """
-    opportunity = await use_case.transition_stage(
-        opportunity_id=opportunity_id,
-        new_stage=data.new_stage,
-        notes=data.notes,
+    opportunity = await container.opportunity_repository.transition_stage(
+        opportunity_id, tenant_id, data.new_stage, current_user, data.notes
     )
     
     if not opportunity:
@@ -252,28 +273,47 @@ async def transition_stage(
 
 @router.get("/stats/pipeline", response_model=PipelineStatsResponse)
 async def get_pipeline_statistics(
-    use_case: ManagePipelineUseCase = Depends(get_pipeline_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Get pipeline statistics and metrics
     
     Implements RF-05.06: Estatísticas do pipeline
     """
-    stats = await use_case.get_pipeline_statistics()
+    pipeline = await container.opportunity_repository.get_pipeline_by_stage(tenant_id)
+
+    total = sum(len(v) for v in pipeline.values())
+    total_estimated = 0.0
+    by_stage = {}
+    for stage, opps in pipeline.items():
+        by_stage[stage] = len(opps)
+        for o in opps:
+            total_estimated += float(getattr(o, 'estimated_value', 0) or 0)
+
+    stats = {
+        "total_opportunities": total,
+        "total_estimated_value": total_estimated,
+        "opportunities_by_stage": by_stage,
+        "conversion_rates": {},
+        "average_time_by_stage": {},
+    }
     return stats
 
 
 @router.delete("/{opportunity_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_opportunity(
     opportunity_id: str,
-    use_case: ManagePipelineUseCase = Depends(get_pipeline_use_case),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Soft delete an opportunity
     
     Implements RF-05.07: Exclusão lógica de oportunidade
     """
-    success = await use_case.delete_opportunity(opportunity_id)
+    success = await container.opportunity_repository.delete(tenant_id, opportunity_id)
     
     if not success:
         raise HTTPException(

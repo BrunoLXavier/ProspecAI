@@ -48,6 +48,7 @@ const navigationItems: NavigationItem[] = [
   // --- Administration Block End ---
   { id: 'ingestion', name: 'ingestion', href: '/ingestion', icon: CloudArrowUpIcon },
   { id: 'reports', name: 'reports', href: '/reports', icon: DocumentChartBarIcon },
+  { id: 'reportTemplates', name: 'reportTemplates', href: '/reports/templates', icon: DocumentTextIcon },
   { id: 'activity', name: 'activity', href: '/activity', icon: ClockIcon },
   { id: 'settings', name: 'settings', href: '/settings', icon: Cog6ToothIcon },
 ];

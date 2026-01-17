@@ -1,53 +1,29 @@
-"""
-Opportunities API Routes Stub
-Implements RF-05: Pipeline de Oportunidades (Kanban: Inteligência -> Pós-venda)
+"""Deprecated Opportunities demo adapter.
+
+Keep this file as a deprecated shim that returns 410 for all
+endpoints so callers are forced to use the canonical
+`/api/v1/opportunities` router implemented in `routers.opportunities`.
 """
 from fastapi import APIRouter, HTTPException
-from typing import List
 
 router = APIRouter(prefix="/api/v1/opportunities", tags=["opportunities"])
 
-# Example GET endpoint stub
-def get_stub_opportunities():
-    """Stub endpoint for opportunities list"""
-    return [{"id": 1, "name": "Oportunidade Exemplo", "stage": "Inteligência"}]
 
-@router.get("/", summary="List all opportunities", response_model=List[dict])
-@router.get("", summary="List all opportunities (no trailing slash)", response_model=List[dict])
-def list_opportunities():
-    return get_stub_opportunities()
-
-# Example POST endpoint stub
-@router.post("/", summary="Create a new opportunity", response_model=dict)
-def create_opportunity(opportunity: dict):
-    return {"id": 2, **opportunity}
-
-# Example GET by ID stub
-@router.get("/{opportunity_id}", summary="Get opportunity by ID", response_model=dict)
-def get_opportunity(opportunity_id: int):
-    for o in get_stub_opportunities():
-        if o["id"] == opportunity_id:
-            return o
-    raise HTTPException(status_code=404, detail="Opportunity not found")
+@router.get("/", summary="Deprecated demo route")
+async def deprecated_list_opportunities():
+    raise HTTPException(status_code=410, detail="Deprecated demo route. Use canonical /api/v1/opportunities router.")
 
 
-@router.get("/stats/pipeline", summary="Get pipeline statistics")
-def get_pipeline_stats():
-    """Return simple pipeline statistics (stub).
+@router.post("/", summary="Deprecated demo route")
+async def deprecated_create_opportunity():
+    raise HTTPException(status_code=410, detail="Deprecated demo route. Use canonical /api/v1/opportunities router.")
 
-    This is a small stub to satisfy frontend calls to
-    `/api/v1/opportunities/stats/pipeline` while a full
-    implementation is available in the use-case layer.
-    """
-    # Example stubbed data matching frontend expectations
-    return {
-        "total_opportunities": len(get_stub_opportunities()),
-        "by_stage": {
-            "intelligence": 0,
-            "approach": 0,
-            "proposal": 1,
-            "negotiation": 0,
-            "won": 0,
-            "lost": 0
-        }
-    }
+
+@router.get("/{opportunity_id}", summary="Deprecated demo route")
+async def deprecated_get_opportunity(opportunity_id: int):
+    raise HTTPException(status_code=410, detail="Deprecated demo route. Use canonical /api/v1/opportunities router.")
+
+
+@router.get("/stats/pipeline", summary="Deprecated demo route")
+async def deprecated_get_pipeline_stats():
+    raise HTTPException(status_code=410, detail="Deprecated demo route. Use canonical /api/v1/opportunities router.")

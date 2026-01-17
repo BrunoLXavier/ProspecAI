@@ -23,12 +23,13 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
     # For the primary/default tenant, use the canonical admin address used in deployments.
     if tenant_name.lower().startswith("default"):
         admin_email = "admin@prospecai.com"
+        # Use a stable admin id for the default tenant so dev-bypass auth can map to it
+        admin_id = os.getenv("SEED_ADMIN_ID", "00000000-0000-0000-0000-000000000001")
     else:
         # Use reserved testing TLD to avoid accidental production-like domains for non-default tenants
         admin_email = f"admin@{tenant_name.lower().replace(' ', '')}.example.test"
-
-    # Create admin user if not exists and ensure a user_roles association is present
-    admin_id = str(uuid.uuid4())
+        # Generate a fresh id for non-default tenants
+        admin_id = str(uuid.uuid4())
     conn.execute(
         text(
             """

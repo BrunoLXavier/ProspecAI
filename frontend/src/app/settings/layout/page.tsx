@@ -480,15 +480,15 @@ export default function LayoutPage() {
             <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.lightTitle') || 'Light mode'}</h3>
             <div>
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.primary') || 'Primary color'}</label>
-              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white inline-block">
-                <input type="color" value={config.primary_color_light || config.primary_color} onChange={(e) => updateConfig('primary_color_light', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+              <div className="inline-block">
+                <input type="color" value={config.primary_color_light || config.primary_color} onChange={(e) => updateConfig('primary_color_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
               </div>
             </div>
 
             <div className="mt-3">
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.secondary') || 'Secondary color'}</label>
-              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white inline-block">
-                <input type="color" value={config.secondary_color_light || config.secondary_color} onChange={(e) => updateConfig('secondary_color_light', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+              <div className="inline-block">
+                <input type="color" value={config.secondary_color_light || config.secondary_color} onChange={(e) => updateConfig('secondary_color_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
               </div>
             </div>
 
@@ -496,16 +496,16 @@ export default function LayoutPage() {
               <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{t('layout.theme.modalTitle') || 'Modal appearance'}</h4>
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBgLight') || 'Background'}</label>
-                  <input type="color" value={config.modal_bg_light} onChange={(e) => updateConfig('modal_bg_light', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBgLight') || 'Background'}</label>
+                  <input type="color" value={config.modal_bg_light} onChange={(e) => updateConfig('modal_bg_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                 </div>
                 <div>
-                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalTextLight') || 'Text'}</label>
-                  <input type="color" value={config.modal_text_light} onChange={(e) => updateConfig('modal_text_light', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalTextLight') || 'Text'}</label>
+                  <input type="color" value={config.modal_text_light} onChange={(e) => updateConfig('modal_text_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                 </div>
                 <div>
-                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBorderLight') || 'Border'}</label>
-                  <input type="color" value={config.modal_border_light} onChange={(e) => updateConfig('modal_border_light', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBorderLight') || 'Border'}</label>
+                  <input type="color" value={config.modal_border_light} onChange={(e) => updateConfig('modal_border_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                 </div>
               </div>
             </div>
@@ -516,15 +516,15 @@ export default function LayoutPage() {
             <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.darkTitle') || 'Dark mode'}</h3>
             <div>
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.primary') || 'Primary color'}</label>
-              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
-                <input type="color" value={config.primary_color_dark || config.primary_color} onChange={(e) => updateConfig('primary_color_dark', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+              <div className="inline-block">
+                <input type="color" value={config.primary_color_dark || config.primary_color} onChange={(e) => updateConfig('primary_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
               </div>
             </div>
 
             <div className="mt-3">
               <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.secondary') || 'Secondary color'}</label>
-              <div className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 inline-block">
-                <input type="color" value={config.secondary_color_dark || config.secondary_color} onChange={(e) => updateConfig('secondary_color_dark', e.target.value)} className="w-12 h-8 p-0 border-0 bg-transparent" />
+              <div className="inline-block">
+                <input type="color" value={config.secondary_color_dark || config.secondary_color} onChange={(e) => updateConfig('secondary_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
               </div>
             </div>
 
@@ -532,16 +532,16 @@ export default function LayoutPage() {
               <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{t('layout.theme.modalTitle') || 'Modal appearance'}</h4>
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBgDark') || 'Background'}</label>
-                  <input type="color" value={config.modal_bg_dark} onChange={(e) => updateConfig('modal_bg_dark', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBgDark') || 'Background'}</label>
+                  <input type="color" value={config.modal_bg_dark} onChange={(e) => updateConfig('modal_bg_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                 </div>
                 <div>
-                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalTextDark') || 'Text'}</label>
-                  <input type="color" value={config.modal_text_dark} onChange={(e) => updateConfig('modal_text_dark', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalTextDark') || 'Text'}</label>
+                  <input type="color" value={config.modal_text_dark} onChange={(e) => updateConfig('modal_text_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                 </div>
                 <div>
-                  <label className="block text-xs mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBorderDark') || 'Border'}</label>
-                  <input type="color" value={config.modal_border_dark} onChange={(e) => updateConfig('modal_border_dark', e.target.value)} className="w-24 h-10 p-1 rounded border" />
+                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBorderDark') || 'Border'}</label>
+                  <input type="color" value={config.modal_border_dark} onChange={(e) => updateConfig('modal_border_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                 </div>
               </div>
             </div>

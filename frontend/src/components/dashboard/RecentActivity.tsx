@@ -6,6 +6,8 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '@/lib/api-client';
 import {
   DocumentPlusIcon,
   SparklesIcon,
@@ -32,41 +34,44 @@ const activityIcons: Record<string, { icon: React.ElementType; colors: string }>
 export default function RecentActivity() {
   const t = useTranslations('dashboard');
 
-  // Mock data - would come from audit log API
-  const activities: Activity[] = [
-    {
-      id: '1',
-      type: 'funding_created',
-      description: 'Novo edital FINEP Inovação criado',
-      user: 'João Silva',
-      timestamp: '2026-01-10T10:30:00Z',
-      href: '/funding',
-    },
-    {
-      id: '2',
-      type: 'matching_executed',
-      description: 'Matching executado para Projeto X',
-      user: 'Sistema IA',
-      timestamp: '2026-01-10T09:15:00Z',
-      href: '/portfolio',
-    },
-    {
-      id: '3',
-      type: 'proposal_submitted',
-      description: 'Proposta enviada para Edital CNPq',
-      user: 'Maria Santos',
-      timestamp: '2026-01-10T08:00:00Z',
-      href: '/proposals',
-    },
-    {
-      id: '4',
-      type: 'client_created',
-      description: 'Novo cliente Empresa ABC cadastrado',
-      user: 'Carlos Oliveira',
-      timestamp: '2026-01-09T16:45:00Z',
-      href: '/crm',
-    },
-  ];
+  // Fetch recent activities from backend: combine recent opportunities and proposals
+  const { data: activities = [], isLoading } = useQuery<Activity[]>({
+    queryKey: ['recent-activity'],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      const [oppsResp, propsResp] = await Promise.all([
+        apiClient.listOpportunities({ skip: 0, limit: 10 }),
+        apiClient.listProposals({ skip: 0, limit: 10 }),
+      ]);
+
+      const opps = Array.isArray(oppsResp) ? oppsResp : (oppsResp.data || []);
+      const props = Array.isArray(propsResp) ? propsResp : (propsResp.data || []);
+
+      const mappedOpps: Activity[] = opps.map((o: any) => ({
+        id: String(o.id),
+        type: 'matching_executed',
+        description: o.title || o.name || 'Oportunidade atualizada',
+        user: o.updated_by_name || o.created_by_name || 'Usuário',
+        timestamp: o.created_at || new Date().toISOString(),
+        href: `/opportunities?id=${o.id}`,
+      }));
+
+      const mappedProps: Activity[] = props.map((p: any) => ({
+        id: String(p.id),
+        type: 'proposal_submitted',
+        description: p.title || 'Proposta',
+        user: p.created_by_name || 'Usuário',
+        timestamp: p.created_at || new Date().toISOString(),
+        href: `/proposals?id=${p.id}`,
+      }));
+
+      // Merge and sort by timestamp desc
+      const merged = [...mappedOpps, ...mappedProps].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      return merged.slice(0, 10);
+    }
+  });
 
   const formatTimeAgo = (timestamp: string) => {
     const date = new Date(timestamp);

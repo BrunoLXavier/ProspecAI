@@ -5,29 +5,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-  DocumentTextIcon,
-  ChartBarIcon,
-  FolderIcon,
-  FunnelIcon,
-  CurrencyDollarIcon,
-  ArrowDownTrayIcon,
-  DocumentArrowDownIcon,
-  ClockIcon,
-  PlusIcon,
-} from '@heroicons/react/24/outline';
-import { useI18n } from '@/hooks/useI18n';
+import { useQuery } from '@tanstack/react-query';
+import { DocumentTextIcon, PlusIcon, ChartBarIcon, FolderIcon, FunnelIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/api-client';
 import PageHeader from '@/components/ui/PageHeader';
-import StatCard from '@/components/ui/StatCard';
+// StatCard not required here
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import ReportsList from '@/components/reports/ReportsList';
-import ReportsBoard from '@/components/reports/reportsboard';
-import ReportFormModal from '@/components/reports/ReportFormModal';
-import ReportDetailModal from '@/components/reports/ReportDetailModal';
-import { useQueryClient } from '@tanstack/react-query';
+// report templates components are used in templates page
 import { ViewMode } from '@/components/ui/ViewToggle';
 
 // =============================================================================
@@ -67,370 +53,271 @@ const templateIcons: Record<string, React.ReactNode> = {
 // =============================================================================
 
 export default function ReportsPage() {
-  const { t } = useI18n();
+  const t = useTranslations('reports');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [filters, setFilters] = useState<{ search?: string; format?: string }>({});
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [selectedFormat, setSelectedFormat] = useState<string>('html');
-  const [parameters, setParameters] = useState<Record<string, string>>({});
-  const [generatedReport, setGeneratedReport] = useState<GeneratedReport | null>(null);
-  const [recentReports, setRecentReports] = useState<GeneratedReport[]>([]);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [detailTemplate, setDetailTemplate] = useState<any | null>(null);
+  const [filters, setFilters] = useState<{ search?: string }>({});
+  const [isGenerateOpen, setIsGenerateOpen] = useState(false);
+  const [generatedReports, setGeneratedReports] = useState<GeneratedReport[]>([]);
+  const [selectedReport, setSelectedReport] = useState<GeneratedReport | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [genError, setGenError] = useState<string | null>(null);
-  const queryClient = useQueryClient();
+  const [isLoadingReports, setIsLoadingReports] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch templates
-  const { data: templates, isLoading: templatesLoading } = useQuery({
-    queryKey: ['report-templates'],
-    queryFn: async () => {
-      try {
-        const data = await apiClient.get<ReportTemplate[]>('/api/v1/reports/templates');
-        return data;
-      } catch (err: any) {
-        // If unauthorized, return empty array and let ApiClient handle redirect/refresh
-        console.error('Failed fetching report templates', err);
-        if (err?.response?.status === 401) {
-          return [] as ReportTemplate[];
-        }
-        throw err;
-      }
-    },
+  // load generated reports (backend may expose /api/v1/reports)
+  const loadReports = async () => {
+    try {
+      setIsLoadingReports(true);
+      const data = await apiClient.get('/api/v1/reports');
+      const arr = Array.isArray(data) ? data : data?.data || [];
+      setGeneratedReports(arr);
+    } catch (err) {
+      console.warn('Failed to load generated reports, using mock data', err);
+      setGeneratedReports([]);
+    } finally {
+      setIsLoadingReports(false);
+    }
+  };
+
+  // initial load
+  useQuery({
+    queryKey: ['generated-reports'],
+    queryFn: loadReports,
   });
-
-  // Normalize templates response to always be an array.
-  const templatesArray: ReportTemplate[] = (() => {
-    if (!templates) return [];
-    if (Array.isArray(templates)) return templates as ReportTemplate[];
-    const maybe = templates as any;
-    if (Array.isArray(maybe.templates)) return maybe.templates;
-    if (Array.isArray(maybe.data)) return maybe.data;
-    return [];
-  })();
-
-  // Generate report mutation
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/v1/reports/generate/${selectedFormat}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('prospecai_access_token')}`,
-        },
-        body: JSON.stringify({
-          template_id: selectedTemplate,
-          parameters,
-          format: selectedFormat,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate report');
-      }
-
-      if (selectedFormat === 'html') {
-        const html = await response.text();
-        return { content: html, format: selectedFormat };
-      } else {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        return { download_url: url, format: selectedFormat };
-      }
-    },
-    onSuccess: (data) => {
-      const report: GeneratedReport = {
-        template_id: selectedTemplate!,
-        generated_at: new Date().toISOString(),
-        format: data.format,
-        content: data.content,
-        download_url: data.download_url,
-      };
-      setGeneratedReport(report);
-      setRecentReports((prev) => [report, ...prev].slice(0, 10));
-    },
-    onError: (err: any) => {
-      const msg = err?.message || JSON.stringify(err) || 'Erro ao gerar relatório';
-      setGenError(msg);
-      console.error('Report generation error:', err);
-    },
-  });
-
-  const handleGenerate = () => {
-    if (!selectedTemplate) return;
-    setGenError(null);
-    generateMutation.mutate();
-  };
-
-  // Handle template selection
-  const handleSelectTemplate = (templateId: string) => {
-    setSelectedTemplate(templateId);
-    setGeneratedReport(null);
-    setParameters({});
-  };
-
-  // Handle parameter change
-  const handleParameterChange = (key: string, value: string) => {
-    setParameters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // Get selected template details
-  const currentTemplate = templatesArray.find((t) => t.id === selectedTemplate);
-
-  const stats = {
-    templates: templatesArray.length || 0,
-    recent: recentReports.length,
-  };
 
   const filterFields: FilterField[] = [
-    { key: 'search', label: 'Buscar', type: 'text', placeholder: 'Buscar templates...' },
-    { key: 'format', label: 'Formato', type: 'select', options: [
-      { value: 'html', label: 'HTML' },
-      { value: 'pdf', label: 'PDF' },
-      { value: 'xlsx', label: 'XLSX' },
-    ] },
+    { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
   ];
+
+  const filtered = generatedReports.filter((r) => {
+    if (!filters.search) return true;
+    const s = filters.search.toLowerCase();
+    return (r.template_id || '').toLowerCase().includes(s) || (r.generated_at || '').toLowerCase().includes(s) || (r.format || '').toLowerCase().includes(s);
+  });
+
+  const handleDelete = async (report: GeneratedReport) => {
+    if (!report) return;
+    if (!confirm('Excluir relatório gerado?')) return;
+    try {
+      // try backend delete
+      if ((report as any).id) {
+        await apiClient.delete(`/api/v1/reports/${(report as any).id}`);
+      }
+    } catch (err) {
+      console.warn('Delete failed on backend', err);
+    }
+    // optimistic client removal
+    setGeneratedReports((prev) => prev.filter((r) => r !== report));
+    setSelectedReport(null);
+    setIsDetailOpen(false);
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Gerador de Relatórios"
-        subtitle="Crie relatórios personalizados com dados do sistema"
+        title={t('title') || 'Relatórios'}
+        subtitle={t('subtitle') || 'Relatórios gerados e históricos'}
         viewToggle={true}
         viewMode={viewMode}
-        onViewChange={(m) => setViewMode(m)}
+        onViewChange={setViewMode}
         action={(
           <button
-            onClick={() => setIsCreateOpen(true)}
+            onClick={() => setIsGenerateOpen(true)}
             className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
           >
             <PlusIcon className="w-5 h-5 mr-2" />
-            Novo Relatório
+            {t('newReport') || 'Gerar Relatório'}
           </button>
         )}
       />
 
-      <div className="max-w-7xl mx-auto px-4">
-        <ConfigurableStatisticsBar module="proposals" data={templatesArray} />
+      <ConfigurableStatisticsBar module="reports" data={generatedReports} />
 
+      <div className="max-w-7xl mx-auto px-4">
         <div className="mt-4">
-          <FilterPanel
-            fields={filterFields}
-            values={filters}
-            onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))}
-            onReset={() => setFilters({})}
-          />
+          <FilterPanel fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onReset={() => setFilters({})} />
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-2">
+      <main>
         {viewMode === 'board' ? (
-          <div className="w-full">
-              <ReportsBoard
-              templates={templatesArray}
-              loading={templatesLoading}
-              onItemClick={(t) => { setDetailTemplate(t); setIsDetailOpen(true); }}
-              onSelect={(id) => handleSelectTemplate(id)}
-            />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Template Selection */}
-            <div className="lg:col-span-1 space-y-6">
-              <ReportsList
-                templates={templatesArray}
-                loading={templatesLoading}
-                selectedId={selectedTemplate}
-                onSelect={(id) => handleSelectTemplate(id)}
-                onOpenDetail={(template) => { setDetailTemplate(template); setIsDetailOpen(true); }}
-              />
-
-              {/* Recent Reports */}
-              {recentReports.length > 0 && (
-                <div className="bg-white rounded-lg shadow overflow-hidden p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                    Relatórios Recentes
-                  </h2>
-                  <div className="space-y-2">
-                    {recentReports.map((report, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                      >
-                        <ClockIcon className="h-4 w-4 text-gray-400" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-700">
-                            {templatesArray.find((t) => t.id === report.template_id)?.name}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {new Date(report.generated_at).toLocaleString()}
-                          </p>
-                        </div>
-                        <span className="text-xs font-mono bg-gray-200 px-2 py-1 rounded">
-                          {report.format.toUpperCase()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Configuration & Preview */}
-            <div className="lg:col-span-2 space-y-6">
-            {!selectedTemplate ? (
-              <div className="bg-white rounded-lg shadow overflow-hidden p-12 text-center">
-                <DocumentTextIcon className="h-16 w-16 mx-auto text-gray-300" />
-                <p className="mt-4 text-gray-500">
-                  Selecione um template para começar
-                </p>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {isLoadingReports ? (
+              <div className="p-6 bg-white rounded-lg shadow">{t('loading')}</div>
+            ) : filtered.length === 0 ? (
+              <div className="p-6 bg-white rounded-lg shadow">{t('noReports')}</div>
             ) : (
-              <>
-                {/* Configuration */}
-                <div className="bg-white rounded-lg shadow overflow-hidden p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                    Configurações
-                  </h2>
-
-                  {/* Format Selection */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Formato de Saída
-                    </label>
-                    <div className="flex gap-3">
-                      {currentTemplate?.output_formats?.map((format) => (
-                        <button
-                          key={format}
-                          onClick={() => setSelectedFormat(format)}
-                          className={`
-                            px-4 py-2 rounded-lg font-medium text-sm
-                            ${selectedFormat === format
-                              ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
-                              : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
-                            }
-                          `}
-                        >
-                          {format.toUpperCase()}
-                        </button>
-                      ))}
+              filtered.map((r, idx) => (
+                <div key={idx} className="bg-white rounded-lg shadow p-6 hover:shadow-elevated transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-gray-100">
+                      <DocumentTextIcon className="w-6 h-6 text-gray-600" />
                     </div>
-                  </div>
-
-                  {/* Parameters */}
-                  {currentTemplate?.parameters && currentTemplate.parameters.length > 0 && (
-                    <div className="space-y-4">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Parâmetros
-                      </label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {currentTemplate.parameters.map((param) => (
-                          <div key={param}>
-                            <label className="block text-xs text-gray-500 mb-1 capitalize">
-                              {param.replace(/_/g, ' ')}
-                            </label>
-                            <input
-                              type="text"
-                              value={parameters[param] || ''}
-                              onChange={(e) => handleParameterChange(param, e.target.value)}
-                              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={`Enter ${param}`}
-                            />
-                          </div>
-                        ))}
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900">{r.template_id || '—'}</h3>
+                      <p className="text-sm text-gray-500 mt-2">{new Date(r.generated_at).toLocaleString()}</p>
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="text-xs text-gray-400">{(r.format || '').toUpperCase()}</div>
+                        <div className="flex items-center gap-3">
+                          <button onClick={(e) => { e.stopPropagation(); setSelectedReport(r); setIsDetailOpen(true); }} className="text-sm text-primary-600">{t('view')}</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDelete(r); }} className="text-sm text-red-600">{t('delete')}</button>
+                        </div>
                       </div>
                     </div>
-                  )}
-
-                  {/* Generate Button */}
-                  <div className="mb-6">
-                    <h2 className="text-lg font-medium text-gray-900">Templates</h2>
-                    <p className="mt-1 text-sm text-gray-600">Saved report templates and quick exports.</p>
-                  </div>
-
-                  {/* statistics bar intentionally shown above the filters; removed duplicate here */}
-                     <div className="mb-6">
-                    <button
-                        onClick={() => handleGenerate()}
-                      disabled={!selectedTemplate || generateMutation.isPending}
-                      className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {generateMutation.isPending ? (
-                        <>
-                          <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Gerando...
-                        </>
-                      ) : (
-                        <>
-                          <ArrowDownTrayIcon className="h-5 w-5" />
-                          Gerar Relatório
-                        </>
-                      )}
-                    </button>
-                      {genError && (
-                        <div className="mt-3 text-sm text-red-600">Erro: {genError}</div>
-                      )}
                   </div>
                 </div>
-
-                {/* Generated report preview handled below */}
-
-                {/* Preview / Download */}
-                {generatedReport && (
-                  <div className="bg-white rounded-lg shadow overflow-hidden p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        Relatório Gerado
-                      </h2>
-                      {generatedReport.download_url && (
-                        <a
-                          href={generatedReport.download_url}
-                          download={`report.${generatedReport.format}`}
-                          className="
-                            flex items-center gap-2 px-4 py-2 bg-green-600 text-white
-                            font-medium rounded-lg hover:bg-green-700
-                          "
-                        >
-                          <ArrowDownTrayIcon className="h-4 w-4" />
-                          Download
-                        </a>
-                      )}
-                    </div>
-
-                    {generatedReport.content && (
-                      <div
-                        className="prose prose-sm max-w-none border rounded-lg p-6 bg-gray-50 overflow-auto max-h-[600px]"
-                        dangerouslySetInnerHTML={{ __html: generatedReport.content }}
-                      />
-                    )}
-
-                    {generatedReport.download_url && !generatedReport.content && (
-                      <div className="text-center py-12 bg-gray-50 rounded-lg">
-                        <DocumentArrowDownIcon className="h-12 w-12 mx-auto text-green-500" />
-                        <p className="mt-4 text-gray-600">
-                          Relatório pronto para download
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          Formato: {generatedReport.format.toUpperCase()}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
+              ))
             )}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            {isLoadingReports ? (
+              <div className="p-8 text-center text-gray-500">{t('loading')}</div>
+            ) : filtered.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">{t('noReports')}</div>
+            ) : (
+              <ul className="divide-y divide-gray-200">
+                {filtered.map((r, idx) => (
+                  <li key={idx} className="p-6 hover:bg-gray-50 transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <DocumentTextIcon className="w-6 h-6 text-gray-400" />
+                          <h3 className="text-lg font-semibold text-gray-900">{r.template_id}</h3>
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">{(r.format || '').toUpperCase()}</span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 text-sm mt-3">
+                          <div>
+                            <span className="text-gray-500">{t('generated')}:</span>
+                            <p className="font-medium text-gray-900">{new Date(r.generated_at).toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">{t('templateLabel')}:</span>
+                            <p className="font-medium text-gray-900">{r.template_id || '—'}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">{t('statusLabel')}:</span>
+                            <p className="font-medium text-gray-900">{r.download_url ? t('available') : t('processed')}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </main>
 
-        {/* Modals */}
-        <ReportFormModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} initial={null} />
-        <ReportDetailModal isOpen={isDetailOpen} onClose={() => setIsDetailOpen(false)} template={detailTemplate} onDeleted={(id) => {
-          // if deleted template was selected, clear selection
-          if (selectedTemplate === id) setSelectedTemplate(null);
-          setDetailTemplate(null);
-        }} />
+      {/* Generate modal and Detail modal: reuse part of original generation logic inline */}
+      {isGenerateOpen && (
+        <ReportGeneratorModal onClose={() => setIsGenerateOpen(false)} onGenerated={(r: GeneratedReport) => { setGeneratedReports((p) => [r, ...p]); setIsGenerateOpen(false); }} />
+      )}
+
+      {isDetailOpen && selectedReport && (
+        <ReportViewModal report={selectedReport} onClose={() => setIsDetailOpen(false)} onDelete={() => handleDelete(selectedReport)} />
+      )}
+    </div>
+  );
+}
+
+// Small inline generator modal component reused from original page behavior
+function ReportGeneratorModal({ onClose, onGenerated }: any) {
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [format, setFormat] = useState('html');
+  const [params, setParams] = useState<Record<string, string>>({});
+  const [pending, setPending] = useState(false);
+
+  // load templates
+  useQuery({ queryKey: ['report-templates-for-gen'], queryFn: async () => { try { const d = await apiClient.get('/api/v1/reports/templates'); setTemplates(Array.isArray(d) ? d : (d?.templates || d?.data || [])); } catch(e){ setTemplates([]);} } });
+
+  const handleGenerate = async () => {
+    if (!selectedTemplate) return;
+    setPending(true);
+    try {
+      const response = await fetch(`/api/v1/reports/generate/${format}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ template_id: selectedTemplate, parameters: params, format }),
+      });
+      if (!response.ok) throw new Error('Generate failed');
+      if (format === 'html') {
+        const html = await response.text();
+        const rep = { template_id: selectedTemplate, generated_at: new Date().toISOString(), format, content: html };
+        onGenerated(rep);
+      } else {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const rep = { template_id: selectedTemplate, generated_at: new Date().toISOString(), format, download_url: url };
+        onGenerated(rep);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao gerar relatório');
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 z-10">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Gerar Relatório</h3>
+          <button onClick={onClose} className="text-gray-400">✕</button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-gray-600">Template</label>
+            <select className="w-full border rounded px-3 py-2" value={selectedTemplate || ''} onChange={(e) => setSelectedTemplate(e.target.value)}>
+              <option value="">Selecione</option>
+              {templates.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600">Formato</label>
+            <div className="flex gap-2 mt-2">
+              {['html','pdf','xlsx'].map((f) => (
+                <button key={f} onClick={() => setFormat(f)} className={`px-3 py-2 rounded ${format===f? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+                  {f.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-3 border-t">
+            <button onClick={onClose} className="px-4 py-2 bg-white border rounded-lg">Cancelar</button>
+            <button onClick={handleGenerate} disabled={pending || !selectedTemplate} className="px-4 py-2 bg-blue-600 text-white rounded-lg">{pending? 'Gerando...' : 'Gerar'}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReportViewModal({ report, onClose, onDelete }: any) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl p-6 z-10">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Relatório</h3>
+          <button onClick={onClose} className="text-gray-400">✕</button>
+        </div>
+        <div className="space-y-4">
+          <div className="text-sm text-gray-600">Template: {report.template_id}</div>
+          <div className="text-sm text-gray-600">Gerado em: {new Date(report.generated_at).toLocaleString()}</div>
+          {report.content && <div className="prose max-h-[500px] overflow-auto border rounded p-4" dangerouslySetInnerHTML={{ __html: report.content }} />}
+          {report.download_url && (
+            <div className="pt-4 flex items-center gap-3">
+              <a href={report.download_url} download className="px-4 py-2 bg-green-600 text-white rounded-lg">Download</a>
+              <button onClick={onDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg">Excluir</button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

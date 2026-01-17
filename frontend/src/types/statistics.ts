@@ -12,6 +12,7 @@ export type StatisticsModule =
   | 'proposals'
   | 'ingestion'
   | 'pii-analysis'
+  | 'reports'
   | 'translations';
 
 /**
@@ -374,6 +375,8 @@ export const ALL_MODULES: StatisticsModule[] = [
   'proposals',
   'ingestion',
   'pii-analysis',
+  'reports',
+  'translations',
 ];
 
 /**

@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { ConfidenceBadge } from '@/components/ui/Badge';
+import apiClient from '@/lib/api-client';
 
 const STAGES = [
   { key: 'intelligence', color: 'from-blue-500 to-blue-600' },
@@ -29,39 +30,27 @@ interface Opportunity {
 export default function OpportunityPipeline() {
   const t = useTranslations('pipeline');
 
-  // Mock data - would fetch from API
-  const { data: opportunities = [] } = useQuery<Opportunity[]>({
-    queryKey: ['opportunities'],
+  // Fetch real pipeline data + sample items per stage
+  const { data: pipelineData = { stages: [], stageItems: [] }, isLoading } = useQuery<{ stages: any[]; stageItems: any[] }>({
+    queryKey: ['pipeline-stats'],
     queryFn: async () => {
-      // TODO: Replace with actual API call
-      return [
-        {
-          id: '1',
-          title: 'Projeto Inovação Digital',
-          stage: 'intelligence',
-          priorityScore: 85,
-          estimatedValue: 500000,
-        },
-        {
-          id: '2',
-          title: 'Automação Industrial',
-          stage: 'validation',
-          priorityScore: 72,
-          estimatedValue: 350000,
-        },
-        {
-          id: '3',
-          title: 'Sustentabilidade Energética',
-          stage: 'approach',
-          priorityScore: 68,
-          estimatedValue: 420000,
-        },
-      ];
+      // Get aggregated counts per stage
+      const stages = await apiClient.getPipelineStats();
+
+      // For each stage, fetch up to 3 opportunities to display
+      const stageItemsPromises = (stages || []).map(async (s: any) => {
+        const items = await apiClient.listOpportunities({ stage: s.stage, skip: 0, limit: 3 });
+        return { stage: s.stage, items: Array.isArray(items) ? items : (items.data || []) };
+      });
+
+      const stageItems = await Promise.all(stageItemsPromises);
+
+      return { stages, stageItems };
     }
   });
 
   const getStageOpportunities = (stage: string) =>
-    opportunities.filter((opp) => opp.stage === stage);
+    (pipelineData.stageItems || []).find((s: any) => s.stage === stage)?.items || [];
 
   return (
     <Card padding="lg" hover="subtle">
@@ -97,7 +86,7 @@ export default function OpportunityPipeline() {
                     Nenhuma oportunidade
                   </div>
                 ) : (
-                  stageOpps.map((opp) => (
+                  stageOpps.map((opp: any) => (
                     <Link
                       key={opp.id}
                       href={`/opportunities?id=${opp.id}`}

@@ -6,20 +6,68 @@
     "crm": "CRM",
     "opportunities": "Opportunities",
     "proposals": "Proposals",
-    "matching": "Matching",
-    "analytics": "Analytics",
-    "translations": "Translations",
-    "acl": "Access Control",
-    "users": "Users",
     "settings": "Settings",
     "ingestion": "Data Ingestion",
     "piiAnalysis": "PII Analysis",
     "reports": "Reports",
+    "reportTemplates": "Report Templates",
     "activity": "Recent Activity",
     "feedbackManagement": "Feedback Management",
     "/": "/",
     "admin": "admin"
   },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Generated reports and history",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search reports..."
+    },
+    "noReports": "No generated reports.",
+    "loading": "Loading...",
+    "view": "View",
+    "delete": "Delete",
+    "generated": "Generated",
+    "templateLabel": "Template",
+    "statusLabel": "Status",
+    "available": "Available",
+    "processed": "Processed",
+    "templatesTitle": "Report Templates",
+    "templatesSubtitle": "Manage report templates and quick exports",
+    "createTemplate": "Create template",
+    "deleteConfirmation": "Are you sure you want to delete this template?",
+    "description": "Description",
+    "details": "Details",
+    "editTemplate": "Edit template",
+    "formats": "Formats",
+    "loadingTemplates": "Loading templates...",
+    "name": "Name",
+    "newTemplate": "New Template",
+    "newReport": "New Report",
+    "noTemplates": "No templates registered.",
+    "none": "None",
+    "outputFormats": "Output formats",
+    "outputFormatsHelp": "Add supported formats (html, pdf, xlsx). Press Enter.",
+    "outputFormatsPlaceholder": "html, pdf",
+    "paramPlaceholder": "Type and press Enter",
+    "parameters": "Parameters",
+    "parametersHelp": "Add a parameter and press Enter. Examples:",
+    "saveChanges": "Save changes",
+    "select": "Select",
+    "": "",
+    "/api/v1/reports": "/api/v1/reports",
+    "/api/v1/reports/templates": "/api/v1/reports/templates",
+    "Erro ao gerar relatório": "Error generating report",
+    ",": ""
+  },
+  "reports.title": "Reports",
+  "reports.subtitle": "Generated reports and history",
+  "reports.newReport": "New Report",
+  "reports.templatesTitle": "Report Templates",
+  "reports.templatesSubtitle": "Manage report templates and quick exports",
+  "reports.filters.search": "Search",
+  "reports.filters.searchPlaceholder": "Search reports...",
+  "reports.noReports": "No generated reports.",
   "dashboard": {
     "title": "Dashboard",
     "lastUpdate": "Last update",
@@ -91,12 +139,7 @@
     "focusAreasPlaceholder": "Ex: Industry 4.0, AI, Sustainability",
     "url": "URL",
     "updateError": "Error updating funding source. Please try again.",
-    "statusLabel": "Status",
-    "status": {
-      "open": "Open",
-      "closed": "Closed",
-      "suspended": "Suspended"
-    },
+    "status": "status",
     "types": {
       "grant": "Grant",
       "subsidy": "Subsidy",
@@ -277,8 +320,7 @@
     "days": "days",
     "updateError": "Error updating opportunity. Please try again.",
     "filters": {
-      "allStages": "All Stages",
-      "allStatuses": "All Statuses"
+      "allStages": "All Stages"
     },
     "stages": {
       "intelligence": "Intelligence",
@@ -522,50 +564,17 @@
       "addNewKey": "Add New Translation Key",
       "create": "Create",
       "deleteConfirm": "Are you sure you want to delete",
-      "searchPlaceholder": "Search keys or values...",
-      "namespace": "Namespace",
-      "description": "Manage and edit system translations",
-      "importExport": "Import/Export",
-      "filtersTitle": "Filters",
-      "of": "of",
       "actions": "Actions",
       "showing": "Showing",
-      "translationKeys": "translation keys",
-      "autoTranslate": "Auto translation",
-      "values": "Translation values"
+      "translationKeys": "translation keys"
     },
     "acl": {
       "title": "Access Control",
-      "aclDesc": "Manage roles and permissions for system resources",
       "deleteConfirm": "Are you sure you want to delete this role?",
-      "roleDescriptions": {
-        "admin": "Full access to all resources",
-        "manager": "Manage projects and approvals",
-        "analyst": "Access and analyze data and opportunities",
-        "viewer": "Read-only access to allowed areas"
-      },
-      "permissions": {
-        "create": "Create",
-        "read": "Read",
-        "update": "Update",
-        "delete": "Delete",
-        "export": "Export",
-        "approve": "Approve",
-        "assign": "Assign"
-      },
-      "createRole": "Create Role",
-      "loading": "Loading roles...",
-      "noRoles": "No roles found",
-      "systemBadge": "System",
-      "resource": "Resource",
-      "createRoleModalTitle": "Create New Role",
-      "roleName": "Role Name",
-      "exampleRoleName": "e.g., Content Manager",
-      "roleDescriptionLabel": "Description"
+      "createRole": "Create Role"
     },
     "layout": {
       "title": "Layout Configuration",
-      "subtitle": "Customize layout structure and options",
       "description": "Customize the visual structure and layout of the system",
       "sidebar": {
         "title": "Sidebar",
@@ -599,13 +608,7 @@
         "light": "Light",
         "dark": "Dark",
         "primaryColor": "Primary Color",
-        "secondaryColor": "Secondary Color",
-        "appearance": "Appearance",
-        "appearanceOptions": {
-          "default": "Default",
-          "highContrast": "High contrast",
-          "system": "System"
-        }
+        "secondaryColor": "Secondary Color"
       },
       "branding": {
         "title": "Branding",
@@ -640,7 +643,6 @@
       "subtitle": "Manage users and their permissions in the system",
       "newUser": "New User",
       "editUser": "Edit User",
-      "create": "Create",
       "user": "User",
       "searchPlaceholder": "Search by name or email...",
       "allRoles": "All Roles",
@@ -668,9 +670,7 @@
         "analyst": "Analyst",
         "viewer": "Viewer"
       },
-      "deleteConfirmation": "Excluir este usuário?",
-      "activeUser": "Active user",
-      "leaveBlank": "Leave blank to keep current"
+      "deleteConfirmation": "Excluir este usuário?"
     },
     "statistics": {
       "title": "Statistics Permissions",
@@ -785,8 +785,6 @@
     "loading": "Loading activities...",
     "empty": "No activities found",
     "filters": {
-      "entity": "Entity",
-      "type": "Action",
       "allEntities": "All Entities",
       "allActions": "All Actions"
     },
@@ -1216,27 +1214,6 @@
         "submitting": "Enviando...",
         "title": "Enviar Feedback"
       },
-      "reports": {
-        "createTemplate": "Crear plantilla",
-        "deleteConfirmation": "¿Está seguro de que desea eliminar esta plantilla?",
-        "description": "Descripción",
-        "details": "Detalles",
-        "editTemplate": "Editar plantilla",
-        "formats": "Formatos",
-        "loadingTemplates": "Cargando plantillas...",
-        "name": "Nombre",
-        "newTemplate": "Nueva plantilla",
-        "noTemplates": "No hay plantillas registradas.",
-        "none": "Ninguno",
-        "outputFormats": "Formatos de salida",
-        "outputFormatsHelp": "Agregue formatos compatibles (html, pdf, xlsx). Presione Enter.",
-        "outputFormatsPlaceholder": "html, pdf",
-        "paramPlaceholder": "Escriba y presione Enter",
-        "parameters": "Parámetros",
-        "parametersHelp": "Agregue un parámetro y presione Enter. Ejemplos:",
-        "saveChanges": "Guardar cambios",
-        "select": "Seleccionar"
-      },
       "severity": {
         "critical": "Crítica",
         "high": "Alta",
@@ -1487,8 +1464,7 @@
     "chars": "chars",
     "moveLeft": "moveLeft",
     "moveRight": "moveRight",
-    "view": "view",
-    "all": "All"
+    "view": "view"
   },
   "auth": {
     "login": {
@@ -1995,28 +1971,6 @@
     "start": "Iniciar",
     "startProcessingTitle": "Iniciar processamento"
   },
-  "reports": {
-    "loadingTemplates": "Loading templates...",
-    "noTemplates": "No templates registered.",
-    "select": "Select",
-    "details": "Details",
-    "editTemplate": "Edit Template",
-    "newTemplate": "New Template",
-    "name": "Name",
-    "description": "Description",
-    "parameters": "Parameters",
-    "parametersHelp": "Add a parameter and press Enter. Examples:",
-    "paramPlaceholder": "Type and press Enter",
-    "outputFormats": "Output Formats",
-    "outputFormatsHelp": "Add supported formats (html, pdf, xlsx). Press Enter.",
-    "outputFormatsPlaceholder": "html, pdf",
-    "saveChanges": "Save changes",
-    "createTemplate": "Create template",
-    "none": "None",
-    "formats": "Formats",
-    "deleteConfirmation": "Are you sure you want to delete this template?",
-    ",": ","
-  },
   "chat": {
     "title": "ProspecAI Assistant",
     "welcomeTitle": "Hi! I'm your R&D prospecting assistant.",
@@ -2283,43 +2237,7 @@
       "light": "light",
       "primaryColor": "primaryColor",
       "secondaryColor": "secondaryColor",
-      "title": "title",
-      "appearance": "Appearance",
-      "appearanceOptions": {
-        "default": "Default",
-        "highContrast": "High contrast",
-        "system": "System"
-      }
-    },
-    "theme": {
-      "lightTitle": "Light mode",
-      "primary": "Primary color",
-      "secondary": "Secondary color",
-      "darkTitle": "Dark mode",
-      "modalTitle": "Modal appearance",
-      "modalBgLight": "Background",
-      "modalTextLight": "Text",
-      "modalBorderLight": "Border",
-      "modalBgDark": "Background",
-      "modalTextDark": "Text",
-      "modalBorderDark": "Border",
-      "modalOverlay": "Overlay opacity",
-      "modalElevation": "Elevation"
-    },
-    "theme": {
-      "lightTitle": "Light mode",
-      "darkTitle": "Dark mode",
-      "primary": "Primary color",
-      "secondary": "Secondary color",
-      "modalTitle": "Modal appearance",
-      "modalBgLight": "Background",
-      "modalTextLight": "Text",
-      "modalBorderLight": "Border",
-      "modalBgDark": "Background",
-      "modalTextDark": "Text",
-      "modalBorderDark": "Border",
-      "modalOverlay": "Overlay opacity",
-      "modalElevation": "Elevation"
+      "title": "title"
     },
     "title": "title",
     "typography": {
