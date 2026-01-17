@@ -6,17 +6,17 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  BellIcon,
   CheckIcon,
   TrashIcon,
-  FunnelIcon,
   InboxIcon,
   ExclamationCircleIcon,
   InformationCircleIcon,
   CheckCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { BellIcon as BellSolidIcon } from '@heroicons/react/24/solid';
+import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
+import PageHeader from '@/components/ui/PageHeader';
 
 interface Notification {
   id: string;
@@ -31,10 +31,11 @@ interface Notification {
 export default function NotificationsPage() {
   const t = useTranslations('notifications');
   const queryClient = useQueryClient();
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [filters, setFilters] = useState<{ type: string; read: string }>({ type: 'all', read: 'all' });
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
 
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
-    queryKey: ['notifications', filter],
+    queryKey: ['notifications', filters.type, filters.read],
     queryFn: async (): Promise<Notification[]> => {
       // Mock data - replace with actual API call
       const data: Notification[] = [
@@ -84,7 +85,11 @@ export default function NotificationsPage() {
           link: undefined,
         },
       ];
-      return data.filter(n => filter === 'all' || !n.read);
+      return data.filter(n => {
+        if (filters.type !== 'all' && n.type !== filters.type) return false;
+        if (filters.read === 'unread' && n.read) return false;
+        return true;
+      });
     },
   });
 
@@ -160,153 +165,175 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-            <BellSolidIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {t('title')}
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {unreadCount > 0 
-                ? t('unreadCount', { count: unreadCount })
-                : t('allRead')
-              }
-            </p>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        title={t('title')}
+        subtitle={unreadCount > 0 ? t('unreadCount', { count: unreadCount }) : t('allRead')}
+        viewToggle={true}
+        viewMode={viewMode}
+        onViewChange={(m) => setViewMode(m)}
+        listLabel="Time Line View"
+        listIcon={
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 12h4" />
+            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6" />
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 12h4" />
+            <circle cx="21" cy="12" r="1.5" fill="currentColor" />
+          </svg>
+        }
+        action={
+          unreadCount > 0 ? (
+            <button
+              onClick={() => markAllAsReadMutation.mutate()}
+              disabled={markAllAsReadMutation.isPending}
+              className="inline-flex items-center px-4 py-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition"
+            >
+              <CheckIcon className="w-4 h-4 mr-2" />
+              {t('markAllRead')}
+            </button>
+          ) : undefined
+        }
+      />
 
-        {unreadCount > 0 && (
-          <button
-            onClick={() => markAllAsReadMutation.mutate()}
-            disabled={markAllAsReadMutation.isPending}
-            className="inline-flex items-center px-4 py-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition"
-          >
-            <CheckIcon className="w-4 h-4 mr-2" />
-            {t('markAllRead')}
-          </button>
-        )}
-      </div>
+      {/* Statistics Bar */}
+      <ConfigurableStatisticsBar module="proposals" data={notifications || []} />
 
       {/* Filters */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-soft p-4">
-        <div className="flex items-center gap-4">
-          <FunnelIcon className="w-5 h-5 text-gray-400" />
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filter === 'all'
-                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
-              }`}
-            >
-              {t('filter.all')}
-            </button>
-            <button
-              onClick={() => setFilter('unread')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filter === 'unread'
-                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
-              }`}
-            >
-              {t('filter.unread')}
-              {unreadCount > 0 && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
+      <FilterPanel
+        fields={[
+          { key: 'type', label: t('filter.type') || 'Type', type: 'select', options: [
+            { value: 'all', label: t('filter.all') },
+            { value: 'info', label: t('filter.info') || 'Info' },
+            { value: 'success', label: t('filter.success') || 'Success' },
+            { value: 'warning', label: t('filter.warning') || 'Warning' },
+            { value: 'error', label: t('filter.error') || 'Error' },
+          ] },
+          { key: 'read', label: t('filter.read') || 'Read', type: 'select', options: [
+            { value: 'all', label: t('filter.all') },
+            { value: 'read', label: t('filter.readed') || 'Read' },
+            { value: 'unread', label: t('filter.unread') },
+          ] },
+        ] as FilterField[]}
+        values={filters as any}
+        onChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value }))}
+        onReset={() => setFilters({ type: 'all', read: 'all' })}
+        defaultExpanded={false}
+      />
 
-      {/* Notifications List */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            {t('loading')}
-          </div>
-        ) : notifications.length === 0 ? (
-          <div className="p-12 text-center">
-            <InboxIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">{t('empty')}</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-            {notifications.map((notification) => (
-              <li
-                key={notification.id}
-                className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition ${
-                  !notification.read ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''
-                }`}
-              >
-                <div className="flex gap-4">
-                  <div className={`p-2 rounded-lg ${getTypeBgColor(notification.type)}`}>
-                    {getTypeIcon(notification.type)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className={`text-sm font-medium ${
-                          !notification.read 
-                            ? 'text-gray-900 dark:text-white' 
-                            : 'text-gray-700 dark:text-gray-300'
-                        }`}>
-                          {notification.title}
+      {/* Notifications List / Board */}
+      {viewMode === 'list' ? (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
+          {isLoading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              {t('loading')}
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="p-12 text-center">
+              <InboxIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400">{t('empty')}</p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+              {notifications.map((notification) => (
+                <li
+                  key={notification.id}
+                  className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition ${
+                    !notification.read ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''
+                  }`}
+                >
+                  <div className="flex gap-4">
+                    <div className={`p-2 rounded-lg ${getTypeBgColor(notification.type)}`}>
+                      {getTypeIcon(notification.type)}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className={`text-sm font-medium ${
+                            !notification.read 
+                              ? 'text-gray-900 dark:text-white' 
+                              : 'text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {notification.title}
+                            {!notification.read && (
+                              <span className="ml-2 inline-block w-2 h-2 bg-primary-500 rounded-full" />
+                            )}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                            {formatTimeAgo(notification.createdAt)}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
                           {!notification.read && (
-                            <span className="ml-2 inline-block w-2 h-2 bg-primary-500 rounded-full" />
+                            <button
+                              onClick={() => markAsReadMutation.mutate(notification.id)}
+                              className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition"
+                              title={t('markRead')}
+                            >
+                              <CheckIcon className="w-4 h-4" />
+                            </button>
                           )}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                          {formatTimeAgo(notification.createdAt)}
-                        </p>
+                          <button
+                            onClick={() => deleteNotificationMutation.mutate(notification.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition"
+                            title={t('delete')}
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {!notification.read && (
-                          <button
-                            onClick={() => markAsReadMutation.mutate(notification.id)}
-                            className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition"
-                            title={t('markRead')}
-                          >
-                            <CheckIcon className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => deleteNotificationMutation.mutate(notification.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition"
-                          title={t('delete')}
+                      {notification.link && (
+                        <a
+                          href={notification.link}
+                          className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:underline mt-2"
                         >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
+                          {t('viewDetails')} →
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {['success', 'warning', 'info', 'error'].map((type) => (
+            <div key={type} className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-soft">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 capitalize">{type}</h3>
+              <div className="space-y-3">
+                {notifications.filter(n => n.type === type).map(n => (
+                  <div key={n.id} className="p-3 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-100 dark:border-slate-700">
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg ${getTypeBgColor(n.type)}`}>{getTypeIcon(n.type)}</div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{n.title}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">{formatTimeAgo(n.createdAt)}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {!n.read && <span className="inline-block w-2 h-2 bg-primary-500 rounded-full" />}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{n.message}</p>
                       </div>
                     </div>
-
-                    {notification.link && (
-                      <a
-                        href={notification.link}
-                        className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:underline mt-2"
-                      >
-                        {t('viewDetails')} →
-                      </a>
-                    )}
                   </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
