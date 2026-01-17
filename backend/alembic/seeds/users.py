@@ -26,6 +26,9 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
     else:
         # Use reserved testing TLD to avoid accidental production-like domains for non-default tenants
         admin_email = f"admin@{tenant_name.lower().replace(' ', '')}.example.test"
+
+    # Create admin user if not exists and ensure a user_roles association is present
+    admin_id = str(uuid.uuid4())
     conn.execute(
         text(
             """
@@ -37,13 +40,36 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
             """
         ),
         {
-            "id": str(uuid.uuid4()),
+            "id": admin_id,
             "tenant_id": tenant_id,
             "email": admin_email,
             "username": "admin",
             "password_hash": DEFAULT_USER_PASS_HASH,
             "first_name": tenant_name,
             "last_name": "Administrator",
+        },
+    )
+
+    # Ensure the admin role association exists for the admin user. Use the existing user id when present.
+    # Insert a user_roles row only if not already present.
+    conn.execute(
+        text(
+            """
+            INSERT INTO user_roles (id, user_id, role_id, tenant_id, assigned_at)
+            SELECT :ur_id, u.id, :role_id, u.tenant_id, now()
+            FROM users u
+            WHERE u.tenant_id = :tenant_id
+              AND u.email = :email
+              AND NOT EXISTS (
+                SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role_id = :role_id
+              )
+            """
+        ),
+        {
+            "ur_id": str(uuid.uuid4()),
+            "tenant_id": tenant_id,
+            "email": admin_email,
+            "role_id": "admin",
         },
     )
 
@@ -70,6 +96,31 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
             "email_verified": u["email_verified"],
         }
         conn.execute(stmt, params)
+
+        # Add role association for seeded test users (map suffix to role id)
+        role_map = {"admin": "admin", "dev": "developer", "e2e": "e2e"}
+        role_id = role_map.get(u.get("suffix"), None)
+        if role_id:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO user_roles (id, user_id, role_id, tenant_id, assigned_at)
+                    SELECT :ur_id, u.id, :role_id, u.tenant_id, now()
+                    FROM users u
+                    WHERE u.tenant_id = :tenant_id
+                      AND u.email = :email
+                      AND NOT EXISTS (
+                        SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role_id = :role_id
+                      )
+                    """
+                ),
+                {
+                    "ur_id": str(uuid.uuid4()),
+                    "tenant_id": tenant_id,
+                    "email": email,
+                    "role_id": role_id,
+                },
+            )
 
 
 def seed_for_tenants(conn, tenant_ids: Iterable[str]) -> List[str]:
