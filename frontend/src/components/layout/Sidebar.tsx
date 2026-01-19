@@ -23,6 +23,7 @@ import {
   ShieldExclamationIcon,
   DocumentChartBarIcon,
   ClockIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
 
 // Navigation items configuration
@@ -50,6 +51,7 @@ const navigationItems: NavigationItem[] = [
   { id: 'reports', name: 'reports', href: '/reports', icon: DocumentChartBarIcon },
   { id: 'reportTemplates', name: 'reportTemplates', href: '/reports/templates', icon: DocumentTextIcon },
   { id: 'activity', name: 'activity', href: '/activity', icon: ClockIcon },
+  { id: 'notifications', name: 'notifications', href: '/notifications', icon: BellIcon },
   { id: 'settings', name: 'settings', href: '/settings', icon: Cog6ToothIcon },
 ];
  
@@ -305,7 +307,7 @@ export default function Sidebar() {
               <span className="text-sm font-bold text-white">AD</span>
             </div>
             {/* Online Indicator */}
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-secondary-500 rounded-full" />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-secondary-400 border-2 border-secondary-500 rounded-full" />
           </div>
           {/* User Details */}
           <div className={`

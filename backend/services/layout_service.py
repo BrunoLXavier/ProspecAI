@@ -82,6 +82,36 @@ class LayoutConfig(BaseModel):
     # UI preferences
     animations_enabled: bool = True
     compact_mode: bool = False
+    # Theme / color tokens
+    color_mode: Optional[str] = "light"
+    appearance: Optional[str] = "default"
+    primary_color: str = "#E30613"
+    secondary_color: str = "#003366"
+    # Per-button colors (floating controls that should not follow primary/secondary)
+    chat_button_color: str = "#E30613"
+    feedback_button_color: str = "#f59e0b"
+    # Sidebar explicit color tokens (do not assume secondary)
+    sidebar_color: Optional[str] = None
+    sidebar_color_dark: Optional[str] = None
+    # Font color tokens
+    body_text_light: Optional[str] = "#0f172a"
+    body_text_dark: Optional[str] = "#f8fafc"
+    heading_text_light: Optional[str] = "#0f172a"
+    heading_text_dark: Optional[str] = "#f8fafc"
+    muted_text_light: Optional[str] = "#6b7280"
+    muted_text_dark: Optional[str] = "#9ca3af"
+    primary_color_light: Optional[str] = "#E30613"
+    primary_color_dark: Optional[str] = "#E30613"
+    secondary_color_light: Optional[str] = "#003366"
+    secondary_color_dark: Optional[str] = "#003366"
+    modal_bg_light: Optional[str] = "#ffffff"
+    modal_bg_dark: Optional[str] = "#1e293b"
+    modal_text_light: Optional[str] = "#0f172a"
+    modal_text_dark: Optional[str] = "#f8fafc"
+    modal_border_light: Optional[str] = "#e2e8f0"
+    modal_border_dark: Optional[str] = "#334155"
+    modal_overlay_opacity: Optional[float] = 0.4
+    modal_elevation: Optional[str] = "medium"
     
     created_at: str = ""
     updated_at: str = ""
@@ -103,6 +133,35 @@ class LayoutConfigUpdate(BaseModel):
     dense_tables: Optional[bool] = None
     animations_enabled: Optional[bool] = None
     compact_mode: Optional[bool] = None
+    # Theme / color tokens
+    color_mode: Optional[str] = None
+    appearance: Optional[str] = None
+    primary_color: Optional[str] = None
+    secondary_color: Optional[str] = None
+    # Per-button colors
+    chat_button_color: Optional[str] = None
+    feedback_button_color: Optional[str] = None
+    sidebar_color: Optional[str] = None
+    sidebar_color_dark: Optional[str] = None
+    # Font color tokens
+    body_text_light: Optional[str] = None
+    body_text_dark: Optional[str] = None
+    heading_text_light: Optional[str] = None
+    heading_text_dark: Optional[str] = None
+    muted_text_light: Optional[str] = None
+    muted_text_dark: Optional[str] = None
+    primary_color_light: Optional[str] = None
+    primary_color_dark: Optional[str] = None
+    secondary_color_light: Optional[str] = None
+    secondary_color_dark: Optional[str] = None
+    modal_bg_light: Optional[str] = None
+    modal_bg_dark: Optional[str] = None
+    modal_text_light: Optional[str] = None
+    modal_text_dark: Optional[str] = None
+    modal_border_light: Optional[str] = None
+    modal_border_dark: Optional[str] = None
+    modal_overlay_opacity: Optional[float] = None
+    modal_elevation: Optional[str] = None
 
 
 # Available navigation items

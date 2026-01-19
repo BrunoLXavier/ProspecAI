@@ -242,6 +242,9 @@ services:
       # translations during development, mount only the specific files.
       - ai_models:/app/models
       - model_cache:/app/model_cache
+      # Mount frontend locales into backend so translations written by the
+      # application are persisted to the host and can be committed to VCS.
+      - ./frontend/src/locales:/app/translations:rw
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   # Backend is responsible for running migrations on startup via its entrypoint.

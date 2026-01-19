@@ -151,12 +151,12 @@ export default function ReportsPage() {
         {viewMode === 'board' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {isLoadingReports ? (
-              <div className="p-6 bg-white rounded-lg shadow">{t('loading')}</div>
+              <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">{t('loading')}</div>
             ) : filtered.length === 0 ? (
-              <div className="p-6 bg-white rounded-lg shadow">{t('noReports')}</div>
+              <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">{t('noReports')}</div>
             ) : (
               filtered.map((r, idx) => (
-                <div key={idx} className="bg-white rounded-lg shadow p-6 hover:shadow-elevated transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
+                <div key={idx} className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 hover:shadow-elevated transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
                   <div className="flex items-start gap-3">
                     <div className="p-2 rounded-lg bg-gray-100">
                       <DocumentTextIcon className="w-6 h-6 text-gray-600" />
@@ -178,7 +178,7 @@ export default function ReportsPage() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
             {isLoadingReports ? (
               <div className="p-8 text-center text-gray-500">{t('loading')}</div>
             ) : filtered.length === 0 ? (
@@ -272,8 +272,8 @@ function ReportGeneratorModal({ onClose, onGenerated }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 z-10">
+    <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+    <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-2xl p-6 z-10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Gerar Relatório</h3>
           <button onClick={onClose} className="text-gray-400">✕</button>
@@ -296,8 +296,8 @@ function ReportGeneratorModal({ onClose, onGenerated }: any) {
               ))}
             </div>
           </div>
-          <div className="flex justify-end gap-3 pt-3 border-t">
-            <button onClick={onClose} className="px-4 py-2 bg-white border rounded-lg">Cancelar</button>
+            <div className="flex justify-end gap-3 pt-3 border-t">
+            <button onClick={onClose} className="px-4 py-2 bg-white dark:bg-slate-700 border rounded-lg">Cancelar</button>
             <button onClick={handleGenerate} disabled={pending || !selectedTemplate} className="px-4 py-2 bg-blue-600 text-white rounded-lg">{pending? 'Gerando...' : 'Gerar'}</button>
           </div>
         </div>
@@ -309,8 +309,8 @@ function ReportGeneratorModal({ onClose, onGenerated }: any) {
 function ReportViewModal({ report, onClose, onDelete }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl p-6 z-10">
+    <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+    <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-3xl p-6 z-10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Relatório</h3>
           <button onClick={onClose} className="text-gray-400">✕</button>

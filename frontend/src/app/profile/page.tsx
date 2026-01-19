@@ -133,7 +133,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Personal Information */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
             <UserCircleIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
@@ -207,7 +207,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Roles & Permissions */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
             <ShieldCheckIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -234,7 +234,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Preferences */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
             <Cog6ToothIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -266,7 +266,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Security */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
             <KeyIcon className="w-5 h-5 text-green-600 dark:text-green-400" />

@@ -101,7 +101,7 @@ export default function OpportunitiesWidget() {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6 animate-pulse" data-testid="opportunities-widget">
+      <div className="card p-6 animate-pulse" data-testid="opportunities-widget">
         <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
@@ -113,7 +113,7 @@ export default function OpportunitiesWidget() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6" data-testid="opportunities-widget">
+    <div className="card p-6" data-testid="opportunities-widget">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

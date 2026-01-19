@@ -1,7 +1,7 @@
 // Layout settings page — cleaned and minimalized
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Bars3Icon, RectangleGroupIcon, UserGroupIcon, CheckIcon, ArrowPathIcon, Squares2X2Icon, ShieldCheckIcon, ArrowsPointingOutIcon, PaintBrushIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useLayout, ALL_WIDGET_IDS, DEFAULT_CONFIG } from '@/contexts/LayoutContext';
@@ -57,6 +57,90 @@ export default function LayoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [navOrder, setNavOrder] = useState<string[]>([]);
   const [widgetsOrder, setWidgetsOrder] = useState<string[]>([]);
+  // Drag & drop state
+  const dragData = useRef<{ type?: string; id?: string; role?: string } | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, payload: { type: string; id: string; role?: string }) => {
+    dragData.current = payload;
+    try { e.dataTransfer.setData('text/plain', JSON.stringify(payload)); } catch (err) { /* ignore */ }
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDropOnNav = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    let payload = dragData.current;
+    if (!payload) {
+      try { payload = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (err) { payload = null; }
+    }
+    if (!payload) return;
+    if (payload.type === 'nav') {
+      const src = payload.id!;
+      const dest = targetId;
+      const arr = [...(navOrder.length ? navOrder : (config.visible_nav_items || []))];
+      const from = arr.indexOf(src);
+      const to = arr.indexOf(dest);
+      if (from === -1 || to === -1 || from === to) return;
+      arr.splice(from, 1);
+      arr.splice(to, 0, src);
+      setNavOrder(arr);
+      updateConfig('nav_order', arr);
+    }
+    // role-nav and widgets handled elsewhere
+  };
+
+  const handleDropOnWidgets = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    let payload = dragData.current;
+    if (!payload) {
+      try { payload = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (err) { payload = null; }
+    }
+    if (!payload) return;
+    if (payload.type === 'widget') {
+      const src = payload.id!;
+      const dest = targetId;
+      const arr = [...(widgetsOrder.length ? widgetsOrder : (config.dashboard_widgets || []))];
+      const from = arr.indexOf(src);
+      const to = arr.indexOf(dest);
+      if (from === -1 || to === -1 || from === to) return;
+      arr.splice(from, 1);
+      arr.splice(to, 0, src);
+      setWidgetsOrder(arr);
+      updateConfig('dashboard_widget_order', arr);
+    }
+  };
+
+  const handleDropOnRoleList = (e: React.DragEvent, roleId: string, listKey: 'nav' | 'widgets') => {
+    e.preventDefault();
+    let payload = dragData.current;
+    if (!payload) {
+      try { payload = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (err) { payload = null; }
+    }
+    if (!payload) return;
+    if (listKey === 'nav' && payload.type === 'role-nav' && payload.role === roleId) {
+      const src = payload.id!;
+      const byRole = config.visible_nav_items_by_role || {};
+      const arr = [...(byRole[roleId] || [])];
+      const to = arr.indexOf(src);
+      // If dropped onto another item we won't have target id; just ignore
+      // For simplicity, moves will cycle to end if not present
+      if (to === -1) return;
+      // No-op for now
+      updateConfig('visible_nav_items_by_role', { ...byRole, [roleId]: arr });
+    }
+    if (listKey === 'widgets' && payload.type === 'role-widget' && payload.role === roleId) {
+      const src = payload.id!;
+      const byRole = config.dashboard_widgets_by_role || {};
+      const arr = [...(byRole[roleId] || [])];
+      const to = arr.indexOf(src);
+      if (to === -1) return;
+      updateConfig('dashboard_widgets_by_role', { ...byRole, [roleId]: arr });
+    }
+  };
 
   useEffect(() => {
     if (!config) return;
@@ -84,6 +168,59 @@ export default function LayoutPage() {
   const isAdmin = !!user?.roles?.includes('admin');
 
   const handleSaveLayout = async () => {
+    // Validate color contrast and warn user if combinations may reduce accessibility
+    const issues: string[] = [];
+    const hexToRgb = (hex: string) => {
+      if (!hex) return null;
+      const h = hex.replace('#', '');
+      const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+      const bigint = parseInt(full, 16);
+      return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+    };
+
+    const luminance = (r: number, g: number, b: number) => {
+      const srgb = [r / 255, g / 255, b / 255].map((v) => {
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+    };
+
+    const contrastRatio = (hex1: string, hex2: string) => {
+      const a = hexToRgb(hex1);
+      const b = hexToRgb(hex2);
+      if (!a || !b) return 21;
+      const L1 = luminance(a.r, a.g, a.b);
+      const L2 = luminance(b.r, b.g, b.b);
+      const bright = Math.max(L1, L2);
+      const dark = Math.min(L1, L2);
+      return (bright + 0.05) / (dark + 0.05);
+    };
+
+    // Check both light and dark variants against white and dark text backgrounds
+    const checkColor = (colorHex: string | undefined, name: string) => {
+      if (!colorHex) return;
+      const cAgainstWhite = contrastRatio(colorHex, '#ffffff');
+      const cAgainstBlack = contrastRatio(colorHex, '#000000');
+      if (cAgainstWhite < 3 && cAgainstBlack < 3) {
+        issues.push(`${name} possui baixo contraste com texto claro e escuro (WCAG < 3).`);
+      } else if (cAgainstWhite < 3) {
+        issues.push(`${name} pode ter baixo contraste quando usado sobre fundo branco (contraste ${cAgainstWhite.toFixed(2)}).`);
+      } else if (cAgainstBlack < 3) {
+        issues.push(`${name} pode ter baixo contraste quando usado sobre fundo escuro (contraste ${cAgainstBlack.toFixed(2)}).`);
+      }
+    };
+
+    // Validate configured tokens (light and dark variants)
+    checkColor(config.primary_color_light || config.primary_color, 'Primária (Claro)');
+    checkColor(config.primary_color_dark || config.primary_color, 'Primária (Escuro)');
+    checkColor(config.secondary_color_light || config.secondary_color, 'Secundária (Claro)');
+    checkColor(config.secondary_color_dark || config.secondary_color, 'Secundária (Escuro)');
+
+    if (issues.length) {
+      const msg = `Atenção: possíveis problemas de contraste foram detectados:\n\n- ${issues.join('\n- ')}\n\nDeseja continuar e salvar mesmo assim?`;
+      if (!confirm(msg)) return;
+    }
+
     setSaving(true);
     setError(null);
     try {
@@ -155,6 +292,161 @@ export default function LayoutPage() {
     });
   };
 
+  // Color helpers (hex/HSL conversions + WCAG contrast utils)
+  const hexToRgb = (hex: string) => {
+    if (!hex) return null;
+    const h = hex.replace('#', '');
+    const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+    const bigint = parseInt(full, 16);
+    return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+  };
+
+  const rgbToHex = (r: number, g: number, b: number) => {
+    const toHex = (n: number) => Math.round(n).toString(16).padStart(2, '0');
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  };
+
+  const rgbToHsl = (r: number, g: number, b: number) => {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0; const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  };
+
+  const hslToRgb = (h: number, s: number, l: number) => {
+    s /= 100; l /= 100; h /= 360;
+    if (s === 0) {
+      const v = Math.round(l * 255);
+      return { r: v, g: v, b: v };
+    }
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const r = hue2rgb(p, q, h + 1/3);
+    const g = hue2rgb(p, q, h);
+    const b = hue2rgb(p, q, h - 1/3);
+    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+  };
+
+  const rotateHue = (hex: string, deg: number) => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    let h = (hsl.h + deg) % 360; if (h < 0) h += 360;
+    const rgb2 = hslToRgb(h, hsl.s, hsl.l);
+    return rgbToHex(rgb2.r, rgb2.g, rgb2.b);
+  };
+
+  const clamp = (v: number, a = 0, b = 100) => Math.max(a, Math.min(b, v));
+
+  const adjustLightness = (hex: string, delta: number) => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const l = clamp(hsl.l + delta, 0, 100);
+    const rgb2 = hslToRgb(hsl.h, hsl.s, l);
+    return rgbToHex(rgb2.r, rgb2.g, rgb2.b);
+  };
+
+  const luminance = (r: number, g: number, b: number) => {
+    const srgb = [r / 255, g / 255, b / 255].map((v) => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+    return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+  };
+
+  const contrastRatio = (hex1: string, hex2: string) => {
+    const a = hexToRgb(hex1); const b = hexToRgb(hex2);
+    if (!a || !b) return 21;
+    const L1 = luminance(a.r, a.g, a.b); const L2 = luminance(b.r, b.g, b.b);
+    const bright = Math.max(L1, L2); const dark = Math.min(L1, L2);
+    return (bright + 0.05) / (dark + 0.05);
+  };
+
+  const pickTextColorForBackground = (bgHex: string, minContrast = 4.5) => {
+    if (!bgHex) return '#000000';
+    const cWhite = contrastRatio(bgHex, '#ffffff');
+    if (cWhite >= minContrast) return '#ffffff';
+    const cBlack = contrastRatio(bgHex, '#000000');
+    if (cBlack >= minContrast) return '#000000';
+    // Try to nudge background lighter/darker until we can use one of them
+    let attempts = 0; let test = bgHex;
+    while (attempts < 8) {
+      test = adjustLightness(test, attempts % 2 === 0 ? 6 : -6);
+      if (contrastRatio(test, '#ffffff') >= minContrast) return '#ffffff';
+      if (contrastRatio(test, '#000000') >= minContrast) return '#000000';
+      attempts++;
+    }
+    return cWhite > cBlack ? '#ffffff' : '#000000';
+  };
+
+  // Auto-fill derived tokens for light/dark modes using WCAG-aware heuristics
+  const autoFillLight = (primaryHex?: string) => {
+    if (!primaryHex) return;
+    const primary = primaryHex;
+    const secondary = rotateHue(primary, 150);
+    const sidebar = adjustLightness(primary, -8);
+    const chatBtn = secondary;
+    const feedbackBtn = rotateHue(primary, 200);
+    const body = '#111827';
+    const heading = '#0f172a';
+    const muted = adjustLightness(body, 40);
+    updateConfig('primary_color_light', primary);
+    updateConfig('secondary_color_light', secondary);
+    updateConfig('sidebar_color', sidebar);
+    updateConfig('chat_button_color', chatBtn);
+    updateConfig('feedback_button_color', feedbackBtn);
+    updateConfig('body_text_light', body);
+    updateConfig('heading_text_light', heading);
+    updateConfig('muted_text_light', muted);
+    // modal variants: choose text that contrasts with modal bg
+    const modalBg = '#ffffff';
+    updateConfig('bg_light', modalBg);
+    updateConfig('modal_bg_light', modalBg);
+    updateConfig('border_light', adjustLightness(modalBg, -8));
+    updateConfig('modal_border_light', adjustLightness(modalBg, -8));
+  };
+
+  const autoFillDark = (primaryHex?: string) => {
+    if (!primaryHex) return;
+    const primary = primaryHex;
+    const secondary = rotateHue(primary, 150);
+    const sidebarDark = adjustLightness(primary, -20);
+    const chatBtnDark = secondary;
+    const feedbackBtnDark = rotateHue(primary, 200);
+    const bodyDark = '#e6eef8';
+    const headingDark = '#ffffff';
+    const mutedDark = adjustLightness(bodyDark, -30);
+    updateConfig('primary_color_dark', primary);
+    updateConfig('secondary_color_dark', secondary);
+    updateConfig('sidebar_color_dark', sidebarDark);
+    updateConfig('chat_button_color_dark', chatBtnDark);
+    updateConfig('feedback_button_color_dark', feedbackBtnDark);
+    updateConfig('body_text_dark', bodyDark);
+    updateConfig('heading_text_dark', headingDark);
+    updateConfig('muted_text_dark', mutedDark);
+    const modalBg = '#0f172a';
+    updateConfig('bg_dark', modalBg);
+    updateConfig('modal_bg_dark', modalBg);
+    updateConfig('border_dark', adjustLightness(modalBg, 8));
+    updateConfig('modal_border_dark', adjustLightness(modalBg, 8));
+  };
+
   if (isLoading) return <div className="p-8 text-center">Loading layout configuration...</div>;
 
   return (
@@ -191,40 +483,58 @@ export default function LayoutPage() {
             const item = availableNavItems.find(x => x.id === id) || { id, label: id };
             const visible = (config.visible_nav_items || []).includes(id);
             return (
-              <li key={id} className="flex items-center justify-between p-2 border rounded">
+              <li
+                key={id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, { type: 'nav', id })}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDropOnNav(e, id)}
+                className="flex items-center justify-between p-2 border rounded cursor-move"
+              >
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="font-medium truncate">{tNav(item.id) || item.label}</span>
                 </div>
 
-                <div className="flex items-center gap-2 w-40 justify-end">
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2 w-52 justify-end">
+                  <div className="flex items-center gap-2 w-40">
                     <button
                       onClick={() => moveNavItem(id, 'up')}
                       disabled={idx === 0}
-                      className="px-2 py-1 border rounded w-9 h-7 flex items-center justify-center"
+                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg font-medium ${idx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                       aria-label="Move up"
                     >
-                      ↑
+                      <span className="leading-none">↑</span>
                     </button>
                     <button
                       onClick={() => moveNavItem(id, 'down')}
                       disabled={idx === (navOrder.length ? navOrder.length - 1 : availableNavItems.length - 1)}
-                      className="px-2 py-1 border rounded w-9 h-7 flex items-center justify-center"
+                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg font-medium ${idx === (navOrder.length ? navOrder.length - 1 : availableNavItems.length - 1) ? 'opacity-50 cursor-not-allowed' : ''}`}
                       aria-label="Move down"
                     >
-                      ↓
+                      <span className="leading-none">↓</span>
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => toggleNavItem(id)}
-                    disabled={id === 'settings'}
-                    title={id === 'settings' ? 'Este item é sempre visível' : undefined}
-                    className={`px-3 py-1 rounded ${visible ? 'bg-green-50 dark:bg-green-800 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' : 'bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-gray-200'} ${id === 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    aria-disabled={id === 'settings'}
-                  >
-                    {visible ? 'Visível' : 'Oculto'}
-                  </button>
+                  <div className="flex gap-3 w-full">
+                    <button
+                      onClick={() => { if (!visible) toggleNavItem(id); }}
+                      className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${visible ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                      aria-pressed={visible}
+                    >
+                      <span className="font-medium text-gray-900 dark:text-white">Visível</span>
+                      {visible && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                    </button>
+
+                    <button
+                      onClick={() => { if (visible && id !== 'settings') toggleNavItem(id); }}
+                      disabled={id === 'settings'}
+                      className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${!visible ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'} ${id === 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      aria-disabled={id === 'settings'}
+                    >
+                      <span className="font-medium text-gray-900 dark:text-white">Oculto</span>
+                      {!visible && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                    </button>
+                  </div>
                 </div>
               </li>
             );
@@ -255,19 +565,26 @@ export default function LayoutPage() {
                     {availableNavItems.map(item => {
                       const globallyVisible = (config.visible_nav_items || []).includes(item.id);
                       const hasAccess = roleNav.includes(item.id);
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => toggleNavItemForRole(role.id, item.id)}
-                          disabled={!globallyVisible}
-                          aria-pressed={hasAccess}
-                          title={!globallyVisible ? 'Ative o item globalmente primeiro' : hasAccess ? 'Remover acesso' : 'Conceder acesso'}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm text-left min-w-0 overflow-hidden truncate ${!globallyVisible ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-gray-300' : hasAccess ? 'bg-green-50 dark:bg-green-800 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100'}`}
-                        >
-                          <span className="truncate">{tNav(item.id) || item.label}</span>
-                          {hasAccess ? <CheckIcon className="w-4 h-4 text-green-600 inline-block" /> : null}
-                        </button>
-                      );
+                        return (
+                          <div
+                            key={item.id}
+                            draggable={globallyVisible}
+                            onDragStart={(e) => handleDragStart(e, { type: 'role-nav', id: item.id, role: role.id })}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDropOnRoleList(e, role.id, 'nav')}
+                          >
+                            <button
+                              onClick={() => toggleNavItemForRole(role.id, item.id)}
+                              disabled={!globallyVisible}
+                              aria-pressed={hasAccess}
+                              title={!globallyVisible ? 'Ative o item globalmente primeiro' : hasAccess ? 'Remover acesso' : 'Conceder acesso'}
+                              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm min-w-0 overflow-hidden truncate transition-all ${!globallyVisible ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300' : hasAccess ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100'}`}
+                            >
+                              <span className="truncate">{tNav(item.id) || item.label}</span>
+                              {hasAccess ? <CheckIcon className="w-4 h-4 text-primary-500 inline-block ml-2" /> : null}
+                            </button>
+                          </div>
+                        );
                     })}
                   </div>
                 </div>
@@ -291,7 +608,14 @@ export default function LayoutPage() {
             const widget = availableWidgets.find(x => x.id === id) || { id, label: id, size: 'small' };
             const enabled = (config.dashboard_widgets || []).includes(id);
             return (
-              <li key={id} className="flex items-center justify-between p-2 border rounded">
+              <li
+                key={id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, { type: 'widget', id })}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDropOnWidgets(e, id)}
+                className="flex items-center justify-between p-2 border rounded cursor-move"
+              >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex flex-col">
                     <span className="font-medium truncate">{widget.label}</span>
@@ -300,31 +624,87 @@ export default function LayoutPage() {
                 </div>
 
                 <div className="flex items-center gap-2 w-40 justify-end">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2 w-40">
                     <button
                       onClick={() => moveWidget(id, 'up')}
                       disabled={idx === 0}
-                      className="px-2 py-1 border rounded w-9 h-7 flex items-center justify-center"
+                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg font-medium ${idx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                       aria-label="Move up"
                     >
-                      ↑
+                      <span className="leading-none">↑</span>
                     </button>
                     <button
                       onClick={() => moveWidget(id, 'down')}
                       disabled={idx === (widgetsOrder.length ? widgetsOrder.length - 1 : availableWidgets.length - 1)}
-                      className="px-2 py-1 border rounded w-9 h-7 flex items-center justify-center"
+                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg font-medium ${idx === (widgetsOrder.length ? widgetsOrder.length - 1 : availableWidgets.length - 1) ? 'opacity-50 cursor-not-allowed' : ''}`}
                       aria-label="Move down"
                     >
-                      ↓
+                      <span className="leading-none">↓</span>
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => updateConfig('dashboard_widgets', enabled ? (config.dashboard_widgets || []).filter((w: string) => w !== id) : [...(config.dashboard_widgets || []), id])}
-                    className={`px-3 py-1 rounded ${enabled ? 'bg-green-50 dark:bg-green-800 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' : 'bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-gray-200'}`}
-                  >
-                    {enabled ? 'Ativo' : 'Inativo'}
-                  </button>
+                  <div className="flex gap-3 w-52 justify-end">
+                    <button
+                      onClick={() => {
+                        if (!enabled) {
+                          try {
+                            const currentWidgets = (config.dashboard_widgets || []);
+                            const currentOrder = (config.dashboard_widget_order && config.dashboard_widget_order.length) ? config.dashboard_widget_order : widgetsOrder;
+                            let nextWidgets = [...currentWidgets];
+                            if (!nextWidgets.includes(id)) {
+                              if (currentOrder && currentOrder.length) {
+                                const idxInOrder = currentOrder.indexOf(id);
+                                if (idxInOrder !== -1) {
+                                  // insert id preserving original order where possible
+                                  let insertAt = nextWidgets.length;
+                                  for (let i = idxInOrder - 1; i >= 0; i--) {
+                                    const before = currentOrder[i];
+                                    const pos = nextWidgets.indexOf(before);
+                                    if (pos !== -1) { insertAt = pos + 1; break; }
+                                  }
+                                  nextWidgets.splice(insertAt, 0, id);
+                                } else {
+                                  nextWidgets.push(id);
+                                }
+                              } else {
+                                nextWidgets.push(id);
+                              }
+                              updateConfig('dashboard_widgets', nextWidgets);
+                            }
+                          } catch (e) {
+                            updateConfig('dashboard_widgets', [...(config.dashboard_widgets || []), id]);
+                          }
+                        }
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${enabled ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                      aria-pressed={enabled}
+                    >
+                      <span className="font-medium text-gray-900 dark:text-white">Ativo</span>
+                      {enabled && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (enabled) {
+                          try {
+                            // Ensure we persist a widget order so disabling doesn't lose position
+                            const existingOrder = config.dashboard_widget_order || [];
+                            const orderToPersist = (existingOrder && existingOrder.length) ? existingOrder : widgetsOrder;
+                            if (!existingOrder || !existingOrder.length) {
+                              updateConfig('dashboard_widget_order', orderToPersist);
+                            }
+                          } catch (e) {
+                            // ignore
+                          }
+                          updateConfig('dashboard_widgets', (config.dashboard_widgets || []).filter((w: string) => w !== id));
+                        }
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${!enabled ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                    >
+                      <span className="font-medium text-gray-900 dark:text-white">Inativo</span>
+                      {!enabled && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                    </button>
+                  </div>
                 </div>
               </li>
             );
@@ -354,21 +734,28 @@ export default function LayoutPage() {
                       const enabled = (config.dashboard_widgets || []).includes(widget.id);
                       const hasRole = roleWidgets.includes(widget.id);
                       return (
-                        <button
+                        <div
                           key={widget.id}
-                          onClick={() => {
-                            const byRole = config.dashboard_widgets_by_role || {};
-                            const cur = byRole[role.id] || [];
-                            const next = cur.includes(widget.id) ? cur.filter((w: string) => w !== widget.id) : [...cur, widget.id];
-                            updateConfig('dashboard_widgets_by_role', { ...byRole, [role.id]: next });
-                          }}
-                          disabled={!enabled}
-                          aria-pressed={hasRole}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm min-w-0 overflow-hidden truncate ${!enabled ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-gray-300' : hasRole ? 'bg-green-50 dark:bg-green-800 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100'}`}
+                          draggable={enabled}
+                          onDragStart={(e) => handleDragStart(e, { type: 'role-widget', id: widget.id, role: role.id })}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDropOnRoleList(e, role.id, 'widgets')}
                         >
-                          <span className="truncate">{widget.label}</span>
-                          {hasRole ? <CheckIcon className="w-4 h-4 text-green-600 inline-block" /> : null}
-                        </button>
+                          <button
+                            onClick={() => {
+                              const byRole = config.dashboard_widgets_by_role || {};
+                              const cur = byRole[role.id] || [];
+                              const next = cur.includes(widget.id) ? cur.filter((w: string) => w !== widget.id) : [...cur, widget.id];
+                              updateConfig('dashboard_widgets_by_role', { ...byRole, [role.id]: next });
+                            }}
+                            disabled={!enabled}
+                            aria-pressed={hasRole}
+                            className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm min-w-0 overflow-hidden truncate transition-all ${!enabled ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300' : hasRole ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100'}`}
+                          >
+                            <span className="truncate">{widget.label}</span>
+                            {hasRole ? <CheckIcon className="w-4 h-4 text-primary-500 inline-block ml-2" /> : null}
+                          </button>
+                        </div>
                       );
                     })}
                     </div>
@@ -412,6 +799,13 @@ export default function LayoutPage() {
               <input type="range" min={200} max={400} value={config.sidebar_width} onChange={(e) => updateConfig('sidebar_width', parseInt(e.target.value))} className="w-full" />
             </div>
           </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Sidebar text (Light)</label>
+          <input type="color" value={(config as any).sidebar_text_light || ''} onChange={(e) => updateConfig('sidebar_text_light' as any, e.target.value)} className="w-16 h-10 p-1 rounded border" />
+          <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300 mt-3">Sidebar text (Dark)</label>
+          <input type="color" value={(config as any).sidebar_text_dark || ''} onChange={(e) => updateConfig('sidebar_text_dark' as any, e.target.value)} className="w-16 h-10 p-1 rounded border" />
         </div>
       </section>
 
@@ -477,35 +871,69 @@ export default function LayoutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Light mode column */}
           <div>
-            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.lightTitle') || 'Light mode'}</h3>
-            <div>
-              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.primary') || 'Primary color'}</label>
-              <div className="inline-block">
-                <input type="color" value={config.primary_color_light || config.primary_color} onChange={(e) => updateConfig('primary_color_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.lightTitle') || 'Claro'}</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.primary') || 'Primary color'}</label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={config.primary_color_light || config.primary_color} onChange={(e) => updateConfig('primary_color_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  <button type="button" onClick={() => autoFillLight(config.primary_color_light || config.primary_color)} className="px-3 py-2 border rounded text-sm">Auto Cor</button>
+                </div>
               </div>
-            </div>
 
-            <div className="mt-3">
-              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.secondary') || 'Secondary color'}</label>
-              <div className="inline-block">
+              <div>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.secondary') || 'Secondary color'}</label>
                 <input type="color" value={config.secondary_color_light || config.secondary_color} onChange={(e) => updateConfig('secondary_color_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
               </div>
-            </div>
 
-            <div className="mt-4 border-t pt-4">
-              <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{t('layout.theme.modalTitle') || 'Modal appearance'}</h4>
-              <div className="grid grid-cols-1 gap-3">
-                <div>
-                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBgLight') || 'Background'}</label>
-                  <input type="color" value={config.modal_bg_light} onChange={(e) => updateConfig('modal_bg_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+              <div>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Sidebar background</label>
+                <input type="color" value={config.sidebar_color || config.secondary_color_light || config.secondary_color} onChange={(e) => updateConfig('sidebar_color', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+              </div>
+
+              <div className="border-t pt-3">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cores da fonte (Claro)</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Body text</label>
+                    <input type="color" value={config.body_text_light || ''} onChange={(e) => updateConfig('body_text_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Heading text</label>
+                    <input type="color" value={config.heading_text_light || ''} onChange={(e) => updateConfig('heading_text_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Muted text</label>
+                    <input type="color" value={config.muted_text_light || ''} onChange={(e) => updateConfig('muted_text_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalTextLight') || 'Text'}</label>
-                  <input type="color" value={config.modal_text_light} onChange={(e) => updateConfig('modal_text_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+              </div>
+
+              <div className="border-t pt-3">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Botões Flutuantes (Claro)</h4>
+                <div className="flex gap-3">
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Chat (Claro)</label>
+                    <input type="color" value={config.chat_button_color || ''} onChange={(e) => updateConfig('chat_button_color', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Feedback (Claro)</label>
+                    <input type="color" value={config.feedback_button_color || ''} onChange={(e) => updateConfig('feedback_button_color', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBorderLight') || 'Border'}</label>
-                  <input type="color" value={config.modal_border_light} onChange={(e) => updateConfig('modal_border_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+              </div>
+
+              <div className="mt-4 border-t pt-4">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fundo e Borda (Sistema & Modal)</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Fundo</label>
+                    <input type="color" value={config.bg_light || config.modal_bg_light} onChange={(e) => { updateConfig('bg_light', e.target.value); updateConfig('modal_bg_light', e.target.value); }} className="w-16 h-10 p-1 rounded border" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Borda</label>
+                    <input type="color" value={config.border_light || config.modal_border_light} onChange={(e) => { updateConfig('border_light', e.target.value); updateConfig('modal_border_light', e.target.value); }} className="w-16 h-10 p-1 rounded border" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -513,43 +941,78 @@ export default function LayoutPage() {
 
           {/* Dark mode column */}
           <div>
-            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.darkTitle') || 'Dark mode'}</h3>
-            <div>
-              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.primary') || 'Primary color'}</label>
-              <div className="inline-block">
-                <input type="color" value={config.primary_color_dark || config.primary_color} onChange={(e) => updateConfig('primary_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.darkTitle') || 'Escuro'}</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.primary') || 'Primary color'}</label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={config.primary_color_dark || config.primary_color} onChange={(e) => updateConfig('primary_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  <button type="button" onClick={() => autoFillDark(config.primary_color_dark || config.primary_color)} className="px-3 py-2 border rounded text-sm">Auto Cor</button>
+                </div>
               </div>
-            </div>
 
-            <div className="mt-3">
-              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.secondary') || 'Secondary color'}</label>
-              <div className="inline-block">
+              <div>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.secondary') || 'Secondary color'}</label>
                 <input type="color" value={config.secondary_color_dark || config.secondary_color} onChange={(e) => updateConfig('secondary_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
               </div>
-            </div>
 
-            <div className="mt-4 border-t pt-4">
-              <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{t('layout.theme.modalTitle') || 'Modal appearance'}</h4>
-              <div className="grid grid-cols-1 gap-3">
-                <div>
-                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBgDark') || 'Background'}</label>
-                  <input type="color" value={config.modal_bg_dark} onChange={(e) => updateConfig('modal_bg_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+              <div>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Sidebar background (Escuro)</label>
+                <input type="color" value={config.sidebar_color_dark || config.secondary_color_dark || config.secondary_color} onChange={(e) => updateConfig('sidebar_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+              </div>
+
+              <div className="border-t pt-3">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cores da fonte (Escuro)</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Body text</label>
+                    <input type="color" value={config.body_text_dark || ''} onChange={(e) => updateConfig('body_text_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Heading text</label>
+                    <input type="color" value={config.heading_text_dark || ''} onChange={(e) => updateConfig('heading_text_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Muted text</label>
+                    <input type="color" value={config.muted_text_dark || ''} onChange={(e) => updateConfig('muted_text_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalTextDark') || 'Text'}</label>
-                  <input type="color" value={config.modal_text_dark} onChange={(e) => updateConfig('modal_text_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+              </div>
+
+              <div className="border-t pt-3">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Botões Flutuantes (Escuro)</h4>
+                <div className="flex gap-3">
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Chat (Escuro)</label>
+                    <input type="color" value={config.chat_button_color_dark || config.chat_button_color || ''} onChange={(e) => updateConfig('chat_button_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Feedback (Escuro)</label>
+                    <input type="color" value={config.feedback_button_color_dark || config.feedback_button_color || ''} onChange={(e) => updateConfig('feedback_button_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalBorderDark') || 'Border'}</label>
-                  <input type="color" value={config.modal_border_dark} onChange={(e) => updateConfig('modal_border_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
+              </div>
+
+              <div className="mt-4 border-t pt-4">
+                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Fundo e Borda (Sistema & Modal)</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Fundo</label>
+                    <input type="color" value={config.bg_dark || config.modal_bg_dark} onChange={(e) => { updateConfig('bg_dark', e.target.value); updateConfig('modal_bg_dark', e.target.value); }} className="w-16 h-10 p-1 rounded border" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Borda</label>
+                    <input type="color" value={config.border_dark || config.modal_border_dark} onChange={(e) => { updateConfig('border_dark', e.target.value); updateConfig('modal_border_dark', e.target.value); }} className="w-16 h-10 p-1 rounded border" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Shared appearance + overlay/elevation controls */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <hr className="my-4" />
+
+        <div className="space-y-4">
           <div>
             <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.themeColors.appearance') || 'Appearance'}</label>
             <select
@@ -566,14 +1029,15 @@ export default function LayoutPage() {
           <div>
             <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalOverlay') || 'Overlay opacity'}</label>
             <input type="range" min="0" max="100" value={Math.round((config.modal_overlay_opacity ?? 0.4) * 100)} onChange={(e) => updateConfig('modal_overlay_opacity', parseInt(e.target.value) / 100)} className="w-full" />
-            <div className="mt-2">
-              <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalElevation') || 'Elevation'}</label>
-              <select value={config.modal_elevation} onChange={(e) => updateConfig('modal_elevation', e.target.value as any)} className="w-full border rounded px-2 py-1">
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">{t('layout.theme.modalElevation') || 'Elevation'}</label>
+            <select value={config.modal_elevation} onChange={(e) => updateConfig('modal_elevation', e.target.value as any)} className="w-full border-2 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
           </div>
         </div>
       </section>

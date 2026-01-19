@@ -12,30 +12,30 @@ module.exports = {
         // Dynamic primary color from CSS variable (fallback to SENAI Red)
         'primary-dynamic': 'var(--color-primary, #E30613)',
         'secondary-dynamic': 'var(--color-secondary, #003366)',
-        // Firjan SENAI Brand Colors
+        // Map full palette to CSS variables so runtime theme tokens control utility classes
         primary: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#E30613', // SENAI Red
-          600: '#c00510',
-          700: '#9a040d',
-          800: '#7a030a',
-          900: '#5c0208',
+          50: 'var(--color-primary-50, #fef2f2)',
+          100: 'var(--color-primary-100, #fee2e2)',
+          200: 'var(--color-primary-200, #fecaca)',
+          300: 'var(--color-primary-300, #fca5a5)',
+          400: 'var(--color-primary-400, #f87171)',
+          500: 'var(--color-primary, #E30613)', // active primary token
+          600: 'var(--brand-primary-hover, #c00510)',
+          700: 'var(--brand-primary-dark, #9a040d)',
+          800: 'var(--brand-primary-darker, #7a030a)',
+          900: 'var(--brand-primary-deep, #5c0208)',
         },
         secondary: {
-          50: '#e6f0f7',
-          100: '#cce0ef',
-          200: '#99c2df',
-          300: '#66a3cf',
-          400: '#3385bf',
-          500: '#003366', // SENAI Navy
-          600: '#002952',
-          700: '#001f3d',
-          800: '#001429',
-          900: '#000a14',
+          50: 'var(--color-secondary-50, #e6f0f7)',
+          100: 'var(--color-secondary-100, #cce0ef)',
+          200: 'var(--color-secondary-200, #99c2df)',
+          300: 'var(--color-secondary-300, #66a3cf)',
+          400: 'var(--color-secondary-400, #3385bf)',
+          500: 'var(--color-secondary, #003366)', // active secondary token
+          600: 'var(--brand-secondary-hover, #002952)',
+          700: 'var(--brand-secondary-dark, #001f3d)',
+          800: 'var(--brand-secondary-darker, #001429)',
+          900: 'var(--brand-secondary-deep, #000a14)',
         },
         // Semantic colors
         surface: {

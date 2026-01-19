@@ -1,3 +1,38 @@
 {
-  "preferences": []
+  "preferences": [
+    {
+      "user_id": "b0cf676c-edd9-4c40-93f4-0c04ecb90cc5",
+      "module": "pii-analysis",
+      "visibleStatIds": [
+        "pii-total",
+        "pii-pending",
+        "pii-approved",
+        "pii-anonymized",
+        "pii-critical",
+        "pii-cpf",
+        "pii-email",
+        "pii-phone"
+      ],
+      "orderOverride": {},
+      "reorderEnabled": true,
+      "updated_at": "2026-01-19T11:55:30.396165Z"
+    },
+    {
+      "user_id": null,
+      "module": "pii-analysis",
+      "visibleStatIds": [
+        "pii-total",
+        "pii-pending",
+        "pii-approved",
+        "pii-anonymized",
+        "pii-critical",
+        "pii-cpf",
+        "pii-email",
+        "pii-phone"
+      ],
+      "orderOverride": {},
+      "reorderEnabled": false,
+      "updated_at": "2026-01-19T20:37:19.022081Z"
+    }
+  ]
 }

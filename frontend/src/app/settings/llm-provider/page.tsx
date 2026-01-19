@@ -380,7 +380,7 @@ export default function LLMProviderSettingsPage() {
       )}
       
       {/* Provider Selection */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <SparklesIcon className="w-5 h-5 text-primary-500" />
           {t('llm.selectProvider')}
@@ -419,7 +419,7 @@ export default function LLMProviderSettingsPage() {
       
       {/* Configuration Form */}
       {currentProvider && (
-        <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6 space-y-6">
+        <section className="card p-6 space-y-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             {t('llm.configure', { name: currentProvider.name })}
           </h2>
@@ -605,7 +605,7 @@ export default function LLMProviderSettingsPage() {
       )}
       
       {/* Existing Configurations */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Configurações Existentes
         </h2>

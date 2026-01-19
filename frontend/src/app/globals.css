@@ -83,6 +83,33 @@
   .bg-blue-500 { background-color: var(--brand-secondary, #003366) !important; }
   .hover\:text-blue-500:hover { color: var(--brand-secondary, #003366) !important; }
 
+  /* Additional blue mappings to ensure icons and blue utilities follow the theme in dark mode */
+  .text-blue-600 { color: var(--color-secondary, #003366) !important; }
+  .bg-blue-100 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.12) !important; }
+  .bg-blue-50 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.06) !important; }
+  .hover\:bg-blue-100:hover { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.12) !important; }
+  .dark .bg-blue-100 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.10) !important; }
+  .dark .text-blue-600 { color: color-mix(in srgb, var(--color-secondary, #003366) 85%, #ffffff 15%) !important; }
+
+  /* Firjan red alias used across several dashboard components */
+  .text-firjan-red { color: var(--brand-primary, var(--color-primary, #E30613)) !important; }
+  .hover\:text-firjan-red\/80:hover { color: rgba(var(--brand-primary-rgb, 227,6,19), 0.8) !important; }
+  .dark .text-firjan-red { color: var(--brand-primary, var(--color-primary, #E30613)) !important; }
+
+  /* Map common Tailwind gray text classes to theme tokens so system text follows selected colors */
+  .text-gray-900 { color: var(--text-primary) !important; }
+  .text-gray-700 { color: var(--text-secondary) !important; }
+  .text-gray-600, .text-gray-500 { color: var(--text-muted) !important; }
+  .text-gray-400 { color: color-mix(in srgb, var(--text-muted) 80%, #000 20%) !important; }
+  /* In dark mode many components use text-white; ensure it reflects configured text-primary */
+  .dark .text-white { color: var(--text-primary) !important; }
+  .dark .text-white\/60 { color: color-mix(in srgb, var(--text-primary) 60%, #000 40%) !important; }
+
+  /* Sidebar text enforcement so sidebar uses configured sidebar text tokens even when Tailwind utilities used */
+  .sidebar-item, .sidebar-item * { color: var(--sidebar-text) !important; }
+  .sidebar-item .text-white { color: var(--sidebar-text) !important; }
+  .sidebar-item .text-white\/60 { color: rgba(var(--sidebar-text-rgb, 255,255,255), 0.6) !important; }
+
   /* Fallback for utilities that include dark: variants */
   .dark .bg-red-50 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.06) !important; }
   .dark .bg-red-100 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.10) !important; }
@@ -183,6 +210,16 @@ body {
   background-color: var(--color-primary, #E30613) !important;
 }
 
+/* Ensure 500 and softer shades map to theme tokens */
+.bg-primary-50 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.06) !important; }
+.bg-primary-100 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.12) !important; }
+.bg-primary-200 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.18) !important; }
+.bg-primary-300 { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.26) !important; }
+.bg-primary-500 { background-color: var(--color-primary, #E30613) !important; }
+  .text-primary-500 { color: var(--color-primary, #E30613) !important; }
+  .hover\:bg-primary-50:hover { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.06) !important; }
+  .hover\:bg-primary-100:hover { background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.12) !important; }
+
 .text-primary-600,
 .text-primary-700,
 .hover\:text-primary-600:hover,
@@ -210,11 +247,34 @@ body {
   background-color: var(--color-secondary, #003366) !important;
 }
 
+/* Ensure 500 and softer shades map to theme tokens */
+.bg-secondary-50 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.06) !important; }
+.bg-secondary-100 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.12) !important; }
+.bg-secondary-200 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.18) !important; }
+.bg-secondary-300 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.26) !important; }
+.bg-secondary-500 { background-color: var(--color-secondary, #003366) !important; }
+.text-secondary-500 { color: var(--color-secondary, #003366) !important; }
+.hover\:bg-secondary-50:hover { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.06) !important; }
+.hover\:bg-secondary-100:hover { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.12) !important; }
+
 .text-secondary-600,
 .text-secondary-700,
 .hover\:text-secondary-600:hover {
   color: var(--color-secondary, #003366) !important;
 }
+
+/* Backward-compat: remap common green/success utilities to secondary tokens
+   This ensures legacy 'active' markers and success badges follow the configured secondary color. */
+.bg-green-50 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.06) !important; }
+.bg-green-100 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.12) !important; }
+.bg-green-200 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.18) !important; }
+.bg-green-300 { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.26) !important; }
+.bg-green-500 { background-color: var(--color-secondary, #003366) !important; }
+.text-green-500 { color: var(--color-secondary, #003366) !important; }
+.text-green-600 { color: var(--color-secondary, #003366) !important; }
+.hover\:bg-green-50:hover { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.06) !important; }
+.hover\:bg-green-100:hover { background-color: rgba(var(--brand-secondary-rgb, 0,51,102), 0.12) !important; }
+.dark\:text-green-400 { color: color-mix(in srgb, var(--color-secondary, #003366) 80%, #000 20%) !important; }
 
 /* Reduce Motion for Accessibility */
 .reduce-motion,
@@ -330,18 +390,24 @@ body {
   }
   
   .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600;
+    @apply bg-primary-500 hover:bg-primary-600;
+    color: var(--text-inverse);
     @apply focus:ring-primary-500;
   }
   
   .btn-secondary {
-    @apply bg-secondary-500 text-white hover:bg-secondary-600;
+    @apply bg-secondary-500 hover:bg-secondary-600;
+    color: var(--text-inverse);
     @apply focus:ring-secondary-500;
   }
   
   .btn-ghost {
     @apply bg-transparent hover:bg-gray-100 dark:hover:bg-slate-700;
-    @apply text-gray-700 dark:text-gray-300;
+    color: var(--text-secondary);
+  }
+
+  .dark .btn-ghost {
+    color: var(--text-muted);
   }
   
   .btn-sm {
@@ -357,20 +423,92 @@ body {
   }
 }
 
+/* Range inputs / sliders: use secondary theme tokens by default
+   Ensures sliders match the configured secondary color (thumb, track, and accent) */
+input[type="range"] {
+  accent-color: var(--color-secondary, #003366);
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, rgba(var(--brand-secondary-rgb, 0,51,102), 0.12), rgba(var(--brand-secondary-rgb, 0,51,102), 0.12));
+  height: 6px;
+  border-radius: 9999px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--color-secondary, #003366);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  margin-top: -5px; /* center the thumb on the track */
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-track {
+  background: rgba(var(--brand-secondary-rgb, 0,51,102), 0.12);
+  height: 6px;
+  border-radius: 9999px;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--color-secondary, #003366);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  border: none;
+}
+
+/* Edge case: make sure input[type=range] when inside .dark still uses variable */
+:root, .dark {
+  --range-thumb-color: var(--color-secondary, #003366);
+}
+
+/* Floating Chat and Feedback buttons: use dedicated tokens so they are not affected
+   by primary/secondary remapping unless explicitly configured in Settings -> Theme & Colors */
+.chat-button, .feedback-button {
+  color: white !important;
+  background-color: var(--color-chat-button) !important;
+}
+.feedback-button {
+  background-color: var(--color-feedback-button) !important;
+}
+
+/* Dark-mode variants: prefer dedicated dark tokens when .dark is present */
+.dark .chat-button, :root.dark .chat-button {
+  background-color: var(--color-chat-button-dark, var(--color-chat-button)) !important;
+}
+.dark .feedback-button, :root.dark .feedback-button {
+  background-color: var(--color-feedback-button-dark, var(--color-feedback-button)) !important;
+}
+
+.chat-button:hover { background-color: color-mix(in srgb, var(--color-chat-button) 85%, #000 15%) !important; }
+.feedback-button:hover { background-color: color-mix(in srgb, var(--color-feedback-button) 85%, #000 15%) !important; }
+/* Hover for dark variants */
+.dark .chat-button:hover, :root.dark .chat-button:hover { background-color: color-mix(in srgb, var(--color-chat-button-dark, var(--color-chat-button)) 85%, #000 15%) !important; }
+.dark .feedback-button:hover, :root.dark .feedback-button:hover { background-color: color-mix(in srgb, var(--color-feedback-button-dark, var(--color-feedback-button)) 85%, #000 15%) !important; }
+
+.chat-button:focus, .feedback-button:focus { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-chat-button, var(--color-feedback-button, #000)) 12%, transparent) !important; }
+.dark .chat-button:focus, .dark .feedback-button:focus { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-chat-button-dark, var(--color-chat-button, #000)) 12%, transparent) !important; }
+
 /* ================================================
    Confidence Badge Colors (RNF-04)
    ================================================ */
 
 .badge-green {
-  @apply bg-confidence-green text-white;
+  @apply bg-confidence-green;
+  color: var(--text-inverse);
 }
 
 .badge-yellow {
-  @apply bg-confidence-yellow text-white;
+  @apply bg-confidence-yellow;
+  color: var(--text-inverse);
 }
 
 .badge-red {
-  @apply bg-confidence-red text-white;
+  @apply bg-confidence-red;
+  color: var(--text-inverse);
 }
 
 /* ================================================
@@ -423,12 +561,19 @@ body {
 
 .sidebar-item {
   @apply flex items-center gap-3 px-3 py-2.5 rounded-lg;
-  @apply text-white/80 hover:text-white hover:bg-white/10;
+  color: rgba(var(--sidebar-text-rgb, 255,255,255), 0.8);
+}
+
+.sidebar-item:hover {
+  color: var(--sidebar-text);
+  background-color: rgba(255,255,255,0.1);
   @apply transition-all duration-200;
+
 }
 
 .sidebar-item.active {
-  @apply bg-primary-500 text-white;
+  @apply bg-primary-500;
+  color: var(--text-inverse);
 }
 
 /* ================================================
@@ -436,7 +581,7 @@ body {
    ================================================ */
 
 .header-icon-btn {
-  @apply p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100;
-  @apply dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-slate-700;
+  @apply p-2 rounded-lg hover:bg-gray-100;
+  color: var(--text-secondary);
   @apply transition-colors duration-200;
 }

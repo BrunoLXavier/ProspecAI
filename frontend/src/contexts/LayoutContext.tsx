@@ -48,6 +48,25 @@ export interface LayoutConfig {
   // Feature toggles
   ai_chat_enabled?: boolean;
   feedback_button_enabled?: boolean;
+  // Per-button colors (allow overriding floating button defaults)
+  chat_button_color?: string;
+  feedback_button_color?: string;
+  // Dark-mode variants for floating buttons
+  chat_button_color_dark?: string;
+  feedback_button_color_dark?: string;
+  // Explicit sidebar colors (do not rely on secondary)
+  sidebar_color?: string;
+  sidebar_color_dark?: string;
+  // Sidebar text colors
+  sidebar_text_light?: string;
+  sidebar_text_dark?: string;
+  // Font color tokens
+  body_text_light?: string;
+  body_text_dark?: string;
+  heading_text_light?: string;
+  heading_text_dark?: string;
+  muted_text_light?: string;
+  muted_text_dark?: string;
   // Branding (new fields)
   site_name: string;
   site_logo_url: string | null;
@@ -62,6 +81,11 @@ export interface LayoutConfig {
   primary_color_dark?: string;
   secondary_color_light?: string;
   secondary_color_dark?: string;
+  // Shared background / border tokens that apply to system and modals
+  bg_light?: string;
+  bg_dark?: string;
+  border_light?: string;
+  border_dark?: string;
   modal_bg_light?: string;
   modal_bg_dark?: string;
   modal_text_light?: string;
@@ -145,12 +169,30 @@ export const DEFAULT_CONFIG: LayoutConfig = {
   secondary_color_dark: '#003366',
   modal_bg_light: '#ffffff',
   modal_bg_dark: '#1e293b',
+  bg_light: '#ffffff',
+  bg_dark: '#1e293b',
   modal_text_light: '#0f172a',
   modal_text_dark: '#f8fafc',
   modal_border_light: '#e2e8f0',
   modal_border_dark: '#334155',
+  border_light: '#e2e8f0',
+  border_dark: '#334155',
   modal_overlay_opacity: 0.4,
   modal_elevation: 'medium',
+  chat_button_color: '#E30613',
+  feedback_button_color: '#f59e0b',
+  chat_button_color_dark: '#E30613',
+  feedback_button_color_dark: '#f59e0b',
+  sidebar_color: '#003366',
+  sidebar_color_dark: '#002244',
+  sidebar_text_light: '#ffffff',
+  sidebar_text_dark: '#ffffff',
+  body_text_light: '#0f172a',
+  body_text_dark: '#f8fafc',
+  heading_text_light: '#0f172a',
+  heading_text_dark: '#f8fafc',
+  muted_text_light: '#6b7280',
+  muted_text_dark: '#9ca3af',
 };
 
 // =============================================================================
@@ -186,6 +228,18 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       const path = user?.id ? `/api/v1/layout?user_id=${user.id}` : '/api/v1/layout';
       const response = await apiClient.get<{ config: LayoutConfig }>(path);
       const backendConfig = { ...DEFAULT_CONFIG, ...response.config };
+      // If the user has an explicit local preference saved under 'theme', prefer it
+      // over the backend value so local toggles don't get overridden on reload.
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const storedTheme = window.localStorage.getItem('theme') as LayoutConfig['color_mode'] | null;
+          if (storedTheme && (storedTheme === 'light' || storedTheme === 'dark')) {
+            backendConfig.color_mode = storedTheme;
+          }
+        }
+      } catch (e) {
+        // ignore storage access errors and fall back to backend config
+      }
       setConfig(backendConfig);
     } catch (backendErr) {
       // If backend fails, use default config
@@ -275,34 +329,156 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {
         // ignore
       }
+      // Per-button tokens (chat / feedback) - keep defaults if not provided
+      document.documentElement.style.setProperty('--color-chat-button', config.chat_button_color || DEFAULT_CONFIG.chat_button_color || '#E30613');
+      document.documentElement.style.setProperty('--color-feedback-button', config.feedback_button_color || DEFAULT_CONFIG.feedback_button_color || '#f59e0b');
+      document.documentElement.style.setProperty('--color-chat-button-dark', config.chat_button_color_dark || config.chat_button_color || DEFAULT_CONFIG.chat_button_color || '#E30613');
+      document.documentElement.style.setProperty('--color-feedback-button-dark', config.feedback_button_color_dark || config.feedback_button_color || DEFAULT_CONFIG.feedback_button_color || '#f59e0b');
+      // Sidebar background tokens - pick active value according to color mode
+      const sidebarLight = config.sidebar_color || activeSecondary;
+      const sidebarDark = (config.sidebar_color_dark || config.secondary_color_dark || config.secondary_color || DEFAULT_CONFIG.secondary_color_dark) ?? sidebarLight;
+      const activeSidebar = (config.color_mode === 'dark') ? sidebarDark : sidebarLight;
+      document.documentElement.style.setProperty('--sidebar-bg', activeSidebar);
+      document.documentElement.style.setProperty('--sidebar-bg-dark', sidebarDark);
+      // Sidebar text tokens: allow customizing sidebar text separately
+      const sidebarTextLight = String(config.sidebar_text_light ?? DEFAULT_CONFIG.sidebar_text_light ?? '#ffffff');
+      const sidebarTextDark = String(config.sidebar_text_dark ?? DEFAULT_CONFIG.sidebar_text_dark ?? '#ffffff');
+      document.documentElement.style.setProperty('--sidebar-text', config.color_mode === 'dark' ? sidebarTextDark : sidebarTextLight);
+      // expose RGB for translucent variants
+      try {
+        const st = (config.color_mode === 'dark' ? (config.sidebar_text_dark || DEFAULT_CONFIG.sidebar_text_dark) : (config.sidebar_text_light || DEFAULT_CONFIG.sidebar_text_light)) || '#ffffff';
+        const h = st.replace('#', '');
+        const bigint = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+        const sr = (bigint >> 16) & 255;
+        const sg = (bigint >> 8) & 255;
+        const sb = bigint & 255;
+        document.documentElement.style.setProperty('--sidebar-text-rgb', `${sr}, ${sg}, ${sb}`);
+      } catch (e) {
+        // ignore
+      }
+      // Font colors (light / dark)
+      document.documentElement.style.setProperty('--text-body-light', String(config.body_text_light ?? DEFAULT_CONFIG.body_text_light));
+      document.documentElement.style.setProperty('--text-body-dark', String(config.body_text_dark ?? DEFAULT_CONFIG.body_text_dark));
+      document.documentElement.style.setProperty('--text-heading-light', String(config.heading_text_light ?? DEFAULT_CONFIG.heading_text_light));
+      document.documentElement.style.setProperty('--text-heading-dark', String(config.heading_text_dark ?? DEFAULT_CONFIG.heading_text_dark));
+      document.documentElement.style.setProperty('--text-muted-light', String(config.muted_text_light ?? DEFAULT_CONFIG.muted_text_light));
+      document.documentElement.style.setProperty('--text-muted-dark', String(config.muted_text_dark ?? DEFAULT_CONFIG.muted_text_dark));
+      // Map the configured body/heading/muted tokens to the commonly-used
+      // global tokens so existing CSS uses the right colors according to mode.
+      try {
+        const bodyLight = String(config.body_text_light ?? DEFAULT_CONFIG.body_text_light);
+        const bodyDark = String(config.body_text_dark ?? DEFAULT_CONFIG.body_text_dark);
+        const headingLight = String(config.heading_text_light ?? DEFAULT_CONFIG.heading_text_light);
+        const headingDark = String(config.heading_text_dark ?? DEFAULT_CONFIG.heading_text_dark);
+        const mutedLight = String(config.muted_text_light ?? DEFAULT_CONFIG.muted_text_light);
+        const mutedDark = String(config.muted_text_dark ?? DEFAULT_CONFIG.muted_text_dark);
+        const isDarkMode = config.color_mode === 'dark';
+        document.documentElement.style.setProperty('--text-primary', isDarkMode ? bodyDark : bodyLight);
+        document.documentElement.style.setProperty('--text-secondary', isDarkMode ? headingDark : headingLight);
+        document.documentElement.style.setProperty('--text-muted', isDarkMode ? mutedDark : mutedLight);
+      } catch (e) {
+        // ignore mapping errors
+      }
       document.documentElement.style.setProperty('--border-focus', primary);
       // Sidebar active color - translucent variant
       document.documentElement.style.setProperty('--sidebar-active', primary + 'E6');
       // If components reference --color-primary / --brand-primary both will be present
 
       // Modal color variables (light/dark) - allow Layout settings to override
+      // Declare chosenShadow in outer scope so it's available when we
+      // persist the compact theme blob below (avoids TS scope error).
+      let chosenShadow: string | null = null;
       try {
-        document.documentElement.style.setProperty('--modal-bg-light', String(config.modal_bg_light ?? DEFAULT_CONFIG.modal_bg_light ?? '#ffffff'));
-        document.documentElement.style.setProperty('--modal-bg-dark', String(config.modal_bg_dark ?? DEFAULT_CONFIG.modal_bg_dark ?? '#1e293b'));
-        document.documentElement.style.setProperty('--modal-text-light', String(config.modal_text_light ?? DEFAULT_CONFIG.modal_text_light ?? '#0f172a'));
-        document.documentElement.style.setProperty('--modal-text-dark', String(config.modal_text_dark ?? DEFAULT_CONFIG.modal_text_dark ?? '#f8fafc'));
-        document.documentElement.style.setProperty('--modal-border-light', String(config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light ?? '#e2e8f0'));
-        document.documentElement.style.setProperty('--modal-border-dark', String(config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark ?? '#334155'));
+        // Allow shared background/border tokens to override modal-specific tokens.
+        document.documentElement.style.setProperty('--modal-bg-light', String(config.bg_light ?? config.modal_bg_light ?? DEFAULT_CONFIG.modal_bg_light ?? '#ffffff'));
+        document.documentElement.style.setProperty('--modal-bg-dark', String(config.bg_dark ?? config.modal_bg_dark ?? DEFAULT_CONFIG.modal_bg_dark ?? '#1e293b'));
+        // Modal text tokens mirror the configured body text tokens so font color
+        // controls apply uniformly to system and modal text.
+        document.documentElement.style.setProperty('--modal-text-light', String(config.body_text_light ?? DEFAULT_CONFIG.body_text_light ?? '#0f172a'));
+        document.documentElement.style.setProperty('--modal-text-dark', String(config.body_text_dark ?? DEFAULT_CONFIG.body_text_dark ?? '#f8fafc'));
+        document.documentElement.style.setProperty('--modal-border-light', String(config.border_light ?? config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light ?? '#e2e8f0'));
+        document.documentElement.style.setProperty('--modal-border-dark', String(config.border_dark ?? config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark ?? '#334155'));
         // Active variables used by components (immediate reflect)
         const isDark = config.color_mode === 'dark';
-        document.documentElement.style.setProperty('--modal-bg', String(isDark ? (config.modal_bg_dark ?? DEFAULT_CONFIG.modal_bg_dark) : (config.modal_bg_light ?? DEFAULT_CONFIG.modal_bg_light)));
-        document.documentElement.style.setProperty('--modal-text', String(isDark ? (config.modal_text_dark ?? DEFAULT_CONFIG.modal_text_dark) : (config.modal_text_light ?? DEFAULT_CONFIG.modal_text_light)));
-        document.documentElement.style.setProperty('--modal-border', String(isDark ? (config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark) : (config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light)));
+        // Active modal/bg used by components: prefer shared bg tokens when provided
+        document.documentElement.style.setProperty('--modal-bg', String(isDark ? (config.bg_dark ?? config.modal_bg_dark ?? DEFAULT_CONFIG.modal_bg_dark) : (config.bg_light ?? config.modal_bg_light ?? DEFAULT_CONFIG.modal_bg_light)));
+        // Use the configured body text tokens for modal text so font color settings
+        // apply to both system and modals consistently.
+        const modalText = isDark ? (config.body_text_dark ?? DEFAULT_CONFIG.body_text_dark) : (config.body_text_light ?? DEFAULT_CONFIG.body_text_light);
+        document.documentElement.style.setProperty('--modal-text', String(modalText));
+        document.documentElement.style.setProperty('--modal-border', String(isDark ? (config.border_dark ?? config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark) : (config.border_light ?? config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light)));
         // Overlay opacity and elevation
         document.documentElement.style.setProperty('--modal-overlay-opacity', String(config.modal_overlay_opacity ?? DEFAULT_CONFIG.modal_overlay_opacity));
-        // Map elevation to a shadow value
+        // Map elevation to a shadow value, using different shadow tones for light vs dark mode
         const elevation = config.modal_elevation || DEFAULT_CONFIG.modal_elevation || 'medium';
-        const shadowMap: Record<string, string> = {
+        const shadowMapLight: Record<string, string> = {
           low: '0 4px 12px -6px rgba(0,0,0,0.08)',
           medium: '0 8px 24px -4px rgba(0,0,0,0.12)',
           high: '0 12px 40px -8px rgba(0,0,0,0.16)',
         };
-        document.documentElement.style.setProperty('--modal-shadow', shadowMap[elevation]);
+        // For dark mode, use subtle light glows layered to simulate elevation on dark surfaces
+        const shadowMapDark: Record<string, string> = {
+          low: '0 4px 10px -6px rgba(255,255,255,0.03), 0 1px 0 rgba(0,0,0,0.12) inset',
+          medium: '0 8px 22px -6px rgba(255,255,255,0.04), 0 2px 0 rgba(0,0,0,0.18) inset',
+          high: '0 12px 40px -8px rgba(255,255,255,0.05), 0 4px 0 rgba(0,0,0,0.22) inset',
+        };
+        const isDarkMode = config.color_mode === 'dark';
+        chosenShadow = isDarkMode ? shadowMapDark[elevation] : shadowMapLight[elevation];
+        document.documentElement.style.setProperty('--modal-shadow', chosenShadow || '');
+      } catch (e) {
+        // ignore
+      }
+
+      // Persist a compact theme blob to localStorage so ThemeScript can apply
+      // colors before React hydration (reduces FOUC). Only non-sensitive color
+      // tokens are stored.
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const isDarkMode = config.color_mode === 'dark';
+          let primaryRgb = '';
+          try {
+            const pr = toRgb(activePrimary);
+            primaryRgb = `${pr.r}, ${pr.g}, ${pr.b}`;
+          } catch (e) {
+            // ignore
+          }
+          const themeBlob: Record<string, any> = {
+            color_mode: config.color_mode,
+            '--color-primary': activePrimary,
+            '--color-secondary': activeSecondary,
+            '--brand-primary': primary,
+            '--brand-primary-hover': primaryHover,
+            '--brand-primary-rgb': primaryRgb,
+            '--color-chat-button': config.chat_button_color || DEFAULT_CONFIG.chat_button_color,
+            '--color-feedback-button': config.feedback_button_color || DEFAULT_CONFIG.feedback_button_color,
+            '--color-chat-button-dark': config.chat_button_color_dark || config.chat_button_color || DEFAULT_CONFIG.chat_button_color,
+            '--color-feedback-button-dark': config.feedback_button_color_dark || config.feedback_button_color || DEFAULT_CONFIG.feedback_button_color,
+            '--sidebar-bg': (isDarkMode ? (config.sidebar_color_dark || config.secondary_color_dark || config.secondary_color || DEFAULT_CONFIG.secondary_color_dark) : (config.sidebar_color || activeSecondary)),
+            '--sidebar-bg-dark': (config.sidebar_color_dark || config.secondary_color_dark || config.secondary_color || DEFAULT_CONFIG.secondary_color_dark) ?? null,
+            '--sidebar-text-light': config.sidebar_text_light || DEFAULT_CONFIG.sidebar_text_light,
+            '--sidebar-text-dark': config.sidebar_text_dark || DEFAULT_CONFIG.sidebar_text_dark,
+            '--sidebar-text': String(isDarkMode ? (config.sidebar_text_dark || DEFAULT_CONFIG.sidebar_text_dark) : (config.sidebar_text_light || DEFAULT_CONFIG.sidebar_text_light)),
+            '--sidebar-text-rgb': (function(){ try { const st = (isDarkMode ? (config.sidebar_text_dark || DEFAULT_CONFIG.sidebar_text_dark) : (config.sidebar_text_light || DEFAULT_CONFIG.sidebar_text_light)) || '#ffffff'; const h = st.replace('#',''); const bigint = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h,16); const sr = (bigint>>16)&255; const sg = (bigint>>8)&255; const sb = bigint&255; return `${sr}, ${sg}, ${sb}` } catch(e){ return null } })(),
+            '--text-body-light': config.body_text_light || DEFAULT_CONFIG.body_text_light,
+            '--text-body-dark': config.body_text_dark || DEFAULT_CONFIG.body_text_dark,
+            '--text-heading-light': config.heading_text_light || DEFAULT_CONFIG.heading_text_light,
+            '--text-heading-dark': config.heading_text_dark || DEFAULT_CONFIG.heading_text_dark,
+            '--text-muted-light': config.muted_text_light || DEFAULT_CONFIG.muted_text_light,
+            '--text-muted-dark': config.muted_text_dark || DEFAULT_CONFIG.muted_text_dark,
+            '--modal-text-light': config.body_text_light || DEFAULT_CONFIG.body_text_light,
+            '--modal-text-dark': config.body_text_dark || DEFAULT_CONFIG.body_text_dark,
+            '--modal-bg': String(isDarkMode ? (config.bg_dark ?? config.modal_bg_dark ?? DEFAULT_CONFIG.modal_bg_dark) : (config.bg_light ?? config.modal_bg_light ?? DEFAULT_CONFIG.modal_bg_light)),
+            '--modal-text': String(isDarkMode ? (config.body_text_dark ?? DEFAULT_CONFIG.body_text_dark) : (config.body_text_light ?? DEFAULT_CONFIG.body_text_light)),
+            '--modal-border': String(isDarkMode ? (config.border_dark ?? config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark) : (config.border_light ?? config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light)),
+            '--modal-overlay-opacity': String(config.modal_overlay_opacity ?? DEFAULT_CONFIG.modal_overlay_opacity),
+            '--modal-shadow': String(chosenShadow),
+          };
+          try {
+            localStorage.setItem('prospecai:layout_theme', JSON.stringify(themeBlob));
+          } catch (e) {
+            // ignore storage errors
+          }
+        }
       } catch (e) {
         // ignore
       }
@@ -434,15 +610,36 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         secondary_color: config.secondary_color,
         secondary_color_light: config.secondary_color_light,
         secondary_color_dark: config.secondary_color_dark,
+        sidebar_color: config.sidebar_color,
+        sidebar_color_dark: config.sidebar_color_dark,
         modal_bg_light: config.modal_bg_light,
         modal_bg_dark: config.modal_bg_dark,
+        // Shared background / border tokens (new keys)
+        bg_light: (config as any).bg_light,
+        bg_dark: (config as any).bg_dark,
         modal_text_light: config.modal_text_light,
         modal_text_dark: config.modal_text_dark,
         modal_border_light: config.modal_border_light,
         modal_border_dark: config.modal_border_dark,
+        border_light: (config as any).border_light,
+        border_dark: (config as any).border_dark,
         modal_overlay_opacity: config.modal_overlay_opacity,
         modal_elevation: config.modal_elevation,
         color_mode: config.color_mode,
+        chat_button_color: config.chat_button_color,
+        chat_button_color_dark: config.chat_button_color_dark,
+        feedback_button_color: config.feedback_button_color,
+        feedback_button_color_dark: config.feedback_button_color_dark,
+        // Font color tokens
+        body_text_light: config.body_text_light,
+        body_text_dark: config.body_text_dark,
+        heading_text_light: config.heading_text_light,
+        heading_text_dark: config.heading_text_dark,
+        muted_text_light: config.muted_text_light,
+        muted_text_dark: config.muted_text_dark,
+        // Sidebar text tokens
+        sidebar_text_light: (config as any).sidebar_text_light,
+        sidebar_text_dark: (config as any).sidebar_text_dark,
         ai_chat_enabled: config.ai_chat_enabled,
         feedback_button_enabled: config.feedback_button_enabled,
       });

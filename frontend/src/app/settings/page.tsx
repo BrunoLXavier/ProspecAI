@@ -103,7 +103,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Appearance Section */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
             <SunIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
@@ -160,7 +160,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Language Section */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
             <GlobeAltIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -199,7 +199,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Notifications Section */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
             <BellIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -249,7 +249,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Security Section */}
-      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+      <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
             <ShieldCheckIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -279,7 +279,7 @@ export default function SettingsPage() {
 
       {/* Admin Section (visible to admins only) */}
       {isAdmin && (
-        <section className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+        <section className="card p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
             <Cog6ToothIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />

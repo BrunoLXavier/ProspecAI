@@ -207,6 +207,47 @@
 - **Test user creation script:** `backend/scripts/create_test_users.py` — async script that uses application DB session to create/rotate/cleanup test users per tenant, hashes passwords via domain helper, and emits `.env.test` or export lines for CI/E2E.
 - **Notes:** Seeds use placeholder password hashes for safety. The script generates secure passwords at runtime and should be invoked by CI after migrations. Seeds are non-production pseudonymized data only.
 
+**Seeds and verification (from docs/SEEDS.md):**
+
+- **Environment variables**
+
+   - `DATABASE_URL` (required) – connection string for the target Postgres database. If using an async URL (`+asyncpg`), the seed runner strips the suffix for sync usage.
+   - `SEED_TENANT_IDS` (recommended) – comma-separated tenant UUIDs for which to run seeds.
+   - `RUN_SEEDS_ON_START` (optional) – when set inside container entrypoint, runs seeds during container startup.
+   - `USE_ENTRYPOINT` (optional) – when set on host scripts, indicates the container entrypoint handles migrations and seeds.
+
+- **Running seeds (manual)**
+
+```powershell
+docker-compose run --rm backend python /app/scripts/run_seeds_fixed.py --tenants 00000000-0000-0000-0000-000000000001
+```
+
+- **Run seeds via container entrypoint (recommended for CI/dev)**
+
+```powershell
+set USE_ENTRYPOINT=1
+set RUN_SEEDS_ON_START=1
+set SEED_TENANT_IDS=00000000-0000-0000-0000-000000000001
+start-docker.bat
+```
+
+- **Verifying seeded data**
+
+```powershell
+docker-compose run --rm backend python /app/scripts/verify_seeds.py --tenants 00000000-0000-0000-0000-000000000001
+```
+
+This verification helper exits with a non-zero code if required tables or demo rows are missing.
+
+- **CI Integration**
+
+   1. Build the backend image
+   2. Start a Postgres service (or reuse CI Postgres)
+   3. Run `run_seeds_fixed.py --tenants ...`
+   4. Run `verify_seeds.py --tenants ...` and fail the job if verification fails
+
+Notes: Seeds are idempotent and tenant-scoped. Prefer `run_seeds_fixed.py` as the canonical runner. If a seed expects a table/column that is not present in your DB, the verification step will warn or fail depending on the table's importance.
+
   - Category grouping within each module
   - Toggle visibility per statistic
   - Auto-save to localStorage
@@ -244,6 +285,26 @@
 - ✅ 100+ configurable statistics across 7 modules
 - ✅ User preferences page for individual visibility configuration
 - ✅ Admin permissions page for role-based statistics access
+
+---
+
+### Themeing Implementation (Session 2026-01-19)
+
+- **Objective:** Implement site-wide theming so primary/secondary colors set in Settings → Layout apply across the entire frontend for both Light and Dark modes, persist tenant/user choices, and avoid flash-of-unstyled-colors (FOUC).
+- **Actions started:**
+   - Mapped full Tailwind palette for `primary` and `secondary` to CSS variables in `frontend/tailwind.config.js` so utility classes like `bg-primary-500` reference runtime CSS tokens.
+   - Persisted a compact theme blob to `localStorage` (`prospecai:layout_theme`) in `frontend/src/contexts/LayoutContext.tsx` after applying CSS variables so the theme can be re-applied before React hydration.
+   - Extended the inline `ThemeScript` in `frontend/src/components/layout/ThemeProvider.tsx` to read the `prospecai:layout_theme` blob and set CSS variables and `dark` class on initial load (pre-hydration), with a fallback to the legacy `theme` key.
+- **Files modified:**
+   - `frontend/tailwind.config.js` — map palette shades to CSS variables
+   - `frontend/src/contexts/LayoutContext.tsx` — write compact theme blob to `localStorage`
+   - `frontend/src/components/layout/ThemeProvider.tsx` — read blob and set CSS variables pre-hydration
+   - `frontend/src/app/settings/layout/page.tsx` — added client-side WCAG contrast checks and user confirmation on save
+- **Next tasks:**
+   1. Add server-side persistence of theme tokens in backend models/endpoints (backend/services/layout_service.py and backend/adapters/api/layout_routes.py).
+   2. Run full visual pass and adapt global CSS (`frontend/src/app/globals.css`) to ensure all used utility classes (500/600/700) map to CSS variables.
+
+**Status:** In progress — runtime theme application and FOUC mitigation implemented; backend persistence pending. Client-side contrast validation was added to Settings → Layout.
 - ✅ Category-based organization (overview, financial, performance, timeline, distribution, risk, ai)
 - ✅ Inline configuration via gear icon on each page
 - ✅ Role-based defaults (admin sees all, viewer sees limited)
@@ -1038,6 +1099,17 @@ from infrastructure.dependencies import get_container
 # AFTER (correct)
 from infrastructure.dependencies import get_di_container
 ```
+
+---
+
+## Translations workflow (recommended)
+
+- **Edit source:** Treat `frontend/src/locales/*.json` as the canonical files for translations.
+- **Runtime edits:** The backend persists UI edits to `/app/translations` (container). For development we mount the host `./frontend/src/locales` into the backend so runtime edits are written to the working tree and can be committed.
+- **Sync process:** Use `scripts/sync_translations_to_repo.py` to detect changes under `frontend/src/locales`, create a branch, commit and optionally open a PR. Set `GITHUB_TOKEN` and `GITHUB_REPO` environment variables to enable automatic PR creation.
+- **Deployment note:** The backend entrypoint copies frontend locales into `TRANSLATIONS_DIR` only when the target is empty. Keep that behavior to avoid overwriting persisted translations on start.
+
+Add these steps to your release checklist to avoid translation regressions.
 
 **2. Dependency Injection Fix**
 ```python

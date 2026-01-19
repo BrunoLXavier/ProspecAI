@@ -100,11 +100,43 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
 export const ThemeScript = () => {
   const script = `
     (function() {
-      const stored = localStorage.getItem('theme');
-      if (stored === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
+      try {
+        // Prefer explicit user selection stored at 'theme' (takes precedence)
+        var stored = localStorage.getItem('theme');
+        if (stored) {
+          if (stored === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          return;
+        }
+      } catch(e) {
+        // ignore
+      }
+
+      try {
+        // Fallback to compact theme blob created by LayoutContext
+        var blobRaw = localStorage.getItem('prospecai:layout_theme');
+        if (blobRaw) {
+          try {
+            var blob = JSON.parse(blobRaw);
+            if (blob && blob.color_mode === 'dark') {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
+            Object.keys(blob).forEach(function(k){
+              if (k === 'color_mode') return;
+              try { document.documentElement.style.setProperty(k, blob[k]); } catch(e) {}
+            });
+            return;
+          } catch(e) {
+            // fall through
+          }
+        }
+      } catch(e) {
+        // ignore
       }
     })();
   `;
