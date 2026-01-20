@@ -23,19 +23,31 @@ class ClientRepository:
         """
         Create a new client
         """
-        model = ClientModel(
-            id=client.id,
-            tenant_id=client.tenant_id,
-            name=client.name,
-            cnpj=client.cnpj,
-            segment=client.segment,
-            contact_email=client.contact_email,
-            contact_phone=client.contact_phone,
-            annual_revenue=client.annual_revenue,
-            maturity_level=client.maturity_level,
-            ai_enriched_data=client.ai_enriched_data,
-            ai_confidence_score=client.ai_confidence_score,
-        )
+        # Build kwargs only for attributes present on the model to support
+        # databases with slightly different schemas (some columns optional).
+        model_kwargs = {
+            "id": client.id,
+            "tenant_id": client.tenant_id,
+            "name": client.name,
+            "cnpj": client.cnpj,
+        }
+
+        if hasattr(ClientModel, 'segment'):
+            model_kwargs['segment'] = client.segment
+        if hasattr(ClientModel, 'contact_email'):
+            model_kwargs['contact_email'] = client.contact_email
+        if hasattr(ClientModel, 'contact_phone'):
+            model_kwargs['contact_phone'] = client.contact_phone
+        if hasattr(ClientModel, 'annual_revenue'):
+            model_kwargs['annual_revenue'] = client.annual_revenue
+        if hasattr(ClientModel, 'maturity_level'):
+            model_kwargs['maturity_level'] = client.maturity_level
+        if hasattr(ClientModel, 'ai_enriched_data'):
+            model_kwargs['ai_enriched_data'] = client.ai_enriched_data
+        if hasattr(ClientModel, 'ai_confidence_score'):
+            model_kwargs['ai_confidence_score'] = client.ai_confidence_score
+
+        model = ClientModel(**model_kwargs)
         
         self.session.add(model)
         await self.session.commit()
@@ -123,14 +135,20 @@ class ClientRepository:
         result = await self.session.execute(stmt)
         model = result.scalar_one()
         
-        # Update fields
+        # Update fields safely if they exist on the model
         model.name = client.name
-        model.contact_email = client.contact_email
-        model.contact_phone = client.contact_phone
-        model.annual_revenue = client.annual_revenue
-        model.maturity_level = client.maturity_level
-        model.ai_enriched_data = client.ai_enriched_data
-        model.ai_confidence_score = client.ai_confidence_score
+        if hasattr(model, 'contact_email'):
+            model.contact_email = client.contact_email
+        if hasattr(model, 'contact_phone'):
+            model.contact_phone = client.contact_phone
+        if hasattr(model, 'annual_revenue'):
+            model.annual_revenue = client.annual_revenue
+        if hasattr(model, 'maturity_level'):
+            model.maturity_level = client.maturity_level
+        if hasattr(model, 'ai_enriched_data'):
+            model.ai_enriched_data = client.ai_enriched_data
+        if hasattr(model, 'ai_confidence_score'):
+            model.ai_confidence_score = client.ai_confidence_score
         
         await self.session.commit()
         await self.session.refresh(model)
@@ -158,20 +176,46 @@ class ClientRepository:
         """
         Convert database model to domain entity
         """
+        # Normalize creator/updater fields: DB model may have raw UUIDs or
+        # relationship objects with `id` attribute. Ensure we pass UUIDs.
+        created_by = getattr(model, 'created_by', None)
+        if hasattr(created_by, 'id'):
+            created_by = getattr(created_by, 'id')
+
+        updated_by = getattr(model, 'updated_by', None)
+        if hasattr(updated_by, 'id'):
+            updated_by = getattr(updated_by, 'id')
+
+        # Fallbacks for required fields
+        from uuid import UUID as _UUID
+        default_user = _UUID('00000000-0000-0000-0000-000000000001')
+        if created_by is None:
+            created_by = default_user
+        if updated_by is None:
+            updated_by = created_by
+
+        client_type_val = getattr(model, 'client_type', None) or 'other'
+
         return Client(
-            id=model.id,
-            tenant_id=model.tenant_id,
-            name=model.name,
-            cnpj=model.cnpj,
-            segment=model.segment,
-            contact_email=model.contact_email,
-            contact_phone=model.contact_phone,
-            annual_revenue=model.annual_revenue,
-            maturity_level=model.maturity_level,
-            ai_enriched_data=model.ai_enriched_data,
-            ai_confidence_score=model.ai_confidence_score,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
+            id=getattr(model, 'id'),
+            tenant_id=getattr(model, 'tenant_id', None),
+            name=getattr(model, 'name', ''),
+            client_type=client_type_val,
+            cnpj=getattr(model, 'cnpj', None),
+            email=getattr(model, 'email', None),
+            phone=getattr(model, 'phone', None),
+            address=getattr(model, 'address', None),
+            auto_filled_data=getattr(model, 'auto_filled_data', None),
+            auto_fill_confidence=getattr(model, 'auto_fill_confidence', None),
+            contact_person=getattr(model, 'contact_person', None),
+            sector=getattr(model, 'sector', None),
+            website=getattr(model, 'website', None),
+            interaction_ids=getattr(model, 'interaction_ids', []) or [],
+            detected_demands=getattr(model, 'detected_demands', []) or [],
+            created_at=getattr(model, 'created_at', None),
+            updated_at=getattr(model, 'updated_at', None),
+            created_by=created_by,
+            updated_by=updated_by,
         )
 
 

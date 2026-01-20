@@ -5,7 +5,9 @@
  */
 'use client';
 
-import React, { Suspense, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { EyeIcon, EyeSlashIcon, Bars3Icon, LockClosedIcon } from '@heroicons/react/24/outline';
+import type { MouseEvent } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -25,7 +27,6 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Bars3Icon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 // =============================================================================
 // Types
@@ -33,8 +34,8 @@ import { Bars3Icon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 interface WidgetConfig {
   id: string;
-  label: string;
-  size: 'small' | 'medium' | 'large' | 'full';
+  label?: string;
+  size?: 'small' | 'medium' | 'large' | 'full';
 }
 
 interface DraggableWidgetGridProps {
@@ -44,27 +45,35 @@ interface DraggableWidgetGridProps {
   renderWidget: (widgetId: string, isDragging?: boolean) => React.ReactNode;
   isEditMode: boolean;
   onToggleEditMode: () => void;
+  onToggleWidget?: (id: string, enable: boolean) => Promise<void> | void;
+  disabledWidgets?: string[];
 }
 
 interface SortableWidgetProps {
   widget: WidgetConfig;
   children: React.ReactNode;
   isEditMode: boolean;
+  overlay?: React.ReactNode;
 }
 
 // =============================================================================
 // Widget Skeleton for Overlay
 // =============================================================================
 
-function WidgetOverlaySkeleton({ size }: { size: string }) {
-  const sizeClasses = {
+function WidgetOverlaySkeleton({ size = 'medium' }: { size?: string }) {
+  const sizeClasses: Record<string, string> = {
     small: 'h-32',
     medium: 'h-48',
     large: 'h-64',
     full: 'h-48',
   };
+
   return (
-    <div className={`bg-blue-100 rounded-xl border-2 border-blue-400 border-dashed ${sizeClasses[size as keyof typeof sizeClasses] || 'h-48'} opacity-80`} />
+    <div
+      className={`bg-blue-100 rounded-xl border-2 border-blue-400 border-dashed ${
+        sizeClasses[size] ?? 'h-48'
+      } opacity-80`}
+    />
   );
 }
 
@@ -72,37 +81,31 @@ function WidgetOverlaySkeleton({ size }: { size: string }) {
 // Sortable Widget Wrapper
 // =============================================================================
 
-function SortableWidget({ widget, children, isEditMode }: SortableWidgetProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: widget.id, disabled: !isEditMode });
+function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidgetProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: widget.id,
+    disabled: !isEditMode,
+  });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.6 : 1,
   };
 
-  // Grid column span based on widget size
-  const sizeClasses = {
+  const sizeClasses: Record<string, string> = {
     small: 'col-span-1',
     medium: 'col-span-1 lg:col-span-1',
     large: 'col-span-1 lg:col-span-2',
     full: 'col-span-1 lg:col-span-2',
   };
 
+  const spanClass = sizeClasses[widget.size ?? 'medium'];
+
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`relative group ${sizeClasses[widget.size]} ${isEditMode ? 'cursor-move' : ''}`}
-    >
-      {/* Drag Handle (visible in edit mode) */}
+    <div ref={setNodeRef} style={style} className={`relative group ${spanClass} ${isEditMode ? 'cursor-move' : ''}`}>
+      {overlay && <div className="absolute top-2 right-2 z-40 pointer-events-auto">{overlay}</div>}
+
       {isEditMode && (
         <div
           {...attributes}
@@ -113,45 +116,26 @@ function SortableWidget({ widget, children, isEditMode }: SortableWidgetProps) {
           <Bars3Icon className="w-4 h-4" />
         </div>
       )}
-      
-      {/* Edit Mode Border */}
-      {isEditMode && (
-        <div className="absolute inset-0 border-2 border-dashed border-blue-300 rounded-xl pointer-events-none z-0" />
-      )}
-      
-      {/* Widget Content */}
-      <div className={isEditMode ? 'pointer-events-none' : ''}>
-        {children}
-      </div>
+
+      {isEditMode && <div className="absolute inset-0 border-2 border-dashed border-blue-300 rounded-xl pointer-events-none z-0" />}
+
+      <div className={isEditMode ? 'pointer-events-none' : ''}>{children}</div>
     </div>
   );
-}
 
-// =============================================================================
-// Main Component
-// =============================================================================
+    }
 
-export default function DraggableWidgetGrid({
+    export default function DraggableWidgetGrid({
   widgets,
   widgetOrder,
   onOrderChange,
   renderWidget,
   isEditMode,
   onToggleEditMode,
+  onToggleWidget,
+  disabledWidgets,
 }: DraggableWidgetGridProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [columns, setColumns] = useState<number>(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 2 : 1);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Minimum drag distance before activation
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   // Sort widgets by user's custom order
   const sortedWidgets = [...widgets].sort((a, b) => {
@@ -166,7 +150,21 @@ export default function DraggableWidgetGrid({
 
   
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    // Log event for debugging
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[DraggableWidgetGrid] dragstart', { id: event.active.id, data: event.active.data });
+    } catch (e) {}
     setActiveId(event.active.id as string);
   }, []);
 
@@ -174,17 +172,43 @@ export default function DraggableWidgetGrid({
     const { active, over } = event;
     setActiveId(null);
 
-    if (over && active.id !== over.id) {
-      const oldIndex = sortedWidgets.findIndex(w => w.id === active.id);
-      const newIndex = sortedWidgets.findIndex(w => w.id === over.id);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newSortedWidgets = arrayMove(sortedWidgets, oldIndex, newIndex);
-        const newOrder = newSortedWidgets.map(w => w.id);
-        onOrderChange(newOrder);
-      }
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[DraggableWidgetGrid] dragend', { active: active?.id, over: over?.id });
+    } catch (e) {}
+
+    // If there's no target (dropped on empty space) move to end
+    const activeId = active.id as string;
+    const overId = over?.id as string | undefined;
+
+    const oldIndex = sortedWidgets.findIndex(w => w.id === activeId);
+    let newIndex = -1;
+
+    if (overId) {
+      newIndex = sortedWidgets.findIndex(w => w.id === overId);
+    } else {
+      // dropped on empty area - place at end
+      newIndex = sortedWidgets.length - 1;
+    }
+
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      const newSortedWidgets = arrayMove(sortedWidgets, oldIndex, newIndex);
+      const newOrder = newSortedWidgets.map(w => w.id);
+      try {
+        // eslint-disable-next-line no-console
+        console.debug('[DraggableWidgetGrid] newOrder', newOrder);
+      } catch (e) {}
+      onOrderChange(newOrder);
     }
   }, [sortedWidgets, onOrderChange]);
+
+  const handleDragCancel = useCallback(() => {
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[DraggableWidgetGrid] dragcancel');
+    } catch (e) {}
+    setActiveId(null);
+  }, []);
 
   const activeWidget = activeId ? widgets.find(w => w.id === activeId) : null;
 
@@ -230,18 +254,63 @@ export default function DraggableWidgetGrid({
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <SortableContext items={sortedWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {sortedWidgets.map((widget) => (
-              <SortableWidget key={widget.id} widget={widget} isEditMode={isEditMode}>
-                {renderWidget(widget.id, activeId === widget.id)}
-              </SortableWidget>
-            ))}
-          </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {sortedWidgets.map((widget) => (
+                  <SortableWidget
+                    key={widget.id}
+                    widget={widget}
+                    isEditMode={isEditMode}
+                    overlay={isEditMode && onToggleWidget ? (
+                      <button
+                        onClick={async (e: MouseEvent<HTMLButtonElement>) => {
+                          e.stopPropagation();
+                          try {
+                            await onToggleWidget(widget.id, false);
+                          } catch (err) {
+                            // eslint-disable-next-line no-console
+                            console.warn('toggle widget failed', err);
+                          }
+                        }}
+                        title="Ocultar este widget"
+                        className="bg-white dark:bg-slate-800 border rounded p-1 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700"
+                      >
+                        <EyeSlashIcon className="w-4 h-4 text-gray-600 dark:text-gray-200" />
+                      </button>
+                    ) : undefined}
+                  >
+                    {renderWidget(widget.id, activeId === widget.id)}
+                  </SortableWidget>
+                ))}
+              </div>
         </SortableContext>
 
-        {/* Drag Overlay */}
+          {/* Disabled widgets panel (only in edit mode) */}
+          {isEditMode && disabledWidgets && disabledWidgets.length > 0 && (
+            <div className="mt-4 p-4 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Widgets desabilitados</div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {disabledWidgets.map(id => (
+                  <div key={id} className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                    <span className="text-sm">{id}</span>
+                    <button
+                      className="px-2 py-1 text-xs bg-primary-600 text-white rounded"
+                      onClick={async () => { try { if (onToggleWidget) await onToggleWidget(id, true); } catch (e) { console.warn('enable widget failed', e); } }}
+                    >
+                      <EyeIcon className="w-4 h-4 inline-block mr-1" />
+                      Ativar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Drag Overlay */}
         <DragOverlay>
           {activeWidget ? (
             <WidgetOverlaySkeleton size={activeWidget.size} />

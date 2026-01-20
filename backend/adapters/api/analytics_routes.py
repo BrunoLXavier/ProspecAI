@@ -14,6 +14,7 @@ from adapters.api.auth_middleware import get_current_user, AuthenticatedUser
 logger = logging.getLogger(__name__)
 from infrastructure.di_container import get_db_session
 from services.analytics_service import AnalyticsService, TimeRange, KPIMetric
+from infrastructure.serializers import to_primitive
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
 
@@ -89,14 +90,18 @@ async def get_overview(
     - avg_match_score: Average matching score
     """
     logger.info(f"[analytics] Authorization header: {request.headers.get('authorization') if request else 'no-request'}")
-    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    tenant_id = None
+    if current_user is not None and getattr(current_user, "tenant_id", None) is not None:
+        tenant_id = str(current_user.tenant_id)
+    else:
+        tenant_id = request.headers.get("X-Tenant-ID") if request is not None else None
     service = AnalyticsService(session, tenant_id)
     kpis = await service.get_overview_kpis(period)
     
-    return OverviewResponse(
+    return to_primitive(OverviewResponse(
         kpis={k: KPIResponse(**asdict(v)) for k, v in kpis.items()},
         period=period.value,
-    )
+    ))
 
 
 @router.get("/pipeline", response_model=List[PipelineStageData])
@@ -110,10 +115,14 @@ async def get_pipeline_distribution(
     Useful for funnel visualization.
     """
     logger.info(f"[analytics] Authorization header: {request.headers.get('authorization') if request else 'no-request'}")
-    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    tenant_id = None
+    if current_user is not None and getattr(current_user, "tenant_id", None) is not None:
+        tenant_id = str(current_user.tenant_id)
+    else:
+        tenant_id = request.headers.get("X-Tenant-ID") if request is not None else None
     service = AnalyticsService(session, tenant_id)
     data = await service.get_pipeline_by_stage()
-    return [PipelineStageData(**item) for item in data]
+    return to_primitive([PipelineStageData(**item) for item in data])
 
 
 @router.get("/funding-categories", response_model=List[FundingCategoryData])
@@ -125,10 +134,14 @@ async def get_funding_by_category(
     Get funding sources distribution by instrument type.
     Useful for pie/donut charts.
     """
-    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    tenant_id = None
+    if current_user is not None and getattr(current_user, "tenant_id", None) is not None:
+        tenant_id = str(current_user.tenant_id)
+    else:
+        tenant_id = None
     service = AnalyticsService(session, tenant_id)
     data = await service.get_funding_by_category()
-    return [FundingCategoryData(**item) for item in data]
+    return to_primitive([FundingCategoryData(**item) for item in data])
 
 
 @router.get("/trl-distribution", response_model=List[TRLDistributionData])
@@ -140,10 +153,14 @@ async def get_trl_distribution(
     Get project distribution by TRL level.
     Shows technology maturity across portfolio.
     """
-    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    tenant_id = None
+    if current_user is not None and getattr(current_user, "tenant_id", None) is not None:
+        tenant_id = str(current_user.tenant_id)
+    else:
+        tenant_id = None
     service = AnalyticsService(session, tenant_id)
     data = await service.get_projects_by_trl()
-    return [TRLDistributionData(**item) for item in data]
+    return to_primitive([TRLDistributionData(**item) for item in data])
 
 
 @router.get("/matching-trends", response_model=List[TrendData])
@@ -156,10 +173,14 @@ async def get_matching_trends(
     Get daily matching activity trends.
     Shows matching volume and average scores over time.
     """
-    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    tenant_id = None
+    if current_user is not None and getattr(current_user, "tenant_id", None) is not None:
+        tenant_id = str(current_user.tenant_id)
+    else:
+        tenant_id = None
     service = AnalyticsService(session, tenant_id)
     data = await service.get_matching_trends(days)
-    return [TrendData(**item) for item in data]
+    return to_primitive([TrendData(**item) for item in data])
 
 
 @router.get("/top-clients", response_model=List[ClientActivityData])
@@ -172,10 +193,14 @@ async def get_top_clients(
     Get most active clients by opportunity count.
     Useful for identifying key accounts.
     """
-    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    tenant_id = None
+    if current_user is not None and getattr(current_user, "tenant_id", None) is not None:
+        tenant_id = str(current_user.tenant_id)
+    else:
+        tenant_id = None
     service = AnalyticsService(session, tenant_id)
     data = await service.get_client_activity(limit)
-    return [ClientActivityData(**item) for item in data]
+    return to_primitive([ClientActivityData(**item) for item in data])
 
 
 @router.get("/export")
@@ -188,7 +213,11 @@ async def export_analytics(
     """
     Export analytics data in JSON or CSV format.
     """
-    tenant_id = str(current_user.tenant_id) if current_user.tenant_id is not None else None
+    tenant_id = None
+    if current_user is not None and getattr(current_user, "tenant_id", None) is not None:
+        tenant_id = str(current_user.tenant_id)
+    else:
+        tenant_id = None
     service = AnalyticsService(session, tenant_id)
     
     # Gather all data
@@ -223,4 +252,4 @@ async def export_analytics(
         
         return {"content": output.getvalue(), "format": "csv"}
     
-    return data
+    return to_primitive(data)

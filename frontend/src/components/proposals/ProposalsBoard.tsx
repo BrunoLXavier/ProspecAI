@@ -39,11 +39,13 @@ const PROPOSAL_STATUSES = [
 
 export default function ProposalsBoard({ proposals, onItemClick, onProposalMove }: ProposalsBoardProps) {
   const t = useTranslations('proposals');
-  const [localProposals, setLocalProposals] = useState(proposals);
+  // Ensure proposals is always an array to avoid runtime .map / .filter errors
+  const safeProposals = Array.isArray(proposals) ? proposals : [];
+  const [localProposals, setLocalProposals] = useState<Proposal[]>(safeProposals);
 
   // Update local state when props change
-  if (JSON.stringify(proposals) !== JSON.stringify(localProposals)) {
-    setLocalProposals(proposals);
+  if (JSON.stringify(safeProposals) !== JSON.stringify(localProposals)) {
+    setLocalProposals(safeProposals);
   }
 
   const columns: KanbanColumn<Proposal>[] = PROPOSAL_STATUSES.map(status => ({

@@ -1,4 +1,5 @@
 import uuid
+import json
 from typing import Iterable
 from sqlalchemy import text
 
@@ -24,23 +25,24 @@ def seed_for_tenant(conn, tenant_id: str) -> None:
         return
 
     for t in DEFAULT_TEMPLATES:
-        stmt = text(
-            """
-            INSERT INTO report_templates (id, tenant_id, template_id, name, description, sections, default_format, created_at, updated_at)
-            VALUES (:id, :tenant_id, :template_id, :name, :description, :sections::jsonb, :default_format, now(), now())
-            ON CONFLICT (tenant_id, template_id) DO NOTHING
-            """
+        # Prepare JSON for sections explicitly and inline into SQL to avoid param-style mismatch
+        sections_json = json.dumps(t["sections"])
+        stmt_str = (
+            "INSERT INTO report_templates (id, tenant_id, template_id, name, description, sections, default_format, created_at, updated_at) "
+            "VALUES ('{id}', '{tenant_id}', '{template_id}', :name, :description, '{sections}'::jsonb, :default_format, now(), now()) "
+            "ON CONFLICT (tenant_id, template_id) DO NOTHING"
+        ).format(
+            id=str(uuid.uuid4()),
+            tenant_id=tenant_id,
+            template_id=t["template_id"],
+            sections=sections_json.replace("'", "''")
         )
         params = {
-            "id": str(uuid.uuid4()),
-            "tenant_id": tenant_id,
-            "template_id": t["template_id"],
             "name": t["name"],
             "description": t.get("description", ""),
-            "sections": str(t["sections"]).replace("'", '"'),
             "default_format": t["default_format"],
         }
-        conn.execute(stmt, params)
+        conn.execute(text(stmt_str), params)
 
 
 def seed_for_tenants(conn, tenant_ids: Iterable[str]) -> None:

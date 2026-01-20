@@ -40,6 +40,25 @@ class ApiClient {
       timeout: 10000,
     });
 
+    // Ensure axios sends credentials (cookies) if backend uses them and
+    // set initial default headers from in-memory token/user to avoid races.
+    this.client.defaults.withCredentials = true;
+    try {
+      const token = (typeof window !== 'undefined' && (window as any).__PROSPECAI_ACCESS_TOKEN) || getStoredAccessToken();
+      const user = getStoredUser();
+      if (token) {
+        this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+      if (user?.tenantId) {
+        this.client.defaults.headers.common['X-Tenant-ID'] = user.tenantId;
+      }
+      if (user?.id) {
+        this.client.defaults.headers.common['X-User-ID'] = user.id;
+      }
+    } catch (e) {
+      // fail silently
+    }
+
     // Request interceptor for adding auth token
     this.client.interceptors.request.use(
           async (config) => {
@@ -65,17 +84,37 @@ class ApiClient {
             } catch (e) {
               // ignore logging failures
             }
-        // Inject tenant header if available
+        // Inject tenant and user headers. If stored user is not available yet,
+        // attempt to decode them from the JWT access token (unverified, client-side only).
         try {
           const user = getStoredUser();
           if (user && user.tenantId) {
-            // TS: headers may be typed, cast to any for runtime assignment
             (config.headers as any)['X-Tenant-ID'] = user.tenantId;
           }
           if (user && user.id) {
             (config.headers as any)['X-User-ID'] = user.id;
           }
-          } catch (e) {
+
+          // If user isn't available, try to extract from token payload
+          if ((!user || !user.tenantId || !user.id) && token) {
+            try {
+              const parts = token.split('.');
+              if (parts.length >= 2) {
+                const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                if (!user || !user.tenantId) {
+                  const tenantFromToken = payload.tenant_id || payload.tenantId || payload.tid || null;
+                  if (tenantFromToken) (config.headers as any)['X-Tenant-ID'] = tenantFromToken;
+                }
+                if (!user || !user.id) {
+                  const sub = payload.sub || payload.user_id || null;
+                  if (sub) (config.headers as any)['X-User-ID'] = sub;
+                }
+              }
+            } catch (inner) {
+              // ignore decoding errors
+            }
+          }
+        } catch (e) {
           // fail silently
         }
         return config;
@@ -294,9 +333,13 @@ class ApiClient {
     min_value?: number;
     skip?: number;
     limit?: number;
-  }) {
+  }): Promise<any[]> {
     const response = await this.client.get('/api/v1/opportunities', { params });
-    return response.data;
+    const data = response.data;
+    // Ensure we always return an array regardless of API shape
+    if (Array.isArray(data)) return data;
+    const cand = data?.items ?? data?.data ?? data?.opportunities ?? [];
+    return Array.isArray(cand) ? cand : [];
   }
 
   async getOpportunity(id: string) {
@@ -349,9 +392,13 @@ class ApiClient {
     project_id?: string;
     skip?: number;
     limit?: number;
-  }) {
+  }): Promise<any[]> {
     const response = await this.client.get('/api/v1/proposals', { params });
-    return response.data;
+    const data = response.data;
+    // Ensure an array is returned
+    if (Array.isArray(data)) return data;
+    const cand = data?.items ?? data?.data ?? [];
+    return Array.isArray(cand) ? cand : [];
   }
 
   async getProposal(id: string) {

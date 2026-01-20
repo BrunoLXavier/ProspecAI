@@ -139,22 +139,29 @@
     "focusAreasPlaceholder": "",
     "url": "URL",
     "updateError": "Erro ao atualizar o edital. Tente novamente.",
-    "status": "status",
+    "status": {
+      "open": "Aberto",
+      "suspended": "Suspenso",
+      "closed": "Fechado"
+    },
     "types": {
       "grant": "Subvenção",
       "subsidy": "Subsídio",
       "credit": "Crédito",
       "equity": "Equity",
       "loan": "Empréstimo",
-      "tax_incentive": "Incentivo Fiscal"
+      "tax_incentive": "Incentivo Fiscal",
+      "undefined": "Indefinido"
     },
     "filters": {
       "allStatus": "Todos os Status",
+      "allStatuses": "Todos os Status",
       "allTypes": "Todos os Tipos",
       "open": "Abertos",
       "closed": "Fechados",
       "suspended": "Suspensos"
     },
+    "statusLabel": "Status",
     "view": "view"
   },
   "crm": {
@@ -315,7 +322,8 @@
     "days": "dias",
     "updateError": "Erro ao atualizar oportunidade. Tente novamente.",
     "filters": {
-      "allStages": "Todos os Estágios"
+      "allStages": "Todos os Estágios",
+      "allStatuses": "Todos os Status"
     },
     "stages": {
       "intelligence": "Inteligência",
@@ -2052,7 +2060,7 @@
   },
   "chat": {
     "title": "Assistente ProspecAI",
-    "welcomeTitle": "Olá! Sou seu assistente de prospecção de P&D.",
+    "welcomeTitle": "Olá! Sou IA.Go, seu assistente de prospecção de P&D.",
     "welcomeSubtitle": "Posso ajudar com editais, projetos e matches.",
     "inputPlaceholder": "Digite sua pergunta..."
   },

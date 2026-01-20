@@ -123,7 +123,7 @@ export const DEFAULT_CONFIG: LayoutConfig = {
   sidebar_width: 260,
   visible_nav_items: [
     'dashboard', 'funding', 'portfolio', 'crm', 'opportunities',
-    'proposals', 'feedbackManagement', 'ingestion', 'piiAnalysis', 'reports', 'activity', 'settings'
+    'proposals', 'feedbackManagement', 'ingestion', 'piiAnalysis', 'reports', 'activity', 'notifications', 'settings'
   ],
   nav_order: [],
   dashboard_widgets: [
@@ -141,11 +141,11 @@ export const DEFAULT_CONFIG: LayoutConfig = {
   visible_nav_items_by_role: {
     admin: [
       'dashboard', 'funding', 'portfolio', 'crm', 'opportunities',
-      'proposals', 'reports', 'activity', 'ingestion', 'piiAnalysis', 'settings'
+      'proposals', 'reports', 'activity', 'ingestion', 'piiAnalysis', 'notifications', 'settings'
     ],
     manager: ['dashboard', 'funding', 'portfolio', 'crm', 'opportunities', 'proposals', 'reports', 'activity'],
-    user: ['dashboard', 'opportunities', 'proposals', 'activity'],
-    viewer: ['dashboard', 'activity'],
+    user: ['dashboard', 'opportunities', 'proposals', 'activity', 'notifications'],
+    viewer: ['dashboard', 'activity', 'notifications'],
   },
   dashboard_layout: 'default',
   default_page_size: 20,
@@ -334,6 +334,18 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.style.setProperty('--color-feedback-button', config.feedback_button_color || DEFAULT_CONFIG.feedback_button_color || '#f59e0b');
       document.documentElement.style.setProperty('--color-chat-button-dark', config.chat_button_color_dark || config.chat_button_color || DEFAULT_CONFIG.chat_button_color || '#E30613');
       document.documentElement.style.setProperty('--color-feedback-button-dark', config.feedback_button_color_dark || config.feedback_button_color || DEFAULT_CONFIG.feedback_button_color || '#f59e0b');
+      // expose RGB for the active feedback button color so CSS can use translucent variants
+      try {
+        const fb = (config.color_mode === 'dark' ? (config.feedback_button_color_dark || config.feedback_button_color) : (config.feedback_button_color || config.feedback_button_color_dark)) || DEFAULT_CONFIG.feedback_button_color || '#f59e0b';
+        const h = fb.replace('#', '');
+        const hex = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+        const fr = (hex >> 16) & 255;
+        const fg = (hex >> 8) & 255;
+        const fbv = hex & 255;
+        document.documentElement.style.setProperty('--brand-feedback-rgb', `${fr}, ${fg}, ${fbv}`);
+      } catch (e) {
+        // ignore
+      }
       // Sidebar background tokens - pick active value according to color mode
       const sidebarLight = config.sidebar_color || activeSecondary;
       const sidebarDark = (config.sidebar_color_dark || config.secondary_color_dark || config.secondary_color || DEFAULT_CONFIG.secondary_color_dark) ?? sidebarLight;
@@ -409,6 +421,27 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.style.setProperty('--modal-border', String(isDark ? (config.border_dark ?? config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark) : (config.border_light ?? config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light)));
         // Overlay opacity and elevation
         document.documentElement.style.setProperty('--modal-overlay-opacity', String(config.modal_overlay_opacity ?? DEFAULT_CONFIG.modal_overlay_opacity));
+        // Map system/page background and border tokens so 'Fundo' and 'Borda' apply to pages
+        try {
+          const bgLight = String(config.bg_light ?? config.modal_bg_light ?? DEFAULT_CONFIG.modal_bg_light ?? '#ffffff');
+          const bgDark = String(config.bg_dark ?? config.modal_bg_dark ?? DEFAULT_CONFIG.modal_bg_dark ?? '#1e293b');
+          const borderLight = String(config.border_light ?? config.modal_border_light ?? DEFAULT_CONFIG.modal_border_light ?? '#e2e8f0');
+          const borderDark = String(config.border_dark ?? config.modal_border_dark ?? DEFAULT_CONFIG.modal_border_dark ?? '#334155');
+          // Expose light/dark variants
+          document.documentElement.style.setProperty('--bg-primary-light', bgLight);
+          document.documentElement.style.setProperty('--bg-primary-dark', bgDark);
+          document.documentElement.style.setProperty('--border-primary-light', borderLight);
+          document.documentElement.style.setProperty('--border-primary-dark', borderDark);
+          // Active global tokens used by existing CSS (body uses --bg-secondary)
+          document.documentElement.style.setProperty('--bg-primary', isDark ? bgDark : bgLight);
+          document.documentElement.style.setProperty('--bg-secondary', isDark ? bgDark : bgLight);
+          document.documentElement.style.setProperty('--surface-primary', isDark ? bgDark : bgLight);
+          document.documentElement.style.setProperty('--surface-elevated', isDark ? (config.modal_bg_dark ?? bgDark) : (config.modal_bg_light ?? bgLight));
+          document.documentElement.style.setProperty('--border-primary', isDark ? borderDark : borderLight);
+          document.documentElement.style.setProperty('--border-secondary', isDark ? borderDark : borderLight);
+        } catch (e) {
+          // ignore mapping errors
+        }
         // Map elevation to a shadow value, using different shadow tones for light vs dark mode
         const elevation = config.modal_elevation || DEFAULT_CONFIG.modal_elevation || 'medium';
         const shadowMapLight: Record<string, string> = {
@@ -658,6 +691,60 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
       throw err;
     }
   }, [config]);
+
+  // Auto-save certain layout changes (debounced) so user modifications
+  // to widget visibility/order and nav order persist without explicit save.
+  React.useEffect(() => {
+    let timer: any = null;
+    const lastPayloadRef = (LayoutContext as any).__lastAutosavePayloadRef as React.MutableRefObject<string | null> | undefined;
+    const inFlightRef = (LayoutContext as any).__autosaveInFlightRef as React.MutableRefObject<boolean> | undefined;
+    // Initialize refs on the function object so they persist across re-renders
+    if (!lastPayloadRef) {
+      (LayoutContext as any).__lastAutosavePayloadRef = { current: null };
+    }
+    if (!inFlightRef) {
+      (LayoutContext as any).__autosaveInFlightRef = { current: false };
+    }
+    const lastRef = (LayoutContext as any).__lastAutosavePayloadRef as React.MutableRefObject<string | null>;
+    const inFlight = (LayoutContext as any).__autosaveInFlightRef as React.MutableRefObject<boolean>;
+
+    try {
+      const payloadObj = {
+        dashboard_widgets: config.dashboard_widgets || [],
+        dashboard_widget_order: config.dashboard_widget_order || [],
+        nav_order: config.nav_order || [],
+        visible_nav_items: config.visible_nav_items || [],
+      };
+      const payloadStr = JSON.stringify(payloadObj);
+
+      // Debounce writes when user is actively changing settings
+      timer = setTimeout(async () => {
+        if (isLoading) return;
+        if (inFlight.current) return; // avoid overlapping saves
+        if (lastRef.current === payloadStr) return; // nothing changed since last save
+
+        inFlight.current = true;
+        try {
+          await saveConfig();
+          // record the payload we just saved so identical future changes don't trigger
+          lastRef.current = payloadStr;
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[LayoutContext] autosave failed', err);
+        } finally {
+          inFlight.current = false;
+        }
+      }, 600);
+    } catch (e) {
+      // ignore
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  // Trigger autosave when these layout keys change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.dashboard_widgets, config.dashboard_widget_order, config.nav_order, config.visible_nav_items, isLoading]);
 
   // Reset to defaults
   const resetConfig = useCallback(async () => {

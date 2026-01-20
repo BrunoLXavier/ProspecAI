@@ -7,10 +7,11 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
-from adapters.api.auth_middleware import get_current_user, AuthenticatedUser as CurrentUser
+from adapters.api.auth_middleware import get_current_user, AuthenticatedUser as CurrentUser, require_auth
 from services.report_service import (
     get_report_generator, ReportFormat, ReportType, ReportTemplate
 )
+from infrastructure.serializers import to_primitive
 
 router = APIRouter(prefix="/api/v1/reports", tags=["reports"])
 
@@ -50,7 +51,7 @@ class GenerateReportResponse(BaseModel):
 
 @router.get("/templates", response_model=List[TemplateResponse])
 async def list_templates(
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(require_auth),
 ):
     """
     List all available report templates.
@@ -65,7 +66,7 @@ async def list_templates(
     generator = get_report_generator(current_user.tenant_id)
     templates = generator.get_available_templates()
     
-    return [
+    return to_primitive([
         TemplateResponse(
             id=t.id,
             name=t.name,
@@ -75,12 +76,12 @@ async def list_templates(
             default_format=t.default_format.value,
         )
         for t in templates
-    ]
+    ])
 
 
 @router.get("", response_model=List[dict])
 async def list_generated_reports(
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(require_auth),
 ):
     """
     Return a list of previously generated reports.
@@ -92,7 +93,7 @@ async def list_generated_reports(
 @router.get("/templates/{template_id}", response_model=TemplateResponse)
 async def get_template(
     template_id: str,
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(require_auth),
 ):
     """Get specific template details"""
     generator = get_report_generator(current_user.tenant_id)
@@ -101,20 +102,20 @@ async def get_template(
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
     
-    return TemplateResponse(
+    return to_primitive(TemplateResponse(
         id=template.id,
         name=template.name,
         type=template.type.value,
         description=template.description,
         sections=template.sections,
         default_format=template.default_format.value,
-    )
+    ))
 
 
 @router.post("/generate", response_model=GenerateReportResponse)
 async def generate_report(
     request: GenerateReportRequest,
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(require_auth),
 ):
     """
     Generate a report from template with provided data.
@@ -154,7 +155,7 @@ async def generate_report(
             format=format_enum,
             custom_sections=request.custom_sections,
         )
-        return GenerateReportResponse(**result)
+        return to_primitive(GenerateReportResponse(**result))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -162,7 +163,7 @@ async def generate_report(
 @router.post("/generate/html", response_class=HTMLResponse)
 async def generate_report_html(
     request: GenerateReportRequest,
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(require_auth),
 ):
     """
     Generate report and return directly as HTML.
@@ -185,7 +186,7 @@ async def generate_report_html(
 @router.post("/generate/csv", response_class=PlainTextResponse)
 async def generate_report_csv(
     request: GenerateReportRequest,
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(require_auth),
 ):
     """
     Generate report and return as CSV.
@@ -219,7 +220,7 @@ async def generate_report_csv(
 async def quick_proposal_report(
     proposal_id: str,
     format: str = Query("html", regex="^(html|json|csv)$"),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(require_auth),
 ):
     """
     Generate quick proposal summary report.
@@ -247,7 +248,8 @@ async def quick_proposal_report(
     
     if format == "html":
         return HTMLResponse(content=result["content"])
-    return result
+    from infrastructure.serializers import to_primitive
+    return to_primitive(result)
 
 
 @router.get("/quick/matching/{project_id}/{funding_id}")
@@ -255,7 +257,7 @@ async def quick_matching_report(
     project_id: str,
     funding_id: str,
     format: str = Query("html", regex="^(html|json|csv)$"),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: CurrentUser = Depends(require_auth),
 ):
     """
     Generate quick matching analysis report.
@@ -281,4 +283,4 @@ async def quick_matching_report(
     
     if format == "html":
         return HTMLResponse(content=result["content"])
-    return result
+    return to_primitive(result)

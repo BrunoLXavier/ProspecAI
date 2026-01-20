@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from adapters.database.connection import get_db as get_db_session
 from infrastructure.dependencies import get_current_user_id, get_current_tenant_id
 import json
+from infrastructure.serializers import to_primitive
 
 from domain.entities.funding_source import FundingSource, InstrumentType
 
@@ -202,13 +203,13 @@ async def list_funding_sources(
     
     has_next = (page * page_size) < total
     
-    return FundingListResponse(
+    return to_primitive(FundingListResponse(
         items=funding_sources,
         total=total,
         page=page,
         page_size=page_size,
         has_next=has_next
-    )
+    ))
 
 
 @router.get("/{funding_id}", response_model=FundingSourceResponse)
@@ -251,7 +252,7 @@ async def get_funding_source(
             detail=f"Funding source {funding_id} not found"
         )
     
-    return funding
+    return to_primitive(funding)
 
 
 @router.post("/", response_model=FundingSourceResponse, status_code=status.HTTP_201_CREATED)
@@ -288,7 +289,7 @@ async def create_funding_source(
     res = await session.execute(insert_q, params)
     await session.commit()
     row = res.fetchone()
-    return {
+    return to_primitive({
         "id": str(row.id),
         "name": row.name,
         "institution": row.institution,
@@ -302,7 +303,7 @@ async def create_funding_source(
         "ai_confidence_score": float(row.ai_confidence_score) if row.ai_confidence_score is not None else None,
         "created_at": row.created_at.isoformat() if row.created_at else None,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
-    }
+    })
 
 
 @router.patch("/{funding_id}", response_model=FundingSourceResponse)
@@ -355,7 +356,7 @@ async def update_funding_source(
             detail=f"Funding source {funding_id} not found"
         )
     
-    return funding
+    return to_primitive(funding)
 
 
 @router.delete("/{funding_id}", status_code=status.HTTP_204_NO_CONTENT)

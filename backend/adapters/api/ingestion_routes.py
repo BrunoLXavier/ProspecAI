@@ -15,6 +15,7 @@ from adapters.repositories.ingestion_repository import IngestionRepository
 from adapters.repositories.pii_detection_repository import PIIDetectionRepository
 from use_cases.manage_ingestion import ManageIngestionUseCase
 from infrastructure.jwt_service import get_jwt_service
+from infrastructure.serializers import to_primitive
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ async def create_job(
         )
         
         logger.info(f"Created ingestion job {result.get('job_id')} for tenant {user.tenant_id}")
-        return result
+        return to_primitive(result)
     except Exception as e:
         logger.error(f"Error creating ingestion job: {str(e)}")
         raise HTTPException(
@@ -184,7 +185,7 @@ async def get_jobs(
             offset=offset,
         )
         
-        return jobs
+        return to_primitive(jobs)
     except Exception as e:
         logger.error(f"Error fetching ingestion jobs: {str(e)}")
         raise HTTPException(
@@ -210,7 +211,7 @@ async def get_job(
         if not job:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
         
-        return job
+        return to_primitive(job)
     except HTTPException:
         raise
     except Exception as e:
@@ -280,7 +281,7 @@ async def start_processing(
             )
         
         logger.info(f"Started processing for job {job_id}")
-        return result
+        return to_primitive(result)
     except HTTPException:
         raise
     except Exception as e:
@@ -304,7 +305,7 @@ async def get_statistics(
         
         stats = await use_case.get_statistics(user.tenant_id)
         
-        return stats
+        return to_primitive(stats)
     except Exception as e:
         logger.error(f"Error fetching statistics: {str(e)}")
         raise HTTPException(
@@ -367,12 +368,12 @@ async def upload_files(
         )
         
         logger.info(f"Uploaded {len(uploaded_files)} files for tenant {user.tenant_id}")
-        return {
+        return to_primitive({
             "success": True,
             "job_id": result["job_id"],
             "files_uploaded": len(uploaded_files),
             "total_size": sum(f["file_size"] for f in uploaded_files),
-        }
+        })
         
     except Exception as e:
         logger.error(f"Error uploading files: {str(e)}")
@@ -380,3 +381,19 @@ async def upload_files(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to upload files: {str(e)}",
         )
+
+
+@router.get("/")
+async def ingestion_root():
+    """Ingestion root - index of ingestion endpoints."""
+    return {
+        "message": "Ingestion API",
+        "endpoints": {
+            "create_job": "/api/v1/ingestion/jobs",
+            "list_jobs": "/api/v1/ingestion/jobs",
+            "get_job": "/api/v1/ingestion/jobs/{job_id}",
+            "start": "/api/v1/ingestion/jobs/{job_id}/start",
+            "statistics": "/api/v1/ingestion/statistics",
+            "upload": "/api/v1/ingestion/upload",
+        }
+    }

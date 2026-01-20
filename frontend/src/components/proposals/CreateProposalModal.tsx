@@ -130,7 +130,7 @@ export default function CreateProposalModal({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormSelect
                       label={t('opportunity')}
-                      options={opportunities.map((o: any) => ({ value: o.id, label: o.title }))}
+                      options={(Array.isArray(opportunities) ? opportunities : []).map((o: any) => ({ value: o.id, label: o.title }))}
                       placeholder={t('opportunityPlaceholder')}
                       error={errors.opportunity_id}
                       required
@@ -139,7 +139,7 @@ export default function CreateProposalModal({
 
                     <FormSelect
                       label={t('fundingSource')}
-                      options={fundingSources.map((f: any) => ({ value: f.id, label: f.source_name }))}
+                      options={(Array.isArray(fundingSources) ? fundingSources : []).map((f: any) => ({ value: f.id, label: f.source_name }))}
                       placeholder={t('fundingSourcePlaceholder')}
                       {...register('funding_source_id')}
                     />

@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from services.ai.chatbot_service import get_llm_from_config, DEFAULT_LLM_PROVIDER, DEFAULT_OPENAI_API_KEY, DEFAULT_OLLAMA_BASE_URL, DEFAULT_OLLAMA_MODEL
+from infrastructure.serializers import to_primitive
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ async def translate_text(req: TranslateRequest):
             except Exception as e:
                 logger.warning(f"Argos translate error for {src_code}->{tgt_code}: {e}")
                 result[target] = text
-        return TranslateResponse(translations=result)
+        return to_primitive(TranslateResponse(translations=result))
     except ImportError:
         logger.info("Argos Translate not installed; falling back to LLM or echo")
     except Exception as e:
@@ -92,11 +93,11 @@ async def translate_text(req: TranslateRequest):
         try:
             parsed = json.loads(text_resp)
             result = {k: parsed.get(k, text) for k in targets}
-            return TranslateResponse(translations=result)
+            return to_primitive(TranslateResponse(translations=result))
         except Exception:
             logger.warning("LLM returned non-JSON response for translation; falling back to echo")
     except Exception as e:
         logger.warning(f"LLM translation failed or not configured: {e}")
 
     # Final fallback: return the original text for each target
-    return TranslateResponse(translations={t: text for t in targets})
+    return to_primitive(TranslateResponse(translations={t: text for t in targets}))

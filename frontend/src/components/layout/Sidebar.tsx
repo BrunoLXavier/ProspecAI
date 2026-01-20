@@ -195,7 +195,7 @@ export default function Sidebar() {
         fixed top-0 ${config.sidebar_position === 'right' ? 'right-0' : 'left-0'} z-40 h-screen
         glass-sidebar
         flex flex-col
-        transition-all duration-350 ease-in-out
+        transition-all duration-350 ease-in-out sidebar-transition overflow-hidden
         ${isCollapsed ? 'w-[72px]' : `w-[${config.sidebar_width}px]`}
       `}
       aria-label="Sidebar"
@@ -255,7 +255,7 @@ export default function Sidebar() {
               key={item.name}
               href={item.href ?? '#'}
               className={`
-                sidebar-item group
+                sidebar-item group relative
                 ${isCollapsed ? 'justify-center px-2' : ''}
                 ${isActive ? 'active' : ''}
               `}
@@ -269,8 +269,8 @@ export default function Sidebar() {
               `}>
                 {t(item.name)}
               </span>
-              {/* Active Indicator */}
-              {isActive && (
+              {/* Active Indicator (only when expanded) */}
+              {isActive && !isCollapsed && (
                 <span className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-l-full" />
               )}
             </Link>

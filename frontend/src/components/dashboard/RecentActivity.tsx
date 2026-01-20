@@ -45,8 +45,10 @@ export default function RecentActivity() {
         apiClient.listProposals({ skip: 0, limit: 10 }),
       ]);
 
-      const opps = Array.isArray(oppsResp) ? oppsResp : (oppsResp.data || []);
-      const props = Array.isArray(propsResp) ? propsResp : (propsResp.data || []);
+      const oppsRespAny: any = oppsResp;
+      const propsRespAny: any = propsResp;
+      const opps = Array.isArray(oppsRespAny) ? oppsRespAny : (oppsRespAny.data || []);
+      const props = Array.isArray(propsRespAny) ? propsRespAny : (propsRespAny.data || []);
 
       const mappedOpps: Activity[] = opps.map((o: any) => ({
         id: String(o.id),

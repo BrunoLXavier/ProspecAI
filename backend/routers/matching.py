@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from domain.entities.matching import MatchingScore, MatchingResult
 from use_cases.execute_matching import ExecuteMatchingUseCase
 from infrastructure.di_container import get_container
+from infrastructure.serializers import to_primitive
 
 router = APIRouter()
 
@@ -88,7 +89,7 @@ async def execute_matching(
         max_results=data.max_results,
     )
     
-    return result
+    return to_primitive(result)
 
 
 @router.get("/results/{result_id}", response_model=MatchingResultResponse)
@@ -109,7 +110,7 @@ async def get_matching_result(
             detail=f"Matching result {result_id} not found"
         )
     
-    return result
+    return to_primitive(result)
 
 
 @router.get("/scores/{project_id}/{funding_id}", response_model=MatchingScoreResponse)
@@ -134,7 +135,7 @@ async def get_matching_score(
             detail=f"Could not calculate score for project {project_id} and funding {funding_id}"
         )
     
-    return score
+    return to_primitive(score)
 
 
 @router.get("/explain/{project_id}/{funding_id}", response_model=MatchingExplanation)
@@ -159,7 +160,7 @@ async def explain_matching(
             detail=f"Could not generate explanation for project {project_id} and funding {funding_id}"
         )
     
-    return explanation
+    return to_primitive(explanation)
 
 
 @router.post("/batch", response_model=MatchingResultResponse)
@@ -180,7 +181,7 @@ async def batch_matching(
         min_score=min_score,
     )
     
-    return result
+    return to_primitive(result)
 
 
 @router.get("/history", response_model=List[MatchingResultResponse])
@@ -203,4 +204,4 @@ async def list_matching_history(
         limit=limit,
     )
     
-    return results
+    return [to_primitive(r) for r in results]

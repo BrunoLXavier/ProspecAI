@@ -90,3 +90,17 @@ def explain_matching(project_id: str, funding_id: str):
         "weaknesses": ["Budget constraints"],
         "recommendations": ["Increase budget estimation", "Seek co-funding"],
     }
+
+
+@router.get("/")
+def matching_root():
+    """Matching root - helpful index for available matching endpoints."""
+    return {
+        "message": "Matching API",
+        "endpoints": {
+            "execute": "/api/v1/matching/execute",
+            "results": "/api/v1/matching/results/{result_id}",
+            "scores": "/api/v1/matching/scores/{project_id}/{funding_id}",
+            "explain": "/api/v1/matching/explain/{project_id}/{funding_id}",
+        }
+    }

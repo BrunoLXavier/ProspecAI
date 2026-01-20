@@ -166,14 +166,14 @@ const NotificationBadge = forwardRef<HTMLSpanElement, NotificationBadgeProps>(
   ({ count = 0, max = 99, show = true, children, className, ...props }, ref) => {
     if (!show && count === 0) return <>{children}</>;
 
-    const displayCount = count > max ? `${max}+` : count;
+    const displayCount = count > max ? `${max}+` : String(count);
 
     return (
       <span ref={ref} className={`relative inline-flex ${className || ''}`} {...props}>
         {children}
         {(show || count > 0) && (
           <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-bold text-white bg-primary-500 rounded-full">
-            {count > 0 ? displayCount : ''}
+            {displayCount}
           </span>
         )}
       </span>

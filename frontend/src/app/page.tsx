@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { CalendarDaysIcon } from '@heroicons/react/24/outline';
 import { useLayout } from '@/contexts/LayoutContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/lib/api-client';
 import type { AnalyticsPeriod } from '@/components/analytics-widgets/types';
 import DraggableWidgetGrid from '@/components/dashboard/DraggableWidgetGrid';
 
@@ -78,11 +79,14 @@ export default function Dashboard() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const { config, updateConfig, saveConfig } = useLayout();
+  const { config, updateConfig, saveConfig, reloadConfig } = useLayout();
   const { user } = useAuth();
   
   // Edit mode state for drag and drop
   const [isEditMode, setIsEditMode] = useState(false);
+  // Pending edits while in edit mode (not persisted until user finishes)
+  const [pendingWidgets, setPendingWidgets] = useState<string[] | null>(null);
+  const [pendingOrder, setPendingOrder] = useState<string[] | null>(null);
 
   // Client-side only: last update timestamp
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
@@ -126,39 +130,153 @@ export default function Dashboard() {
   }, [config.dashboard_widgets, config.dashboard_widgets_by_role, userRole, user?.username]);
 
   // Get widget order (user's custom order or default)
-  const widgetOrder = config.dashboard_widget_order?.length > 0 
-    ? config.dashboard_widget_order 
-    : availableWidgetsForRole;
+  const widgetOrder = (isEditMode && pendingOrder && pendingOrder.length > 0)
+    ? pendingOrder
+    : (config.dashboard_widget_order && config.dashboard_widget_order.length > 0 ? config.dashboard_widget_order : availableWidgetsForRole);
 
   // Handle order change from drag and drop
   const handleOrderChange = useCallback(async (newOrder: string[]) => {
+    if (isEditMode) {
+      setPendingOrder(newOrder);
+      return;
+    }
     updateConfig('dashboard_widget_order', newOrder);
-    // Auto-save after reordering
+    // Auto-save after reordering when not in edit mode
     try {
       await saveConfig();
     } catch (e) {
       console.warn('Failed to save widget order:', e);
     }
-  }, [updateConfig, saveConfig]);
+  }, [isEditMode, updateConfig, saveConfig]);
 
-  // Toggle edit mode
+  // Allow toggling widget visibility directly from the dashboard
+  // When in edit mode, changes are applied to pending state and only saved when finishing edit mode
+  const handleToggleWidget = useCallback(async (id: string, enable: boolean) => {
+    if (isEditMode) {
+      setPendingWidgets(prev => {
+        const cur = Array.isArray(prev) ? prev : (config.dashboard_widgets || []);
+        if (enable) {
+          if (!cur.includes(id)) return [...cur, id];
+          return cur;
+        }
+        return cur.filter(w => w !== id);
+      });
+      return;
+    }
+
+    if (!config) return;
+    const current = config.dashboard_widgets || [];
+    let next: string[] = [];
+    if (enable) {
+      if (!current.includes(id)) next = [...current, id]; else next = current;
+    } else {
+      next = current.filter(w => w !== id);
+    }
+    updateConfig('dashboard_widgets', next);
+    try {
+      await saveConfig();
+    } catch (e) {
+      console.warn('Failed to save widget visibility change:', e);
+    }
+  }, [isEditMode, config, updateConfig, saveConfig]);
+
+  // Toggle edit mode. When entering edit mode, initialize pending state. When finishing
+  // edit mode (toggling off), commit pending changes to backend in a single save.
   const handleToggleEditMode = useCallback(() => {
-    setIsEditMode(prev => !prev);
-  }, []);
+    setIsEditMode(prev => {
+      const next = !prev;
+      if (next) {
+        // entering edit mode: initialize pending state from current config
+        setPendingWidgets([...((config.dashboard_widgets) || [])]);
+        setPendingOrder((config.dashboard_widget_order && config.dashboard_widget_order.length) ? [...config.dashboard_widget_order] : [...(config.dashboard_widgets || [])]);
+      } else {
+        // leaving edit mode: commit pending changes
+        (async () => {
+          try {
+            const toSaveWidgets = Array.isArray(pendingWidgets) ? pendingWidgets : (config.dashboard_widgets || []);
+            const toSaveOrder = Array.isArray(pendingOrder) ? pendingOrder : (config.dashboard_widget_order && config.dashboard_widget_order.length ? config.dashboard_widget_order : (config.dashboard_widgets || []));
+            // Build a minimal payload based on current config but with updated widget values
+            const payload = {
+              ...config,
+              dashboard_widgets: toSaveWidgets,
+              dashboard_widget_order: toSaveOrder,
+            } as any;
+
+            // If we have a user id, include it in the query so backend can persist per-user
+            const userId = user?.id;
+            const query = userId ? `?user_id=${userId}` : '';
+
+            // Persist directly using apiClient to avoid a race between updateConfig (setState)
+            // and saveConfig (which reads the `config` state). After successful PUT,
+            // update local state via updateConfig so React reflects the saved values.
+            // eslint-disable-next-line no-console
+            console.debug('[Dashboard] Persisting layout directly', { toSaveWidgets, toSaveOrder });
+            await apiClient.put(`/api/v1/layout${query}`, payload);
+
+            // Reload authoritative config from backend so provider state matches persisted values
+            try {
+              await reloadConfig();
+            } catch (e) {
+              // Fallback: update local keys if reload fails
+              updateConfig('dashboard_widgets', toSaveWidgets);
+              updateConfig('dashboard_widget_order', toSaveOrder);
+            }
+            setLastUpdate(new Date().toLocaleString('pt-BR'));
+          } catch (e) {
+            console.warn('Failed to persist pending dashboard edits', e);
+          } finally {
+            setPendingWidgets(null);
+            setPendingOrder(null);
+          }
+        })();
+      }
+      return next;
+    });
+  }, [config, pendingWidgets, pendingOrder, updateConfig, saveConfig]);
 
   // Check if analytics widgets are enabled to show period selector
   const hasAnalyticsWidgets = availableWidgetsForRole.some(w => w.startsWith('analytics-'));
 
-  // Build widget configs for DraggableWidgetGrid
+  // Build widget configs for DraggableWidgetGrid (based on pending state while editing)
+  const effectiveEnabledWidgets = isEditMode ? (Array.isArray(pendingWidgets) ? pendingWidgets : (config.dashboard_widgets || [])) : (config.dashboard_widgets || []);
+  const effectiveAvailableForRole = (() => {
+    // compute availableWidgetsForRole but based on effectiveEnabledWidgets
+    if (userRole === 'admin' || !config.dashboard_widgets_by_role) {
+      return effectiveEnabledWidgets;
+    }
+    const roleWidgets = config.dashboard_widgets_by_role[userRole];
+    if (roleWidgets?.includes('all')) return effectiveEnabledWidgets;
+    return effectiveEnabledWidgets.filter(w => roleWidgets?.includes(w));
+  })();
+
   const widgetConfigs = useMemo(() => {
-    return availableWidgetsForRole
+    return effectiveAvailableForRole
       .filter(id => WIDGET_REGISTRY[id])
       .map(id => ({
         id,
         label: WIDGET_REGISTRY[id].label,
         size: WIDGET_REGISTRY[id].size,
       }));
-  }, [availableWidgetsForRole]);
+  }, [effectiveAvailableForRole]);
+
+  // Compute disabled widgets that are allowed for the role but currently not enabled
+  const disabledWidgetsForRole = useMemo(() => {
+    try {
+      // Role-allowed set
+      let roleAllowed: string[] = [];
+      if (userRole === 'admin' || !config.dashboard_widgets_by_role) {
+        roleAllowed = Object.keys(WIDGET_REGISTRY);
+      } else {
+        roleAllowed = config.dashboard_widgets_by_role?.[userRole] || [];
+      }
+      if (roleAllowed.includes('all')) roleAllowed = Object.keys(WIDGET_REGISTRY);
+      const enabled = isEditMode ? (Array.isArray(pendingWidgets) ? pendingWidgets : (config.dashboard_widgets || [])) : (config.dashboard_widgets || []);
+      // return allowed but not enabled
+      return roleAllowed.filter(id => WIDGET_REGISTRY[id] && !enabled.includes(id));
+    } catch (e) {
+      return [];
+    }
+  }, [config.dashboard_widgets_by_role, config.dashboard_widgets, userRole, isEditMode, pendingWidgets]);
 
   // Render a single widget with Suspense
   const renderWidget = useCallback((widgetId: string, isDragging?: boolean) => {
@@ -206,6 +324,8 @@ export default function Dashboard() {
         widgets={widgetConfigs}
         widgetOrder={widgetOrder}
         onOrderChange={handleOrderChange}
+        onToggleWidget={handleToggleWidget}
+        disabledWidgets={disabledWidgetsForRole}
         renderWidget={renderWidget}
         isEditMode={isEditMode}
         onToggleEditMode={handleToggleEditMode}

@@ -182,13 +182,25 @@ if defined SEED_TENANT_IDS (
 ) else (
   set "SEED_TENANTS=%DEFAULT_SEED_TENANTS%"
 )
+rem Prefer top-level scripts/run_seeds_fixed.py, but fall back to backend/scripts/run_seeds_fixed.py
+set "SEED_RUNNER_PATH="
+REM Prefer top-level scripts/run_seeds_fixed.py, but fall back to backend/scripts/run_seeds_fixed.py
+REM Note: backend service mounts ./backend -> /app inside the container, so the
+REM seed runner inside the container will always be reachable as /app/scripts/run_seeds_fixed.py
+set "SEED_RUNNER_PATH="
 if exist "%~dp0scripts\run_seeds_fixed.py" (
+  set "SEED_RUNNER_PATH=scripts/run_seeds_fixed.py"
+) else if exist "%~dp0backend\scripts\run_seeds_fixed.py" (
+  rem Use the path that is valid inside the backend container (working dir /app)
+  set "SEED_RUNNER_PATH=scripts/run_seeds_fixed.py"
+)
+if not "%SEED_RUNNER_PATH%"=="" (
   if defined RUN_ENV_ARGS (
-    call :log Invoking seed runner with RUN_ENV_ARGS
-    docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend python scripts/run_seeds_fixed.py --tenants "%SEED_TENANTS%"
+    call :log Invoking seed runner with RUN_ENV_ARGS (path: %SEED_RUNNER_PATH%)
+    docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend python %SEED_RUNNER_PATH% --tenants "%SEED_TENANTS%"
   ) else (
-    call :log Invoking seed runner
-    docker compose run --rm --entrypoint "" backend python scripts/run_seeds_fixed.py --tenants "%SEED_TENANTS%"
+    call :log Invoking seed runner (path: %SEED_RUNNER_PATH%)
+    docker compose run --rm --entrypoint "" backend python %SEED_RUNNER_PATH% --tenants "%SEED_TENANTS%"
   )
   if %ERRORLEVEL% NEQ 0 (
     echo [WARN] Seed runner returned non-zero; continuing.

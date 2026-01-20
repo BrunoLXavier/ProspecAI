@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
 from use_cases.manage_portfolio import ManagePortfolioUseCase
 from domain.entities.portfolio import ProjectStatus
+from infrastructure.serializers import to_primitive
 
 
 router = APIRouter(prefix="/api/v1/portfolio", tags=["portfolio"])
@@ -164,23 +165,40 @@ async def list_projects(
         limit=limit,
     )
     
-    return [
-        ProjectResponse(
-            id=p.id,
-            title=p.title,
-            description=p.description,
-            status=p.status.value if hasattr(p.status, 'value') else str(p.status),
-            trl_current=p.trl_current if hasattr(p, 'trl_current') else p.current_trl,
+    # Use safe attribute access to avoid AttributeError when DB models differ
+    result = []
+    for p in projects:
+        status_val = None
+        if hasattr(p, 'status'):
+            status_val = p.status.value if hasattr(p.status, 'value') else str(p.status)
+        else:
+            status_val = str(getattr(p, 'status', 'unknown'))
+
+        trl_current_val = getattr(p, 'trl_current', getattr(p, 'current_trl', 1))
+
+        budget_val = getattr(p, 'budget', None)
+        try:
+            budget_val = float(budget_val) if budget_val is not None else None
+        except Exception:
+            budget_val = None
+
+        proj = ProjectResponse(
+            id=getattr(p, 'id'),
+            title=getattr(p, 'title', ''),
+            description=getattr(p, 'description', ''),
+            status=status_val,
+            trl_current=trl_current_val,
             trl_target=getattr(p, 'trl_target', None),
             research_area=getattr(p, 'research_area', None),
-            budget=float(p.budget) if p.budget else None,
-            competencies=p.competencies or [],
-            lessons_learned=p.lessons_learned or [],
-            created_at=p.created_at,
-            updated_at=p.updated_at,
+            budget=budget_val,
+            competencies=getattr(p, 'competencies', []) or [],
+            lessons_learned=getattr(p, 'lessons_learned', []) or [],
+            created_at=getattr(p, 'created_at', datetime.utcnow()),
+            updated_at=getattr(p, 'updated_at', datetime.utcnow()),
         )
-        for p in projects
-    ]
+        result.append(proj)
+
+    return to_primitive(result)
 
 
 @router.post("/projects", summary="Create a new project", response_model=ProjectResponse, status_code=201)

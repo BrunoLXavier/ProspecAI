@@ -77,13 +77,17 @@ export default function ProposalsPage() {
     { key: 'dateTo', label: t('filters.dateTo'), type: 'date' },
   ];
 
-  const { data: proposals = [], isLoading, isError, error } = useQuery({
+  const { data: proposals = [], isLoading, isError, error } = useQuery<any[]>({
     queryKey: ['proposals', filters.status],
-    queryFn: async () => {
-      const result = await apiClient.listProposals({
+    queryFn: async (): Promise<any[]> => {
+      const result: any = await apiClient.listProposals({
         status: filters.status || undefined,
       });
-      return result ?? [];
+      // Normalize API shapes: backend may return an array or an object with items/data
+      if (Array.isArray(result)) return result;
+      if (result == null) return [];
+      const cand = result.items ?? result.data ?? result.proposals ?? [];
+      return Array.isArray(cand) ? cand : [];
     },
   });
 

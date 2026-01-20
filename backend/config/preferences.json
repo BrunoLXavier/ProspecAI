@@ -32,7 +32,33 @@
       ],
       "orderOverride": {},
       "reorderEnabled": false,
-      "updated_at": "2026-01-19T20:37:19.022081Z"
+      "updated_at": "2026-01-20T00:08:54.357011Z"
+    },
+    {
+      "user_id": "b0cf676c-edd9-4c40-93f4-0c04ecb90cc5",
+      "module": "funding",
+      "visibleStatIds": [
+        "funding-total",
+        "funding-open",
+        "funding-total-value",
+        "funding-expiring-7d"
+      ],
+      "orderOverride": {},
+      "reorderEnabled": true,
+      "updated_at": "2026-01-19T21:43:29.226327Z"
+    },
+    {
+      "user_id": null,
+      "module": "funding",
+      "visibleStatIds": [
+        "funding-total",
+        "funding-open",
+        "funding-total-value",
+        "funding-expiring-7d"
+      ],
+      "orderOverride": {},
+      "reorderEnabled": false,
+      "updated_at": "2026-01-20T00:08:49.326152Z"
     }
   ]
 }

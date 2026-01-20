@@ -11,6 +11,7 @@ from uuid import UUID
 from domain.entities.proposal import Proposal, ProposalVersion, ProposalStatus
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
 from infrastructure.di_container import DependencyContainer
+from infrastructure.serializers import to_primitive
 
 router = APIRouter()
 
@@ -172,7 +173,7 @@ async def list_proposals(
     }
 
     proposals = await container.proposal_repository.find_by_criteria(criteria, skip=skip, limit=limit)
-    return proposals
+    return to_primitive(proposals)
 
 
 @router.get("/{proposal_id}", response_model=ProposalResponse)
@@ -194,7 +195,7 @@ async def get_proposal(
             detail=f"Proposal {proposal_id} not found"
         )
     
-    return proposal
+    return to_primitive(proposal)
 
 
 @router.post("/", response_model=ProposalResponse, status_code=status.HTTP_201_CREATED)
@@ -235,7 +236,7 @@ async def create_proposal(
         except Exception:
             pass
 
-    return created
+    return to_primitive(created)
 
 
 @router.patch("/{proposal_id}", response_model=ProposalResponse)
@@ -268,7 +269,7 @@ async def update_proposal(
             detail=f"Proposal {proposal_id} not found"
         )
     
-    return proposal
+    return to_primitive(proposal)
 
 
 @router.post("/{proposal_id}/versions", response_model=ProposalVersionResponse, status_code=status.HTTP_201_CREATED)
@@ -292,7 +293,7 @@ async def create_version(
             detail=f"Proposal {proposal_id} not found"
         )
     
-    return version
+    return to_primitive(version)
 
 
 @router.get("/{proposal_id}/versions", response_model=List[ProposalVersionResponse])
@@ -307,7 +308,7 @@ async def list_versions(
     Implements RF-08.06: Histórico de versões
     """
     versions = await container.proposal_repository.get_version_history(proposal_id, tenant_id)
-    return versions
+    return to_primitive(versions)
 
 
 @router.get("/{proposal_id}/adherence", response_model=AdherenceAnalysisResponse)
@@ -335,7 +336,7 @@ async def analyze_adherence(
             detail=f"Proposal {proposal_id} not found"
         )
     
-    return analysis
+    return to_primitive(analysis)
 
 
 @router.post("/{proposal_id}/submit", response_model=ProposalResponse)
@@ -367,7 +368,7 @@ async def submit_proposal(
             detail=f"Proposal {proposal_id} not found"
         )
     
-    return proposal
+    return to_primitive(proposal)
 
 
 @router.post("/{proposal_id}/attachments", status_code=status.HTTP_201_CREATED)
@@ -385,11 +386,11 @@ async def upload_attachment(
     """
     # TODO: Implement MinIO integration; attach metadata to proposal record
     # For now, return a stub acknowledging upload
-    return {
+    return to_primitive({
         "message": "Attachment uploaded (placeholder)",
         "proposal_id": proposal_id,
         "filename": file.filename,
-    }
+    })
 
 
 @router.delete("/{proposal_id}", status_code=status.HTTP_204_NO_CONTENT)

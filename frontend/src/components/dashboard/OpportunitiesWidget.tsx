@@ -65,8 +65,9 @@ export default function OpportunitiesWidget() {
         const response = await apiClient.listOpportunities({ skip: 0, limit: 5 });
 
         // `listOpportunities` may return either an array or an object { data, total }
-        const opportunities = Array.isArray(response) ? response : (response.data || response.opportunities || []);
-        const total = response.total || (Array.isArray(response) ? response.length : opportunities.length);
+        const resp: any = response;
+        const opportunities = Array.isArray(resp) ? resp : (resp.data || resp.opportunities || []);
+        const total = resp.total || (Array.isArray(resp) ? resp.length : opportunities.length);
         const total_value = opportunities.reduce((sum: number, o: Opportunity) => sum + (o.value || 0), 0);
         const avg_probability = opportunities.length > 0 
           ? opportunities.reduce((sum: number, o: Opportunity) => sum + (o.probability || 0), 0) / opportunities.length 

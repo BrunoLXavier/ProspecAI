@@ -37,12 +37,38 @@ export default function OpportunityPipeline() {
     queryKey: ['pipeline-stats'],
     queryFn: async () => {
       // Get aggregated counts per stage
-      const stages = await apiClient.getPipelineStats();
+      const raw = await apiClient.getPipelineStats();
+
+      // Normalize possible response shapes into an array of stage objects
+      // Supported shapes:
+      // - [{ stage: 'intelligence', count: 3 }, ...]
+      // - { stages: [{ stage: 'intelligence', count: 3 }, ...] }
+      // - { stages: { intelligence: 3, approach: 2 } }
+      // - { intelligence: 3, approach: 2 }
+      let stages: any[] = [];
+      if (Array.isArray(raw)) {
+        stages = raw;
+      } else if (raw && Array.isArray(raw.stages)) {
+        stages = raw.stages;
+      } else if (raw && raw.stages && typeof raw.stages === 'object') {
+        stages = Object.keys(raw.stages).map((k) => ({ stage: k, count: raw.stages[k] }));
+      } else if (raw && typeof raw === 'object') {
+        // If API returned a plain object with stage keys
+        const possibleStageKeys = Object.keys(raw).filter(k => typeof raw[k] === 'number' || typeof raw[k] === 'object');
+        // Heuristic: if values are numbers, treat as stage->count map
+        if (possibleStageKeys.length > 0 && possibleStageKeys.every(k => typeof raw[k] === 'number')) {
+          stages = possibleStageKeys.map((k) => ({ stage: k, count: raw[k] }));
+        } else {
+          stages = raw.data ?? [];
+        }
+      }
 
       // For each stage, fetch up to 3 opportunities to display
       const stageItemsPromises = (stages || []).map(async (s: any) => {
-        const items = await apiClient.listOpportunities({ stage: s.stage, skip: 0, limit: 3 });
-        return { stage: s.stage, items: Array.isArray(items) ? items : (items.data || []) };
+        const stageName = s.stage ?? s.key ?? s.name ?? s;
+        const items = await apiClient.listOpportunities({ stage: stageName, skip: 0, limit: 3 });
+        const itemsResp: any = items;
+        return { stage: stageName, items: Array.isArray(itemsResp) ? itemsResp : (itemsResp.items ?? itemsResp.data ?? []) };
       });
 
       const stageItems = await Promise.all(stageItemsPromises);

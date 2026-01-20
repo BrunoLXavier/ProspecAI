@@ -17,6 +17,7 @@ from services.ai.chatbot_service import (
     ExplainableResponse,
     ChatMessage,
 )
+from infrastructure.serializers import to_primitive
 
 router = APIRouter(prefix="/api/v1/chatbot", tags=["chatbot"])
 
@@ -82,7 +83,7 @@ async def chat(
     context["user_name"] = current_user.name
     
     response = await chatbot.chat(request.message, context)
-    return response
+    return to_primitive(response)
 
 
 @router.post("/explain-matching", response_model=ExplainableResponse)
@@ -109,7 +110,7 @@ async def explain_matching(
         funding=funding_data,
         score=request.score,
     )
-    return response
+    return to_primitive(response)
 
 
 @router.get("/history", response_model=ChatHistoryResponse)
@@ -123,10 +124,10 @@ async def get_history(
     chatbot = await get_chatbot_with_db_config(current_user.tenant_id, db)
     messages = chatbot.get_history()
     
-    return ChatHistoryResponse(
+    return to_primitive(ChatHistoryResponse(
         messages=messages,
         count=len(messages),
-    )
+    ))
 
 
 @router.post("/clear-history")

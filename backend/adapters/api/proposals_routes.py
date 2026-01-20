@@ -24,6 +24,7 @@ from infrastructure.file_storage import (
 )
 from use_cases.manage_proposals import ManageProposalsUseCase
 from domain.entities.proposal import ProposalStatus
+from infrastructure.serializers import to_primitive
 
 
 router = APIRouter(prefix="/api/v1/proposals", tags=["proposals"])
@@ -153,8 +154,7 @@ async def list_proposals(
         limit=limit,
     )
     
-    return [
-        ProposalResponse(
+    return [to_primitive(ProposalResponse(
             id=p.id,
             title=p.title,
             description=p.description if hasattr(p, 'description') else "",
@@ -169,9 +169,7 @@ async def list_proposals(
             tags=getattr(p, 'tags', []) or [],
             created_at=p.created_at,
             updated_at=p.updated_at,
-        )
-        for p in proposals
-    ]
+        )) for p in proposals]
 
 
 @router.post("/", summary="Create a new proposal", response_model=ProposalResponse, status_code=201)
@@ -204,7 +202,7 @@ async def create_proposal(
             user_id=user_id,
         )
         
-        return ProposalResponse(
+        return to_primitive(ProposalResponse(
             id=proposal.id,
             title=proposal.title,
             description=getattr(proposal, 'description', ''),
@@ -219,7 +217,7 @@ async def create_proposal(
             tags=getattr(proposal, 'tags', []) or [],
             created_at=proposal.created_at,
             updated_at=proposal.updated_at,
-        )
+        ))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -241,22 +239,22 @@ async def get_proposal(
     if not proposal:
         raise HTTPException(status_code=404, detail="Proposal not found")
     
-    return ProposalResponse(
-        id=proposal.id,
-        title=proposal.title,
-        description=getattr(proposal, 'description', ''),
-        status=proposal.status.value if hasattr(proposal.status, 'value') else str(proposal.status),
-        opportunity_id=proposal.opportunity_id,
-        funding_source_id=proposal.funding_source_id,
-        client_id=getattr(proposal, 'client_id', None),
-        current_version_id=getattr(proposal, 'current_version_id', None),
-        version_count=getattr(proposal, 'version_count', proposal.current_version or 1),
-        collaborators=proposal.collaborators or [],
-        adherence_to_funding=proposal.adherence_score,
-        tags=getattr(proposal, 'tags', []) or [],
-        created_at=proposal.created_at,
-        updated_at=proposal.updated_at,
-    )
+        return to_primitive(ProposalResponse(
+            id=proposal.id,
+            title=proposal.title,
+            description=getattr(proposal, 'description', ''),
+            status=proposal.status.value if hasattr(proposal.status, 'value') else str(proposal.status),
+            opportunity_id=proposal.opportunity_id,
+            funding_source_id=proposal.funding_source_id,
+            client_id=getattr(proposal, 'client_id', None),
+            current_version_id=getattr(proposal, 'current_version_id', None),
+            version_count=getattr(proposal, 'version_count', proposal.current_version or 1),
+            collaborators=proposal.collaborators or [],
+            adherence_to_funding=proposal.adherence_score,
+            tags=getattr(proposal, 'tags', []) or [],
+            created_at=proposal.created_at,
+            updated_at=proposal.updated_at,
+        ))
 
 
 @router.put("/{proposal_id}", summary="Update proposal", response_model=ProposalResponse)
@@ -293,7 +291,7 @@ async def update_proposal(
     
     updated = await proposal_repo.update(proposal)
     
-    return ProposalResponse(
+    return to_primitive(ProposalResponse(
         id=updated.id,
         title=updated.title,
         description=getattr(updated, 'description', ''),
@@ -308,7 +306,7 @@ async def update_proposal(
         tags=getattr(updated, 'tags', []) or [],
         created_at=updated.created_at,
         updated_at=updated.updated_at,
-    )
+    ))
 
 
 @router.delete("/{proposal_id}", summary="Delete proposal", status_code=204)
@@ -461,7 +459,8 @@ async def get_diff(
     if not diff_result:
         raise HTTPException(status_code=404, detail="Versions not found")
     
-    return diff_result
+    from infrastructure.serializers import to_primitive
+    return to_primitive(diff_result)
 
 
 # =============================================================================
@@ -628,7 +627,8 @@ async def list_attachments(
             )
         )
     
-    return attachments
+    from infrastructure.serializers import to_primitive
+    return to_primitive(attachments)
 
 
 @router.post("/{proposal_id}/attachments", summary="Upload attachment", status_code=201)
@@ -690,14 +690,14 @@ async def upload_attachment(
         object_name=result.object_name,
     )
     
-    return {
+    return to_primitive({
         "message": "Attachment uploaded successfully",
         "proposal_id": str(proposal_id),
         "filename": file.filename,
         "size": result.size,
         "content_type": result.content_type,
         "download_url": download_url,
-    }
+    })
 
 
 @router.delete("/{proposal_id}/attachments/{filename}", summary="Delete attachment")

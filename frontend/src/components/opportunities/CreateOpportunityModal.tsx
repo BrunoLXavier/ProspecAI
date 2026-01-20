@@ -157,7 +157,7 @@ export default function CreateOpportunityModal({ isOpen, onClose }: CreateOpport
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormSelect
                       label={t('client')}
-                      options={clients.map((c: any) => ({ value: c.id, label: c.name }))}
+                      options={(Array.isArray(clients) ? clients : []).map((c: any) => ({ value: c.id, label: c.name }))}
                       placeholder={t('clientPlaceholder')}
                       error={errors.client_id}
                       required
@@ -166,7 +166,7 @@ export default function CreateOpportunityModal({ isOpen, onClose }: CreateOpport
 
                     <FormSelect
                       label={t('fundingSource')}
-                      options={fundingSources.map((f: any) => ({ value: f.id, label: f.source_name }))}
+                      options={(Array.isArray(fundingSources) ? fundingSources : []).map((f: any) => ({ value: f.id, label: f.source_name }))}
                       placeholder={t('fundingSourcePlaceholder')}
                       {...register('funding_source_id')}
                     />

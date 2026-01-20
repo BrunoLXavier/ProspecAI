@@ -287,3 +287,18 @@ async def health():
         return {"status": "healthy", "service": "file-storage"}
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
+
+
+@router.get("/")
+async def files_root():
+    """Files root - index of file storage endpoints."""
+    return {
+        "message": "File storage API",
+        "endpoints": {
+            "upload": "/api/v1/files/upload/{bucket}",
+            "upload_multiple": "/api/v1/files/upload-multiple/{bucket}",
+            "list": "/api/v1/files/list/{bucket}",
+            "download": "/api/v1/files/download/{bucket}/{object_name}",
+            "presigned_upload": "/api/v1/files/presigned-upload/{bucket}",
+        }
+    }

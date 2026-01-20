@@ -5,6 +5,8 @@ Provides dependency injection for routes
 from typing import AsyncGenerator
 from uuid import UUID
 from fastapi import Depends, Header, HTTPException, status
+from typing import Optional
+from infrastructure.jwt_service import get_jwt_service
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from adapters.database.connection import get_session
@@ -21,7 +23,8 @@ __all__ = ['get_container', 'get_current_user_id', 'get_current_tenant_id', 'get
 
 
 async def get_current_user_id(
-    x_user_id: str | None = Header(default=None, alias="X-User-ID")
+    x_user_id: str | None = Header(default=None, alias="X-User-ID"),
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
 ) -> UUID:
     """
     Get current user ID from request headers.
@@ -29,6 +32,13 @@ async def get_current_user_id(
     this with Keycloak token validation.
     """
     if not x_user_id:
+        # Fallback: try to extract user id from Bearer token in Authorization header
+        if authorization and authorization.lower().startswith("bearer "):
+            token = authorization.split(None, 1)[1]
+            jwt_service = get_jwt_service()
+            user_id = jwt_service.get_user_id_from_token(token)
+            if user_id:
+                return user_id
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing X-User-ID header")
     try:
         return UUID(x_user_id)

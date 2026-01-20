@@ -22,20 +22,23 @@ def seed_for_tenant(conn, tenant_id: str) -> None:
         return
 
     for agg in DEFAULT_AGGREGATES:
+        # Use Python object binding for JSON value to avoid SQL parameter style issues
+        try:
+            value_obj = json.loads(agg["value"])
+        except Exception:
+            # Fallback: treat as raw string
+            value_obj = agg["value"]
+
         stmt = text(
-            """
-            INSERT INTO statistics_aggregates (id, tenant_id, key, value, created_at, updated_at)
-            SELECT :id, :tenant_id, :key, :value::jsonb, now(), now()
-            WHERE NOT EXISTS (
-                SELECT 1 FROM statistics_aggregates WHERE tenant_id = :tenant_id AND key = :key
-            )
-            """
+            "INSERT INTO statistics_aggregates (id, tenant_id, key, value, created_at, updated_at) "
+            "SELECT :id, :tenant_id, :key, :value, now(), now() "
+            "WHERE NOT EXISTS (SELECT 1 FROM statistics_aggregates WHERE tenant_id = :tenant_id AND key = :key)"
         )
         params = {
             "id": str(uuid.uuid4()),
             "tenant_id": tenant_id,
             "key": agg["key"],
-            "value": agg["value"],
+            "value": value_obj,
         }
         conn.execute(stmt, params)
 

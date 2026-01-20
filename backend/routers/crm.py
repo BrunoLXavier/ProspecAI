@@ -11,6 +11,7 @@ from domain.entities.client import Client as DomainClient, Interaction, ClientTy
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
 from infrastructure.di_container import DependencyContainer
 from uuid import UUID
+from infrastructure.serializers import to_primitive
 
 router = APIRouter()
 
@@ -153,7 +154,26 @@ async def list_clients(
         skip=skip,
         limit=limit
     )
-    return clients
+
+    # Serialize domain entities to match `ClientResponse` schema
+    out = []
+    for c in clients:
+        out.append({
+            "id": str(getattr(c, 'id')),
+            "name": getattr(c, 'name', ''),
+            "cnpj": getattr(c, 'cnpj', '') or '',
+            "segment": getattr(c, 'sector', '') or '',
+            "contact_email": getattr(c, 'email', '') or '',
+            "contact_phone": getattr(c, 'phone', '') or '',
+            "annual_revenue": getattr(c, 'annual_revenue', None),
+            "maturity_level": getattr(c, 'maturity_level', None),
+            "ai_enriched_data": getattr(c, 'auto_filled_data', None) or None,
+            "ai_confidence_score": getattr(c, 'auto_fill_confidence', None),
+            "created_at": getattr(c, 'created_at').isoformat() if getattr(c, 'created_at', None) else None,
+            "updated_at": getattr(c, 'updated_at').isoformat() if getattr(c, 'updated_at', None) else None,
+        })
+
+    return to_primitive(out)
 
 
 @router.get("/clients/{client_id}", response_model=ClientResponse)
@@ -174,8 +194,21 @@ async def get_client(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Client {client_id} not found"
         )
-    
-    return client
+
+    return to_primitive({
+        "id": str(getattr(client, 'id')),
+        "name": getattr(client, 'name', ''),
+        "cnpj": getattr(client, 'cnpj', '') or '',
+        "segment": getattr(client, 'sector', '') or '',
+        "contact_email": getattr(client, 'email', '') or '',
+        "contact_phone": getattr(client, 'phone', '') or '',
+        "annual_revenue": getattr(client, 'annual_revenue', None),
+        "maturity_level": getattr(client, 'maturity_level', None),
+        "ai_enriched_data": getattr(client, 'auto_filled_data', None) or None,
+        "ai_confidence_score": getattr(client, 'auto_fill_confidence', None),
+        "created_at": getattr(client, 'created_at').isoformat() if getattr(client, 'created_at', None) else None,
+        "updated_at": getattr(client, 'updated_at').isoformat() if getattr(client, 'updated_at', None) else None,
+    })
 
 
 @router.post("/clients", response_model=ClientResponse, status_code=status.HTTP_201_CREATED)
@@ -207,8 +240,21 @@ async def create_client(
 
     created = await container.client_repository.create(client_entity)
     client = created
-    
-    return client
+
+    return to_primitive({
+        "id": str(getattr(client, 'id')),
+        "name": getattr(client, 'name', ''),
+        "cnpj": getattr(client, 'cnpj', '') or '',
+        "segment": getattr(client, 'sector', '') or '',
+        "contact_email": getattr(client, 'email', '') or '',
+        "contact_phone": getattr(client, 'phone', '') or '',
+        "annual_revenue": getattr(client, 'annual_revenue', None),
+        "maturity_level": getattr(client, 'maturity_level', None),
+        "ai_enriched_data": getattr(client, 'auto_filled_data', None) or None,
+        "ai_confidence_score": getattr(client, 'auto_fill_confidence', None),
+        "created_at": getattr(client, 'created_at').isoformat() if getattr(client, 'created_at', None) else None,
+        "updated_at": getattr(client, 'updated_at').isoformat() if getattr(client, 'updated_at', None) else None,
+    })
 
 
 @router.patch("/clients/{client_id}", response_model=ClientResponse)
@@ -243,7 +289,7 @@ async def update_client(
             detail=f"Client {client_id} not found"
         )
     
-    return client
+    return to_primitive(client)
 
 
 @router.post("/clients/{client_id}/interactions", response_model=InteractionResponse, status_code=status.HTTP_201_CREATED)
@@ -276,7 +322,7 @@ async def create_interaction(
     )
     interaction = await repo.create(interaction_entity)
     
-    return interaction
+    return to_primitive(interaction)
 
 
 @router.get("/clients/{client_id}/interactions", response_model=List[InteractionResponse])
@@ -296,7 +342,7 @@ async def list_client_interactions(
         skip=skip,
         limit=limit,
     )
-    return interactions
+    return to_primitive(interactions)
 
 
 @router.post("/enrich-cnpj/{cnpj}", response_model=CNPJEnrichmentResponse)

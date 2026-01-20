@@ -273,6 +273,10 @@ export default function ConfigurableStatisticsBar({
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [reorderEnabled, setReorderEnabledLocal] = useState(false);
 
+  // Ensure we always pass an array to the statistics hook to avoid runtime
+  // errors when the calling code accidentally provides an object.
+  const safeData = Array.isArray(data) ? data : (data ? [] : []);
+
   const {
     visibleStatistics,
     statisticsByCategory,
@@ -284,7 +288,7 @@ export default function ConfigurableStatisticsBar({
     setReorderEnabled: setReorderEnabledPersisted,
   } = useStatistics({
     module,
-    data,
+    data: safeData,
     customCalculators,
   });
 

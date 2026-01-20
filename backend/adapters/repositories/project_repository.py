@@ -172,7 +172,7 @@ class ProjectRepository:
         total_budget = budget_result.scalar() or 0
         
         # Average TRL
-        trl_stmt = select(func.avg(ProjectModel.current_trl)).where(
+        trl_stmt = select(func.avg(ProjectModel.trl_current)).where(
             ProjectModel.deleted_at.is_(None)
         )
         trl_result = await self.session.execute(trl_stmt)

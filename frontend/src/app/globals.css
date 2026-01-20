@@ -144,6 +144,13 @@
   --radius-xl: 1rem;
 }
 
+/* Amber / Orange mapping (pumpkin icons) tied to feedback token so theme settings can control them */
+.bg-amber-100 { background-color: rgba(var(--brand-feedback-rgb, 245,158,11), 0.12) !important; }
+.text-amber-600 { color: var(--color-feedback-button, #f59e0b) !important; }
+.dark .bg-amber-100 { background-color: rgba(var(--brand-feedback-rgb, 245,158,11), 0.10) !important; }
+.dark .text-amber-600 { color: color-mix(in srgb, var(--color-feedback-button-dark, var(--color-feedback-button)) 85%, #ffffff 15%) !important; }
+
+
 /* Dark Mode */
 .dark {
   --bg-primary: #0f172a;

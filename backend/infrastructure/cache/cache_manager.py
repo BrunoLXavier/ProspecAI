@@ -12,6 +12,7 @@ import logging
 import pickle
 import time
 from datetime import timedelta
+from typing import Union
 from enum import Enum
 from functools import wraps
 from typing import Any, Dict, List, Optional, Union
@@ -142,10 +143,10 @@ class CacheManager:
             return default
     
     async def set(
-        self, 
-        key: str, 
-        value: Any, 
-        ttl: Optional[timedelta] = None,
+        self,
+        key: str,
+        value: Any,
+        ttl: Optional[Union[timedelta, int]] = None,
         level: CacheLevel = CacheLevel.L2_REDIS
     ) -> bool:
         """
@@ -308,13 +309,17 @@ class CacheManager:
             
             return None
     
-    async def _store_in_l1(self, key: str, value: Any, ttl: Optional[timedelta] = None) -> None:
+    async def _store_in_l1(self, key: str, value: Any, ttl: Optional[Union[timedelta, int]] = None) -> None:
         """Store in L1 memory cache with LRU eviction"""
         async with self._lock:
             # Calculate expiration
             expires_at = None
-            if ttl:
-                expires_at = time.time() + ttl.total_seconds()
+            if ttl is not None:
+                # Allow ttl to be either timedelta or int/float seconds
+                if isinstance(ttl, (int, float)):
+                    expires_at = time.time() + float(ttl)
+                else:
+                    expires_at = time.time() + ttl.total_seconds()
             elif self.config.l1_ttl_seconds:
                 expires_at = time.time() + self.config.l1_ttl_seconds
             
@@ -350,7 +355,7 @@ class CacheManager:
         
         return None
     
-    async def _store_in_l2(self, key: str, value: Any, ttl: Optional[timedelta] = None) -> bool:
+    async def _store_in_l2(self, key: str, value: Any, ttl: Optional[Union[timedelta, int]] = None) -> bool:
         """Store in L2 Redis cache"""
         try:
             serialized = pickle.dumps(value)
@@ -360,10 +365,14 @@ class CacheManager:
                 serialized = gzip.compress(serialized)
                 key = f"gz:{key}"
             
-            ttl_seconds = (
-                int(ttl.total_seconds()) if ttl 
-                else self.config.l2_default_ttl_seconds
-            )
+            # Compute ttl_seconds supporting timedelta or raw seconds (int/float)
+            if ttl is None:
+                ttl_seconds = self.config.l2_default_ttl_seconds
+            else:
+                if isinstance(ttl, (int, float)):
+                    ttl_seconds = int(ttl)
+                else:
+                    ttl_seconds = int(ttl.total_seconds())
             
             await self.redis_client.setex(key, ttl_seconds, serialized)
             return True

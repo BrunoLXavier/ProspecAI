@@ -14,6 +14,7 @@ from services.acl_service import (
     Permission,
     ResourceType
 )
+from infrastructure.serializers import to_primitive
 
 router = APIRouter(prefix="/api/v1/acl", tags=["acl"])
 
@@ -72,14 +73,14 @@ async def get_role(role_id: str):
     role = acl_service.get_role(role_id)
     if not role:
         raise HTTPException(status_code=404, detail=f"Role not found: {role_id}")
-    return role
+    return to_primitive(role)
 
 
 @router.post("/roles", response_model=Role, status_code=201)
 async def create_role(data: RoleCreate):
     """Create a new role."""
     try:
-        return acl_service.create_role(data)
+        return to_primitive(acl_service.create_role(data))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -91,7 +92,7 @@ async def update_role(role_id: str, data: RoleUpdate):
         role = acl_service.update_role(role_id, data)
         if not role:
             raise HTTPException(status_code=404, detail=f"Role not found: {role_id}")
-        return role
+        return to_primitive(role)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

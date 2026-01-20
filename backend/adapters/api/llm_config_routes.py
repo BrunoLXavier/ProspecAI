@@ -12,6 +12,7 @@ from adapters.api.auth_middleware import require_admin, AuthenticatedUser
 from adapters.database.connection import get_db
 from adapters.repositories.llm_config_repository import LLMConfigRepository
 from use_cases.manage_llm_config import ManageLLMConfigUseCase, LLMConfigInput
+from infrastructure.serializers import to_primitive
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +120,7 @@ async def get_active_config(
     if not config:
         return None
     
-    return LLMConfigResponse(**config.__dict__)
+    return to_primitive(LLMConfigResponse(**config.__dict__))
 
 
 @router.post("/test", response_model=TestConnectionResponse)
@@ -207,7 +208,7 @@ async def get_all_configs(
     
     tenant_uuid = user.tenant_id if isinstance(user.tenant_id, UUID) else UUID(user.tenant_id)
     configs = await use_case.get_all_configs(tenant_uuid)
-    return [LLMConfigResponse(**c.__dict__) for c in configs]
+    return to_primitive([LLMConfigResponse(**c.__dict__) for c in configs])
 
 
 @router.post("", response_model=LLMConfigResponse, status_code=status.HTTP_201_CREATED)
@@ -241,7 +242,7 @@ async def create_config(
             input_data=input_data,
         )
         
-        return LLMConfigResponse(**config.__dict__)
+        return to_primitive(LLMConfigResponse(**config.__dict__))
         
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -289,7 +290,7 @@ async def update_config(
         if not config:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Configuration not found")
         
-        return LLMConfigResponse(**config.__dict__)
+        return to_primitive(LLMConfigResponse(**config.__dict__))
         
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

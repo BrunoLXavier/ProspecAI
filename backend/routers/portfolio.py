@@ -10,6 +10,7 @@ from datetime import date
 from domain.entities.portfolio import Project, Portfolio, ProjectStatus
 from use_cases.manage_portfolio import ManagePortfolioUseCase
 from infrastructure.dependencies import get_portfolio_use_case
+from infrastructure.serializers import to_primitive
 
 router = APIRouter()
 
@@ -143,7 +144,7 @@ async def list_projects(
         skip=skip,
         limit=limit
     )
-    return projects
+    return [to_primitive(p) for p in projects]
 
 
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
@@ -164,7 +165,7 @@ async def get_project(
             detail=f"Project {project_id} not found"
         )
     
-    return project
+    return to_primitive(project)
 
 
 @router.post("/projects", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
@@ -190,7 +191,7 @@ async def create_project(
         expected_results=data.expected_results,
     )
     
-    return project
+    return to_primitive(project)
 
 
 @router.patch("/projects/{project_id}", response_model=ProjectResponse)
@@ -215,7 +216,7 @@ async def update_project(
             detail=f"Project {project_id} not found"
         )
     
-    return project
+    return to_primitive(project)
 
 
 @router.post("/projects/{project_id}/trl-advancement", response_model=ProjectResponse)
@@ -242,7 +243,7 @@ async def advance_trl(
             detail=f"Project {project_id} not found"
         )
     
-    return project
+    return to_primitive(project)
 
 
 @router.get("/stats", response_model=PortfolioStatsResponse)
@@ -255,7 +256,7 @@ async def get_portfolio_statistics(
     Implements RF-03.06: Estatísticas do portfólio
     """
     stats = await use_case.get_portfolio_statistics()
-    return stats
+    return to_primitive(stats)
 
 
 @router.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)

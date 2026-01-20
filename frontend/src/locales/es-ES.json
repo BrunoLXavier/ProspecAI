@@ -1425,7 +1425,7 @@
       },
       "chat": {
         "title": "Asistente ProspecAI",
-        "welcomeTitle": "¡Hola! Soy tu asistente de prospección de I+D.",
+        "welcomeTitle": "¡Hola! Soy IA.Go, tu asistente de prospección de I+D.",
         "welcomeSubtitle": "Puedo ayudar con convocatorias, proyectos y matches.",
         "inputPlaceholder": "Escribe tu pregunta..."
       }

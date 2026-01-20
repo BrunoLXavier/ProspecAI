@@ -5,7 +5,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Bars3Icon, RectangleGroupIcon, UserGroupIcon, CheckIcon, ArrowPathIcon, Squares2X2Icon, ShieldCheckIcon, ArrowsPointingOutIcon, PaintBrushIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useLayout, ALL_WIDGET_IDS, DEFAULT_CONFIG } from '@/contexts/LayoutContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, getStoredAccessToken } from '@/contexts/AuthContext';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 const availableRoles = [
   { id: 'admin', label: 'Administrador' },
@@ -20,6 +21,7 @@ const availableNavItems = [
   { id: 'portfolio', label: 'Portfólio' },
   { id: 'crm', label: 'CRM' },
   { id: 'opportunities', label: 'Oportunidades' },
+  { id: 'notifications', label: 'Notificações' },
   { id: 'proposals', label: 'Propostas' },
   { id: 'reports', label: 'Relatórios' },
   { id: 'activity', label: 'Atividade' },
@@ -62,13 +64,24 @@ export default function LayoutPage() {
 
   const handleDragStart = (e: React.DragEvent, payload: { type: string; id: string; role?: string }) => {
     dragData.current = payload;
-    try { e.dataTransfer.setData('text/plain', JSON.stringify(payload)); } catch (err) { /* ignore */ }
-    e.dataTransfer.effectAllowed = 'move';
+    try {
+      // Provide multiple mime types for broader browser support
+      e.dataTransfer.setData('application/json', JSON.stringify(payload));
+      e.dataTransfer.setData('text/plain', JSON.stringify(payload));
+      e.dataTransfer.effectAllowed = 'move';
+      // Try to set a default drag image for better UX
+      try { e.dataTransfer.setDragImage(e.currentTarget as Element, 10, 10); } catch (err) { /* ignore */ }
+    } catch (err) {
+      // ignore
+    }
+    // Debug helper
+    try { console.debug('[LayoutPage] dragstart', payload); } catch (e) { /* ignore */ }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    try { console.debug('[LayoutPage] dragover', (e.currentTarget as Element)?.className || e.target); } catch (err) { /* ignore */ }
   };
 
   const handleDropOnNav = (e: React.DragEvent, targetId: string) => {
@@ -100,6 +113,7 @@ export default function LayoutPage() {
       try { payload = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (err) { payload = null; }
     }
     if (!payload) return;
+    try { console.debug('[LayoutPage] drop on widgets', { payload, targetId }); } catch (err) { /* ignore */ }
     if (payload.type === 'widget') {
       const src = payload.id!;
       const dest = targetId;
@@ -216,35 +230,99 @@ export default function LayoutPage() {
     checkColor(config.secondary_color_light || config.secondary_color, 'Secundária (Claro)');
     checkColor(config.secondary_color_dark || config.secondary_color, 'Secundária (Escuro)');
 
+    const performSave = async () => {
+      setSaving(true);
+      setError(null);
+      try {
+        await saveConfig();
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1500);
+      } catch (err: any) {
+        setError(err?.message || 'Failed to save');
+      } finally {
+        setSaving(false);
+      }
+    };
+
     if (issues.length) {
       const msg = `Atenção: possíveis problemas de contraste foram detectados:\n\n- ${issues.join('\n- ')}\n\nDeseja continuar e salvar mesmo assim?`;
-      if (!confirm(msg)) return;
+      openConfirm(t('layout.messages.contrastWarningTitle') || 'Problemas de contraste', msg, () => { performSave(); });
+      return;
     }
 
-    setSaving(true);
-    setError(null);
-    try {
-      await saveConfig();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1500);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to save');
-    } finally {
-      setSaving(false);
-    }
+    await performSave();
   };
 
   const handleResetLayout = async () => {
-    if (!confirm(t('layout.messages.resetConfirm') || 'Reset layout?')) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await resetConfig();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to reset');
-    } finally {
-      setSaving(false);
-    }
+    openConfirm(t('layout.messages.resetConfirmTitle') || 'Reset layout?', t('layout.messages.resetConfirm') || 'Reset layout?', async () => {
+      setSaving(true);
+      setError(null);
+      try {
+        await resetConfig();
+      } catch (err: any) {
+        setError(err?.message || 'Failed to reset');
+      } finally {
+        setSaving(false);
+      }
+    });
+  };
+
+  // Confirmation modal state
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [confirmTitle, setConfirmTitle] = React.useState('');
+  const [confirmDescription, setConfirmDescription] = React.useState('');
+  const [confirmAction, setConfirmAction] = React.useState<() => void>(() => () => {});
+
+  const openConfirm = (title: string, description: string, action: () => void) => {
+    setConfirmTitle(title);
+    setConfirmDescription(description);
+    setConfirmAction(() => () => { action(); setConfirmOpen(false); });
+    setConfirmOpen(true);
+  };
+
+  // Branding helpers: remove or restore defaults (use modal)
+  const removeLogo = () => {
+    openConfirm(
+      t('layout.branding.removeLogoConfirm') || 'Remover a logo do site?',
+      t('layout.branding.removeLogoConfirmDetail') || 'Isto removerá a logo configurada para este site.',
+      () => updateConfig('site_logo_url', null)
+    );
+  };
+
+  const restoreLogoDefault = () => {
+    openConfirm(
+      t('layout.branding.restoreLogoConfirm') || 'Restaurar logo padrão?',
+      t('layout.branding.restoreLogoConfirmDetail') || 'Isto restaurará a logo para o padrão da aplicação.',
+      () => updateConfig('site_logo_url', '/apple-icon.svg')
+    );
+  };
+
+  const removeFavicon = () => {
+    openConfirm(
+      t('layout.branding.removeFaviconConfirm') || 'Remover o favicon do site?',
+      t('layout.branding.removeFaviconConfirmDetail') || 'Isto removerá o favicon configurado. O favicon padrão será usado.',
+      () => {
+        updateConfig('site_favicon_url', null);
+        try {
+          const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+          if (link) link.href = '/favicon.svg';
+        } catch (e) {}
+      }
+    );
+  };
+
+  const restoreFaviconDefault = () => {
+    openConfirm(
+      t('layout.branding.restoreFaviconConfirm') || 'Restaurar favicon padrão?',
+      t('layout.branding.restoreFaviconConfirmDetail') || 'Isto restaurará o favicon para o padrão da aplicação.',
+      () => {
+        updateConfig('site_favicon_url', '/favicon.svg');
+        try {
+          const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+          if (link) link.href = '/favicon.svg';
+        } catch (e) {}
+      }
+    );
   };
 
   const toggleNavItem = (id: string) => {
@@ -801,12 +879,7 @@ export default function LayoutPage() {
           </div>
         </div>
 
-        <div className="mt-4">
-          <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Sidebar text (Light)</label>
-          <input type="color" value={(config as any).sidebar_text_light || ''} onChange={(e) => updateConfig('sidebar_text_light' as any, e.target.value)} className="w-16 h-10 p-1 rounded border" />
-          <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300 mt-3">Sidebar text (Dark)</label>
-          <input type="color" value={(config as any).sidebar_text_dark || ''} onChange={(e) => updateConfig('sidebar_text_dark' as any, e.target.value)} className="w-16 h-10 p-1 rounded border" />
-        </div>
+        {/* Sidebar text moved to Theme & Colors to keep typography controls together */}
       </section>
 
       {/* UI Preferences */}
@@ -892,7 +965,7 @@ export default function LayoutPage() {
               </div>
 
               <div className="border-t pt-3">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cores da fonte (Claro)</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cores da fonte</h4>
                 <div className="grid grid-cols-1 gap-2">
                   <div>
                     <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Body text</label>
@@ -906,18 +979,22 @@ export default function LayoutPage() {
                     <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Muted text</label>
                     <input type="color" value={config.muted_text_light || ''} onChange={(e) => updateConfig('muted_text_light', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                   </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Sidebar text</label>
+                    <input type="color" value={config.sidebar_text_light ?? ''} onChange={(e) => updateConfig('sidebar_text_light' as any, e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
                 </div>
               </div>
 
               <div className="border-t pt-3">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Botões Flutuantes (Claro)</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Botões Flutuantes</h4>
                 <div className="flex gap-3">
                   <div>
-                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Chat (Claro)</label>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Chat</label>
                     <input type="color" value={config.chat_button_color || ''} onChange={(e) => updateConfig('chat_button_color', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                   </div>
                   <div>
-                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Feedback (Claro)</label>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Feedback</label>
                     <input type="color" value={config.feedback_button_color || ''} onChange={(e) => updateConfig('feedback_button_color', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                   </div>
                 </div>
@@ -932,7 +1009,7 @@ export default function LayoutPage() {
                   </div>
                   <div>
                     <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Borda</label>
-                    <input type="color" value={config.border_light || config.modal_border_light} onChange={(e) => { updateConfig('border_light', e.target.value); updateConfig('modal_border_light', e.target.value); }} className="w-16 h-10 p-1 rounded border" />
+                    <input type="color" value={config.border_light ?? config.modal_border_light ?? ''} onChange={(e) => { updateConfig('border_light', e.target.value); updateConfig('modal_border_light', e.target.value); }} className="w-16 h-10 p-1 rounded border" />
                   </div>
                 </div>
               </div>
@@ -957,12 +1034,12 @@ export default function LayoutPage() {
               </div>
 
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Sidebar background (Escuro)</label>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Sidebar background</label>
                 <input type="color" value={config.sidebar_color_dark || config.secondary_color_dark || config.secondary_color} onChange={(e) => updateConfig('sidebar_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
               </div>
 
               <div className="border-t pt-3">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cores da fonte (Escuro)</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cores da fonte</h4>
                 <div className="grid grid-cols-1 gap-2">
                   <div>
                     <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Body text</label>
@@ -976,18 +1053,22 @@ export default function LayoutPage() {
                     <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Muted text</label>
                     <input type="color" value={config.muted_text_dark || ''} onChange={(e) => updateConfig('muted_text_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                   </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Sidebar text</label>
+                    <input type="color" value={config.sidebar_text_dark ?? ''} onChange={(e) => updateConfig('sidebar_text_dark' as any, e.target.value)} className="w-16 h-10 p-1 rounded border" />
+                  </div>
                 </div>
               </div>
 
               <div className="border-t pt-3">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Botões Flutuantes (Escuro)</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Botões Flutuantes</h4>
                 <div className="flex gap-3">
                   <div>
-                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Chat (Escuro)</label>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Chat</label>
                     <input type="color" value={config.chat_button_color_dark || config.chat_button_color || ''} onChange={(e) => updateConfig('chat_button_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                   </div>
                   <div>
-                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Feedback (Escuro)</label>
+                    <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Feedback</label>
                     <input type="color" value={config.feedback_button_color_dark || config.feedback_button_color || ''} onChange={(e) => updateConfig('feedback_button_color_dark', e.target.value)} className="w-16 h-10 p-1 rounded border" />
                   </div>
                 </div>
@@ -1002,7 +1083,7 @@ export default function LayoutPage() {
                   </div>
                   <div>
                     <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Borda</label>
-                    <input type="color" value={config.border_dark || config.modal_border_dark} onChange={(e) => { updateConfig('border_dark', e.target.value); updateConfig('modal_border_dark', e.target.value); }} className="w-16 h-10 p-1 rounded border" />
+                    <input type="color" value={config.border_dark ?? config.modal_border_dark ?? ''} onChange={(e) => { updateConfig('border_dark', e.target.value); updateConfig('modal_border_dark', e.target.value); }} className="w-16 h-10 p-1 rounded border" />
                   </div>
                 </div>
               </div>
@@ -1064,21 +1145,131 @@ export default function LayoutPage() {
           </div>
           <div>
             <label className="block text-sm mb-1">{t('layout.branding.siteLogoUrl') || 'Logo URL'}</label>
-            <input
-              placeholder={t('layout.branding.leaveEmptyForDefault') || 'Leave empty to use default'}
-              className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100"
-              value={config.site_logo_url ?? ''}
-              onChange={(e) => updateConfig('site_logo_url', e.target.value || null)}
-            />
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    try {
+                      const token = getStoredAccessToken();
+                      const fd = new FormData();
+                      fd.append('file', f, f.name);
+                      const prefix = 'branding';
+                      const res = await fetch(`/api/v1/files/upload/attachments?prefix=${encodeURIComponent(prefix)}`, {
+                        method: 'POST',
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
+                        body: fd,
+                      });
+                      if (!res.ok) {
+                        const txt = await res.text();
+                        throw new Error(txt || 'Upload failed');
+                      }
+                      const data = await res.json();
+                      // data.url contains a presigned URL
+                      updateConfig('site_logo_url', data.url || null);
+                    } catch (err: any) {
+                      console.error('Logo upload failed:', err);
+                      alert(t('layout.branding.uploadError') || 'Upload failed');
+                    }
+                  }}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('layout.branding.uploadHelp') || 'Envie um arquivo de imagem para usar como logo. O campo URL será atualizado automaticamente.'}</p>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                {config.site_logo_url ? (
+                  <div className="w-20 h-12 flex items-center justify-center border rounded p-1 bg-white dark:bg-slate-800">
+                    <img src={config.site_logo_url} alt="logo" className="max-h-10 max-w-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-20 h-12 flex items-center justify-center border rounded text-xs text-gray-400">Preview</div>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={removeLogo}
+                    className="px-2 py-1 text-xs rounded bg-red-50 text-red-700 border border-red-100 hover:bg-red-100"
+                  >
+                    {t('layout.branding.remove') || 'Remover'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={restoreLogoDefault}
+                    className="px-2 py-1 text-xs rounded bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100"
+                  >
+                    {t('layout.branding.restoreDefault') || 'Restaurar padrão'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           <div>
             <label className="block text-sm mb-1">{t('layout.branding.siteFaviconUrl') || 'Favicon URL'}</label>
-            <input
-              placeholder={t('layout.branding.leaveEmptyForDefault') || 'Leave empty to use default'}
-              className="w-full border rounded px-2 py-1 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-gray-100"
-              value={config.site_favicon_url ?? ''}
-              onChange={(e) => updateConfig('site_favicon_url', e.target.value || null)}
-            />
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*,.ico"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    try {
+                      const token = getStoredAccessToken();
+                      const fd = new FormData();
+                      fd.append('file', f, f.name);
+                      const prefix = 'branding';
+                      const res = await fetch(`/api/v1/files/upload/attachments?prefix=${encodeURIComponent(prefix)}`, {
+                        method: 'POST',
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
+                        body: fd,
+                      });
+                      if (!res.ok) {
+                        const txt = await res.text();
+                        throw new Error(txt || 'Upload failed');
+                      }
+                      const data = await res.json();
+                      updateConfig('site_favicon_url', data.url || null);
+                      // Also update favicon link tag dynamically
+                      try {
+                        const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+                        if (link) link.href = data.url;
+                      } catch (e) { /* ignore */ }
+                    } catch (err: any) {
+                      console.error('Favicon upload failed:', err);
+                      alert(t('layout.branding.uploadError') || 'Upload failed');
+                    }
+                  }}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('layout.branding.uploadFaviconHelp') || 'Envie um arquivo para usar como favicon. O campo URL será atualizado automaticamente.'}</p>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                {config.site_favicon_url ? (
+                  <div className="w-10 h-10 flex items-center justify-center border rounded p-1 bg-white dark:bg-slate-800">
+                    <img src={config.site_favicon_url} alt="favicon" className="max-h-8 max-w-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 flex items-center justify-center border rounded text-xs text-gray-400">Fav</div>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={removeFavicon}
+                    className="px-2 py-1 text-xs rounded bg-red-50 text-red-700 border border-red-100 hover:bg-red-100"
+                  >
+                    {t('layout.branding.remove') || 'Remover'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={restoreFaviconDefault}
+                    className="px-2 py-1 text-xs rounded bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100"
+                  >
+                    {t('layout.branding.restoreDefault') || 'Restaurar padrão'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1127,6 +1318,16 @@ export default function LayoutPage() {
           </div>
         </div>
       </section>
+
+      <ConfirmModal
+        isOpen={confirmOpen}
+        title={confirmTitle}
+        description={confirmDescription}
+        confirmLabel={t('common.confirm') || 'Confirm'}
+        cancelLabel={t('common.cancel') || 'Cancel'}
+        onConfirm={() => { try { confirmAction(); } catch (e) { setConfirmOpen(false); } }}
+        onCancel={() => setConfirmOpen(false)}
+      />
 
       {error && <div className="text-red-600">{error}</div>}
     </div>

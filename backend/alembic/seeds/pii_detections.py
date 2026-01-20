@@ -5,7 +5,7 @@ from typing import Iterable
 from sqlalchemy import text
 
 
-TABLE_NAME = 'pii_detections'
+TABLE_NAME = 'pii_detection_rules'
 
 
 DEFAULT_RULES = [
@@ -38,9 +38,9 @@ def seed_for_tenant(conn, tenant_id: str) -> None:
     for rule in DEFAULT_RULES:
         stmt = text(
             """
-            INSERT INTO pii_detections (id, tenant_id, name, pattern, description, created_at, updated_at)
+            INSERT INTO pii_detection_rules (id, tenant_id, name, pattern, description, created_at, updated_at)
             SELECT :id, :tenant_id, :name, :pattern, :description, now(), now()
-            WHERE NOT EXISTS (SELECT 1 FROM pii_detections WHERE tenant_id = :tenant_id AND name = :name)
+            WHERE NOT EXISTS (SELECT 1 FROM pii_detection_rules WHERE tenant_id = :tenant_id AND name = :name)
             """
         )
         params = {"id": str(uuid.uuid4()), "tenant_id": tenant_id, "name": rule["name"], "pattern": rule["pattern"], "description": rule.get("description", "")}

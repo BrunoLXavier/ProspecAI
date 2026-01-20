@@ -29,6 +29,7 @@ from use_cases.auth_use_cases import (
     AuthenticationError, InvalidCredentialsError, AccountLockedError,
     EmailNotVerifiedError, UserExistsError, PasswordTooWeakError, TokenInvalidError
 )
+from infrastructure.serializers import to_primitive
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +97,7 @@ async def register(
                 pass
         result = await use_case.execute(data, base_url)
         await session.commit()
-        return result
+        return to_primitive(result)
     except UserExistsError as e:
         await session.rollback()
         raise HTTPException(
@@ -175,7 +176,7 @@ async def login(
             use_case = LoginUser(user_repo, token_repo, attempt_repo, config_repo)
             result = await use_case.execute(login_req)
             await session.commit()
-            return result
+            return to_primitive(result)
         except InvalidCredentialsError as e:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -217,7 +218,7 @@ async def verify_email(
     try:
         result = await use_case.execute(data)
         await session.commit()
-        return result
+        return to_primitive(result)
     except TokenInvalidError as e:
         await session.rollback()
         raise HTTPException(
@@ -330,7 +331,7 @@ async def forgot_password(
         base_url = get_base_url(request)
         result = await use_case.execute(data, base_url)
         await session.commit()
-        return result
+        return to_primitive(result)
     except Exception as e:
         await session.rollback()
         logger.error(f"Password reset request error: {e}")
@@ -362,7 +363,7 @@ async def reset_password(
     try:
         result = await use_case.execute(data)
         await session.commit()
-        return result
+        return to_primitive(result)
     except TokenInvalidError as e:
         await session.rollback()
         raise HTTPException(
@@ -417,7 +418,7 @@ async def refresh_token(
     
     try:
         result = await use_case.execute(data)
-        return result
+        return to_primitive(result)
     except TokenInvalidError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -429,6 +430,7 @@ async def refresh_token(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Token refresh failed"
         )
+
 
 
 @router.post(
@@ -454,7 +456,7 @@ async def logout(
     try:
         result = await use_case.execute(data.refresh_token, revoke_all)
         await session.commit()
-        return result
+        return to_primitive(result)
     except Exception as e:
         await session.rollback()
         logger.error(f"Logout error: {e}")

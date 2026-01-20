@@ -60,13 +60,26 @@ export default function CalendarWidget() {
         const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
         
         // Call the backend calendar API under the standardized `/api/v1` path
-        const response = await apiClient.get<{ events: CalendarEvent[] }>('/api/v1/calendar/events', {
+        const response = await apiClient.get('/api/v1/calendar/events', {
           start_date: startDate.toISOString().split('T')[0],
           end_date: endDate.toISOString().split('T')[0],
         });
 
-        const events = response.events || [];
-        const upcoming_deadlines = events.filter(e => e.type === 'deadline').length;
+        // Defensive handling: backend may return string/errors or different shapes.
+        if (!response || typeof response !== 'object') {
+          // eslint-disable-next-line no-console
+          console.warn('[CalendarWidget] unexpected calendar response', response);
+          setData({ events: [], upcoming_deadlines: 0 });
+          return;
+        }
+
+        const events = Array.isArray((response as any).events)
+          ? (response as any).events
+          : Array.isArray((response as any).data)
+          ? (response as any).data
+          : [];
+
+        const upcoming_deadlines = events.filter((e: any) => e.type === 'deadline').length;
 
         setData({ events, upcoming_deadlines });
       } catch (err) {

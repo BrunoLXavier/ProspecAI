@@ -159,7 +159,16 @@ export default function OpportunitiesPage() {
       if (filters.search) params.search = filters.search;
 
       const res = await apiClient.listOpportunities(params);
-      return Array.isArray(res) ? res : (res.items ?? []);
+      // Defensive normalization: ensure we always return an array
+      if (Array.isArray(res)) return res;
+      if (res == null) return [];
+      return Array.isArray((res as any).items)
+        ? (res as any).items
+        : Array.isArray((res as any).data)
+        ? (res as any).data
+        : Array.isArray((res as any).opportunities)
+        ? (res as any).opportunities
+        : [];
     }
   });
 
@@ -284,7 +293,7 @@ export default function OpportunitiesPage() {
                           {opp.title}
                         </h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStageColor(opp.stage)}`}>
-                          {t(`stages.${opp.stage}`) || opp.stage}
+                          {opp.stage ? t(`stages.${opp.stage}`) : (opp.stage ?? '—')}
                         </span>
                         <ConfidenceBadge score={opp.probability / 100} />
                       </div>

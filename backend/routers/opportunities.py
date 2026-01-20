@@ -10,6 +10,7 @@ from uuid import UUID
 
 from domain.entities.opportunity import Opportunity, OpportunityStage, OpportunityPriority
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
+from infrastructure.serializers import to_primitive
 from infrastructure.di_container import DependencyContainer
 
 router = APIRouter()
@@ -154,7 +155,23 @@ async def list_opportunities(
         criteria, skip=skip, limit=limit
     )
 
-    return opportunities
+    def _serialize(o: Opportunity) -> dict:
+        return {
+            "id": str(o.id) if getattr(o, "id", None) else None,
+            "title": o.title,
+            "description": o.description,
+            "client_id": str(o.client_id) if getattr(o, "client_id", None) else None,
+            "funding_source_id": str(o.funding_source_id) if getattr(o, "funding_source_id", None) else None,
+            "current_stage": getattr(o, "stage", None).value if getattr(o, "stage", None) else None,
+            "estimated_value": float(getattr(o, "estimated_value", 0) or 0),
+            "probability": float(getattr(o, "probability", getattr(o, "probability_score", 0)) or 0),
+            "priority_score": float(getattr(o, "priority_score", getattr(o, "priority", 0)) or 0),
+            "priority_factors": getattr(o, "ai_priority_factors", {}) or {},
+            "created_at": getattr(o, "created_at", None).isoformat() if getattr(o, "created_at", None) else None,
+            "updated_at": getattr(o, "updated_at", None).isoformat() if getattr(o, "updated_at", None) else None,
+        }
+
+    return [_serialize(o) for o in opportunities]
 
 
 @router.get("/{opportunity_id}", response_model=OpportunityResponse)
@@ -176,7 +193,24 @@ async def get_opportunity(
             detail=f"Opportunity {opportunity_id} not found"
         )
     
-    return opportunity
+
+    def _serialize(o: Opportunity) -> dict:
+        return {
+            "id": str(o.id) if getattr(o, "id", None) else None,
+            "title": o.title,
+            "description": o.description,
+            "client_id": str(o.client_id) if getattr(o, "client_id", None) else None,
+            "funding_source_id": str(o.funding_source_id) if getattr(o, "funding_source_id", None) else None,
+            "current_stage": getattr(o, "stage", None).value if getattr(o, "stage", None) else None,
+            "estimated_value": float(getattr(o, "estimated_value", 0) or 0),
+            "probability": float(getattr(o, "probability", getattr(o, "probability_score", 0)) or 0),
+            "priority_score": float(getattr(o, "priority_score", getattr(o, "priority", 0)) or 0),
+            "priority_factors": getattr(o, "ai_priority_factors", {}) or {},
+            "created_at": getattr(o, "created_at", None).isoformat() if getattr(o, "created_at", None) else None,
+            "updated_at": getattr(o, "updated_at", None).isoformat() if getattr(o, "updated_at", None) else None,
+        }
+
+    return _serialize(opportunity)
 
 
 @router.post("/", response_model=OpportunityResponse, status_code=status.HTTP_201_CREATED)
@@ -208,7 +242,7 @@ async def create_opportunity(
     )
 
     created = await container.opportunity_repository.create(opp_entity, tenant_id, current_user)
-    return created
+    return to_primitive(created)
 
 
 @router.patch("/{opportunity_id}", response_model=OpportunityResponse)
@@ -242,7 +276,7 @@ async def update_opportunity(
             detail=f"Opportunity {opportunity_id} not found"
         )
     
-    return opportunity
+    return to_primitive(opportunity)
 
 
 @router.post("/{opportunity_id}/transition", response_model=OpportunityResponse)
@@ -268,7 +302,7 @@ async def transition_stage(
             detail=f"Opportunity {opportunity_id} not found"
         )
     
-    return opportunity
+    return to_primitive(opportunity)
 
 
 @router.get("/stats/pipeline", response_model=PipelineStatsResponse)
@@ -298,7 +332,8 @@ async def get_pipeline_statistics(
         "conversion_rates": {},
         "average_time_by_stage": {},
     }
-    return stats
+    from infrastructure.serializers import to_primitive
+    return to_primitive(stats)
 
 
 @router.delete("/{opportunity_id}", status_code=status.HTTP_204_NO_CONTENT)

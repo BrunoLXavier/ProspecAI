@@ -13,6 +13,7 @@ from services.translations_service import (
     TranslationCreate,
     SUPPORTED_LOCALES
 )
+from infrastructure.serializers import to_primitive
 
 router = APIRouter(prefix="/api/v1/translations", tags=["translations"])
 
@@ -58,12 +59,12 @@ async def list_translations(
     
     namespaces = translations_service.get_namespaces()
     
-    return TranslationsListResponse(
+    return to_primitive(TranslationsListResponse(
         translations=translations,
         total=len(translations),
         namespaces=namespaces,
         locales=SUPPORTED_LOCALES
-    )
+    ))
 
 
 @router.get("/namespaces", response_model=List[str])
@@ -133,7 +134,7 @@ async def update_translation(
         result = translations_service.update_translation(update)
         if not result:
             raise HTTPException(status_code=404, detail=f"Translation not found: {path}")
-        return result
+        return to_primitive(result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -150,7 +151,7 @@ async def create_translation(create: TranslationCreate):
         )
     
     try:
-        return translations_service.create_translation(create)
+        return to_primitive(translations_service.create_translation(create))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -14,6 +14,7 @@ import ChatWidget from '@/components/chat/ChatWidget';
 import { FeedbackButton } from '@/components/feedback';
 import { useAuth } from '@/contexts/AuthContext';
 import { LayoutProvider, useLayout } from '@/contexts/LayoutContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Inner layout that uses sidebar context
 function LayoutContent({ children }: { children: React.ReactNode }) {
@@ -138,7 +139,9 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     <ThemeProvider defaultTheme="light">
       <LayoutProvider>
         <SidebarProvider defaultCollapsed={false}>
-          <LayoutContent>{children}</LayoutContent>
+          <LayoutContent>
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </LayoutContent>
         </SidebarProvider>
       </LayoutProvider>
     </ThemeProvider>
