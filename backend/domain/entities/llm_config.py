@@ -13,6 +13,7 @@ class LLMProvider(str, Enum):
     OLLAMA = "ollama"
     AZURE = "azure"
     GOOGLE = "google"
+    LOCAL = "local"
 
 
 class LLMConfigStatus(str, Enum):

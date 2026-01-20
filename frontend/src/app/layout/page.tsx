@@ -60,29 +60,23 @@ export default function LayoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [navOrder, setNavOrder] = useState<string[]>([]);
   const [widgetsOrder, setWidgetsOrder] = useState<string[]>([]);
-  // Drag & drop state
   const dragData = useRef<{ type?: string; id?: string; role?: string } | null>(null);
 
   const handleDragStart = (e: React.DragEvent, payload: { type: string; id: string; role?: string }) => {
     dragData.current = payload;
     try {
-      // Provide multiple mime types for broader browser support
       e.dataTransfer.setData('application/json', JSON.stringify(payload));
       e.dataTransfer.setData('text/plain', JSON.stringify(payload));
       e.dataTransfer.effectAllowed = 'move';
-      // Try to set a default drag image for better UX
-      try { e.dataTransfer.setDragImage(e.currentTarget as Element, 10, 10); } catch (err) { /* ignore */ }
-    } catch (err) {
-      // ignore
-    }
-    // Debug helper
-    try { console.debug('[LayoutPage] dragstart', payload); } catch (e) { /* ignore */ }
+      try { e.dataTransfer.setDragImage(e.currentTarget as Element, 10, 10); } catch (err) { }
+    } catch (err) { }
+    try { console.debug('[LayoutPage] dragstart', payload); } catch (e) { }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    try { console.debug('[LayoutPage] dragover', (e.currentTarget as Element)?.className || e.target); } catch (err) { /* ignore */ }
+    try { console.debug('[LayoutPage] dragover', (e.currentTarget as Element)?.className || e.target); } catch (err) { }
   };
 
   const handleDropOnNav = (e: React.DragEvent, targetId: string) => {
@@ -104,7 +98,6 @@ export default function LayoutPage() {
       setNavOrder(arr);
       updateConfig('nav_order', arr);
     }
-    // role-nav and widgets handled elsewhere
   };
 
   const handleDropOnWidgets = (e: React.DragEvent, targetId: string) => {
@@ -114,7 +107,7 @@ export default function LayoutPage() {
       try { payload = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (err) { payload = null; }
     }
     if (!payload) return;
-    try { console.debug('[LayoutPage] drop on widgets', { payload, targetId }); } catch (err) { /* ignore */ }
+    try { console.debug('[LayoutPage] drop on widgets', { payload, targetId }); } catch (err) { }
     if (payload.type === 'widget') {
       const src = payload.id!;
       const dest = targetId;
@@ -141,10 +134,7 @@ export default function LayoutPage() {
       const byRole = config.visible_nav_items_by_role || {};
       const arr = [...(byRole[roleId] || [])];
       const to = arr.indexOf(src);
-      // If dropped onto another item we won't have target id; just ignore
-      // For simplicity, moves will cycle to end if not present
       if (to === -1) return;
-      // No-op for now
       updateConfig('visible_nav_items_by_role', { ...byRole, [roleId]: arr });
     }
     if (listKey === 'widgets' && payload.type === 'role-widget' && payload.role === roleId) {
@@ -159,13 +149,10 @@ export default function LayoutPage() {
 
   useEffect(() => {
     if (!config) return;
-    // Build a nav order that preserves any saved order but always includes
-    // all available nav items so options like 'dashboard' don't disappear.
     const savedOrder = (config.nav_order && config.nav_order.length) ? [...config.nav_order] : (config.visible_nav_items && config.visible_nav_items.length ? [...config.visible_nav_items] : []);
     const allAvailable = availableNavItems.map(i => i.id);
     const merged = Array.from(new Set([...(savedOrder || []), ...allAvailable]));
     setNavOrder(merged);
-    // Ensure 'settings' is always present in visible items (cannot be disabled)
     const visibleNow = config.visible_nav_items || [];
     if (!visibleNow.includes('settings')) {
       updateConfig('visible_nav_items', [...visibleNow, 'settings']);
@@ -183,7 +170,6 @@ export default function LayoutPage() {
   const isAdmin = !!user?.roles?.includes('admin');
 
   const handleSaveLayout = async () => {
-    // Validate color contrast and warn user if combinations may reduce accessibility
     const issues: string[] = [];
     const hexToRgb = (hex: string) => {
       if (!hex) return null;
@@ -211,21 +197,18 @@ export default function LayoutPage() {
       return (bright + 0.05) / (dark + 0.05);
     };
 
-    // Check both light and dark variants against white and dark text backgrounds
     const checkColor = (colorHex: string | undefined, name: string) => {
       if (!colorHex) return;
       const cAgainstWhite = contrastRatio(colorHex, '#ffffff');
-      const cAgainstBlack = contrastRatio(colorHex, '#000000');
-      if (cAgainstWhite < 3 && cAgainstBlack < 3) {
+      if (cAgainstWhite < 3 && contrastRatio(colorHex, '#000000') < 3) {
         issues.push(`${name} possui baixo contraste com texto claro e escuro (WCAG < 3).`);
       } else if (cAgainstWhite < 3) {
         issues.push(`${name} pode ter baixo contraste quando usado sobre fundo branco (contraste ${cAgainstWhite.toFixed(2)}).`);
-      } else if (cAgainstBlack < 3) {
-        issues.push(`${name} pode ter baixo contraste quando usado sobre fundo escuro (contraste ${cAgainstBlack.toFixed(2)}).`);
+      } else if (contrastRatio(colorHex, '#000000') < 3) {
+        issues.push(`${name} pode ter baixo contraste quando usado sobre fundo escuro (contraste ${contrastRatio(colorHex, '#000000').toFixed(2)}).`);
       }
     };
 
-    // Validate configured tokens (light and dark variants)
     checkColor(config.primary_color_light || config.primary_color, 'Primária (Claro)');
     checkColor(config.primary_color_dark || config.primary_color, 'Primária (Escuro)');
     checkColor(config.secondary_color_light || config.secondary_color, 'Secundária (Claro)');
@@ -268,7 +251,6 @@ export default function LayoutPage() {
     });
   };
 
-  // Confirmation modal state
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [confirmTitle, setConfirmTitle] = React.useState('');
   const [confirmDescription, setConfirmDescription] = React.useState('');
@@ -281,7 +263,6 @@ export default function LayoutPage() {
     setConfirmOpen(true);
   };
 
-  // Branding helpers: remove or restore defaults (use modal)
   const removeLogo = () => {
     openConfirm(
       t('layout.branding.removeLogoConfirm') || 'Remover a logo do site?',
@@ -328,12 +309,10 @@ export default function LayoutPage() {
 
   const toggleNavItem = (id: string) => {
     if (!config) return;
-    // 'settings' cannot be toggled off
     if (id === 'settings') return;
     const visible = config.visible_nav_items || [];
     const exists = visible.includes(id);
     const newVisible = exists ? visible.filter(x => x !== id) : [...visible, id];
-    // Only update visible items; do not alter nav order when toggling visibility.
     updateConfig('visible_nav_items', newVisible);
   };
 
@@ -371,7 +350,6 @@ export default function LayoutPage() {
     });
   };
 
-  // Color helpers (hex/HSL conversions + WCAG contrast utils)
   const hexToRgb = (hex: string) => {
     if (!hex) return null;
     const h = hex.replace('#', '');
@@ -463,7 +441,6 @@ export default function LayoutPage() {
     if (cWhite >= minContrast) return '#ffffff';
     const cBlack = contrastRatio(bgHex, '#000000');
     if (cBlack >= minContrast) return '#000000';
-    // Try to nudge background lighter/darker until we can use one of them
     let attempts = 0; let test = bgHex;
     while (attempts < 8) {
       test = adjustLightness(test, attempts % 2 === 0 ? 6 : -6);
@@ -474,7 +451,6 @@ export default function LayoutPage() {
     return cWhite > cBlack ? '#ffffff' : '#000000';
   };
 
-  // Auto-fill derived tokens for light/dark modes using WCAG-aware heuristics
   const autoFillLight = (primaryHex?: string) => {
     if (!primaryHex) return;
     const primary = primaryHex;
@@ -493,7 +469,6 @@ export default function LayoutPage() {
     updateConfig('body_text_light', body);
     updateConfig('heading_text_light', heading);
     updateConfig('muted_text_light', muted);
-    // modal variants: choose text that contrasts with modal bg
     const modalBg = '#ffffff';
     updateConfig('bg_light', modalBg);
     updateConfig('modal_bg_light', modalBg);
@@ -734,7 +709,6 @@ export default function LayoutPage() {
                               if (currentOrder && currentOrder.length) {
                                 const idxInOrder = currentOrder.indexOf(id);
                                 if (idxInOrder !== -1) {
-                                  // insert id preserving original order where possible
                                   let insertAt = nextWidgets.length;
                                   for (let i = idxInOrder - 1; i >= 0; i--) {
                                     const before = currentOrder[i];
@@ -766,14 +740,12 @@ export default function LayoutPage() {
                       onClick={() => {
                         if (enabled) {
                           try {
-                            // Ensure we persist a widget order so disabling doesn't lose position
                             const existingOrder = config.dashboard_widget_order || [];
                             const orderToPersist = (existingOrder && existingOrder.length) ? existingOrder : widgetsOrder;
                             if (!existingOrder || !existingOrder.length) {
                               updateConfig('dashboard_widget_order', orderToPersist);
                             }
                           } catch (e) {
-                            // ignore
                           }
                           updateConfig('dashboard_widgets', (config.dashboard_widgets || []).filter((w: string) => w !== id));
                         }
@@ -879,8 +851,6 @@ export default function LayoutPage() {
             </div>
           </div>
         </div>
-
-        {/* Sidebar text moved to Theme & Colors to keep typography controls together */}
       </section>
 
       {/* UI Preferences */}
@@ -943,7 +913,6 @@ export default function LayoutPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Light mode column */}
           <div>
             <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-3">{t('layout.theme.lightTitle') || 'Claro'}</h3>
             <div className="grid grid-cols-1 gap-3">
@@ -1169,7 +1138,6 @@ export default function LayoutPage() {
                         throw new Error(txt || 'Upload failed');
                       }
                       const data = await res.json();
-                      // data.url contains a presigned URL
                       updateConfig('site_logo_url', data.url || null);
                     } catch (err: any) {
                       console.error('Logo upload failed:', err);
@@ -1232,11 +1200,10 @@ export default function LayoutPage() {
                       }
                       const data = await res.json();
                       updateConfig('site_favicon_url', data.url || null);
-                      // Also update favicon link tag dynamically
                       try {
                         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
                         if (link) link.href = data.url;
-                      } catch (e) { /* ignore */ }
+                      } catch (e) { }
                     } catch (err: any) {
                       console.error('Favicon upload failed:', err);
                       alert(t('layout.branding.uploadError') || 'Upload failed');

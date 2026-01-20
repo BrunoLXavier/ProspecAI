@@ -16,13 +16,13 @@ import {
 } from '@heroicons/react/24/outline';
 
 const navigation = [
-  { name: 'dashboard', href: '/', icon: HomeIcon },
+  { name: 'dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'funding', href: '/funding', icon: CurrencyDollarIcon },
   { name: 'portfolio', href: '/portfolio', icon: BriefcaseIcon },
   { name: 'crm', href: '/crm', icon: UserGroupIcon },
   { name: 'opportunities', href: '/opportunities', icon: ChartBarIcon },
   { name: 'proposals', href: '/proposals', icon: DocumentTextIcon },
-  { name: 'feedbackManagement', href: '/admin/feedback', icon: DocumentTextIcon }, // Feedback Management (Admin)
+  { name: 'feedbackManagement', href: '/feedback', icon: DocumentTextIcon }, // Feedback Management (Admin)
   { name: 'reports', href: '/reports', icon: ChartBarIcon }, // Implements RF-09
   { name: 'activity', href: '/activity', icon: UserGroupIcon }, // Implements RF-09
   { name: 'settings', href: '/settings', icon: Cog6ToothIcon },

@@ -37,7 +37,7 @@ interface NavigationItem {
 }
 
 const navigationItems: NavigationItem[] = [
-  { id: 'dashboard', name: 'dashboard', href: '/', icon: HomeIcon },
+  { id: 'dashboard', name: 'dashboard', href: '/dashboard', icon: HomeIcon },
   { id: 'funding', name: 'funding', href: '/funding', icon: CurrencyDollarIcon },
   { id: 'portfolio', name: 'portfolio', href: '/portfolio', icon: BriefcaseIcon },
   { id: 'crm', name: 'crm', href: '/crm', icon: UserGroupIcon },
@@ -45,11 +45,11 @@ const navigationItems: NavigationItem[] = [
   { id: 'proposals', name: 'proposals', href: '/proposals', icon: DocumentTextIcon },
   // --- Administration Block Start ---
   { id: 'admin', name: 'admin', isSection: true },
-  { id: 'piiAnalysis', name: 'piiAnalysis', href: '/admin/pii-analysis', icon: ShieldExclamationIcon },
+  { id: 'piiAnalysis', name: 'piiAnalysis', href: '/pii-analysis', icon: ShieldExclamationIcon },
   // --- Administration Block End ---
   { id: 'ingestion', name: 'ingestion', href: '/ingestion', icon: CloudArrowUpIcon },
   { id: 'reports', name: 'reports', href: '/reports', icon: DocumentChartBarIcon },
-  { id: 'reportTemplates', name: 'reportTemplates', href: '/reports/templates', icon: DocumentTextIcon },
+  { id: 'reportTemplates', name: 'reportTemplates', href: '/report-templates', icon: DocumentTextIcon },
   { id: 'activity', name: 'activity', href: '/activity', icon: ClockIcon },
   { id: 'notifications', name: 'notifications', href: '/notifications', icon: BellIcon },
   { id: 'settings', name: 'settings', href: '/settings', icon: Cog6ToothIcon },
@@ -210,7 +210,7 @@ export default function Sidebar() {
         border-b border-white/10
         ${isCollapsed ? 'justify-center' : 'justify-between'}
       `}>
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-3">
           {/* Logo Icon */}
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
             <span className="text-white font-bold text-lg">P</span>

@@ -561,11 +561,18 @@
     "saveChanges": "Guardar cambios",
     "saving": "Guardando...",
     "saved": "¡Guardado con éxito!",
+    "common": {
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    },
     "translations": {
       "title": "Traducciones",
       "keyPath": "Ruta de Clave",
       "addNewKey": "Agregar Nueva Clave de Traducción",
       "create": "Crear",
+      "searchPlaceholder": "Buscar claves de traducción...",
+      "namespace": "Namespace",
+      "description": "Gestiona las traducciones del sistema",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar",
       "actions": "Acciones",
       "showing": "Mostrando",
@@ -573,8 +580,27 @@
     },
     "acl": {
       "title": "Control de Acceso",
+      "aclDesc": "Gestiona permisos y roles de usuarios",
+      "loading": "Cargando...",
+      "systemBadge": "Sistema",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar este rol?",
-      "createRole": "Crear Rol"
+      "createRole": "Crear Rol",
+      "roleDescriptions": {
+        "admin": "Acceso total al sistema",
+        "manager": "Gestiona equipos y proyectos",
+        "analyst": "Realiza análisis e informes",
+        "viewer": "Solo visualización"
+      },
+      "resource": "Recurso",
+      "permissions": {
+        "create": "Crear",
+        "read": "Leer",
+        "update": "Actualizar",
+        "delete": "Eliminar",
+        "export": "Exportar",
+        "approve": "Aprobar",
+        "assign": "Asignar"
+      }
     },
     "layout": {
       "title": "Configuración de Diseño",
@@ -641,7 +667,11 @@
         "siteName": "Nombre del Sitio",
         "siteLogoUrl": "URL del Logotipo",
         "siteFaviconUrl": "URL del Favicon",
-        "leaveEmptyForDefault": "Deja vacío para usar el predeterminado"
+        "leaveEmptyForDefault": "Deja vacío para usar el predeterminado",
+        "uploadHelp": "Arrastra y suelta una imagen o haz clic para seleccionar",
+        "uploadFaviconHelp": "Sube un favicon (.ico o .png) 16x16/32x32",
+        "remove": "Eliminar",
+        "restoreDefault": "Restaurar predeterminado"
       },
       "typography": {
         "title": "Tipografía",
@@ -939,8 +969,11 @@
         "opportunities": "Oportunidades",
         "proposals": "Propuestas",
         "ingestion": "Ingesta de Datos",
-        "piiAnalysis": "Análisis de PII"
-      }
+        "piiAnalysis": "Análisis de PII",
+        "reports": "Reportes",
+        "translations": "Traducciones"
+      },
+      "all": "Todos"
     },
     "auth": {
       "login": {

@@ -297,7 +297,7 @@ export default function SettingsPage() {
         <div className="space-y-3">
 
           <Link
-            href="/settings/layout"
+            href="/layout"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">
@@ -315,7 +315,7 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/settings/users"
+            href="/users"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">
@@ -333,7 +333,7 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/settings/acl"
+            href="/acl"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">
@@ -351,7 +351,7 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/settings/statistics"
+            href="/statistics"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">
@@ -369,7 +369,7 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/settings/translations"
+            href="/translations"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">
@@ -387,7 +387,7 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/admin/feedback"
+            href="/feedback"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">
@@ -405,7 +405,7 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/settings/llm-provider"
+            href="/llm-provider"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">

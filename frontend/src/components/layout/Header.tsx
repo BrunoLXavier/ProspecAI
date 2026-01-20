@@ -28,7 +28,7 @@ import apiClient from '@/lib/api-client';
 
 // Breadcrumb configuration - keys for i18n translation
 const breadcrumbMap: Record<string, string> = {
-  '/': 'dashboard',
+  '/dashboard': 'dashboard',
   '/funding': 'funding',
   '/portfolio': 'portfolio',
   '/crm': 'crm',
@@ -36,7 +36,7 @@ const breadcrumbMap: Record<string, string> = {
   '/proposals': 'proposals',
   '/settings': 'settings',
   '/reports': 'reports',
-  '/settings/translations': 'translations',
+  '/translations': 'translations',
 };
 
 interface HeaderNotification {
@@ -66,7 +66,7 @@ export default function Header() {
   // Generate breadcrumbs
   const getBreadcrumbs = () => {
     const segments = pathname.split('/').filter(Boolean);
-    const breadcrumbs = [{ name: t('dashboard'), href: '/' }];
+    const breadcrumbs = [{ name: t('dashboard'), href: '/dashboard' }];
     
     if (segments.length > 0) {
       let currentPath = '';

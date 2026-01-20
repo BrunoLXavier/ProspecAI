@@ -560,11 +560,18 @@
     "saveChanges": "Save changes",
     "saving": "Saving...",
     "saved": "Saved successfully!",
+    "common": {
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
     "translations": {
       "title": "Translations",
       "keyPath": "Key Path",
       "addNewKey": "Add New Translation Key",
       "create": "Create",
+      "searchPlaceholder": "Search translation keys...",
+      "namespace": "Namespace",
+      "description": "Manage system translations",
       "deleteConfirm": "Are you sure you want to delete",
       "actions": "Actions",
       "showing": "Showing",
@@ -572,8 +579,27 @@
     },
     "acl": {
       "title": "Access Control",
+      "aclDesc": "Manage user roles and permissions",
+      "loading": "Loading...",
+      "systemBadge": "System",
       "deleteConfirm": "Are you sure you want to delete this role?",
-      "createRole": "Create Role"
+      "createRole": "Create Role",
+      "roleDescriptions": {
+        "admin": "Full system access",
+        "manager": "Manages teams and projects",
+        "analyst": "Performs analysis and reports",
+        "viewer": "Read-only access"
+      },
+      "resource": "Resource",
+      "permissions": {
+        "create": "Create",
+        "read": "Read",
+        "update": "Update",
+        "delete": "Delete",
+        "export": "Export",
+        "approve": "Approve",
+        "assign": "Assign"
+      }
     },
     "layout": {
       "title": "Layout Configuration",
@@ -640,7 +666,11 @@
         "siteName": "Site Name",
         "siteLogoUrl": "Site Logo URL",
         "siteFaviconUrl": "Site Favicon URL",
-        "leaveEmptyForDefault": "Leave empty to use default"
+        "leaveEmptyForDefault": "Leave empty to use default",
+        "uploadHelp": "Drag & drop an image or click to select",
+        "uploadFaviconHelp": "Upload a favicon (.ico or .png) 16x16/32x32",
+        "remove": "Remove",
+        "restoreDefault": "Restore default"
       },
       "typography": {
         "title": "Typography",
@@ -1114,13 +1144,16 @@
       "min": "Mín",
       "modules": {
         "crm": "CRM",
-        "funding": "Fuentes de Financiamiento",
-        "ingestion": "Ingesta de Datos",
-        "opportunities": "Oportunidades",
-        "piiAnalysis": "Análisis de PII",
-        "portfolio": "Cartera",
-        "proposals": "Propuestas"
+        "funding": "Funding Sources",
+        "ingestion": "Data Ingestion",
+        "opportunities": "Opportunities",
+        "piiAnalysis": "PII Analysis",
+        "portfolio": "Portfolio",
+        "proposals": "Proposals",
+        "reports": "Reports",
+        "translations": "Translations"
       },
+      "all": "All",
       "noResults": "No se encontraron resultados",
       "noStatisticsConfigured": "Sin estadísticas configuradas. Haz clic en el icono de engranaje para seleccionar las estadísticas visibles.",
       "required": "Requerido",

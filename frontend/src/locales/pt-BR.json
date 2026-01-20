@@ -7,6 +7,11 @@
     "opportunities": "Oportunidades",
     "proposals": "Propostas",
     "settings": "Configurações",
+    "matching": "Matching",
+    "analytics": "Análises",
+    "translations": "Traduções",
+    "acl": "ACL",
+    "users": "Usuários",
     "ingestion": "Ingestão de Dados",
     "piiAnalysis": "Análise de PII",
     "reports": "Relatórios",
@@ -568,20 +573,46 @@
     "saveChanges": "Salvar alterações",
     "saving": "Salvando...",
     "saved": "Salvo com sucesso!",
+    "common": {
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    },
     "translations": {
       "title": "Traduções",
       "keyPath": "Caminho da Chave",
       "addNewKey": "Adicionar Nova Chave de Tradução",
       "create": "Criar",
       "deleteConfirm": "Tem certeza que deseja excluir",
+      "searchPlaceholder": "Buscar chaves de tradução...",
+      "namespace": "Namespace",
+      "description": "Gerencie as traduções do sistema",
       "actions": "Ações",
       "showing": "Exibindo",
       "translationKeys": "chaves de tradução"
     },
     "acl": {
       "title": "Controle de Acesso",
+      "aclDesc": "Gerencie permissões e papéis de usuários",
+      "loading": "Carregando...",
+      "systemBadge": "Sistema",
       "deleteConfirm": "Tem certeza que deseja excluir este papel?",
-      "createRole": "Criar Papel"
+      "createRole": "Criar Papel",
+      "roleDescriptions": {
+        "admin": "Acesso total ao sistema",
+        "manager": "Gerencia equipes e projetos",
+        "analyst": "Realiza análises e relatórios",
+        "viewer": "Apenas visualização"
+      },
+      "resource": "Recurso",
+      "permissions": {
+        "create": "Criar",
+        "read": "Ler",
+        "update": "Atualizar",
+        "delete": "Excluir",
+        "export": "Exportar",
+        "approve": "Aprovar",
+        "assign": "Atribuir"
+      }
     },
     "layout": {
       "title": "Configuração de Layout",
@@ -648,7 +679,11 @@
         "siteName": "Nome do Site",
         "siteLogoUrl": "URL da Logo do Site",
         "siteFaviconUrl": "URL do Favicon do Site",
-        "leaveEmptyForDefault": "Deixe vazio para usar padrão"
+        "leaveEmptyForDefault": "Deixe vazio para usar padrão",
+        "uploadHelp": "Arraste e solte uma imagem ou clique para selecionar",
+        "uploadFaviconHelp": "Envie um favicon (.ico ou .png) 16x16/32x32",
+        "remove": "Remover",
+        "restoreDefault": "Restaurar padrão"
       },
       "typography": {
         "title": "Tipografia",
@@ -1491,6 +1526,7 @@
     "dateFormat": "dd/mm/aaaa",
     "loading": "Carregando...",
     "noResults": "Nenhum resultado encontrado",
+    "all": "Todos",
     "save": "Salvar",
     "cancel": "Cancelar",
     "deleting": "Excluindo...",
@@ -1533,6 +1569,8 @@
     },
     "modules": {
       "funding": "Fontes de Fomento",
+      "reports": "Relatórios",
+      "translations": "Traduções",
       "portfolio": "Portfólio",
       "crm": "CRM",
       "opportunities": "Oportunidades",

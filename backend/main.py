@@ -138,6 +138,7 @@ from adapters.api.layout_routes import router as layout_routes
 from adapters.api.preferences_routes import router as preferences_routes
 from adapters.api.calendar_routes import router as calendar_routes
 from adapters.api.llm_config_routes import router as llm_config_routes
+from adapters.api.admin_users_routes import router as admin_users_routes
 from adapters.api.ai_routes import router as ai_routes
 from adapters.api.ingestion_routes import router as ingestion_routes
 from adapters.api.feedback_routes import router as feedback_routes
@@ -169,6 +170,7 @@ app.include_router(layout_routes)
 app.include_router(preferences_routes)
 app.include_router(calendar_routes)
 app.include_router(llm_config_routes)
+app.include_router(admin_users_routes)
 app.include_router(ai_routes)
 app.include_router(ingestion_routes)
 app.include_router(feedback_routes)

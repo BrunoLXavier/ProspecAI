@@ -798,76 +798,20 @@ export default function PIIAnalysisPage() {
                   {ANONYMIZATION_STRATEGIES.map((strategy) => (
                     <button
                       key={strategy.id}
+                      className="p-3 border rounded-lg text-left"
                       onClick={() => setSelectedStrategy(strategy.id)}
-                      className={`p-3 rounded-lg border-2 text-left transition ${
-                        selectedStrategy === strategy.id
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                      }`}
                     >
-                      <p className={`font-medium text-sm ${
-                        selectedStrategy === strategy.id
-                          ? 'text-primary-700 dark:text-primary-300'
-                          : 'text-gray-900 dark:text-white'
-                      }`}>
-                        {strategy.label}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {strategy.description}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{strategy.label}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{strategy.description}</div>
+                        </div>
+                        <div className="text-primary-600">{selectedStrategy === strategy.id ? '✓' : ''}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
-              
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Notas de Revisão (opcional)
-                </label>
-                <textarea
-                  value={reviewNotes}
-                  onChange={(e) => setReviewNotes(e.target.value)}
-                  placeholder="Adicione observações sobre esta revisão..."
-                  rows={3}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                />
-              </div>
-            </div>
-            
-            {/* Actions */}
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3 justify-end">
-              <button
-                onClick={() => handleReject(reviewModal)}
-                disabled={isProcessing}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition disabled:opacity-50"
-              >
-                Rejeitar
-              </button>
-              <button
-                onClick={() => handleApprove(reviewModal)}
-                disabled={isProcessing}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-              >
-                Aprovar
-              </button>
-              <button
-                onClick={() => handleAnonymize(reviewModal)}
-                disabled={isProcessing || reviewModal.anonymization_status !== 'approved'}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-2"
-              >
-                {isProcessing ? (
-                  <>
-                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircleIcon className="w-4 h-4" />
-                    Anonimizar
-                  </>
-                )}
-              </button>
             </div>
           </div>
         </div>
