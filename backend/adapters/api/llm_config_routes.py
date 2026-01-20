@@ -51,9 +51,9 @@ class LLMConfigResponse(BaseModel):
     max_tokens: int
     status: str
     last_test_at: Optional[str]
-    last_test_success: bool
+    last_test_success: Optional[bool]
     last_error_message: Optional[str]
-    is_active: bool
+    is_active: Optional[bool] = False
     masked_api_key: str
     created_at: str
     updated_at: str

@@ -74,7 +74,8 @@ export default function UsersPage() {
 				if (selectedRole) params.role = selectedRole;
         
 				const response = await apiClient.get('/api/v1/admin/users', params);
-				return response.users || response || [];
+				// Backend returns { items, total, skip, limit }
+				return response.items || response.users || response || [];
 			} catch (error) {
 				console.error('Failed to fetch users:', error);
 				return [];

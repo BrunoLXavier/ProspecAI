@@ -567,6 +567,9 @@
     "translations": {
       "title": "Translations",
       "keyPath": "Key Path",
+      "importExport": "Import/Export",
+      "filtersTitle": "Filters",
+      "of": "of",
       "addNewKey": "Add New Translation Key",
       "create": "Create",
       "searchPlaceholder": "Search translation keys...",

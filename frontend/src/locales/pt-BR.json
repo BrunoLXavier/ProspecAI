@@ -580,6 +580,9 @@
     "translations": {
       "title": "Traduções",
       "keyPath": "Caminho da Chave",
+      "importExport": "Importar/Exportar",
+      "filtersTitle": "Filtros",
+      "of": "de",
       "addNewKey": "Adicionar Nova Chave de Tradução",
       "create": "Criar",
       "deleteConfirm": "Tem certeza que deseja excluir",

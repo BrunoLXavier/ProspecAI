@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 import logging
 
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
+from adapters.api.auth_middleware import get_current_user, AuthenticatedUser
 from use_cases.manage_feedback import ManageFeedbackUseCase
 from domain.entities.feedback import (
     FeedbackCreate, FeedbackType, FeedbackSeverity, FeedbackStatus
@@ -255,6 +256,7 @@ async def list_feedbacks(
     limit: int = Query(50, ge=1, le=100),
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
@@ -264,7 +266,11 @@ async def list_feedbacks(
     - Regular users can only see their own feedbacks
     """
     use_case = await _get_use_case(container)
-    is_admin = await _is_admin(container, user_id, tenant_id)
+    # Prefer token-based role check when available (faster, avoids DB lookup)
+    if current_user is not None:
+        is_admin = current_user.is_admin()
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
     
     feedbacks = await use_case.list_feedbacks(
         tenant_id=_ensure_uuid(tenant_id),
@@ -321,16 +327,21 @@ async def list_my_feedbacks(
 async def get_statistics(
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Get aggregated feedback statistics for admin dashboard.
     Requires admin role.
     """
-    is_admin = await _is_admin(container, user_id, tenant_id)
-    
-    if not is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+    # Prefer token-based role check when available
+    if current_user is not None:
+        if not current_user.is_admin():
+            raise HTTPException(status_code=403, detail="Admin access required")
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
+        if not is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
     
     use_case = await _get_use_case(container)
     

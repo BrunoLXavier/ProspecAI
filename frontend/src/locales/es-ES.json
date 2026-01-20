@@ -568,6 +568,9 @@
     "translations": {
       "title": "Traducciones",
       "keyPath": "Ruta de Clave",
+      "importExport": "Importar/Exportar",
+      "filtersTitle": "Filtros",
+      "of": "de",
       "addNewKey": "Agregar Nueva Clave de Traducción",
       "create": "Crear",
       "searchPlaceholder": "Buscar claves de traducción...",
