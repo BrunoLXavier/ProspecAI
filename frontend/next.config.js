@@ -7,8 +7,7 @@ const API_URL_CLIENT = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  // Enable source maps in production builds to map runtime errors to original source
-  productionBrowserSourceMaps: true,
+  swcMinify: true,
   // i18n is handled by next-intl provider, not next.config.js in App Router
   env: {
     NEXT_PUBLIC_API_URL: API_URL_CLIENT,

@@ -14,7 +14,8 @@
     "activity": "Atividades Recentes",
     "feedbackManagement": "Gestão de Feedbacks",
     "/": "/",
-    "admin": "admin"
+    "admin": "admin",
+    "notifications": "Notificações"
   },
   "reports": {
     "title": "Relatórios",
@@ -203,7 +204,8 @@
     "maturity": {
       "startup": "Startup",
       "growth": "Crescimento",
-      "mature": "Maduro"
+      "mature": "Maduro",
+      "undefined": "Indefinido"
     },
     "segments": {
       "technology": "Tecnologia",
@@ -799,7 +801,14 @@
     "empty": "Nenhuma notificação",
     "filter": {
       "all": "Todas",
-      "unread": "Não lidas"
+      "unread": "Não lidas",
+      "type": "Tipo",
+      "info": "Informação",
+      "success": "Sucesso",
+      "warning": "Aviso",
+      "error": "Erro",
+      "read": "Lidas",
+      "readed": "Lidas"
     },
     "deadlines": "deadlines",
     "description": "description",

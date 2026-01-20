@@ -118,7 +118,7 @@ export default function MatchingScoreWidget() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <SparklesIcon className="w-5 h-5 text-firjan-red" />
+          <SparklesIcon className="w-5 h-5 text-gray-900 dark:text-white" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             Top Matchings
           </h3>
@@ -154,7 +154,7 @@ export default function MatchingScoreWidget() {
                 <span className="text-gray-700 dark:text-gray-300 truncate flex-1">
                   {match.opportunity_title}
                 </span>
-                <ArrowRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <ArrowRightIcon className="w-4 h-4 text-gray-400 dark:text-gray-300 flex-shrink-0" />
                 <span className="text-gray-500 dark:text-gray-400 truncate flex-1">
                   {match.funding_source_title}
                 </span>
@@ -169,7 +169,7 @@ export default function MatchingScoreWidget() {
                   </div>
                   <div className="h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-blue-500 rounded-full" 
+                      className="h-full bg-blue-500 dark:bg-blue-400 rounded-full" 
                       style={{ width: `${match.viability_technical}%` }} 
                     />
                   </div>
@@ -181,7 +181,7 @@ export default function MatchingScoreWidget() {
                   </div>
                   <div className="h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-green-500 rounded-full" 
+                      className="h-full bg-green-500 dark:bg-green-400 rounded-full" 
                       style={{ width: `${match.viability_financial}%` }} 
                     />
                   </div>
@@ -193,7 +193,7 @@ export default function MatchingScoreWidget() {
                   </div>
                   <div className="h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-purple-500 rounded-full" 
+                      className="h-full bg-purple-500 dark:bg-purple-400 rounded-full" 
                       style={{ width: `${match.viability_strategic}%` }} 
                     />
                   </div>

@@ -14,7 +14,8 @@
     "activity": "Recent Activity",
     "feedbackManagement": "Feedback Management",
     "/": "/",
-    "admin": "admin"
+    "admin": "admin",
+    "notifications": "Notifications"
   },
   "reports": {
     "title": "Reports",
@@ -196,7 +197,8 @@
     "maturity": {
       "startup": "Startup",
       "growth": "Growth",
-      "mature": "Mature"
+      "mature": "Mature",
+      "undefined": "Undefined"
     },
     "segments": {
       "technology": "Technology",
@@ -791,7 +793,14 @@
     "empty": "No notifications",
     "filter": {
       "all": "All",
-      "unread": "Unread"
+      "unread": "Unread",
+      "type": "Type",
+      "info": "Info",
+      "success": "Success",
+      "warning": "Warning",
+      "error": "Error",
+      "read": "Read",
+      "readed": "Read"
     },
     "deadlines": "deadlines",
     "description": "description",

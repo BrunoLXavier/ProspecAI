@@ -44,14 +44,16 @@ function KPICard({ kpi, icon: Icon }: { kpi: KPI; icon: React.ElementType }) {
     kpi.trend_direction === 'down' ? ArrowTrendingDownIcon : MinusIcon;
 
   const trendColor = 
-    kpi.trend_direction === 'up' ? 'text-green-600' :
-    kpi.trend_direction === 'down' ? 'text-red-600' : 'text-gray-500';
+    kpi.trend_direction === 'up' ? 'text-green-600 dark:text-green-400' :
+    kpi.trend_direction === 'down' ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400';
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
       <div className="flex items-center justify-between">
-        <div className="p-2 bg-blue-50 rounded-lg dark:bg-blue-900/30">
-          <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div className="flex-shrink-0 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+          <div className="w-6 h-6 text-primary-500">
+            <Icon className="h-6 w-6" />
+          </div>
         </div>
         <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
           <TrendIcon className="h-4 w-4" />

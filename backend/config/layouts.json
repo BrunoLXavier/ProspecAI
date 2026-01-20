@@ -1121,6 +1121,21 @@
       },
       "nav_order": [],
       "dashboard_widgets": [
+        "pipeline",
+        "opportunities",
+        "activity",
+        "matching",
+        "calendar",
+        "analytics-kpis",
+        "analytics-pipeline",
+        "analytics-trl",
+        "analytics-trends",
+        "analytics-export",
+        "metrics"
+      ],
+      "dashboard_widget_order": [
+        "pipeline",
+        "opportunities",
         "metrics",
         "activity",
         "matching",
@@ -1129,20 +1144,7 @@
         "analytics-pipeline",
         "analytics-trl",
         "analytics-trends",
-        "pipeline",
-        "opportunities"
-      ],
-      "dashboard_widget_order": [
-        "pipeline",
-        "metrics",
-        "calendar",
-        "activity",
-        "matching",
-        "opportunities",
-        "analytics-kpis",
-        "analytics-pipeline",
-        "analytics-trl",
-        "analytics-trends"
+        "analytics-export"
       ],
       "dashboard_widgets_by_role": {
         "admin": [
@@ -1181,7 +1183,7 @@
       "animations_enabled": true,
       "compact_mode": false,
       "created_at": "2026-01-17T13:35:29.374216Z",
-      "updated_at": "2026-01-20T01:36:22.147350Z",
+      "updated_at": "2026-01-20T02:05:42.976175Z",
       "color_mode": "light",
       "primary_color": "#E30613",
       "secondary_color": "#003366",
