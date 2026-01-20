@@ -24,6 +24,7 @@ const availableNavItems = [
   { id: 'notifications', label: 'Notificações' },
   { id: 'proposals', label: 'Propostas' },
   { id: 'reports', label: 'Relatórios' },
+  { id: 'reportTemplates', label: 'Modelos de Relatórios' },
   { id: 'activity', label: 'Atividade' },
   { id: 'ingestion', label: 'Ingestão' },
   { id: 'piiAnalysis', label: 'PII' },

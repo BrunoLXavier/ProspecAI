@@ -123,7 +123,7 @@ export const DEFAULT_CONFIG: LayoutConfig = {
   sidebar_width: 260,
   visible_nav_items: [
     'dashboard', 'funding', 'portfolio', 'crm', 'opportunities',
-    'proposals', 'feedbackManagement', 'ingestion', 'piiAnalysis', 'reports', 'activity', 'notifications', 'settings'
+    'proposals', 'feedbackManagement', 'ingestion', 'piiAnalysis', 'reports', 'reportTemplates', 'activity', 'notifications', 'settings'
   ],
   nav_order: [],
   dashboard_widgets: [
@@ -141,9 +141,9 @@ export const DEFAULT_CONFIG: LayoutConfig = {
   visible_nav_items_by_role: {
     admin: [
       'dashboard', 'funding', 'portfolio', 'crm', 'opportunities',
-      'proposals', 'reports', 'activity', 'ingestion', 'piiAnalysis', 'notifications', 'settings'
+      'proposals', 'reports', 'reportTemplates', 'activity', 'ingestion', 'piiAnalysis', 'notifications', 'settings'
     ],
-    manager: ['dashboard', 'funding', 'portfolio', 'crm', 'opportunities', 'proposals', 'reports', 'activity'],
+    manager: ['dashboard', 'funding', 'portfolio', 'crm', 'opportunities', 'proposals', 'reports', 'reportTemplates', 'activity'],
     user: ['dashboard', 'opportunities', 'proposals', 'activity', 'notifications'],
     viewer: ['dashboard', 'activity', 'notifications'],
   },
