@@ -15,7 +15,11 @@
     "feedbackManagement": "Feedback Management",
     "/": "/",
     "admin": "admin",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "communications": "Communications",
+    "institutes": "Institutes",
+    "teams": "Teams",
+    "infrastructure": "Infrastructure"
   },
   "reports": {
     "title": "Reports",
@@ -2543,5 +2547,53 @@
     "transition": "transition",
     "update": "update"
   },
-  "view": "view"
+  "view": "view",
+  "communications": {
+    "title": "Communications",
+    "subtitle": "Manage platform communications and announcements",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search communications..."
+    },
+    "noResults": "No communications found",
+    "loading": "Loading...",
+    "new": "New",
+    "boardPlaceholder": "Board view for communications"
+  },
+  "institutes": {
+    "title": "Institutes",
+    "subtitle": "Manage research institutes and organizational units",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search institutes..."
+    },
+    "noResults": "No institutes found",
+    "loading": "Loading...",
+    "new": "New",
+    "boardPlaceholder": "Board view for institutes"
+  },
+  "teams": {
+    "title": "Teams",
+    "subtitle": "Manage teams and collaborators",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search teams..."
+    },
+    "noResults": "No teams found",
+    "loading": "Loading...",
+    "new": "New",
+    "boardPlaceholder": "Board view for teams"
+  },
+  "infrastructure": {
+    "title": "Infrastructure",
+    "subtitle": "Manage shared infrastructure and facilities",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search infrastructure..."
+    },
+    "noResults": "No results found",
+    "loading": "Loading...",
+    "new": "New",
+    "boardPlaceholder": "Board view for infrastructure"
+  }
 }

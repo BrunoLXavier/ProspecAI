@@ -20,7 +20,11 @@
     "feedbackManagement": "Gestão de Feedbacks",
     "/": "/",
     "admin": "admin",
-    "notifications": "Notificações"
+    "notifications": "Notificações",
+    "communications": "Comunicações",
+    "institutes": "Institutos",
+    "teams": "Equipes",
+    "infrastructure": "Infraestrutura"
   },
   "reports": {
     "title": "Relatórios",
@@ -2597,5 +2601,53 @@
     "transition": "transition",
     "update": "update"
   },
-  "view": "view"
+  "view": "view",
+  "communications": {
+    "title": "Comunicações",
+    "subtitle": "Gerencie comunicações e anúncios da plataforma",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar comunicações..."
+    },
+    "noResults": "Nenhuma comunicação encontrada",
+    "loading": "Carregando...",
+    "new": "Novo",
+    "boardPlaceholder": "Visão em quadro para comunicações"
+  },
+  "institutes": {
+    "title": "Institutos",
+    "subtitle": "Gerencie institutos de pesquisa e unidades organizacionais",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar institutos..."
+    },
+    "noResults": "Nenhum instituto encontrado",
+    "loading": "Carregando...",
+    "new": "Novo",
+    "boardPlaceholder": "Visão em quadro para institutos"
+  },
+  "teams": {
+    "title": "Equipes",
+    "subtitle": "Gerencie equipes e colaboradores",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar equipes..."
+    },
+    "noResults": "Nenhuma equipe encontrada",
+    "loading": "Carregando...",
+    "new": "Novo",
+    "boardPlaceholder": "Visão em quadro para equipes"
+  },
+  "infrastructure": {
+    "title": "Infraestrutura",
+    "subtitle": "Gerencie infraestrutura compartilhada e instalações",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar infraestrutura..."
+    },
+    "noResults": "Nenhum resultado encontrado",
+    "loading": "Carregando...",
+    "new": "Novo",
+    "boardPlaceholder": "Visão em quadro para infraestrutura"
+  }
 }

@@ -45,7 +45,7 @@ class LayoutConfig(BaseModel):
     # Navigation configuration
     visible_nav_items: List[str] = Field(default_factory=lambda: [
         "dashboard", "funding", "portfolio", "crm", 
-        "opportunities", "proposals", "settings"
+        "opportunities", "proposals", "communications", "institutes", "teams", "infrastructure", "settings"
     ])
     # Role-based navigation visibility
     visible_nav_items_by_role: Dict[str, List[str]] = Field(default_factory=lambda: {
@@ -56,7 +56,7 @@ class LayoutConfig(BaseModel):
     })
     nav_order: List[str] = Field(default_factory=lambda: [
         "dashboard", "funding", "portfolio", "crm", 
-        "opportunities", "proposals", "settings"
+        "opportunities", "proposals", "communications", "institutes", "teams", "infrastructure", "settings"
     ])
     
     # Dashboard configuration
@@ -172,6 +172,10 @@ AVAILABLE_NAV_ITEMS = [
     {"id": "crm", "label": "CRM", "icon": "UsersIcon"},
     {"id": "opportunities", "label": "Opportunities", "icon": "LightBulbIcon"},
     {"id": "proposals", "label": "Proposals", "icon": "DocumentTextIcon"},
+    {"id": "communications", "label": "Communications", "icon": "DocumentTextIcon"},
+    {"id": "institutes", "label": "Institutes", "icon": "UserGroupIcon"},
+    {"id": "teams", "label": "Teams", "icon": "UserGroupIcon"},
+    {"id": "infrastructure", "label": "Infrastructure", "icon": "DocumentChartBarIcon"},
     {"id": "analytics", "label": "Analytics", "icon": "ChartBarIcon"},
     {"id": "reports", "label": "Reports", "icon": "DocumentChartBarIcon"},
     {"id": "settings", "label": "Settings", "icon": "Cog6ToothIcon"},

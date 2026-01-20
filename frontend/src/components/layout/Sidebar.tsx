@@ -41,6 +41,10 @@ const navigationItems: NavigationItem[] = [
   { id: 'funding', name: 'funding', href: '/funding', icon: CurrencyDollarIcon },
   { id: 'portfolio', name: 'portfolio', href: '/portfolio', icon: BriefcaseIcon },
   { id: 'crm', name: 'crm', href: '/crm', icon: UserGroupIcon },
+  { id: 'communications', name: 'communications', href: '/comunications', icon: DocumentTextIcon },
+  { id: 'institutes', name: 'institutes', href: '/institutes', icon: UserGroupIcon },
+  { id: 'teams', name: 'teams', href: '/teams', icon: UserGroupIcon },
+  { id: 'infrastructure', name: 'infrastructure', href: '/infrastructure', icon: DocumentChartBarIcon },
   { id: 'opportunities', name: 'opportunities', href: '/opportunities', icon: ChartBarIcon },
   { id: 'proposals', name: 'proposals', href: '/proposals', icon: DocumentTextIcon },
   // --- Administration Block Start ---

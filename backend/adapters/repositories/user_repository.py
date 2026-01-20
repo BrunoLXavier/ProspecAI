@@ -389,8 +389,13 @@ class UserRepository:
         
         result = await self.session.execute(query)
         models = result.scalars().all()
-        
-        return [self._model_to_entity(model) for model in models]
+
+        try:
+            return [self._model_to_entity(model) for model in models]
+        except Exception as e:
+            logger.exception("Failed mapping user models to entities: %s", e)
+            # Return empty list to avoid crashing callers; errors should be investigated via logs
+            return []
     
     async def soft_delete(self, user_id: UUID) -> bool:
         """

@@ -15,7 +15,11 @@
     "feedbackManagement": "Gestión de Feedbacks",
     "/": "/",
     "admin": "admin",
-    "notifications": "Notificaciones"
+    "notifications": "Notificaciones",
+    "communications": "Comunicaciones",
+    "institutes": "Institutos",
+    "teams": "Equipos",
+    "infrastructure": "Infraestructura"
   },
   "reports": {
     "title": "Reportes",
@@ -844,6 +848,54 @@
     "matching": "matching",
     "push": "push"
   },
+    "communications": {
+      "title": "Comunicaciones",
+      "subtitle": "Gestionar comunicaciones y anuncios de la plataforma",
+      "filters": {
+        "search": "Buscar",
+        "searchPlaceholder": "Buscar comunicaciones..."
+      },
+      "noResults": "No se encontraron comunicaciones",
+      "loading": "Cargando...",
+      "new": "Nuevo",
+      "boardPlaceholder": "Vista en tablero para comunicaciones"
+    },
+    "institutes": {
+      "title": "Institutos",
+      "subtitle": "Gestionar institutos de investigación y unidades organizacionales",
+      "filters": {
+        "search": "Buscar",
+        "searchPlaceholder": "Buscar institutos..."
+      },
+      "noResults": "No se encontraron institutos",
+      "loading": "Cargando...",
+      "new": "Nuevo",
+      "boardPlaceholder": "Vista en tablero para institutos"
+    },
+    "teams": {
+      "title": "Equipos",
+      "subtitle": "Gestionar equipos y colaboradores",
+      "filters": {
+        "search": "Buscar",
+        "searchPlaceholder": "Buscar equipos..."
+      },
+      "noResults": "No se encontraron equipos",
+      "loading": "Cargando...",
+      "new": "Nuevo",
+      "boardPlaceholder": "Vista en tablero para equipos"
+    },
+    "infrastructure": {
+      "title": "Infraestructura",
+      "subtitle": "Gestionar infraestructura compartida e instalaciones",
+      "filters": {
+        "search": "Buscar",
+        "searchPlaceholder": "Buscar infraestructura..."
+      },
+      "noResults": "No se encontraron resultados",
+      "loading": "Cargando...",
+      "new": "Nuevo",
+      "boardPlaceholder": "Vista en tablero para infraestructura"
+    },
   "activity": {
     "title": "Actividad Reciente",
     "subtitle": "Historial de acciones en el sistema",

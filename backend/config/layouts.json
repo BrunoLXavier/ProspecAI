@@ -1079,7 +1079,11 @@
         "activity",
         "ingestion",
         "piiAnalysis",
-        "reportTemplates"
+        "reportTemplates",
+        "communications",
+        "institutes",
+        "teams",
+        "infrastructure"
       ],
       "visible_nav_items_by_role": {
         "admin": [
@@ -1095,7 +1099,11 @@
           "piiAnalysis",
           "settings",
           "notifications",
-          "reportTemplates"
+          "reportTemplates",
+          "communications",
+          "institutes",
+          "teams",
+          "infrastructure"
         ],
         "manager": [
           "dashboard",
@@ -1132,6 +1140,10 @@
         "activity",
         "ingestion",
         "piiAnalysis",
+        "communications",
+        "institutes",
+        "teams",
+        "infrastructure",
         "settings"
       ],
       "dashboard_widgets": [
@@ -1195,7 +1207,7 @@
       "animations_enabled": true,
       "compact_mode": false,
       "created_at": "2026-01-17T13:35:29.374216Z",
-      "updated_at": "2026-01-20T17:24:36.539601Z",
+      "updated_at": "2026-01-20T18:05:01.755150Z",
       "color_mode": "light",
       "primary_color": "#E30613",
       "secondary_color": "#003366",
