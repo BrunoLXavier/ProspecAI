@@ -143,6 +143,18 @@ export default function IngestionDetailModal({
   const StatusIcon = statusConfig.Icon;
   const isInProgress = ['validating', 'processing', 'pii_detection'].includes(job.status);
 
+  // Normalize numeric fields to avoid runtime errors when backend returns incomplete objects
+  const safeNumbers = {
+    total_files: job.total_files ?? 0,
+    processed_files: job.processed_files ?? 0,
+    total_records: job.total_records ?? 0,
+    processed_records: job.processed_records ?? 0,
+    failed_records: job.failed_records ?? 0,
+    pii_detected_count: job.pii_detected_count ?? 0,
+    pii_anonymized_count: job.pii_anonymized_count ?? 0,
+    progress_percentage: job.progress_percentage ?? 0,
+  };
+
   const formatDate = (dateStr: string) => {
     return new Intl.DateTimeFormat(undefined, {
       dateStyle: 'medium',
@@ -345,12 +357,12 @@ export default function IngestionDetailModal({
                       <div>
                         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-2">
                           <span>{job.current_step || t('processing')}</span>
-                          <span className="font-medium">{Math.round(job.progress_percentage)}%</span>
+                          <span className="font-medium">{Math.round(safeNumbers.progress_percentage)}%</span>
                         </div>
                         <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary-600 transition-all duration-500"
-                            style={{ width: `${job.progress_percentage}%` }}
+                            style={{ width: `${safeNumbers.progress_percentage}%` }}
                           />
                         </div>
                       </div>
@@ -361,30 +373,30 @@ export default function IngestionDetailModal({
                       <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
                         <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">{t('stats.files')}</p>
                         <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                          {job.processed_files}/{job.total_files}
+                          {safeNumbers.processed_files}/{safeNumbers.total_files}
                         </p>
                       </div>
                       <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
                         <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">{t('stats.records')}</p>
                         <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                          {job.processed_records.toLocaleString()}/{job.total_records.toLocaleString()}
+                          {safeNumbers.processed_records.toLocaleString()}/{safeNumbers.total_records.toLocaleString()}
                         </p>
                       </div>
                       <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
                         <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">{t('stats.piiDetected')}</p>
                         <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                          {job.pii_detected_count}
+                          {safeNumbers.pii_detected_count}
                         </p>
-                        {job.pii_anonymized_count > 0 && (
+                        {safeNumbers.pii_anonymized_count > 0 && (
                           <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                            {job.pii_anonymized_count} {t('piiAnonymized')}
+                            {safeNumbers.pii_anonymized_count} {t('piiAnonymized')}
                           </p>
                         )}
                       </div>
                       <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
                         <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">{t('stats.failures')}</p>
-                        <p className={`text-2xl font-bold ${job.failed_records > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
-                          {job.failed_records}
+                        <p className={`text-2xl font-bold ${safeNumbers.failed_records > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+                          {safeNumbers.failed_records}
                         </p>
                       </div>
                     </div>
@@ -412,7 +424,7 @@ export default function IngestionDetailModal({
                           {t('createdAt')}
                         </label>
                         <p className="text-gray-900 dark:text-white">
-                          {formatDate(job.created_at)}
+                          {job.created_at ? formatDate(job.created_at) : '-'}
                         </p>
                       </div>
                       
@@ -423,7 +435,7 @@ export default function IngestionDetailModal({
                             {t('startedAt')}
                           </label>
                           <p className="text-gray-900 dark:text-white">
-                            {formatDate(job.started_at)}
+                            {job.started_at ? formatDate(job.started_at) : '-'}
                           </p>
                         </div>
                       )}
@@ -435,7 +447,7 @@ export default function IngestionDetailModal({
                             {t('completedAt')}
                           </label>
                           <p className="text-gray-900 dark:text-white">
-                            {formatDate(job.completed_at)}
+                            {job.completed_at ? formatDate(job.completed_at) : '-'}
                           </p>
                         </div>
                       )}
@@ -446,7 +458,7 @@ export default function IngestionDetailModal({
                             {t('duration')}
                           </label>
                           <p className="text-gray-900 dark:text-white">
-                            {formatDuration(job.started_at, job.completed_at)}
+                            {job.started_at ? formatDuration(job.started_at, job.completed_at) : '-'}
                           </p>
                         </div>
                       )}

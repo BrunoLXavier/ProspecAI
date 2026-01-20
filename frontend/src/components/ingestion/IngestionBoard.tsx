@@ -106,26 +106,31 @@ export default function IngestionBoard({ jobs, onItemClick }: IngestionBoardProp
       </div>
       
       {/* Progress bar for active jobs */}
-      {['validating', 'processing', 'pii_detection'].includes(job.status) && (
-        <div className="mb-2">
-          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
-            <div 
-              className="bg-primary-600 h-1.5 rounded-full transition-all duration-300" 
-              style={{ width: `${job.progress_percentage}%` }}
-            />
+      {['validating', 'processing', 'pii_detection'].includes(job.status) && (() => {
+        const s = {
+          progress_percentage: job.progress_percentage ?? 0,
+        } as const;
+        return (
+          <div className="mb-2">
+            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
+              <div 
+                className="bg-primary-600 h-1.5 rounded-full transition-all duration-300" 
+                style={{ width: `${s.progress_percentage}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {s.progress_percentage}%
+            </span>
           </div>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {job.progress_percentage}%
-          </span>
-        </div>
-      )}
+        );
+      })()}
 
         <div className="flex items-center justify-between text-xs">
         <span className="text-gray-500 dark:text-gray-400">
-          {job.total_files} {t('stats.files')}
+          {(job.total_files ?? 0)} {t('stats.files')}
         </span>
         <span className="text-gray-500 dark:text-gray-400">
-          {job.total_records} {t('stats.records')}
+          {(job.total_records ?? 0).toLocaleString()} {t('stats.records')}
         </span>
       </div>
 

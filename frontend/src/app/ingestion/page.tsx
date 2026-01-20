@@ -587,6 +587,12 @@ export default function IngestionPage() {
           ) : (
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredJobs.map((job) => {
+                  const s = {
+                    total_files: job.total_files ?? 0,
+                    total_records: job.total_records ?? 0,
+                    progress_percentage: job.progress_percentage ?? 0,
+                    pii_detected_count: job.pii_detected_count ?? 0,
+                  };
                   const statusConfig = STATUS_CONFIG[job.status];
                   const StatusIcon = statusConfig.icon;
                   
@@ -608,9 +614,9 @@ export default function IngestionPage() {
                               {job.name}
                             </h3>
                             <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                              <span>{job.total_files} {t('stats.files') || 'arquivos'}</span>
-                              <span>{job.total_records.toLocaleString()} {t('stats.records') || 'registros'}</span>
-                              <span>{formatDate(job.created_at)}</span>
+                              <span>{s.total_files} {t('stats.files') || 'arquivos'}</span>
+                              <span>{s.total_records.toLocaleString()} {t('stats.records') || 'registros'}</span>
+                              <span>{job.created_at ? formatDate(job.created_at) : '-'}</span>
                             </div>
                           </div>
                         </div>
@@ -649,12 +655,12 @@ export default function IngestionPage() {
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                             <span>{job.current_step || tCommon('processing') || 'Processando...'}</span>
-                            <span>{Math.round(job.progress_percentage)}%</span>
+                            <span>{Math.round(s.progress_percentage)}%</span>
                           </div>
                           <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div
                               className="h-full bg-primary-600 transition-all duration-500"
-                              style={{ width: `${job.progress_percentage}%` }}
+                              style={{ width: `${s.progress_percentage}%` }}
                             />
                           </div>
                         </div>
