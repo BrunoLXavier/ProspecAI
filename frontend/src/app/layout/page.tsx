@@ -321,8 +321,32 @@ export default function LayoutPage() {
     if (id === 'settings') return;
     const visible = config.visible_nav_items || [];
     const exists = visible.includes(id);
-    const newVisible = exists ? visible.filter(x => x !== id) : [...visible, id];
-    updateConfig('visible_nav_items', newVisible);
+    if (exists) {
+      const newVisible = visible.filter(x => x !== id);
+      updateConfig('visible_nav_items', newVisible);
+    } else {
+      try {
+        const orderArr = (config.nav_order && config.nav_order.length) ? config.nav_order : navOrder;
+        let insertAt = visible.length;
+        if (orderArr && orderArr.length) {
+          const indexInOrder = orderArr.indexOf(id);
+          if (indexInOrder !== -1) {
+            let found = false;
+            for (let i = indexInOrder - 1; i >= 0; i--) {
+              const before = orderArr[i];
+              const pos = visible.indexOf(before);
+              if (pos !== -1) { insertAt = pos + 1; found = true; break; }
+            }
+            if (!found) insertAt = 0;
+          }
+        }
+        const nextVisible = [...visible];
+        nextVisible.splice(insertAt, 0, id);
+        updateConfig('visible_nav_items', nextVisible);
+      } catch (e) {
+        updateConfig('visible_nav_items', [...visible, id]);
+      }
+    }
   };
 
   const toggleNavItemForRole = (role: string, itemId: string) => {
@@ -596,8 +620,8 @@ export default function LayoutPage() {
                 onDrop={(e) => handleDropOnNav(e, id)}
                 className="flex items-center justify-between p-2 border rounded cursor-move"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="font-medium truncate" style={{ paddingLeft: `${getNavIndentLevel(id) * 12}px` }}>{tNav(item.id) || item.label}</span>
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <span data-label={item.label} title={item.label} className="data-label-visible font-medium flex-1 truncate whitespace-nowrap overflow-hidden text-gray-900 dark:text-white" style={{ paddingLeft: `${getNavIndentLevel(id) * 12}px` }}>{item.label}</span>
                 </div>
 
                 <div className="flex items-center gap-2 w-full flex-wrap md:flex-nowrap">
@@ -648,7 +672,7 @@ export default function LayoutPage() {
                         className={`w-28 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${visible ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
                         aria-pressed={visible}
                       >
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Visível</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">Ativo</span>
                         {visible && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
                       </button>
 
@@ -658,7 +682,7 @@ export default function LayoutPage() {
                         className={`w-28 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${!visible ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'} ${id === 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
                         aria-disabled={id === 'settings'}
                       >
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Oculto</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">Inativo</span>
                         {!visible && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
                       </button>
                     </div>
@@ -706,10 +730,10 @@ export default function LayoutPage() {
                               disabled={!globallyVisible}
                               aria-pressed={hasAccess}
                               title={!globallyVisible ? 'Ative o item globalmente primeiro' : hasAccess ? 'Remover acesso' : 'Conceder acesso'}
-                              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm min-w-0 overflow-hidden truncate transition-all ${!globallyVisible ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300' : hasAccess ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100'}`}
+                              className={`w-full flex items-center justify-center gap-2 p-2 rounded-lg border transition-all text-sm min-w-0 overflow-hidden ${!globallyVisible ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300' : hasAccess ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100'}`}
                             >
-                              <span className="truncate">{tNav(item.id) || item.label}</span>
-                              {hasAccess ? <CheckIcon className="w-4 h-4 text-primary-500 inline-block ml-2" /> : null}
+                              <span className="truncate text-sm font-medium text-gray-900 dark:text-white">{tNav(item.id) || item.label}</span>
+                              {hasAccess ? <CheckIcon className="w-4 h-4 text-primary-500 ml-1" /> : null}
                             </button>
                           </div>
                         );
@@ -756,18 +780,18 @@ export default function LayoutPage() {
                     <button
                       onClick={() => moveWidget(id, 'up')}
                       disabled={idx === 0}
-                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg font-medium ${idx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`flex items-center justify-center p-2 rounded-lg border transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm ${idx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                       aria-label="Move up"
                     >
-                      <span className="leading-none">↑</span>
+                      ↑
                     </button>
                     <button
                       onClick={() => moveWidget(id, 'down')}
                       disabled={idx === (widgetsOrder.length ? widgetsOrder.length - 1 : availableWidgets.length - 1)}
-                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg font-medium ${idx === (widgetsOrder.length ? widgetsOrder.length - 1 : availableWidgets.length - 1) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`flex items-center justify-center p-2 rounded-lg border transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm ${idx === (widgetsOrder.length ? widgetsOrder.length - 1 : availableWidgets.length - 1) ? 'opacity-50 cursor-not-allowed' : ''}`}
                       aria-label="Move down"
                     >
-                      <span className="leading-none">↓</span>
+                      ↓
                     </button>
                   </div>
 
@@ -803,11 +827,11 @@ export default function LayoutPage() {
                           }
                         }
                       }}
-                      className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${enabled ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                      className={`w-28 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${enabled ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
                       aria-pressed={enabled}
                     >
-                      <span className="font-medium text-gray-900 dark:text-white">Ativo</span>
-                      {enabled && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">Ativo</span>
+                      {enabled && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
                     </button>
 
                     <button
@@ -824,10 +848,11 @@ export default function LayoutPage() {
                           updateConfig('dashboard_widgets', (config.dashboard_widgets || []).filter((w: string) => w !== id));
                         }
                       }}
-                      className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${!enabled ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                      className={`w-28 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${!enabled ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                      aria-pressed={!enabled}
                     >
-                      <span className="font-medium text-gray-900 dark:text-white">Inativo</span>
-                      {!enabled && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">Inativo</span>
+                      {!enabled && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
                     </button>
                   </div>
                 </div>
@@ -875,10 +900,10 @@ export default function LayoutPage() {
                             }}
                             disabled={!enabled}
                             aria-pressed={hasRole}
-                            className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm min-w-0 overflow-hidden truncate transition-all ${!enabled ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300' : hasRole ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100'}`}
+                            className={`w-full flex items-center justify-center gap-2 p-2 rounded-lg border transition-all text-sm min-w-0 overflow-hidden ${!enabled ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-gray-300' : hasRole ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100'}`}
                           >
-                            <span className="truncate">{widget.label}</span>
-                            {hasRole ? <CheckIcon className="w-4 h-4 text-primary-500 inline-block ml-2" /> : null}
+                            <span className="truncate text-sm font-medium text-gray-900 dark:text-white">{widget.label}</span>
+                            {hasRole ? <CheckIcon className="w-4 h-4 text-primary-500 ml-1" /> : null}
                           </button>
                         </div>
                       );
@@ -904,15 +929,15 @@ export default function LayoutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Position</label>
-            <div className="flex gap-3">
+                <div className="flex gap-3">
               {(['left','right'] as const).map(pos => (
                 <button
                   key={pos}
                   onClick={() => updateConfig('sidebar_position', pos)}
-                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.sidebar_position === pos ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${config.sidebar_position === pos ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
                 >
-                  <span className="font-medium text-gray-900 dark:text-white">{pos}</span>
-                  {config.sidebar_position === pos && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{pos}</span>
+                  {config.sidebar_position === pos && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
                 </button>
               ))}
             </div>
@@ -1233,14 +1258,14 @@ export default function LayoutPage() {
                   <button
                     type="button"
                     onClick={removeLogo}
-                    className="px-2 py-1 text-xs rounded bg-red-50 text-red-700 border border-red-100 hover:bg-red-100"
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg border transition-all text-sm bg-red-50 text-red-700 border-red-100 hover:bg-red-100"
                   >
                     {t('layout.branding.remove') || 'Remover'}
                   </button>
                   <button
                     type="button"
                     onClick={restoreLogoDefault}
-                    className="px-2 py-1 text-xs rounded bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100"
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg border transition-all text-sm border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100"
                   >
                     {t('layout.branding.restoreDefault') || 'Restaurar padrão'}
                   </button>
@@ -1298,14 +1323,14 @@ export default function LayoutPage() {
                   <button
                     type="button"
                     onClick={removeFavicon}
-                    className="px-2 py-1 text-xs rounded bg-red-50 text-red-700 border border-red-100 hover:bg-red-100"
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg border transition-all text-sm bg-red-50 text-red-700 border-red-100 hover:bg-red-100"
                   >
                     {t('layout.branding.remove') || 'Remover'}
                   </button>
                   <button
                     type="button"
                     onClick={restoreFaviconDefault}
-                    className="px-2 py-1 text-xs rounded bg-gray-50 text-gray-700 border border-gray-100 hover:bg-gray-100"
+                    className="flex items-center justify-center gap-2 p-2 rounded-lg border transition-all text-sm border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100"
                   >
                     {t('layout.branding.restoreDefault') || 'Restaurar padrão'}
                   </button>
@@ -1334,10 +1359,10 @@ export default function LayoutPage() {
                 <button
                   key={sz}
                   onClick={() => updateConfig('font_size', sz)}
-                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.font_size === sz ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${config.font_size === sz ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
                 >
-                  <span className="font-medium text-gray-900 dark:text-white">{t(`layout.typography.${sz === 'sm' ? 'small' : sz === 'base' ? 'normal' : 'large'}`) || sz}</span>
-                  {config.font_size === sz && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{t(`layout.typography.${sz === 'sm' ? 'small' : sz === 'base' ? 'normal' : 'large'}`) || sz}</span>
+                  {config.font_size === sz && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
                 </button>
               ))}
             </div>
@@ -1350,10 +1375,10 @@ export default function LayoutPage() {
                 <button
                   key={f}
                   onClick={() => updateConfig('font_family', f)}
-                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${config.font_family === f ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${config.font_family === f ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
                 >
-                  <span className="font-medium text-gray-900 dark:text-white">{f === 'sans' ? (t('layout.typography.sansSerif') || 'Sans-serif') : f === 'serif' ? (t('layout.typography.serif') || 'Serif') : (t('layout.typography.monospace') || 'Monospace')}</span>
-                  {config.font_family === f && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{f === 'sans' ? (t('layout.typography.sansSerif') || 'Sans-serif') : f === 'serif' ? (t('layout.typography.serif') || 'Serif') : (t('layout.typography.monospace') || 'Monospace')}</span>
+                  {config.font_family === f && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
                 </button>
               ))}
             </div>

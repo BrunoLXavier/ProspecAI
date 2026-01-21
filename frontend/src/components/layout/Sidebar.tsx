@@ -252,15 +252,16 @@ export default function Sidebar() {
           className={`
             sidebar-item group relative flex items-center ${depth > 0 ? 'pl-4' : ''}
             ${isCollapsed ? 'justify-center px-2' : ''}
-            ${isActive || hasActiveChild ? 'active' : ''}
+            ${isActive ? 'active' : hasActiveChild ? 'child-active' : ''}
           `}
           title={isCollapsed ? t(item.name) : undefined}
         >
-          {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive || hasActiveChild ? 'text-white' : 'text-white/70 group-hover:text-white'}`} />}
+          {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : hasActiveChild ? 'text-white/90' : 'text-white/70 group-hover:text-white'}`} />}
           <span className={`
-            font-medium whitespace-nowrap
+            font-medium truncate flex-1 min-w-0 ml-3
             transition-all duration-350
             ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}
+            ${isActive ? 'text-white' : hasActiveChild ? 'text-white/90' : ''}
           `}>
             {t(item.name)}
           </span>

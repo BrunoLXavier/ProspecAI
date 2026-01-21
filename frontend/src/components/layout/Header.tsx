@@ -18,6 +18,7 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import { SidebarToggle, useSidebar } from './Sidebar';
+import { useLayout } from '@/contexts/LayoutContext';
 import { NotificationBadge } from '../ui/Badge';
 import { SearchInput } from '../ui/Input';
 import { useTheme } from './ThemeProvider';
@@ -66,18 +67,49 @@ export default function Header() {
   // Generate breadcrumbs
   const getBreadcrumbs = () => {
     const segments = pathname.split('/').filter(Boolean);
-    const breadcrumbs = [{ name: t('dashboard'), href: '/dashboard' }];
-    
-    if (segments.length > 0) {
-      let currentPath = '';
-      segments.forEach((segment) => {
-        currentPath += `/${segment}`;
-        const translationKey = breadcrumbMap[currentPath];
-        const name = translationKey ? t(translationKey) : segment.charAt(0).toUpperCase() + segment.slice(1);
-        breadcrumbs.push({ name, href: currentPath });
-      });
+
+    // Show a single 'Dashboard' breadcrumb only for the root path
+    if (segments.length === 0) return [{ name: t('dashboard'), href: '/dashboard' }];
+
+    const breadcrumbs: { name: string; href: string }[] = [];
+
+    // Try to derive nav id from path and use layout config to build parent chain
+    const { config } = useLayout();
+    const parentMap: Record<string, string | null> = config?.nav_parent_map || {};
+
+    // find best matching prefix that exists in breadcrumbMap (maps to known nav ids)
+    let navId: string | null = null;
+    for (let i = segments.length; i > 0; i--) {
+      const prefix = '/' + segments.slice(0, i).join('/');
+      if (breadcrumbMap[prefix]) {
+        navId = prefix.slice(1);
+        break;
+      }
     }
-    
+
+    // fallback: use first segment as nav id
+    if (!navId) navId = segments[0];
+
+    // build ancestor chain using parentMap (child -> parent)
+    const chain: string[] = [];
+    let cur: string | null = navId;
+    const seen = new Set<string>();
+    while (cur && !seen.has(cur)) {
+      seen.add(cur);
+      chain.push(cur);
+      cur = (parentMap[cur] as string) || null;
+    }
+
+    chain.reverse(); // root -> ... -> navId
+
+    chain.forEach((id, idx) => {
+      // label from translations (navigation namespace) or fallback
+      const name = t(id) || id.charAt(0).toUpperCase() + id.slice(1);
+      // final breadcrumb should point to actual path; others use canonical /<id>
+      const href = idx === chain.length - 1 ? pathname : `/${id}`;
+      breadcrumbs.push({ name, href });
+    });
+
     return breadcrumbs;
   };
 

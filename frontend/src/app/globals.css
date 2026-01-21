@@ -389,6 +389,13 @@ body {
     box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
   }
+
+/* Fallback to show data-label when span content is empty (helps when client hydration fails) */
+.data-label-visible:empty::before {
+  content: attr(data-label);
+  display: inline;
+  color: inherit;
+}
   
   /* Button Base Styles */
   .btn {
@@ -581,6 +588,12 @@ input[type="range"]::-moz-range-thumb {
 .sidebar-item.active {
   @apply bg-primary-500;
   color: var(--text-inverse);
+}
+
+.sidebar-item.child-active {
+  color: var(--sidebar-text);
+  background-color: rgba(255,255,255,0.04);
+  box-shadow: inset 3px 0 0 0 rgba(255,255,255,0.06);
 }
 
 /* ================================================
