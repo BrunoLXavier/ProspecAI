@@ -219,6 +219,9 @@ services:
       SMTP_HOST: mailhog
       SMTP_PORT: 1025
       FRONTEND_URL: http://localhost:3000
+      # Development runtime settings
+      ENVIRONMENT: development
+      CORS_ORIGINS: http://localhost:3000
       # Encryption key for sensitive data
       ENCRYPTION_KEY: your-fernet-key-change-in-production
       # AI Model Configuration

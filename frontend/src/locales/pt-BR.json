@@ -97,9 +97,11 @@
     "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/AnalyticsPipeline",
     "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/AnalyticsTRL",
     "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/AnalyticsTrends",
-    "@/components/dashboard/CalendarWidget": "@/components/dashboard/CalendarWidget",
-    "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/MatchingScoreWidget",
-    "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/OpportunitiesWidget",
+      "piiAnalysis": "Análise de PII",
+      "pii-analysis": "Análise de PII",
+      "reports": "Relatórios",
+      "reportTemplates": "Modelos de Relatórios",
+      "report-templates": "Modelos de Relatórios",
     "inputPlaceholder": "",
     "period": "",
     "welcomeSubtitle": "",
@@ -108,17 +110,21 @@
   "pipeline": {
     "title": "Pipeline de Oportunidades",
     "stages": {
-      "intelligence": "Inteligência",
+      "infrastructure": "Infraestrutura",
+      "layout": "Layout",
+      "statistics": "Estatísticas",
+      "feedback": "Feedback",
+      "llm-provider": "Provedor de LLM",
       "validation": "Validação",
       "approach": "Abordagem",
       "registration": "Registro",
       "conversion": "Conversão",
       "post_sale": "Pós-venda",
-      "lost": "lost",
-      "negotiation": "negotiation",
-      "proposal": "proposal",
-      "qualification": "qualification",
-      "won": "won"
+      "lost": "Perdido",
+      "negotiation": "Negociação",
+      "proposal": "Proposta",
+      "qualification": "Qualificação",
+      "won": "Ganho"
     }
   },
   "funding": {

@@ -71,7 +71,7 @@ async def list_events(
         and_(
             OpportunityModel.tenant_id == tenant_id,
             OpportunityModel.deleted_at.is_(None),
-            OpportunityModel.expected_close_date.is_not(None),
+            OpportunityModel.expected_close_date.isnot(None),
             OpportunityModel.expected_close_date >= start,
             OpportunityModel.expected_close_date <= end,
         )

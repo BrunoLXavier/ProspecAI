@@ -51,8 +51,8 @@ class FundingSourceResponse(BaseModel):
     total_amount: float
     submission_start: date
     submission_end: date
-    trl_min: int
-    trl_max: int
+    trl_min: Optional[int]
+    trl_max: Optional[int]
     ai_confidence_score: Optional[float] = None
     created_at: str
     updated_at: str
@@ -259,6 +259,8 @@ async def get_funding_source(
 async def create_funding_source(
     data: FundingSourceCreate,
     session: AsyncSession = Depends(get_db_session),
+    current_user: str = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Create a new funding source with AI field extraction
@@ -273,7 +275,7 @@ async def create_funding_source(
         "tenant_id": tenant_id,
         "name": data.name,
         "institution": data.institution,
-        "instrument_type": data.instrument_type,
+        "instrument_type": data.instrument_type.value if hasattr(data.instrument_type, 'value') else str(data.instrument_type),
         "total_amount": data.total_amount,
         "submission_start": data.submission_start,
         "submission_end": data.submission_end,

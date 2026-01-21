@@ -6,7 +6,8 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, desc, text
+from sqlalchemy.exc import ProgrammingError
 
 from adapters.database.models import LLMConfigModel
 from domain.entities.llm_config import LLMConfig, LLMProvider, LLMConfigStatus
@@ -76,44 +77,168 @@ class LLMConfigRepository:
         Get the active LLM configuration for a tenant.
         Returns the most recently updated active configuration.
         """
-        result = await self.session.execute(
-            select(LLMConfigModel)
-            .where(and_(
-                LLMConfigModel.tenant_id == tenant_id,
-                LLMConfigModel.is_active == True,
-                LLMConfigModel.deleted_at == None,
-            ))
-            .order_by(desc(LLMConfigModel.updated_at))
-            .limit(1)
-        )
-        model = result.scalar_one_or_none()
-        return self._model_to_entity(model) if model else None
+        try:
+            result = await self.session.execute(
+                select(LLMConfigModel)
+                .where(and_(
+                    LLMConfigModel.tenant_id == tenant_id,
+                    LLMConfigModel.is_active == True,
+                    LLMConfigModel.deleted_at == None,
+                ))
+                .order_by(desc(LLMConfigModel.updated_at))
+                .limit(1)
+            )
+            model = result.scalar_one_or_none()
+            return self._model_to_entity(model) if model else None
+        except ProgrammingError as e:
+            # Fallback for databases missing the `base_url` column (migration drift).
+            # Query a reduced set of columns to avoid undefined column errors.
+            # Return None when the DB schema is incompatible.
+            try:
+                q = text("""
+                    SELECT id, tenant_id, provider, model_name, encrypted_api_key,
+                           temperature, max_tokens, status, last_test_at,
+                           last_test_success, last_error_message, is_active,
+                           created_at, updated_at, created_by, updated_by
+                    FROM llm_configs
+                    WHERE tenant_id = :tid AND deleted_at IS NULL
+                    ORDER BY updated_at DESC
+                    LIMIT 1
+                """)
+                res = await self.session.execute(q, {"tid": tenant_id})
+                row = res.fetchone()
+                if not row:
+                    return None
+                # Build minimal LLMConfig entity
+                from domain.entities.llm_config import LLMConfig, LLMProvider, LLMConfigStatus
+                cfg = LLMConfig(
+                    id=row.id,
+                    tenant_id=row.tenant_id,
+                    provider=LLMProvider(row.provider),
+                    model_name=row.model_name,
+                    encrypted_api_key=row.encrypted_api_key,
+                    base_url=None,
+                    temperature=float(row.temperature) if row.temperature is not None else 0.3,
+                    max_tokens=row.max_tokens or 4096,
+                    status=LLMConfigStatus(row.status) if row.status else LLMConfigStatus.UNCONFIGURED,
+                    last_test_at=row.last_test_at,
+                    last_test_success=bool(row.last_test_success),
+                    last_error_message=row.last_error_message,
+                    is_active=bool(row.is_active),
+                    created_at=row.created_at,
+                    updated_at=row.updated_at,
+                    created_by=row.created_by,
+                    updated_by=row.updated_by,
+                )
+                return cfg
+            except Exception:
+                return None
     
     async def get_by_id(self, tenant_id: UUID, config_id: UUID) -> Optional[LLMConfig]:
         """Get LLM configuration by ID."""
-        result = await self.session.execute(
-            select(LLMConfigModel)
-            .where(and_(
-                LLMConfigModel.id == config_id,
-                LLMConfigModel.tenant_id == tenant_id,
-                LLMConfigModel.deleted_at == None,
-            ))
-        )
-        model = result.scalar_one_or_none()
-        return self._model_to_entity(model) if model else None
+        try:
+            result = await self.session.execute(
+                select(LLMConfigModel)
+                .where(and_(
+                    LLMConfigModel.id == config_id,
+                    LLMConfigModel.tenant_id == tenant_id,
+                    LLMConfigModel.deleted_at == None,
+                ))
+            )
+            model = result.scalar_one_or_none()
+            return self._model_to_entity(model) if model else None
+        except ProgrammingError:
+            # Fallback to reduced column selection
+            try:
+                q = text("""
+                    SELECT id, tenant_id, provider, model_name, encrypted_api_key,
+                           temperature, max_tokens, status, last_test_at,
+                           last_test_success, last_error_message, is_active,
+                           created_at, updated_at, created_by, updated_by
+                    FROM llm_configs
+                    WHERE id = :cid AND tenant_id = :tid AND deleted_at IS NULL
+                """)
+                res = await self.session.execute(q, {"cid": config_id, "tid": tenant_id})
+                row = res.fetchone()
+                if not row:
+                    return None
+                from domain.entities.llm_config import LLMConfig, LLMProvider, LLMConfigStatus
+                cfg = LLMConfig(
+                    id=row.id,
+                    tenant_id=row.tenant_id,
+                    provider=LLMProvider(row.provider),
+                    model_name=row.model_name,
+                    encrypted_api_key=row.encrypted_api_key,
+                    base_url=None,
+                    temperature=float(row.temperature) if row.temperature is not None else 0.3,
+                    max_tokens=row.max_tokens or 4096,
+                    status=LLMConfigStatus(row.status) if row.status else LLMConfigStatus.UNCONFIGURED,
+                    last_test_at=row.last_test_at,
+                    last_test_success=bool(row.last_test_success),
+                    last_error_message=row.last_error_message,
+                    is_active=bool(row.is_active),
+                    created_at=row.created_at,
+                    updated_at=row.updated_at,
+                    created_by=row.created_by,
+                    updated_by=row.updated_by,
+                )
+                return cfg
+            except Exception:
+                return None
     
     async def get_all(self, tenant_id: UUID) -> List[LLMConfig]:
         """Get all LLM configurations for a tenant."""
-        result = await self.session.execute(
-            select(LLMConfigModel)
-            .where(and_(
-                LLMConfigModel.tenant_id == tenant_id,
-                LLMConfigModel.deleted_at == None,
-            ))
-            .order_by(desc(LLMConfigModel.updated_at))
-        )
-        models = result.scalars().all()
-        return [self._model_to_entity(m) for m in models]
+        try:
+            result = await self.session.execute(
+                select(LLMConfigModel)
+                .where(and_(
+                    LLMConfigModel.tenant_id == tenant_id,
+                    LLMConfigModel.deleted_at == None,
+                ))
+                .order_by(desc(LLMConfigModel.updated_at))
+            )
+            models = result.scalars().all()
+            return [self._model_to_entity(m) for m in models]
+        except ProgrammingError:
+            # Fallback for schema drift: select a reduced column set and map manually
+            try:
+                q = text("""
+                    SELECT id, tenant_id, provider, model_name, encrypted_api_key,
+                           temperature, max_tokens, status, last_test_at,
+                           last_test_success, last_error_message, is_active,
+                           created_at, updated_at, created_by, updated_by
+                    FROM llm_configs
+                    WHERE tenant_id = :tid AND deleted_at IS NULL
+                    ORDER BY updated_at DESC
+                """)
+                res = await self.session.execute(q, {"tid": tenant_id})
+                rows = res.fetchall()
+                out = []
+                from domain.entities.llm_config import LLMConfig, LLMProvider, LLMConfigStatus
+                for row in rows:
+                    cfg = LLMConfig(
+                        id=row.id,
+                        tenant_id=row.tenant_id,
+                        provider=LLMProvider(row.provider),
+                        model_name=row.model_name,
+                        encrypted_api_key=row.encrypted_api_key,
+                        base_url=None,
+                        temperature=float(row.temperature) if row.temperature is not None else 0.3,
+                        max_tokens=row.max_tokens or 4096,
+                        status=LLMConfigStatus(row.status) if row.status else LLMConfigStatus.UNCONFIGURED,
+                        last_test_at=row.last_test_at,
+                        last_test_success=bool(row.last_test_success),
+                        last_error_message=row.last_error_message,
+                        is_active=bool(row.is_active),
+                        created_at=row.created_at,
+                        updated_at=row.updated_at,
+                        created_by=row.created_by,
+                        updated_by=row.updated_by,
+                    )
+                    out.append(cfg)
+                return out
+            except Exception:
+                return []
     
     async def create(self, entity: LLMConfig, api_key: str) -> LLMConfig:
         """

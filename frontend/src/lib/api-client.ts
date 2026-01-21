@@ -40,9 +40,12 @@ class ApiClient {
       timeout: 10000,
     });
 
-    // Ensure axios sends credentials (cookies) if backend uses them and
-    // set initial default headers from in-memory token/user to avoid races.
-    this.client.defaults.withCredentials = true;
+    // By default do NOT send cookies/credentials from the browser. The
+    // backend uses JWT Authorization headers and tenant headers; sending
+    // credentials forces CORS preflight/credential mode which conflicts
+    // with wildcard origins during local development. If you need cookies
+    // enable them explicitly in env for specific environments.
+    this.client.defaults.withCredentials = false;
     try {
       const token = (typeof window !== 'undefined' && (window as any).__PROSPECAI_ACCESS_TOKEN) || getStoredAccessToken();
       const user = getStoredUser();
@@ -51,6 +54,10 @@ class ApiClient {
       }
       if (user?.tenantId) {
         this.client.defaults.headers.common['X-Tenant-ID'] = user.tenantId;
+      } else if (process.env.NEXT_PUBLIC_DEV_TENANT_ID) {
+        // Development fallback: allow injecting a seeded tenant id via env
+        // so local frontend can call APIs without an explicit login step.
+        this.client.defaults.headers.common['X-Tenant-ID'] = process.env.NEXT_PUBLIC_DEV_TENANT_ID;
       }
       if (user?.id) {
         this.client.defaults.headers.common['X-User-ID'] = user.id;
@@ -103,7 +110,11 @@ class ApiClient {
                 const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
                 if (!user || !user.tenantId) {
                   const tenantFromToken = payload.tenant_id || payload.tenantId || payload.tid || null;
-                  if (tenantFromToken) (config.headers as any)['X-Tenant-ID'] = tenantFromToken;
+                  if (tenantFromToken) {
+                    (config.headers as any)['X-Tenant-ID'] = tenantFromToken;
+                  } else if (process.env.NEXT_PUBLIC_DEV_TENANT_ID) {
+                    (config.headers as any)['X-Tenant-ID'] = process.env.NEXT_PUBLIC_DEV_TENANT_ID;
+                  }
                 }
                 if (!user || !user.id) {
                   const sub = payload.sub || payload.user_id || null;

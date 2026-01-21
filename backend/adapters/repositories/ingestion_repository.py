@@ -6,7 +6,8 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_, desc, func
+from sqlalchemy import and_, desc, func, text
+from sqlalchemy.exc import ProgrammingError
 
 from adapters.database.models import IngestionJobModel, IngestionSourceModel
 from domain.entities.ingestion import (
@@ -165,16 +166,49 @@ class IngestionRepository:
     
     async def get_job_by_id(self, tenant_id: UUID, job_id: UUID) -> Optional[IngestionJob]:
         """Get an ingestion job by ID."""
-        result = await self.session.execute(
-            select(IngestionJobModel)
-            .where(and_(
-                IngestionJobModel.id == job_id,
-                IngestionJobModel.tenant_id == tenant_id,
-                IngestionJobModel.deleted_at == None,
-            ))
-        )
-        model = result.scalar_one_or_none()
-        return self._job_model_to_entity(model) if model else None
+        try:
+            result = await self.session.execute(
+                select(IngestionJobModel)
+                .where(and_(
+                    IngestionJobModel.id == job_id,
+                    IngestionJobModel.tenant_id == tenant_id,
+                    IngestionJobModel.deleted_at == None,
+                ))
+            )
+            model = result.scalar_one_or_none()
+            return self._job_model_to_entity(model) if model else None
+        except ProgrammingError:
+            # Fallback for databases missing recent columns (migration drift).
+            try:
+                q = text("""
+                    SELECT id, tenant_id, name, description, status, started_at,
+                           completed_at, total_files, processed_files, total_size,
+                           total_records, valid_records, invalid_records,
+                           total_pii_entities, pending_pii_review, highest_risk_level,
+                           current_file, progress_percent, estimated_time_remaining,
+                           error_message, error_details, created_at, updated_at,
+                           created_by, updated_by, deleted_at
+                    FROM ingestion_jobs
+                    WHERE id = :jid AND tenant_id = :tid AND deleted_at IS NULL
+                """)
+                res = await self.session.execute(q, {"jid": job_id, "tid": tenant_id})
+                row = res.fetchone()
+                if not row:
+                    return None
+                # Build a minimal model-like object using attribute access
+                class _R:
+                    pass
+
+                m = _R()
+                for k in row.keys():
+                    setattr(m, k, getattr(row, k))
+                # ensure failed_files exists
+                if not hasattr(m, "failed_files"):
+                    m.failed_files = 0
+
+                return self._job_model_to_entity(m)
+            except Exception:
+                return None
     
     async def get_jobs(
         self,
@@ -194,9 +228,42 @@ class IngestionRepository:
         
         query = query.order_by(desc(IngestionJobModel.created_at)).limit(limit).offset(offset)
         
-        result = await self.session.execute(query)
-        models = result.scalars().all()
-        return [self._job_model_to_entity(m) for m in models]
+        try:
+            result = await self.session.execute(query)
+            models = result.scalars().all()
+            return [self._job_model_to_entity(m) for m in models]
+        except ProgrammingError:
+            # Reduced-column fallback
+            try:
+                q = text("""
+                    SELECT id, tenant_id, name, description, status, started_at,
+                           completed_at, total_files, processed_files, total_size,
+                           total_records, valid_records, invalid_records,
+                           total_pii_entities, pending_pii_review, highest_risk_level,
+                           current_file, progress_percent, estimated_time_remaining,
+                           error_message, error_details, created_at, updated_at,
+                           created_by, updated_by, deleted_at
+                    FROM ingestion_jobs
+                    WHERE tenant_id = :tid AND deleted_at IS NULL
+                    ORDER BY created_at DESC
+                    LIMIT :lim OFFSET :off
+                """)
+                res = await self.session.execute(q, {"tid": tenant_id, "lim": limit, "off": offset})
+                rows = res.fetchall()
+                out = []
+                class _R:
+                    pass
+
+                for row in rows:
+                    m = _R()
+                    for k in row.keys():
+                        setattr(m, k, getattr(row, k))
+                    if not hasattr(m, "failed_files"):
+                        m.failed_files = 0
+                    out.append(self._job_model_to_entity(m))
+                return out
+            except Exception:
+                return []
     
     async def update_job(self, entity: IngestionJob) -> IngestionJob:
         """Update an ingestion job."""
@@ -297,38 +364,79 @@ class IngestionRepository:
     
     async def get_job_statistics(self, tenant_id: UUID) -> Dict[str, Any]:
         """Get aggregated statistics for ingestion jobs."""
-        result = await self.session.execute(
-            select(
-                func.count(IngestionJobModel.id).label("total_jobs"),
-                func.sum(IngestionJobModel.total_files).label("total_files"),
-                func.sum(IngestionJobModel.total_records).label("total_records"),
-                func.sum(IngestionJobModel.total_pii_entities).label("total_pii_entities"),
+        try:
+            result = await self.session.execute(
+                select(
+                    func.count(IngestionJobModel.id).label("total_jobs"),
+                    func.sum(IngestionJobModel.total_files).label("total_files"),
+                    func.sum(IngestionJobModel.total_records).label("total_records"),
+                    func.sum(IngestionJobModel.total_pii_entities).label("total_pii_entities"),
+                )
+                .where(and_(
+                    IngestionJobModel.tenant_id == tenant_id,
+                    IngestionJobModel.deleted_at == None,
+                ))
             )
-            .where(and_(
-                IngestionJobModel.tenant_id == tenant_id,
-                IngestionJobModel.deleted_at == None,
-            ))
-        )
-        row = result.one()
-        
-        # Get status counts
-        status_result = await self.session.execute(
-            select(
-                IngestionJobModel.status,
-                func.count(IngestionJobModel.id).label("count"),
+            row = result.one()
+
+            # Get status counts
+            status_result = await self.session.execute(
+                select(
+                    IngestionJobModel.status,
+                    func.count(IngestionJobModel.id).label("count"),
+                )
+                .where(and_(
+                    IngestionJobModel.tenant_id == tenant_id,
+                    IngestionJobModel.deleted_at == None,
+                ))
+                .group_by(IngestionJobModel.status)
             )
-            .where(and_(
-                IngestionJobModel.tenant_id == tenant_id,
-                IngestionJobModel.deleted_at == None,
-            ))
-            .group_by(IngestionJobModel.status)
-        )
-        status_counts = {r.status: r.count for r in status_result}
-        
-        return {
-            "total_jobs": row.total_jobs or 0,
-            "total_files": row.total_files or 0,
-            "total_records": row.total_records or 0,
-            "total_pii_entities": row.total_pii_entities or 0,
-            "status_counts": status_counts,
-        }
+            status_counts = {r.status: r.count for r in status_result}
+
+            return {
+                "total_jobs": row.total_jobs or 0,
+                "total_files": row.total_files or 0,
+                "total_records": row.total_records or 0,
+                "total_pii_entities": row.total_pii_entities or 0,
+                "status_counts": status_counts,
+            }
+        except ProgrammingError:
+            # Fallback: try simple aggregate via raw SQL without newer columns
+            try:
+                q = text("""
+                    SELECT
+                        COUNT(id) AS total_jobs,
+                        COALESCE(SUM(total_files),0) AS total_files,
+                        COALESCE(SUM(total_records),0) AS total_records,
+                        COALESCE(SUM(total_pii_entities),0) AS total_pii_entities
+                    FROM ingestion_jobs
+                    WHERE tenant_id = :tid AND deleted_at IS NULL
+                """)
+                res = await self.session.execute(q, {"tid": tenant_id})
+                row = res.fetchone()
+
+                status_q = text("""
+                    SELECT status, COUNT(id) AS count
+                    FROM ingestion_jobs
+                    WHERE tenant_id = :tid AND deleted_at IS NULL
+                    GROUP BY status
+                """)
+                sres = await self.session.execute(status_q, {"tid": tenant_id})
+                srows = sres.fetchall()
+                status_counts = {r.status: r.count for r in srows}
+
+                return {
+                    "total_jobs": int(row.total_jobs or 0),
+                    "total_files": int(row.total_files or 0),
+                    "total_records": int(row.total_records or 0),
+                    "total_pii_entities": int(row.total_pii_entities or 0),
+                    "status_counts": status_counts,
+                }
+            except Exception:
+                return {
+                    "total_jobs": 0,
+                    "total_files": 0,
+                    "total_records": 0,
+                    "total_pii_entities": 0,
+                    "status_counts": {},
+                }

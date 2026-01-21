@@ -9,17 +9,24 @@
     "settings": "Settings",
     "ingestion": "Data Ingestion",
     "piiAnalysis": "PII Analysis",
+    "pii-analysis": "PII Analysis",
     "reports": "Reports",
     "reportTemplates": "Report Templates",
+    "report-templates": "Report Templates",
     "activity": "Recent Activity",
     "feedbackManagement": "Feedback Management",
     "/": "/",
     "admin": "admin",
     "notifications": "Notifications",
     "communications": "Communications",
+    "comunications": "Communications",
     "institutes": "Institutes",
     "teams": "Teams",
-    "infrastructure": "Infrastructure"
+    "infrastructure": "Infrastructure",
+    "layout": "Layout",
+    "statistics": "Statistics",
+    "feedback": "Feedback",
+    "llm-provider": "LLM Provider"
   },
   "reports": {
     "title": "Reports",
@@ -59,11 +66,9 @@
     "parametersHelp": "Add a parameter and press Enter.",
     "saveChanges": "Save changes",
     "select": "Select",
-    "": "",
     "/api/v1/reports": "/api/v1/reports",
     "/api/v1/reports/templates": "/api/v1/reports/templates",
-    "Erro ao gerar relatório": "Error generating report",
-    ",": ""
+    "Erro ao gerar relatório": "Error generating report"
   },
   "reports.title": "Reports",
   "reports.subtitle": "Generated reports and history",

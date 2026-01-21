@@ -8,6 +8,7 @@ import time
 import os
 from dotenv import load_dotenv
 import logging
+from fastapi.responses import JSONResponse
 
 from adapters.database.connection import engine
 # Use the enhanced schema when available so repositories and models stay in sync
@@ -41,8 +42,14 @@ async def lifespan(app: FastAPI):
         logger.info("ProspecAI backend started successfully")
         
     except Exception as e:
+        # Do not abort process startup in development: record the error and
+        # continue so that the app can return structured 5xx responses with
+        # proper CORS headers. In production, re-raise to prevent degraded
+        # startups.
         logger.error(f"✗ Failed to start backend: {str(e)}")
-        raise
+        if os.getenv("ENVIRONMENT", "development") == "production":
+            raise
+        app.state.startup_error = True
     
     yield
     
@@ -68,10 +75,29 @@ app = FastAPI(
     redirect_slashes=True  # Allow automatic trailing-slash redirects so both variants work
 )
 
+# track startup state so endpoints can respond gracefully if infra is down
+app.state.startup_error = False
+
+
+@app.middleware("http")
+async def startup_health_gate(request: Request, call_next):
+    """Return 503 if startup encountered infra errors (dev-friendly)."""
+    if getattr(app.state, "startup_error", False):
+        allow = "*" if os.getenv("ENVIRONMENT", "development") != "production" else (os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")[0] if os.getenv("CORS_ORIGINS") else "*")
+        return JSONResponse(status_code=503, content={"detail": "Service starting - infrastructure not ready"}, headers={"Access-Control-Allow-Origin": allow})
+    return await call_next(request)
+
 # CORS Middleware
+# In development allow all origins to avoid brittle CORS issues. In production
+# honor the `CORS_ORIGINS` environment variable.
+if os.getenv("ENVIRONMENT", "development") != "production":
+    allow_origins = ["*"]
+else:
+    allow_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -105,6 +131,22 @@ async def set_tenant_context(request: Request, call_next):
     
     response = await call_next(request)
     return response
+
+
+# Global exception handler to ensure JSON responses include CORS headers.
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception: %s", exc)
+
+    # Prefer wildcard in non-production to avoid invalid multi-origin headers
+    if os.getenv("ENVIRONMENT", "development") != "production":
+        allow = "*"
+    else:
+        origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+        allow = origins[0] if origins else "*"
+
+    headers = {"Access-Control-Allow-Origin": allow}
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"}, headers=headers)
 
 
 # Health check endpoint

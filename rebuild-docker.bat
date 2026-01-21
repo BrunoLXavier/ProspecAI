@@ -21,6 +21,8 @@ if "%~1"=="backend" (
     )
 )
 if /I "%~2"=="no-cache" set NO_CACHE=1
+if /I "%~2"=="-no-cache" set NO_CACHE=1
+if /I "%~2"=="--no-cache" set NO_CACHE=1
 
 REM --- Optional flags parsing (supports --use-entrypoint or use-entrypoint anywhere) ---
 set USE_ENTRYPOINT=0
@@ -32,6 +34,9 @@ for %%a in (%*) do (
     if /I "%%~a"=="--fresh" set RESTART_FLAG=--fresh
     if /I "%%~a"=="--skip-ai" set SKIP_AI_FLAG=--skip-ai
     if /I "%%~a"=="--no-migrate" set NO_MIGRATE_FLAG=--no-migrate
+    if /I "%%~a"=="no-cache" set NO_CACHE=1
+    if /I "%%~a"=="-no-cache" set NO_CACHE=1
+    if /I "%%~a"=="--no-cache" set NO_CACHE=1
 )
 if %USE_ENTRYPOINT%==1 (
     echo [*] USE_ENTRYPOINT enabled for this run

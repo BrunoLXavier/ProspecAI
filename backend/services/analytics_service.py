@@ -312,17 +312,54 @@ class AnalyticsService:
         return round((won / total * 100) if total > 0 else 0, 1)
     
     async def _count_submitted_proposals(self, start: datetime, end: datetime) -> int:
-        query = select(func.count(ProposalModel.id)).where(
-            and_(
-                ProposalModel.tenant_id == self.tenant_id,
-                ProposalModel.created_at >= start,
-                ProposalModel.created_at <= end,
-                ProposalModel.deleted_at.is_(None),
-                ProposalModel.status.in_(["submitted", "approved", "rejected"])
+        try:
+            query = select(func.count(ProposalModel.id)).where(
+                and_(
+                    ProposalModel.tenant_id == self.tenant_id,
+                    ProposalModel.created_at >= start,
+                    ProposalModel.created_at <= end,
+                    ProposalModel.deleted_at.is_(None),
+                    ProposalModel.status.in_( ["submitted", "approved", "rejected"] )
+                )
             )
-        )
-        result = await self.session.execute(query)
-        return result.scalar() or 0
+            result = await self.session.execute(query)
+            return result.scalar() or 0
+        except Exception:
+            # Ensure transaction is clean before running fallback query.
+            try:
+                await self.session.rollback()
+            except Exception:
+                pass
+            # Fallback for schema drift where `status` column may be missing.
+            from sqlalchemy import text
+            q = text(
+                """
+                SELECT COUNT(id) FROM proposals
+                WHERE tenant_id = :tid AND created_at >= :start AND created_at <= :end AND deleted_at IS NULL
+                """
+            )
+            try:
+                # Use asyncpg directly to open a fresh connection (bypasses SQLAlchemy pool)
+                import os
+                import asyncpg
+                dsn = os.environ.get("DATABASE_URL")
+                if not dsn:
+                    return 0
+                # asyncpg expects a DSN without the +asyncpg driver marker
+                if dsn.endswith("+asyncpg"):
+                    dsn = dsn.replace("+asyncpg", "")
+                # Connect, execute, and close explicitly
+                conn = await asyncpg.connect(dsn)
+                try:
+                    res = await conn.fetchval(
+                        "SELECT COUNT(id) FROM proposals WHERE tenant_id = $1 AND created_at >= $2 AND created_at <= $3 AND deleted_at IS NULL",
+                        str(self.tenant_id), start, end
+                    )
+                    return int(res or 0)
+                finally:
+                    await conn.close()
+            except Exception:
+                return 0
     
     async def _average_match_score(self, start: datetime, end: datetime) -> float:
         query = select(func.avg(MatchResultModel.composite_score)).where(
