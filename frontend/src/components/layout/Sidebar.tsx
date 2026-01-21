@@ -37,7 +37,7 @@ interface NavigationItem {
   isSection?: boolean;
 }
 
-const navigationItems: NavigationItem[] = [
+export const navigationItems: NavigationItem[] = [
   { id: 'dashboard', name: 'dashboard', href: '/dashboard', icon: HomeIcon },
   { id: 'funding', name: 'funding', href: '/funding', icon: CurrencyDollarIcon },
   { id: 'portfolio', name: 'portfolio', href: '/portfolio', icon: BriefcaseIcon },
@@ -50,6 +50,7 @@ const navigationItems: NavigationItem[] = [
   { id: 'proposals', name: 'proposals', href: '/proposals', icon: DocumentTextIcon },
   // --- Administration Block Start ---
   { id: 'admin', name: 'admin', isSection: true },
+  { id: 'feedbackManagement', name: 'feedbackManagement', href: '/feedback', icon: DocumentTextIcon },
   { id: 'piiAnalysis', name: 'piiAnalysis', href: '/pii-analysis', icon: ShieldExclamationIcon },
   // --- Administration Block End ---
   { id: 'ingestion', name: 'ingestion', href: '/ingestion', icon: CloudArrowUpIcon },

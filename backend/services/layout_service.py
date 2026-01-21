@@ -47,6 +47,8 @@ class LayoutConfig(BaseModel):
         "dashboard", "funding", "portfolio", "crm", 
         "opportunities", "proposals", "communications", "institutes", "teams", "infrastructure", "settings"
     ])
+    # Map of nav item -> parent nav item id (for submenus)
+    nav_parent_map: Dict[str, Optional[str]] = Field(default_factory=dict)
     # Role-based navigation visibility
     visible_nav_items_by_role: Dict[str, List[str]] = Field(default_factory=lambda: {
         "admin": ["dashboard", "funding", "portfolio", "crm", "opportunities", "proposals", "reports", "activity", "ingestion", "piiAnalysis", "settings"],
@@ -126,6 +128,8 @@ class LayoutConfigUpdate(BaseModel):
     nav_order: Optional[List[str]] = None
     dashboard_widgets: Optional[List[str]] = None
     dashboard_widget_order: Optional[List[str]] = None
+    # Optional navigation parent map to support menu hierarchy
+    nav_parent_map: Optional[Dict[str, Optional[str]]] = None
     dashboard_widgets_by_role: Optional[Dict[str, List[str]]] = None
     visible_nav_items_by_role: Optional[Dict[str, List[str]]] = None
     dashboard_layout: Optional[str] = None

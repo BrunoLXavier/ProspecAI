@@ -69,7 +69,12 @@ export default function Header() {
     const segments = pathname.split('/').filter(Boolean);
 
     // Show a single 'Dashboard' breadcrumb only for the root path
-    if (segments.length === 0) return [{ name: t('dashboard'), href: '/dashboard' }];
+    if (segments.length === 0) {
+      let dash = '';
+      try { dash = t('dashboard') || ''; } catch (e) { dash = ''; }
+      if (!dash) dash = 'Dashboard';
+      return [{ name: dash, href: '/dashboard' }];
+    }
 
     const breadcrumbs: { name: string; href: string }[] = [];
 
@@ -103,9 +108,15 @@ export default function Header() {
     chain.reverse(); // root -> ... -> navId
 
     chain.forEach((id, idx) => {
-      // label from translations (navigation namespace) or fallback
-      const name = t(id) || id.charAt(0).toUpperCase() + id.slice(1);
-      // final breadcrumb should point to actual path; others use canonical /<id>
+      // safe translation: try to use i18n, otherwise humanize id
+      let name = '';
+      try {
+        const maybe = t(id);
+        if (maybe && typeof maybe === 'string' && !maybe.startsWith('navigation.')) name = maybe;
+      } catch (e) { /* ignore missing translation */ }
+      if (!name) {
+        name = id.split(/[-_]/).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+      }
       const href = idx === chain.length - 1 ? pathname : `/${id}`;
       breadcrumbs.push({ name, href });
     });
