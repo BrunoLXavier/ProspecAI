@@ -14,17 +14,24 @@
     "users": "Usuários",
     "ingestion": "Ingestão de Dados",
     "piiAnalysis": "Análise de PII",
+    "pii-analysis": "Análise de PII",
     "reports": "Relatórios",
     "reportTemplates": "Modelos de Relatórios",
+    "report-templates": "Modelos de Relatórios",
+    "layout": "Layout",
+    "statistics": "Estatísticas",
+    "feedback": "Feedback",
     "activity": "Atividades Recentes",
     "feedbackManagement": "Gestão de Feedbacks",
     "/": "/",
     "admin": "admin",
     "notifications": "Notificações",
     "communications": "Comunicações",
+    "comunications": "Comunicações",
     "institutes": "Institutos",
     "teams": "Equipes",
-    "infrastructure": "Infraestrutura"
+    "infrastructure": "Infraestrutura",
+    "llm-provider": "Provedor de LLM"
   },
   "reports": {
     "title": "Relatórios",
@@ -110,6 +117,7 @@
   "pipeline": {
     "title": "Pipeline de Oportunidades",
     "stages": {
+      "intelligence": "Inteligência",
       "infrastructure": "Infraestrutura",
       "layout": "Layout",
       "statistics": "Estatísticas",

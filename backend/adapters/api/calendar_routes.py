@@ -54,17 +54,29 @@ async def list_events(
             FundingSourceModel.submission_end <= end,
         )
     )
-    resp = await session.execute(q_funding)
-    for row in resp.scalars().all():
-        events.append({
-            "id": f"funding-{str(row.id)}",
-            "title": row.name,
-            "date": row.submission_end.isoformat() if row.submission_end else None,
-            "type": "deadline",
-            "related_entity": "funding",
-            "related_entity_id": str(row.id),
-            "priority": "high" if row.submission_end and row.submission_end <= (now + timedelta(days=7)) else "medium",
-        })
+    # Some dev environments may have schema drift (missing execution_start/execution_end).
+    # Protect the endpoint from raising 500 by catching DB ProgrammingError and
+    # falling back to skipping funding events when the expected columns are absent.
+    try:
+        resp = await session.execute(q_funding)
+        for row in resp.scalars().all():
+            events.append({
+                "id": f"funding-{str(row.id)}",
+                "title": row.name,
+                "date": row.submission_end.isoformat() if row.submission_end else None,
+                "type": "deadline",
+                "related_entity": "funding",
+                "related_entity_id": str(row.id),
+                "priority": "high" if row.submission_end and row.submission_end <= (now + timedelta(days=7)) else "medium",
+            })
+    except Exception as e:
+        # Log a concise warning and continue; avoid exposing raw DB errors to clients.
+        import logging
+        logging.getLogger(__name__).warning("Calendar: skipping funding events due to DB error: %s", e)
+        try:
+            await session.rollback()
+        except Exception:
+            pass
 
     # Opportunity expected close dates
     q_opps = select(OpportunityModel).where(
@@ -76,17 +88,25 @@ async def list_events(
             OpportunityModel.expected_close_date <= end,
         )
     )
-    resp2 = await session.execute(q_opps)
-    for row in resp2.scalars().all():
-        events.append({
-            "id": f"opp-{str(row.id)}",
-            "title": row.title,
-            "date": row.expected_close_date.isoformat() if row.expected_close_date else None,
-            "type": "deadline",
-            "related_entity": "opportunity",
-            "related_entity_id": str(row.id),
-            "priority": "medium",
-        })
+    try:
+        resp2 = await session.execute(q_opps)
+        for row in resp2.scalars().all():
+            events.append({
+                "id": f"opp-{str(row.id)}",
+                "title": row.title,
+                "date": row.expected_close_date.isoformat() if row.expected_close_date else None,
+                "type": "deadline",
+                "related_entity": "opportunity",
+                "related_entity_id": str(row.id),
+                "priority": "medium",
+            })
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Calendar: skipping opportunities due to DB error: %s", e)
+        try:
+            await session.rollback()
+        except Exception:
+            pass
 
     # Recent proposals (creation date within window)
     q_props = select(ProposalModel).where(
@@ -97,17 +117,25 @@ async def list_events(
             ProposalModel.created_at <= end,
         )
     ).limit(20)
-    resp3 = await session.execute(q_props)
-    for row in resp3.scalars().all():
-        events.append({
-            "id": f"prop-{str(row.id)}",
-            "title": row.title,
-            "date": row.created_at.isoformat() if row.created_at else None,
-            "type": "reminder",
-            "related_entity": "proposal",
-            "related_entity_id": str(row.id),
-            "priority": "low",
-        })
+    try:
+        resp3 = await session.execute(q_props)
+        for row in resp3.scalars().all():
+            events.append({
+                "id": f"prop-{str(row.id)}",
+                "title": row.title,
+                "date": row.created_at.isoformat() if row.created_at else None,
+                "type": "reminder",
+                "related_entity": "proposal",
+                "related_entity_id": str(row.id),
+                "priority": "low",
+            })
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Calendar: skipping proposals due to DB error: %s", e)
+        try:
+            await session.rollback()
+        except Exception:
+            pass
 
     # Sort by date
     events_sorted = sorted([e for e in events if e.get("date")], key=lambda x: x["date"])
