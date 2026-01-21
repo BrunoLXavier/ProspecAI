@@ -1,15 +1,15 @@
 """add research_area to projects if missing
 
 Revision ID: 20260126_add_projects_research_area
-Revises: 20260125_funding_url
+Revises: 20260125_add_funding_url
 Create Date: 2026-01-21 12:55:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260126_projects_research_area'
-down_revision = '20260125_funding_url'
+revision = '20260126_add_projects_research_area'
+down_revision = '20260125_add_funding_url'
 branch_labels = None
 depends_on = None
 

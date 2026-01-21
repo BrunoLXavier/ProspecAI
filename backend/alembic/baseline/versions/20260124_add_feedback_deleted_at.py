@@ -1,15 +1,15 @@
 """add deleted_at to feedbacks if missing
 
 Revision ID: 20260124_add_feedback_deleted_at
-Revises: 20260123_funding_exec_cols
+Revises: 20260123_add_funding_execution_columns
 Create Date: 2026-01-21 12:30:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260124_feedback_deleted_at'
-down_revision = '20260123_funding_exec_cols'
+revision = '20260124_add_feedback_deleted_at'
+down_revision = '20260123_add_funding_execution_columns'
 branch_labels = None
 depends_on = None
 

@@ -1,15 +1,15 @@
 """add url to funding_sources if missing
 
 Revision ID: 20260125_add_funding_url
-Revises: 20260124_feedback_deleted_at
+Revises: 20260124_add_feedback_deleted_at
 Create Date: 2026-01-21 12:45:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260125_funding_url'
-down_revision = '20260124_feedback_deleted_at'
+revision = '20260125_add_funding_url'
+down_revision = '20260124_add_feedback_deleted_at'
 branch_labels = None
 depends_on = None
 

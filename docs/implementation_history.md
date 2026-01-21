@@ -61,7 +61,7 @@
 - **Pattern Consistency:** All pages follow Opportunities page structural pattern
 
 ### Internal Authentication System - IMPLEMENTED ✅ (Session 2026-01-13)
-- **Keycloak Removed:** Discontinued external IdP in favor of internal auth
+- **External IdP Removed:** Discontinued external IdP in favor of internal auth
 - **JWT-based Auth:** Access tokens (30min) + Refresh tokens (7 days)
 - **Email Verification:** One-time tokens with `used` flag, blocks POST/PUT/DELETE until verified
 - **Password Reset:** Configurable expiration (8h default), secure token flow
@@ -70,24 +70,24 @@
 - **Email Service:** MailHog for dev, async SMTP with Jinja2 templates
 
 
-### Docker Infrastructure Status - CONSOLIDATED ✅
-- **Total Services:** 11 containerized services (Backend, Frontend, PostgreSQL 15, Neo4j 5.16, Redis 7, Kafka 7.5, Zookeeper, Keycloak 23.0, Grafana, MLflow, MinIO)
+-### Docker Infrastructure Status - CONSOLIDATED ✅
+- **Total Services:** 11 containerized services (Backend, Frontend, PostgreSQL 15, Neo4j 5.16, Redis 7, Kafka 7.5, Zookeeper, external IdP (removed), Grafana, MLflow, MinIO)
 - **Running Services:** 11/11 (100%) ✓ ALL HEALTHY
 - **Backend Status:** ✓ FIXED - Removed watchfiles/reload issue (no `--reload` flag)
 - **Neo4j Status:** ✓ FIXED - Clean volumes, proper initialization (no stale PID)
 - **Database Connectivity:** ✅ All DBs healthy (PostgreSQL, Neo4j, Redis)
 - **Message Queue:** ✅ Kafka operational
-- **Authentication:** ✅ Keycloak running
+- **Authentication:** ✅ internal JWT
 - **File Storage:** ✅ MinIO running
 - **Monitoring:** ✅ Grafana/MLflow running
 - **Automated Startup:** Use `start-docker.bat` for sequenced, health-checked startup (recommended for Windows). Manual `docker-compose up -d` supported.
-- **Dependency Ordering:** Infrastructure → Kafka → Keycloak → Neo4j → Backend → Frontend
+- **Dependency Ordering:** Infrastructure → Kafka → Neo4j → Backend → Frontend
 - **Health Checks:** All critical services validated before dependent startup
 - **Credentials:**
    - PostgreSQL: postgres:changeme @localhost:5432
    - Neo4j: neo4j:changeme @localhost:7687
    - MinIO: minioadmin:minioadmin
-   - Keycloak: admin:admin
+   - Authentication provider: internal JWT (no external IdP)
    - Grafana: admin:admin
 - **Performance:** Build & startup ~80s; first startup 2-3min; 4-6GB RAM; ~50GB disk
 - **Quick Commands:**
@@ -100,7 +100,7 @@
    - Backend API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
    - Neo4j: http://localhost:7474
-   - Keycloak: http://localhost:8080
+   - Authentication provider: internal JWT (no external IdP)
    - Grafana: http://localhost:3001
    - MinIO: http://localhost:9001
    - MLflow: http://localhost:5000
@@ -351,7 +351,7 @@ Notes: Seeds are idempotent and tenant-scoped. Prefer `run_seeds_fixed.py` as th
 
 ### Internal Authentication System (Session 2026-01-13)
 
-**Decision:** Discontinue Keycloak and implement internal user management
+**Decision:** Discontinue external IdP and implement internal user management
 
 **Backend Components Created:**
 - `domain/entities/user.py` - User entity with bcrypt password hashing
@@ -377,7 +377,7 @@ Notes: Seeds are idempotent and tenant-scoped. Prefer `run_seeds_fixed.py` as th
 - `SystemConfigModel` - JSONB config_value
 
 **Frontend Components:**
-- `contexts/AuthContext.tsx` - Replaced Keycloak with internal JWT
+- `contexts/AuthContext.tsx` - Replaced external IdP with internal JWT
 - `app/login/page.tsx` - i18n-enabled login
 - `app/auth/forgot-password/page.tsx` - Password reset request
 - `app/auth/reset-password/page.tsx` - New password form
@@ -386,7 +386,7 @@ Notes: Seeds are idempotent and tenant-scoped. Prefer `run_seeds_fixed.py` as th
 - `app/auth/contact/page.tsx` - Dynamic contact form
 
 **Infrastructure Changes:**
-- `docker-compose.yml` - Removed Keycloak, added MailHog
+- `docker-compose.yml` - Removed external IdP, added MailHog
 - `alembic/versions/001_add_auth_tables.py` - Migration for auth tables
 
 **Security Features:**
@@ -481,7 +481,7 @@ O **ProspecAI** é uma plataforma SaaS completa para prospecção inteligente de
 - CreateProposalModal
 
 **Authentication**
-- ✅ Backend: JWT + Keycloak JWKS
+- ✅ Backend: JWT (internal)
 - ✅ Frontend: AuthContext + ProtectedRoute
 - ✅ Auto-refresh de tokens
 
@@ -558,7 +558,7 @@ Entities  Business    Interfaces   Frameworks
 ### Security (RNF-01, RNF-02)
 - Row-Level Security via PostgreSQL policies
 - Multi-tenancy com `tenant_id` em todas entidades
-- JWT authentication via Keycloak
+- JWT authentication (internal)
 
 ### Human-in-the-Loop (RNF-04)
 - Confidence badges: Verde (≥80%), Amarelo (60-80%), Vermelho (<60%)
@@ -580,7 +580,7 @@ Entities  Business    Interfaces   Frameworks
 | Database | PostgreSQL 15 (RLS) |
 | Graph DB | Neo4j 5.16 |
 | Messaging | Apache Kafka |
-| Auth | Keycloak |
+| Auth | Internal JWT |
 | Storage | MinIO |
 | AI/ML | LangChain + BERTimbau |
 | Monitoring | Grafana + Prometheus |
@@ -782,7 +782,7 @@ Entities  Business    Interfaces   Frameworks
 | **Redis** | prospecai-redis | ✅ Up 6h | 6379 | 🟢 Healthy |
 | **Kafka** | prospecai-kafka | ✅ Up 6h | 9092 | 🟢 Running |
 | **Zookeeper** | prospecai-zookeeper | ✅ Up 6h | 2181 | 🟢 Running |
-| **Keycloak** | prospecai-keycloak | ✅ Up 6h | 8080 | 🟢 Running |
+| **external IdP (removed)** | prospecai-external-idp | ❌ Removed | 8080 | Removed - internal JWT used |
 | **MinIO** | prospecai-minio | ✅ Up 6h | 9000/9001 | 🟢 Running |
 | **MLflow** | prospecai-mlflow | ✅ Up 6h | 5000 | 🟢 Running |
 | **Grafana** | prospecai-grafana | ✅ Up 6h | 3001 | 🟢 Running |
@@ -881,7 +881,7 @@ Follow-ups:
 **Deployment Ready Checklist**
 - ✅ All core services containerized
 - ✅ Database migrations with Alembic
-- ✅ Authentication system (Keycloak) operational
+- ✅ Authentication system (internal JWT) operational
 - ✅ Frontend hot-reload in dev mode
 - ✅ Redis caching layer
 - ✅ Kafka audit trails
@@ -923,7 +923,7 @@ Follow-ups:
 - ✅ Frontend: Running on port 3000
 - ✅ Kafka: Running on port 9092
 - ✅ Zookeeper: Running
-- ✅ Keycloak: Running (OIDC/JWT)
+- ✅ Authentication: internal JWT (no external IdP)
 - ✅ Grafana: Running (monitoring)
 - ✅ MLflow: Running (model tracking)
 - ✅ MinIO: Running (file storage)
@@ -1223,7 +1223,7 @@ Fixed Python string syntax error in model cache verification step using heredoc 
 | Redis 7 | ✅ Running | 🟢 Healthy | 6379 | Cache operational |
 | Kafka 7.5 | ✅ Running | 🟢 Running | 9092 | Message queue operational |
 | Zookeeper | ✅ Running | 🟢 Running | 2181 | Coordinator operational |
-| Keycloak 23.0 | ✅ Running | 🟢 Running | 8080 | Auth ready (admin/admin) |
+| external IdP (removed) | ❌ Removed | ⚪️ N/A | 8080 | Removed - internal JWT used |
 | MinIO | ✅ Running | 🟢 Running | 9000/9001 | File storage ready |
 | MLflow | ✅ Running | 🟢 Running | 5000 | Model tracking ready |
 | Grafana | ✅ Running | 🟢 Running | 3001 | Dashboards ready |
@@ -1314,7 +1314,7 @@ E2E tests have been removed from this repository. Reintroduce an E2E framework a
 ### ✅ Production-Ready Aspects
 - **Infrastructure**: All services running, databases healthy, caching operational
 - **API Stability**: Backend responding correctly to requests
-- **Authentication**: Keycloak ready for OIDC/JWT
+- **Authentication**: internal JWT ready
 - **Storage**: MinIO operational for file management
 - **Monitoring**: Grafana and MLflow configured
 - **Message Queue**: Kafka ready for event streaming
@@ -1359,7 +1359,7 @@ E2E tests have been removed from this repository. Reintroduce an E2E framework a
   - Infrastructure: DI Container, Auth, File Storage
 
 - [x] **Authentication & Authorization**
-  - ~~Keycloak OIDC integration~~ **REPLACED** with internal JWT auth
+   - ~~external IdP OIDC integration~~ **REPLACED** with internal JWT auth
   - Internal user management with email verification
   - JWT access tokens (30min) + refresh tokens (7 days)
   - Password reset with configurable expiration

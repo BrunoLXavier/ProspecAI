@@ -21,7 +21,7 @@ from infrastructure.serializers import to_primitive
 
 router = APIRouter(prefix="/api/v1/chatbot", tags=["chatbot"])
 
-# Get auth dependency (uses dev user when Keycloak not configured)
+# Get auth dependency (uses dev user when external IdP not configured)
 auth_dependency = get_auth_dependency()
 
 

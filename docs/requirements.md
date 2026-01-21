@@ -106,15 +106,15 @@ Para garantir a **rastreabilidade**, o código deve seguir a **Clean Architectur
 ## 6. Production Infrastructure Implementation
 
 ### 6.1 Docker Stack & Service Orchestration
-- **Status:** 100% of 11 services running and healthy (Backend, Frontend, PostgreSQL 15, Neo4j 5.16, Redis 7, Kafka 7.5, Zookeeper, Keycloak 23.0, Grafana, MLflow, MinIO)
+- **Status:** 100% of 11 services running and healthy (Backend, Frontend, PostgreSQL 15, Neo4j 5.16, Redis 7, Kafka 7.5, Zookeeper, external IdP (removed), Grafana, MLflow, MinIO)
 - **Startup:** Use `start-docker.bat` for reliable, sequenced initialization and health checks (recommended for Windows). Manual `docker-compose up -d` is supported but may have timing issues.
-- **Dependency Ordering:** Infrastructure tier (Postgres, Redis, Zookeeper, MinIO, MLflow, Grafana) → Kafka → Keycloak → Neo4j → Backend → Frontend.
+- **Dependency Ordering:** Infrastructure tier (Postgres, Redis, Zookeeper, MinIO, MLflow, Grafana) → Kafka → Neo4j → Backend → Frontend.
 - **Health Checks:** All critical services have health checks and status validation before dependent services start.
 - **Credentials:**
   - PostgreSQL: postgres:changeme @localhost:5432
   - Neo4j: neo4j:changeme @localhost:7687
   - MinIO: minioadmin:minioadmin
-  - Keycloak: admin:admin
+  - Authentication provider: internal JWT (no external IdP)
   - Grafana: admin:admin
 
 ### 6.2 Key Fixes & Improvements (2026-01-12)
@@ -151,7 +151,7 @@ Para garantir a **rastreabilidade**, o código deve seguir a **Clean Architectur
   - Backend API: http://localhost:8000
   - API Docs: http://localhost:8000/docs
   - Neo4j: http://localhost:7474
-  - Keycloak: http://localhost:8080
+  - Authentication provider: internal JWT (no external IdP)
   - Grafana: http://localhost:3001
   - MinIO: http://localhost:9001
   - MLflow: http://localhost:5000
@@ -282,7 +282,7 @@ docker-compose exec backend pytest tests/ -v
 | Grafana | http://localhost:3001 | Monitoring |
 | MinIO Console | http://localhost:9000 | S3 storage |
 | MLflow | http://localhost:5000 | Model tracking |
-| Keycloak | http://localhost:8080 | OIDC/JWT auth |
+| Authentication (internal JWT) | n/a | internal JWT (no external IdP) |
 
 ---
 

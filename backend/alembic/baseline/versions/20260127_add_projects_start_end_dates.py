@@ -1,15 +1,15 @@
 """add start_date and end_date to projects if missing
 
 Revision ID: 20260127_add_projects_start_end_dates
-Revises: 20260126_projects_research_area
+Revises: 20260126_add_projects_research_area
 Create Date: 2026-01-21 13:30:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260127_proj_dates'
-down_revision = '20260126_projects_research_area'
+revision = '20260127_add_projects_start_end_dates'
+down_revision = '20260126_add_projects_research_area'
 branch_labels = None
 depends_on = None
 

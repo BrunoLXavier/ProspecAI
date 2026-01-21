@@ -8,9 +8,8 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260123_funding_exec_cols'
-# previous baseline revision id
-down_revision = '20260122_pii_cols'
+revision = '20260123_add_funding_execution_columns'
+down_revision = '20260122_add_pii_detection_columns'
 branch_labels = None
 depends_on = None
 

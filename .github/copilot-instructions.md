@@ -34,7 +34,7 @@ Organize o código rigorosamente nestas camadas (pastas correspondentes):
     *   **PostgreSQL 15**: Multi-tenant com **RLS (Row-Level Security)** por `tenant_id` e campos JSONB.
     *   **Neo4j**: Linhagem de dados e redes de matching.
 *   **Mensageria**: Apache Kafka para trilhas de auditoria e processamento assíncrono.
-*   **Segurança**: Keycloak (OIDC/JWT) e criptografia **AES-256** para dados sensíveis (PII).
+*   **Segurança**: Internal JWT (no external IdP) e criptografia **AES-256** para dados sensíveis (PII).
 
 ## 5. Regras de Negócio e Governança de IA
 *   **Human-in-the-Loop**: IA nunca toma decisões finais autônomas; validação humana é obrigatória.

@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260122_pii_cols'
+revision = '20260122_add_pii_detection_columns'
 down_revision = '20260121_add_pii_document_id'
 branch_labels = None
 depends_on = None

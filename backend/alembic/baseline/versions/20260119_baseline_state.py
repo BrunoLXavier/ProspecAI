@@ -1,6 +1,6 @@
 """Baseline schema + minimal seeds representing current system state
 
-Revision ID: 20260120_baseline
+Revision ID: 20260119_baseline
 Revises: 
 Create Date: 2026-01-20 22:20:00
 """
@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260120_baseline'
+revision = '20260119_baseline'
 down_revision = None
 branch_labels = None
 depends_on = None

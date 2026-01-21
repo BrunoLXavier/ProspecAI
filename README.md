@@ -52,7 +52,7 @@ frontend/
 | Frontend | Next.js 14 (TypeScript) + Tailwind CSS |
 | Databases | PostgreSQL 15 (RLS) + Neo4j (graphs) |
 | Messaging | Apache Kafka |
-| Authentication | Keycloak (OIDC/JWT) |
+| Authentication | Internal JWT (no external IdP) |
 | AI/ML | MLflow + BERTimbau (NER) |
 | Storage | MinIO (S3-compatible) |
 | Monitoring | Grafana + Prometheus |
@@ -111,7 +111,7 @@ frontend/
 | Frontend | Next.js 14 (TypeScript) + Tailwind CSS |
 | Databases | PostgreSQL 15 (RLS) + Neo4j (graphs) |
 | Messaging | Apache Kafka |
-| Authentication | Keycloak (OIDC/JWT) |
+| Authentication | Internal JWT (no external IdP) |
 | AI/ML | MLflow + BERTimbau (NER) |
 | Storage | MinIO (S3-compatible) |
 | Monitoring | Grafana + Prometheus |
@@ -144,7 +144,6 @@ This will start:
 - PostgreSQL (port 5432)
 - Neo4j (ports 7474, 7687)
 - Kafka + Zookeeper (port 9092)
-- Keycloak (port 8080)
 - MinIO (ports 9000, 9001)
 - MLflow (port 5000)
 - Grafana (port 3001)
@@ -156,8 +155,8 @@ This will start:
 - **Frontend**: http://localhost:3000
 - **API Docs**: http://localhost:8000/api/docs
 - **Grafana**: http://localhost:3001 (admin/admin)
-- **Keycloak**: http://localhost:8080 (admin/admin)
 - **Neo4j Browser**: http://localhost:7474 (neo4j/changeme)
+ - **Authentication provider**: internal JWT (no external IdP)
 
 ## Development
 

@@ -3763,6 +3763,7 @@
         "portfolio",
         "crm",
         "opportunities",
+        "admin",
         "proposals",
         "communications",
         "institutes",
@@ -3784,7 +3785,6 @@
           "portfolio",
           "crm",
           "opportunities",
-          "proposals",
           "communications",
           "institutes",
           "teams",
@@ -3795,7 +3795,10 @@
           "ingestion",
           "piiAnalysis",
           "notifications",
-          "settings"
+          "settings",
+          "feedbackManagement",
+          "admin",
+          "proposals"
         ],
         "manager": [
           "dashboard",
@@ -3821,7 +3824,27 @@
           "notifications"
         ]
       },
-      "nav_order": [],
+      "nav_order": [
+        "dashboard",
+        "notifications",
+        "activity",
+        "institutes",
+        "portfolio",
+        "teams",
+        "infrastructure",
+        "crm",
+        "proposals",
+        "communications",
+        "funding",
+        "opportunities",
+        "admin",
+        "ingestion",
+        "piiAnalysis",
+        "feedbackManagement",
+        "reports",
+        "reportTemplates",
+        "settings"
+      ],
       "dashboard_widgets": [
         "pipeline",
         "opportunities",
@@ -3899,8 +3922,20 @@
       "modal_overlay_opacity": 0.4,
       "modal_elevation": "medium",
       "created_at": "2026-01-20T21:20:03.495225Z",
-      "updated_at": "2026-01-21T11:36:30.921337Z",
-      "nav_parent_map": {}
+      "updated_at": "2026-01-21T12:09:33.621225Z",
+      "nav_parent_map": {
+        "portfolio": "institutes",
+        "opportunities": "funding",
+        "reportTemplates": "reports",
+        "piiAnalysis": "ingestion",
+        "feedbackManagement": null,
+        "notifications": "dashboard",
+        "activity": "dashboard",
+        "teams": "institutes",
+        "infrastructure": "institutes",
+        "proposals": "crm",
+        "communications": "crm"
+      }
     },
     {
       "id": "default_default",

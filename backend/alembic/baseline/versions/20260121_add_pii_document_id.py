@@ -1,7 +1,7 @@
 """add pii_detections.document_id
 
 Revision ID: 20260121_add_pii_document_id
-Revises: 20260120_baseline_state
+Revises: 20260120_add_feedback_columns
 Create Date: 2026-01-21 00:00:00.000000
 """
 from alembic import op
@@ -9,7 +9,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '20260121_add_pii_document_id'
-down_revision = '20260120_baseline'
+down_revision = '20260120_add_feedback_columns'
 branch_labels = None
 depends_on = None
 

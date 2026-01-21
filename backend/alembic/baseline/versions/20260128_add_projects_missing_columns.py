@@ -1,15 +1,15 @@
 """add missing project columns (budget, objectives, methodology, expected_results, infrastructure, parent_version_id)
 
 Revision ID: 20260128_add_projects_missing_columns
-Revises: 20260127_proj_dates
+Revises: 20260127_add_projects_start_end_dates
 Create Date: 2026-01-21 13:45:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260128_proj_missing_cols'
-down_revision = '20260127_proj_dates'
+revision = '20260128_add_projects_missing_columns'
+down_revision = '20260127_add_projects_start_end_dates'
 branch_labels = None
 depends_on = None
 

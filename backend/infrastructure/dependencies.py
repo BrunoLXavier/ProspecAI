@@ -29,7 +29,7 @@ async def get_current_user_id(
     """
     Get current user ID from request headers.
     Raises 401 if header is missing or invalid. In production, replace
-    this with Keycloak token validation.
+    this with a production-grade token validation (internal JWT or external IdP).
     """
     if not x_user_id:
         # Fallback: try to extract user id from Bearer token in Authorization header
