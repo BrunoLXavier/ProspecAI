@@ -102,6 +102,13 @@ if ERRORLEVEL 1 (
     exit /b 1
 )
 
+REM --- Ensure admin password is set after startup ---
+echo [*] Running admin password updater inside backend container...
+docker compose exec backend python /app/scripts/set_admin_password.py
+if ERRORLEVEL 1 (
+    echo [WARN] set_admin_password.py returned non-zero; continuing.
+)
+
 echo.
 echo ================================================================
 echo       Rebuild Complete

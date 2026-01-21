@@ -335,15 +335,20 @@ class ACLService:
         
         return False
     
-    def check_permission(self, user_id: str, resource: str, permission: str) -> bool:
-        """Check if a user has a specific permission for a resource."""
+    def check_permission(self, user_id: str, resource: str, permission: str, institute_id: Optional[str] = None) -> bool:
+        """Check if a user has a specific permission for a resource.
+
+        Optional `institute_id` is accepted for future per-institute grants; current
+        implementation merges role permissions regardless of institute. Routers
+        should additionally verify institute membership when required.
+        """
         roles = self.get_user_roles(user_id)
-        
+
         for role in roles:
             resource_permissions = role.permissions.get(resource, [])
             if permission in resource_permissions:
                 return True
-        
+
         return False
     
     def get_user_permissions(self, user_id: str) -> Dict[str, List[str]]:

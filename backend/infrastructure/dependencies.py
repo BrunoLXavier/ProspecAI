@@ -2,12 +2,13 @@
 FastAPI Dependencies
 Provides dependency injection for routes
 """
-from typing import AsyncGenerator
+from typing import AsyncGenerator, List
 from uuid import UUID
 from fastapi import Depends, Header, HTTPException, status
 from typing import Optional
 from infrastructure.jwt_service import get_jwt_service
 from sqlalchemy.ext.asyncio import AsyncSession
+import sqlalchemy as sa
 
 from adapters.database.connection import get_session
 from infrastructure.di_container import DependencyContainer, get_container
@@ -17,6 +18,7 @@ from use_cases.manage_crm import ManageCRMUseCase
 from use_cases.manage_pipeline import ManagePipelineUseCase
 from use_cases.execute_matching import ExecuteMatchingUseCase
 from use_cases.manage_proposals import ManageProposalsUseCase
+from services.institute_service import InstituteService
 
 # Re-export get_container for routes that need it
 __all__ = ['get_container', 'get_current_user_id', 'get_current_tenant_id', 'get_di_container']
@@ -61,6 +63,27 @@ async def get_current_tenant_id(
         return x_tenant_id
     except Exception:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid X-Tenant-ID header")
+
+
+async def get_current_institute_ids(
+    x_institute_ids: Optional[str] = Header(default=None, alias="X-Institute-IDs")
+) -> List[UUID]:
+    """
+    Parse the X-Institute-IDs header (comma-separated UUIDs) and return a list of UUIDs.
+    This dependency only parses and validates format; membership validation must be
+    performed server-side by services or routers (do not trust client-provided IDs).
+    If header is not provided, returns an empty list.
+    """
+    if not x_institute_ids:
+        return []
+    ids: List[UUID] = []
+    parts = [p.strip() for p in x_institute_ids.split(",") if p.strip()]
+    for p in parts:
+        try:
+            ids.append(UUID(p))
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid institute id: {p}")
+    return ids
 
 
 async def get_di_container(
@@ -114,3 +137,36 @@ async def get_proposals_use_case(
 ) -> ManageProposalsUseCase:
     """Get ManageProposalsUseCase with dependencies"""
     return container.get_manage_proposals_use_case()
+
+
+async def ensure_user_member_or_admin(
+    user_id: UUID,
+    institute_ids: List[UUID],
+    container: DependencyContainer = Depends(get_di_container),
+) -> bool:
+    """
+    Ensure the `user_id` is either an admin or a member of at least one of the
+    provided `institute_ids`. Raises HTTPException(403) when not allowed.
+    """
+    if not institute_ids:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No institute selected")
+
+    # Quick admin check
+    try:
+        r = await container.session.execute(sa.text("SELECT 1 FROM user_roles WHERE user_id = :user_id AND role_id = 'admin' LIMIT 1"), {'user_id': str(user_id)})
+        if r.scalar() is not None:
+            return True
+    except Exception:
+        # swallow DB errors here and continue to membership checks
+        pass
+
+    inst_service = InstituteService(container.session)
+    for iid in institute_ids:
+        try:
+            if await inst_service.user_belongs_to_institute(user_id, iid):
+                return True
+        except Exception:
+            # ignore per-institute errors and continue checking others
+            continue
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is not a member of the selected institute(s)")

@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TemplateInput {
   id?: string;
@@ -30,6 +31,9 @@ export default function ReportFormModal({ isOpen, onClose, initial }: ReportForm
   const t = useTranslations('reports');
   const tCommon = useTranslations('common');
   const queryClient = useQueryClient();
+  const { user, selectedInstitutes } = useAuth();
+  const isAdmin = (user?.roles || []).includes('admin');
+  const canCreate = isAdmin || (selectedInstitutes && selectedInstitutes.length > 0);
 
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<TemplateInput>({
     defaultValues: initial || { name: '', description: '', parameters: '', output_formats: 'html,pdf' },
@@ -117,7 +121,8 @@ export default function ReportFormModal({ isOpen, onClose, initial }: ReportForm
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {canCreate ? (
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('name')}</label>
                     <input {...register('name', { required: true })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white border-gray-200 dark:border-slate-600" />
@@ -189,6 +194,20 @@ export default function ReportFormModal({ isOpen, onClose, initial }: ReportForm
                     </button>
                   </div>
                 </form>
+                ) : (
+                  <div className="py-12 px-6 text-center">
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t('noPermissionTitle') || 'Permission required'}</p>
+                    <p className="text-sm text-gray-400 mb-6">{t('noPermissionMessage') || 'You must be an administrator or have at least one selected institute to create or edit report templates. Select your institute in the header or contact an administrator.'}</p>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                      >
+                        {tCommon('close') || 'Close'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

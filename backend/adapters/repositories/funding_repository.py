@@ -13,6 +13,7 @@ from typing import List, Optional, Dict, Any
 from datetime import date, datetime
 from uuid import UUID
 from sqlalchemy import select, and_, or_, func, text
+import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -33,31 +34,53 @@ class FundingRepository(BaseRepository[FundingSource, FundingSourceModel]):
     
     def _model_to_entity(self, model: FundingSourceModel) -> FundingSource:
         """Convert database model to domain entity"""
+        # Normalize TRL fields: support legacy trl_min/trl_max or enhanced trl_range
+        trl_min_val = getattr(model, 'trl_min', None)
+        trl_max_val = getattr(model, 'trl_max', None)
+        if (trl_min_val is None or trl_max_val is None) and hasattr(model, 'trl_range'):
+            trl_range = getattr(model, 'trl_range')
+            if isinstance(trl_range, (list, tuple)) and len(trl_range) >= 2:
+                trl_min_val = trl_min_val or trl_range[0]
+                trl_max_val = trl_max_val or trl_range[1]
+        # Fallback sensible defaults if still missing
+        if trl_min_val is None:
+            trl_min_val = 1
+        if trl_max_val is None:
+            trl_max_val = 9
+
         return FundingSource(
             id=model.id,
             name=model.name,
             description=model.description,
             institution=model.institution,
             instrument_type=InstrumentType(model.instrument_type),
+            trl_min=trl_min_val,
+            trl_max=trl_max_val,
             total_amount=model.total_amount,
-            currency=model.currency,
-            submission_start=model.submission_start,
-            submission_end=model.submission_end,
-            execution_period=model.execution_period,
-            trl_range=model.trl_range,
-            requirements=model.requirements,
-            eligibility_criteria=model.eligibility_criteria,
-            source_url=model.source_url,
-            status=model.status,
-            ai_extraction_status=model.ai_extraction_status,
-            ai_extracted_fields=model.ai_extracted_fields,
-            ai_processed_at=model.ai_processed_at,
-            contains_pii=model.contains_pii,
-            pii_anonymized=model.pii_anonymized,
-            lgpd_categories=model.lgpd_categories,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-            version=model.version
+            available_amount=getattr(model, 'available_amount', model.total_amount if hasattr(model, 'total_amount') else 0),
+            currency=(getattr(model, 'currency', None) or 'BRL'),
+            submission_start=getattr(model, 'submission_start', None),
+            submission_end=getattr(model, 'submission_end', None),
+            execution_start=getattr(model, 'execution_start', None),
+            execution_end=getattr(model, 'execution_end', None),
+            execution_period=getattr(model, 'execution_period', None),
+            requirements=getattr(model, 'requirements', None),
+            eligibility_criteria=getattr(model, 'eligibility_criteria', None),
+            url=(getattr(model, 'url', None) or getattr(model, 'source_url', None)),
+            status=getattr(model, 'status', None),
+            source_organization=getattr(model, 'source_organization', ''),
+            ai_extraction_status=getattr(model, 'ai_extraction_status', None),
+            ai_extracted_fields=getattr(model, 'ai_extracted_fields', None),
+            ai_processed_at=getattr(model, 'ai_processed_at', None),
+            contains_pii=getattr(model, 'contains_pii', False),
+            pii_anonymized=getattr(model, 'pii_anonymized', False),
+            lgpd_categories=getattr(model, 'lgpd_categories', None),
+            tenant_id=getattr(model, 'tenant_id', None),
+            created_by=getattr(model, 'created_by', None),
+            updated_by=getattr(model, 'updated_by', None),
+            created_at=getattr(model, 'created_at', None),
+            updated_at=getattr(model, 'updated_at', None),
+            version=getattr(model, 'version', 1)
         )
     
     def _entity_to_model(self, entity: FundingSource, model: Optional[FundingSourceModel] = None) -> FundingSourceModel:
@@ -70,15 +93,23 @@ class FundingRepository(BaseRepository[FundingSource, FundingSourceModel]):
         model.description = entity.description
         model.institution = entity.institution
         model.instrument_type = entity.instrument_type.value
+        model.trl_min = entity.trl_min
+        model.trl_max = entity.trl_max
         model.total_amount = entity.total_amount
+        model.available_amount = getattr(entity, 'available_amount', None)
         model.currency = entity.currency
         model.submission_start = entity.submission_start
         model.submission_end = entity.submission_end
-        model.execution_period = entity.execution_period
-        model.trl_range = entity.trl_range
-        model.requirements = entity.requirements
-        model.eligibility_criteria = entity.eligibility_criteria
-        model.source_url = entity.source_url
+        model.execution_start = getattr(entity, 'execution_start', None)
+        model.execution_end = getattr(entity, 'execution_end', None)
+        model.execution_period = getattr(entity, 'execution_period', None)
+        model.requirements = getattr(entity, 'requirements', None)
+        model.eligibility_criteria = getattr(entity, 'eligibility_criteria', None)
+        # Map either `url` or `source_url` from entity to model
+        if hasattr(entity, 'url') and entity.url is not None:
+            model.url = entity.url
+        else:
+            model.source_url = getattr(entity, 'source_url', None)
         model.status = entity.status
         model.ai_extraction_status = entity.ai_extraction_status
         model.ai_extracted_fields = entity.ai_extracted_fields
@@ -396,34 +427,49 @@ class FundingRepository(BaseRepository[FundingSource, FundingSourceModel]):
         except Exception as e:
             logger.error(f"Error getting funding statistics: {e}")
             raise
+
+    async def find_by_criteria(
+        self,
+        criteria: Dict[str, Any],
+        skip: int = 0,
+        limit: int = 100,
+        order_by: Optional[str] = None,
+        use_cache: bool = True
+    ) -> List[FundingSource]:
         """
-        Create a new funding source
+        Extend base finder to support `institute_ids` filter. When provided,
+        restrict funding sources to those linked to projects belonging to the
+        given institutes via opportunities.
         """
-        model = FundingSourceModel(
-            id=funding_source.id,
-            tenant_id=funding_source.tenant_id,
-            name=funding_source.name,
-            institution=funding_source.institution,
-            instrument_type=funding_source.instrument_type.value,
-            status=funding_source.status,
-            total_amount=funding_source.total_amount,
-            submission_start=funding_source.submission_start,
-            submission_end=funding_source.submission_end,
-            trl_min=funding_source.trl_min,
-            trl_max=funding_source.trl_max,
-            description=funding_source.description,
-            requirements=funding_source.requirements,
-            eligibility_criteria=funding_source.eligibility_criteria,
-            ai_confidence_score=funding_source.ai_confidence_score,
-            ai_extracted_fields=funding_source.ai_extracted_fields,
-        )
-        
-        self.session.add(model)
-        await self.session.commit()
-        await self.session.refresh(model)
-        
-        return self._to_entity(model)
-    
+        try:
+            institute_ids = None
+            if 'institute_ids' in criteria:
+                institute_ids = criteria.pop('institute_ids')
+
+            if institute_ids:
+                if 'tenant_id' not in criteria:
+                    raise ValueError('tenant_id is required in criteria when using institute filters')
+                # Resolve funding_source ids via joins: funding_sources -> opportunities -> projects
+                params = {f"inst_{i}": iid for i, iid in enumerate(institute_ids)}
+                placeholders = ", ".join([f":inst_{i}" for i in range(len(institute_ids))])
+                sql = f"SELECT DISTINCT f.id FROM funding_sources f JOIN opportunities o ON o.funding_source_id = f.id JOIN projects p ON o.project_id = p.id WHERE f.tenant_id = :tenant_id AND f.deleted_at IS NULL AND p.institute_id IN ({placeholders})"
+                params['tenant_id'] = criteria['tenant_id']
+                res = await self.session.execute(sa.text(sql), params)
+                rows = res.fetchall()
+                funding_ids = [r[0] for r in rows]
+                if not funding_ids:
+                    return []
+
+                # Restrict by ids and delegate to base finder
+                new_criteria = {'id': funding_ids, 'tenant_id': criteria['tenant_id']}
+                return await super().find_by_criteria(new_criteria, skip=skip, limit=limit, order_by=order_by, use_cache=use_cache)
+
+            return await super().find_by_criteria(criteria, skip=skip, limit=limit, order_by=order_by, use_cache=use_cache)
+
+        except Exception as e:
+            logger.error(f"Error finding funding by criteria: {e}")
+            raise
+
     async def get_by_id(self, funding_id: str) -> Optional[FundingSource]:
         """
         Get funding source by ID

@@ -9,7 +9,7 @@ def main():
     sync_url = url.replace('+asyncpg','')
     print('Connecting to', sync_url)
     engine = create_engine(sync_url)
-    pwd = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4OoYwOjN4R1COKKS'
+    pwd = '$2b$12$qr3hqVrfnETJMhNAwiEWFOfpp8jPHMVgiEvMtBzlbTmvOxSRe0Nfy'
     email = 'admin@prospecai.com'
     with engine.begin() as conn:
         conn.execute(text("UPDATE users SET password_hash = :pwd WHERE email = :email"), {'pwd': pwd, 'email': email})

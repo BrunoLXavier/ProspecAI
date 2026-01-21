@@ -29,7 +29,8 @@ class ManageFundingUseCase:
         filters: Dict[str, Any],
         skip: int = 0,
         limit: int = 20,
-        tenant_id: Optional[UUID] = None
+        tenant_id: Optional[UUID] = None,
+        institute_ids: Optional[List[UUID]] = None
     ) -> Tuple[List[FundingSource], int]:
         """
         List funding sources with advanced filtering.
@@ -95,6 +96,10 @@ class ManageFundingUseCase:
         if "search" in filters:
             criteria["search_text"] = filters["search"]
         
+        # Apply institute scoping when provided
+        if institute_ids:
+            criteria["institute_ids"] = institute_ids
+
         # Execute query with pagination
         results = await self.funding_repository.find_by_criteria(
             criteria,
@@ -222,7 +227,8 @@ class ManageFundingUseCase:
             filters["trl_min_lte"] = trl_min
         if trl_max:
             filters["trl_max_gte"] = trl_max
-        
+
+        # Note: repository supports institute scoping via `institute_ids` in criteria
         return await self.funding_repository.find_by_criteria(filters)
     
     async def soft_delete_funding(

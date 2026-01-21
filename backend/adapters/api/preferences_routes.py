@@ -51,3 +51,33 @@ async def save_statistics_preferences(req: PrefsRequest):
     prefs = req.model_dump()
     saved = preferences_service.save_preferences(prefs)
     return to_primitive(saved)
+
+
+class InstitutesPrefsRequest(BaseModel):
+    user_id: Optional[str] = None
+    module: str = "institutes"
+    selectedInstitutes: list | None = None
+    updated_at: str | None = None
+
+
+@router.get("/institutes")
+async def get_institutes_preferences(request: Request, user_id: Optional[str] = Query(None)):
+    prefs = preferences_service.get_preferences(user_id, "institutes")
+    if not prefs:
+        default_prefs = {
+            "user_id": user_id,
+            "module": "institutes",
+            "selectedInstitutes": [],
+            "updated_at": datetime.utcnow().isoformat() + "Z",
+        }
+        return to_primitive(default_prefs)
+    return prefs
+
+
+@router.put("/institutes")
+async def save_institutes_preferences(req: InstitutesPrefsRequest):
+    prefs = req.model_dump()
+    # Ensure module is set to 'institutes'
+    prefs["module"] = "institutes"
+    saved = preferences_service.save_preferences(prefs)
+    return to_primitive(saved)

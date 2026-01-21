@@ -234,3 +234,33 @@ class ManageProposalsUseCase:
         versions.sort(key=lambda v: v.version_number)
         
         return versions
+
+    async def list_proposals_filtered(
+        self,
+        filters: Dict[str, Any],
+        skip: int = 0,
+        limit: int = 20,
+        tenant_id: Optional[UUID] = None,
+        institute_ids: Optional[List[UUID]] = None
+    ) -> List[Proposal]:
+        """
+        List proposals with optional institute scoping. When `institute_ids` is
+        provided, the repository is expected to support the `institute_ids`
+        criteria to restrict proposals related to opportunities/projects of
+        those institutes.
+        """
+        criteria: Dict[str, Any] = {}
+        if tenant_id:
+            criteria["tenant_id"] = tenant_id
+
+        # Merge simple filters into criteria
+        for k, v in filters.items():
+            if v is None:
+                continue
+            criteria[k] = v
+
+        if institute_ids:
+            criteria["institute_ids"] = institute_ids
+
+        results = await self.proposal_repository.find_by_criteria(criteria, skip=skip, limit=limit)
+        return results

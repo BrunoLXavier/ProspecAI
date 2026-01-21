@@ -57,6 +57,8 @@ interface AuthContextType {
   resendVerification: () => Promise<void>;
   checkEmailAvailable: (email: string) => Promise<boolean>;
   checkUsernameAvailable: (username: string) => Promise<boolean>;
+  selectedInstitutes: string[];
+  setSelectedInstitutes: (ids: string[]) => void;
 }
 
 interface AuthError {
@@ -76,6 +78,7 @@ const STORAGE_KEYS = {
   REFRESH_TOKEN: 'prospecai_refresh_token',
   EXPIRES_AT: 'prospecai_expires_at',
   USER: 'prospecai_user',
+  SELECTED_INSTITUTES: 'prospecai_selected_institutes',
 };
 
 // =============================================================================
@@ -117,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [tokens, setTokens] = useState<AuthTokens | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [requiresEmailVerification, setRequiresEmailVerification] = useState(false);
+  const [selectedInstitutes, setSelectedInstitutes] = useState<string[]>(() => getStoredSelectedInstitutes());
 
   // Fetch current user from backend using access token (authoritative source)
   const fetchCurrentUser = async (accessToken?: string): Promise<User | null> => {
@@ -222,6 +226,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     loadStoredAuth();
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SELECTED_INSTITUTES, JSON.stringify(selectedInstitutes));
+      try { window.dispatchEvent(new Event('prospecai:institute-selection-changed')); } catch (e) {}
+    } catch (e) {
+      console.debug('[Auth] Failed to persist selected institutes', e);
+    }
+  }, [selectedInstitutes]);
+
+  // Persist selected institutes to backend preferences when user is authenticated
+  useEffect(() => {
+    const persist = async () => {
+      try {
+        const userId = user?.id;
+        if (!userId) return;
+        const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+        if (!accessToken) return;
+
+        await fetch(`${API_URL}/api/v1/user/preferences/institutes`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            selectedInstitutes: selectedInstitutes,
+          }),
+        });
+      } catch (e) {
+        console.debug('[Auth] Failed saving selected institutes to backend', e);
+      }
+    };
+
+    persist();
+  }, [selectedInstitutes, user]);
+
+  // Load persisted selected institutes for authenticated user on login
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const userId = user?.id;
+        if (!userId) return;
+        const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+        if (!accessToken) return;
+
+        const resp = await fetch(`${API_URL}/api/v1/user/preferences/institutes?user_id=${encodeURIComponent(userId)}`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const list = data.selectedInstitutes || data.selected_institutes || [];
+        if (Array.isArray(list) && list.length) {
+          setSelectedInstitutes(list.map((s: any) => String(s)));
+        }
+      } catch (e) {
+        console.debug('[Auth] Failed loading persisted selected institutes', e);
+      }
+    };
+
+    load();
+  }, [user]);
 
   const clearStoredAuth = () => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
@@ -574,6 +641,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resendVerification,
         checkEmailAvailable,
         checkUsernameAvailable,
+        selectedInstitutes,
+        setSelectedInstitutes,
       }}
     >
       {children}
@@ -613,4 +682,18 @@ export function getStoredUser(): User | null {
   if (typeof window === 'undefined') return null;
   const stored = localStorage.getItem(STORAGE_KEYS.USER);
   return stored ? JSON.parse(stored) : null;
+}
+
+export function getStoredSelectedInstitutes(): string[] {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem(STORAGE_KEYS.SELECTED_INSTITUTES);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    if (typeof raw === 'string' && raw.trim().length) return raw.split(',').map(s => s.trim()).filter(Boolean);
+  } catch (e) {
+    if (typeof raw === 'string' && raw.trim().length) return raw.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  return [];
 }

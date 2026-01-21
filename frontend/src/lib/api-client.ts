@@ -4,7 +4,7 @@
  * Integrates with AuthContext for token management
  */
 import axios, { AxiosInstance } from 'axios';
-import { getStoredAccessToken, getStoredUser } from '@/contexts/AuthContext';
+import { getStoredAccessToken, getStoredUser, getStoredSelectedInstitutes } from '@/contexts/AuthContext';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BYPASS_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -127,6 +127,15 @@ class ApiClient {
           }
         } catch (e) {
           // fail silently
+        }
+        // Inject selected institutes header if present in storage.
+        try {
+          const selected = getStoredSelectedInstitutes();
+          if (Array.isArray(selected) && selected.length > 0) {
+            (config.headers as any)['X-Institute-IDs'] = selected.join(',');
+          }
+        } catch (e) {
+          // ignore storage errors
         }
         return config;
       },

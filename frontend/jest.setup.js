@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 
 // Mock next-intl
 jest.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key) => key,
   useLocale: () => 'pt-BR',
 }));
 
@@ -18,9 +18,9 @@ jest.mock('next/navigation', () => ({
   useParams: () => ({}),
 }));
 
-// Mock React Query
-jest.mock('react-query', () => ({
-  ...jest.requireActual('react-query'),
+// Mock React Query (use @tanstack/react-query in codebase)
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
   useQuery: jest.fn(),
   useMutation: jest.fn(),
   useQueryClient: jest.fn(() => ({

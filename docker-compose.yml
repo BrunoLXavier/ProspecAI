@@ -221,6 +221,7 @@ services:
       FRONTEND_URL: http://localhost:3000
       # Development runtime settings
       ENVIRONMENT: development
+      TEST_USE_SQLITE: "false"
       CORS_ORIGINS: http://localhost:3000
       # Encryption key for sensitive data
       ENCRYPTION_KEY: your-fernet-key-change-in-production
@@ -234,6 +235,8 @@ services:
       BERTIMBAU_NER_MODEL: neuralmind/bert-base-portuguese-cased-ner
       # Translations directory (must be writable by backend)
       TRANSLATIONS_DIR: /app/translations
+      # Reduce Uvicorn worker count to lower memory usage in low-RAM dev machines
+      UVICORN_WORKERS: "1"
     ports:
       - "8000:8000"
     volumes:
@@ -248,7 +251,8 @@ services:
       # Mount frontend locales into backend so translations written by the
       # application are persisted to the host and can be committed to VCS.
       - ./frontend/src/locales:/app/translations:rw
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+
 
   # Backend is responsible for running migrations on startup via its entrypoint.
   # One-off migration jobs can be executed manually using:

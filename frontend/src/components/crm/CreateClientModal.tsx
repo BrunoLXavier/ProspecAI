@@ -12,6 +12,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@/contexts/AuthContext';
 
 import {
   FormInput,
@@ -35,6 +36,9 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
   const [isLookingUp, setIsLookingUp] = useState(false);
   const t = useTranslations('crm');
   const tCommon = useTranslations('common');
+  const { user, selectedInstitutes } = useAuth();
+  const isAdmin = (user?.roles || []).includes('admin');
+  const canCreate = isAdmin || (selectedInstitutes && selectedInstitutes.length > 0);
 
   const {
     register,
@@ -122,7 +126,8 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {canCreate ? (
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* CNPJ with Auto-fill - RF-04 Feature */}
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <label className="block text-sm font-medium text-blue-800 mb-2">
@@ -243,6 +248,20 @@ export default function CreateClientModal({ isOpen, onClose }: CreateClientModal
                     </p>
                   )}
                 </form>
+                ) : (
+                  <div className="py-12 px-6 text-center">
+                    <p className="text-lg font-semibold text-gray-900 mb-2">{t('noPermissionTitle') || 'Permission required'}</p>
+                    <p className="text-sm text-gray-600 mb-6">{t('noPermissionMessage') || 'You must be an administrator or have at least one selected institute to create a client. Select your institute in the header or contact an administrator.'}</p>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                      >
+                        {tCommon('close') || 'Close'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

@@ -42,6 +42,8 @@ class Project(BaseEntity):
     # Versioning
     version: int = Field(default=1, ge=1)
     parent_version_id: Optional[UUID] = None
+    # Owning institute (optional during migration)
+    institute_id: Optional[UUID] = None
     
     def add_lesson_learned(self, title: str, description: str, category: str) -> None:
         """Add a lesson learned to the project."""
@@ -81,6 +83,8 @@ class Portfolio(BaseEntity):
     # Portfolio-level metrics
     total_budget: Optional[float] = None
     active_projects_count: int = Field(default=0, ge=0)
+    # Owning institute (optional during migration)
+    institute_id: Optional[UUID] = None
     
     def add_project(self, project_id: UUID) -> None:
         """Add a project to the portfolio."""

@@ -176,6 +176,7 @@ from adapters.api.file_routes import router as file_routes
 from adapters.api.activity_routes import router as activity_routes
 from adapters.api.translations_routes import router as translations_routes
 from adapters.api.acl_routes import router as acl_routes
+from adapters.api.institutes_routes import router as institutes_routes
 from adapters.api.layout_routes import router as layout_routes
 from adapters.api.preferences_routes import router as preferences_routes
 from adapters.api.calendar_routes import router as calendar_routes
@@ -188,6 +189,8 @@ from adapters.api.compatibility_routes import router as compatibility_routes
 from routers.auth_router import router as auth_routes
 from routers.contact_router import router as contact_routes
 from routers.admin_settings_router import router as admin_settings_routes
+from adapters.api.teams_routes import router as teams_routes
+from adapters.api.infrastructures_routes import router as infrastructures_routes
 from routers.notifications import router as notifications_routes
 
 # Register API routers
@@ -200,6 +203,8 @@ app.include_router(crm_routes, prefix="/api/v1/crm")
 app.include_router(opportunities_routes, prefix="/api/v1/opportunities")
 app.include_router(proposals_routes)
 app.include_router(matching_routes)
+app.include_router(teams_routes)
+app.include_router(infrastructures_routes)
 app.include_router(chatbot_routes)
 app.include_router(lgpd_routes)
 app.include_router(analytics_routes)
@@ -213,6 +218,7 @@ app.include_router(preferences_routes)
 app.include_router(calendar_routes)
 app.include_router(llm_config_routes)
 app.include_router(admin_users_routes)
+app.include_router(institutes_routes)
 app.include_router(ai_routes)
 app.include_router(ingestion_routes)
 app.include_router(feedback_routes)

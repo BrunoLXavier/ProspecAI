@@ -98,7 +98,8 @@ class OpportunityRepository(BaseRepository[Opportunity, OpportunityModel]):
     async def get_pipeline_by_stage(
         self,
         tenant_id: str,
-        stages: Optional[List[OpportunityStage]] = None
+        stages: Optional[List[OpportunityStage]] = None,
+        institute_ids: Optional[List[str]] = None,
     ) -> Dict[str, List[Opportunity]]:
         """
         Get opportunities grouped by pipeline stage (Kanban view)
@@ -116,12 +117,32 @@ class OpportunityRepository(BaseRepository[Opportunity, OpportunityModel]):
                     result[stage] = [self._deserialize_entity(o) for o in opps]
                 return result
             
-            query = select(OpportunityModel).where(
-                and_(
-                    OpportunityModel.tenant_id == tenant_id,
-                    OpportunityModel.deleted_at.is_(None)
+            # If institute_ids provided, filter opportunities by the institute of their linked project.
+            if institute_ids:
+                # Build parameterized IN clause
+                params = {f"inst_{i}": iid for i, iid in enumerate(institute_ids)}
+                placeholders = ", ".join([f":inst_{i}" for i in range(len(institute_ids))])
+                sql = f"SELECT o.id FROM opportunities o JOIN projects p ON o.project_id = p.id WHERE o.tenant_id = :tenant_id AND o.deleted_at IS NULL AND p.institute_id IN ({placeholders})"
+                params['tenant_id'] = tenant_id
+                res = await self.session.execute(sa.text(sql), params)
+                rows = res.fetchall()
+                opp_ids = [r[0] for r in rows]
+                if not opp_ids:
+                    return {s.value: [] for s in OpportunityStage}
+                query = select(OpportunityModel).where(
+                    and_(
+                        OpportunityModel.tenant_id == tenant_id,
+                        OpportunityModel.deleted_at.is_(None),
+                        OpportunityModel.id.in_(opp_ids)
+                    )
                 )
-            )
+            else:
+                query = select(OpportunityModel).where(
+                    and_(
+                        OpportunityModel.tenant_id == tenant_id,
+                        OpportunityModel.deleted_at.is_(None)
+                    )
+                )
             
             if stages:
                 stage_values = [s.value for s in stages]

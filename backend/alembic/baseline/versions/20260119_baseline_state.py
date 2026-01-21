@@ -869,7 +869,7 @@ def upgrade() -> None:
         '00000000-0000-0000-0000-000000000001'::uuid,
         'admin@prospecai.com',
         'admin',
-        '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4OoYwOjN4R1COKKS',
+        '$2b$12$qr3hqVrfnETJMhNAwiEWFOfpp8jPHMVgiEvMtBzlbTmvOxSRe0Nfy',
         'System',
         'Administrator',
         true,

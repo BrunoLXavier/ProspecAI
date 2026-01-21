@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
 import CreateFundingModal from '@/components/funding/CreateFundingModal';
 import ViewEditFundingModal from '@/components/funding/ViewEditFundingModal';
@@ -151,6 +152,8 @@ export default function FundingPage() {
     }
   });
 
+  const { selectedInstitutes } = useAuth();
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       open: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
@@ -211,6 +214,15 @@ export default function FundingPage() {
         module="funding"
         data={fundingSources}
       />
+
+      {/* Institute selection hint */}
+      {selectedInstitutes && selectedInstitutes.length === 0 && (
+        <div className="rounded-md bg-blue-50 border border-blue-100 p-4">
+          <p className="text-sm text-blue-700">
+            {t('noInstituteSelectedHint') || 'No institute selected — results may be global. Use the institute selector in the header to filter.'}
+          </p>
+        </div>
+      )}
 
       {/* Advanced Filters */}
       <FilterPanel

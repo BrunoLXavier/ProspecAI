@@ -21,6 +21,7 @@ import {
   FormTagInput,
 } from '@/components/forms';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   createFundingSchema,
   CreateFundingInput,
@@ -39,6 +40,9 @@ export default function CreateFundingModal({ isOpen, onClose }: CreateFundingMod
   const t = useTranslations('funding');
   const tCommon = useTranslations('common');
   const queryClient = useQueryClient();
+  const { user, selectedInstitutes } = useAuth();
+  const isAdmin = (user?.roles || []).includes('admin');
+  const canCreate = isAdmin || (selectedInstitutes && selectedInstitutes.length > 0);
 
   const {
     register,
@@ -110,7 +114,8 @@ export default function CreateFundingModal({ isOpen, onClose }: CreateFundingMod
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {canCreate ? (
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* Basic Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormInput
@@ -236,6 +241,20 @@ export default function CreateFundingModal({ isOpen, onClose }: CreateFundingMod
                     </p>
                   )}
                 </form>
+                ) : (
+                  <div className="py-12 px-6 text-center">
+                    <p className="text-lg font-semibold text-gray-900 mb-2">{t('noPermissionTitle') || 'Permission required'}</p>
+                    <p className="text-sm text-gray-600 mb-6">{t('noPermissionMessage') || 'You must be an administrator or have at least one selected institute to create a funding source. Select your institute in the header or contact an administrator.'}</p>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                      >
+                        {tCommon('close') || 'Close'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

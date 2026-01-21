@@ -11,6 +11,22 @@
 
 ---
 
+## 2026-01-21
+- **Membership / Institute-scoped UI guards:** Added membership/admin guards to several create modals so only administrators or users with at least one selected institute can create resources. Files updated:
+   - `frontend/src/components/portfolio/createprojectmodal.tsx` (guard + friendly locked message)
+   - `frontend/src/components/funding/createfundingmodal.tsx` (guard + locked message)
+   - `frontend/src/components/opportunities/createopportunitymodal.tsx` (guard + locked message)
+   - `frontend/src/components/proposals/createproposalmodal.tsx` (guard + locked message)
+   - `frontend/src/components/crm/createclientmodal.tsx` (guard + locked message)
+
+- **Tests run in Docker:** Confirmed backend pytest suite inside the backend container: `docker compose exec backend pytest -q` → `111 passed, 13 skipped`.
+
+- **Updated TODO tracking:** Synchronized the `manage_todo_list` with planned tasks: running tests in Docker, adding guards to create modals, running frontend tests in container (if available), and updating docs.
+
+---
+
+---
+
 ## Executive Summary
 
 ### User Feedback System - IMPLEMENTED ✅ (Session 2026-01-14c)
@@ -398,6 +414,14 @@ Notes: Seeds are idempotent and tenant-scoped. Prefer `run_seeds_fixed.py` as th
 - One-time tokens: `used=true` flag prevents reuse
 
 ### Frontend Test Coverage
+
+---
+
+## 2026-01-21
+- **Institute scoping & multi-institute membership:** Implemented institute-scoped models, membership association, and header combobox allowing selection of one or more institutes. Enforced membership-based CRUD with admin override and added ACL-aware read behavior across funding, opportunities and portfolio flows. (Files touched: `backend/adapters/database/models.py`, `backend/adapters/database/models_new.py`, `backend/adapters/repositories/funding_repository.py`, `backend/routers/*`, `frontend/src/contexts/AuthContext.tsx`, `frontend/src/components/Header/*`)
+- **SQLite test compatibility:** Added fallbacks and shims for Postgres-only DB types in tests, registered `gen_random_uuid` helper for SQLite, and made repository filters resilient to list-valued criteria to support in-memory test runs.
+- **Tests / CI:** Rebuilt Docker images and ran full test suite inside the backend container — result: **111 passed, 13 skipped, 0 failed**.
+- **Next steps:** Finalize UI pages for Institutes/Team/Infrastructure/Portfolio (UX polish), consolidate Alembic migration heads into a single production migration, and persist selected institute per-user in backend settings if desired.
 - **E2E Test Specs Created:** 7 files (855 total tests)
 - **CRUD Operations Tests:** 100% coverage (5 modules)
 - **Filter & Search Tests:** 100% coverage

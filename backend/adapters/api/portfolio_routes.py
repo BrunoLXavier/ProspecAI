@@ -14,10 +14,12 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 
-from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
+from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id, ensure_user_member_or_admin
 from use_cases.manage_portfolio import ManagePortfolioUseCase
 from domain.entities.portfolio import ProjectStatus
 from infrastructure.serializers import to_primitive
+from services.institute_service import get_institute_service, InstituteService
+import sqlalchemy as sa
 
 
 router = APIRouter(prefix="/api/v1/portfolio", tags=["portfolio"])
@@ -42,6 +44,7 @@ class ProjectCreateRequest(BaseModel):
     expected_results: Optional[str] = None
     competencies: List[str] = Field(default_factory=list)
     team_members: List[UUID] = Field(default_factory=list)
+    institute_id: Optional[UUID] = None
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -207,6 +210,7 @@ async def create_project(
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
+    institute_service: InstituteService = Depends(get_institute_service),
 ):
     """
     Create a new project with TRL tracking.
@@ -229,6 +233,25 @@ async def create_project(
         "competencies": request.competencies,
         "team_members": request.team_members,
     }
+    # Require explicit target institute for creation
+    if not request.institute_id:
+        raise HTTPException(status_code=400, detail="institute_id is required to create a project")
+
+    # Check membership or admin
+    is_admin = False
+    try:
+        r = await container.session.execute(sa.text("SELECT 1 FROM user_roles WHERE user_id = :user_id AND role_id = 'admin' LIMIT 1"), {'user_id': str(user_id)})
+        if r.scalar() is not None:
+            is_admin = True
+    except Exception:
+        is_admin = False
+
+    if not is_admin:
+        allowed = await institute_service.user_belongs_to_institute(user_id, request.institute_id)
+        if not allowed:
+            raise HTTPException(status_code=403, detail="User is not a member of the target institute")
+
+    project_data['institute_id'] = request.institute_id
     
     try:
         project = await use_case.create_project(
@@ -306,6 +329,16 @@ async def update_project(
     
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+
+    # membership check: ensure user is member or admin of the project's institute
+    institute_id = getattr(project, 'institute_id', None)
+    if not institute_id:
+        # try alternative attribute names
+        if hasattr(project, 'institutes') and getattr(project, 'institutes'):
+            institute_id = getattr(project, 'institutes')[0]
+
+    if institute_id:
+        await ensure_user_member_or_admin(user_id, [institute_id], container)
     
     # Update fields
     if request.title is not None:
@@ -385,6 +418,15 @@ async def advance_trl(
     Implements RF-03.02: Avanço de maturidade tecnológica
     """
     use_case: ManagePortfolioUseCase = container.get_manage_portfolio_use_case()
+    # membership check
+    project_repo = container.project_repository
+    project = await project_repo.get_by_id(str(project_id))
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    institute_id = getattr(project, 'institute_id', None) or (getattr(project, 'institutes')[0] if getattr(project, 'institutes', None) else None)
+    if institute_id:
+        await ensure_user_member_or_admin(user_id, [institute_id], container)
     
     try:
         project = await use_case.advance_project_trl(
@@ -479,7 +521,15 @@ async def add_lesson(
     Implements RF-03.03: Registro de lição aprendida
     """
     use_case: ManagePortfolioUseCase = container.get_manage_portfolio_use_case()
-    
+    # membership check
+    project_repo = container.project_repository
+    project = await project_repo.get_by_id(str(project_id))
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    institute_id = getattr(project, 'institute_id', None) or (getattr(project, 'institutes')[0] if getattr(project, 'institutes', None) else None)
+    if institute_id:
+        await ensure_user_member_or_admin(user_id, [institute_id], container)
     try:
         project = await use_case.add_lesson_learned(
             project_id=project_id,
@@ -591,7 +641,15 @@ async def add_project_to_portfolio(
     Implements RF-03.04: Gestão de projetos em portfólio
     """
     use_case: ManagePortfolioUseCase = container.get_manage_portfolio_use_case()
-    
+    # membership check on the project being added
+    project_repo = container.project_repository
+    project = await project_repo.get_by_id(str(project_id))
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    institute_id = getattr(project, 'institute_id', None) or (getattr(project, 'institutes')[0] if getattr(project, 'institutes', None) else None)
+    if institute_id:
+        await ensure_user_member_or_admin(user_id, [institute_id], container)
     try:
         portfolio = await use_case.add_project_to_portfolio(
             portfolio_id=portfolio_id,

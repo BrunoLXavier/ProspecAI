@@ -157,7 +157,11 @@ class BaseRepository(Generic[T, M], ABC):
             if filters:
                 for field, value in filters.items():
                     if hasattr(self.model_class, field):
-                        query = query.where(getattr(self.model_class, field) == value)
+                        # Support list/tuple filters as IN queries for SQLite compatibility
+                        if isinstance(value, (list, tuple, set)):
+                            query = query.where(getattr(self.model_class, field).in_(tuple(value)))
+                        else:
+                            query = query.where(getattr(self.model_class, field) == value)
             
             # Apply pagination
             query = query.offset(skip).limit(limit)
@@ -461,10 +465,12 @@ class BaseRepository(Generic[T, M], ABC):
                         conditions.append(or_(*search_conditions))
                 else:
                     # Direct equality match
-                    if hasattr(self.model_class, key):
-                        conditions.append(
-                            getattr(self.model_class, key) == value
-                        )
+                        if hasattr(self.model_class, key):
+                            # Support list/tuple values by using IN()
+                            if isinstance(value, (list, tuple, set)):
+                                conditions.append(getattr(self.model_class, key).in_(tuple(value)))
+                            else:
+                                conditions.append(getattr(self.model_class, key) == value)
             
             if conditions:
                 query = query.where(and_(*conditions))
@@ -547,9 +553,11 @@ class BaseRepository(Generic[T, M], ABC):
                         conditions.append(or_(*search_conditions))
                 else:
                     if hasattr(self.model_class, key):
-                        conditions.append(
-                            getattr(self.model_class, key) == value
-                        )
+                        # Support list/tuple values by using IN()
+                        if isinstance(value, (list, tuple, set)):
+                            conditions.append(getattr(self.model_class, key).in_(tuple(value)))
+                        else:
+                            conditions.append(getattr(self.model_class, key) == value)
             
             if conditions:
                 query = query.where(and_(*conditions))

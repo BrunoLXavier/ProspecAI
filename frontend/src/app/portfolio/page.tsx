@@ -132,7 +132,7 @@ export default function PortfolioPage() {
     queryKey: ['projects', filters],
     queryFn: async () => {
       const params: Record<string, any> = {};
-      if (filters.status && filters.status !== 'all') params.status = filters.status;
+      if (filters.status && filters.status !== 'all') params.status = filters.status;   
       if (filters.researchArea && filters.researchArea !== 'all') params.research_area = filters.researchArea;
       if (filters.trlMin) params.trl_min = Number(filters.trlMin);
       if (filters.trlMax) params.trl_max = Number(filters.trlMax);
@@ -148,9 +148,9 @@ export default function PortfolioPage() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      planning: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-      active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-      completed: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+      planning: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',     
+      active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',   
+      completed: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',       
       suspended: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
     };
     return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
@@ -177,7 +177,7 @@ export default function PortfolioPage() {
         viewMode={viewMode}
         onViewChange={setViewMode}
         action={
-          <button 
+          <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
           >
@@ -188,11 +188,11 @@ export default function PortfolioPage() {
       />
 
       {/* Create Project Modal */}
-      <CreateProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <CreateProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> 
 
       {/* View/Edit Project Modal */}
-      <ViewEditProjectModal 
-        isOpen={isViewModalOpen} 
+      <ViewEditProjectModal
+        isOpen={isViewModalOpen}
         onClose={() => {
           setIsViewModalOpen(false);
           setSelectedProject(null);
@@ -217,13 +217,13 @@ export default function PortfolioPage() {
 
       {/* Content View */}
       {viewMode === 'board' ? (
-        <PortfolioBoard 
-          projects={projects} 
+        <PortfolioBoard
+          projects={projects}
           onItemClick={handleProjectClick}
         />
       ) : (
         /* List View */
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">  
           {isLoading ? (
             <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('loading')}</div>
           ) : projects.length === 0 ? (
@@ -289,3 +289,4 @@ export default function PortfolioPage() {
     </div>
   );
 }
+

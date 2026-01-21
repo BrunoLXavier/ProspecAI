@@ -154,7 +154,7 @@ class AnalyticsService:
         query = select(
             FundingSourceModel.instrument_type,
             func.count(FundingSourceModel.id).label("count"),
-            func.sum(FundingSourceModel.total_budget).label("total_budget")
+            func.sum(FundingSourceModel.total_amount).label("total_budget")
         ).where(
             and_(
                 FundingSourceModel.tenant_id == self.tenant_id,

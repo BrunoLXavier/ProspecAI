@@ -9,7 +9,7 @@ eng = create_engine(DATABASE_URL.replace('+asyncpg', '') if '+asyncpg' in DATABA
 ADMIN_ID = 'ba4f4bf9-2daf-4be4-81cb-69bc2b832209'
 TENANT_ID = '00000000-0000-0000-0000-000000000001'
 ADMIN_EMAIL = 'admin@prospecai.com'
-ADMIN_HASH = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4OoYwOjN4R1COKKS'
+ADMIN_HASH = '$2b$12$qr3hqVrfnETJMhNAwiEWFOfpp8jPHMVgiEvMtBzlbTmvOxSRe0Nfy'
 
 with eng.begin() as conn:
     # Create roles

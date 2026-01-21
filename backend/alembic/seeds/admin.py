@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 ADMIN_ID = 'ba4f4bf9-2daf-4be4-81cb-69bc2b832209'
 ADMIN_EMAIL = 'admin@prospecai.com'
-ADMIN_HASH = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4OoYwOjN4R1COKKS'
+ADMIN_HASH = '$2b$12$qr3hqVrfnETJMhNAwiEWFOfpp8jPHMVgiEvMtBzlbTmvOxSRe0Nfy'
 ADMIN_USERNAME = 'admin'
 
 

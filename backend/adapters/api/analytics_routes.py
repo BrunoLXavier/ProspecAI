@@ -236,20 +236,23 @@ async def export_analytics(
     }
     
     if format == "csv":
-        # Simple CSV conversion for KPIs
+        # Simple CSV conversion for KPIs - return as text/csv response
         import io
         import csv
-        
+        from fastapi import Response
+
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(["Metric", "Value", "Previous", "Trend %", "Direction"])
-        
+
         for key, kpi in kpis.items():
             writer.writerow([
                 kpi.label, kpi.value, kpi.previous_value,
                 kpi.trend_percentage, kpi.trend_direction
             ])
-        
-        return {"content": output.getvalue(), "format": "csv"}
+
+        csv_content = output.getvalue()
+        headers = {"Content-Disposition": "attachment; filename=analytics.csv"}
+        return Response(content=csv_content, media_type="text/csv", headers=headers)
     
     return to_primitive(data)

@@ -8,12 +8,44 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, ForeignKey, Index, Integer, 
-    Numeric, String, Text, UUID, func, text, ARRAY, CheckConstraint
+    Boolean, Column, DateTime, ForeignKey, Index, Integer,
+    Numeric, String, Text, UUID, func, text, ARRAY, CheckConstraint, JSON
 )
 from sqlalchemy import Computed
 from sqlalchemy import PrimaryKeyConstraint
-from sqlalchemy.dialects.postgresql import JSONB, TSRANGE, INT4RANGE, INET
+
+# Prefer PostgreSQL-specific types when available, but provide SQLite-safe
+# fallbacks for the test environment (in-memory SQLite). This prevents
+# test-time DDL failures when creating metadata for models that reference
+# Postgres-only types like JSONB, TSRANGE, INT4RANGE, INET or ARRAY.
+try:
+    from sqlalchemy.dialects.postgresql import JSONB, TSRANGE, INT4RANGE, INET
+except Exception:
+    # Fallbacks mapped to generic SQLAlchemy types that SQLite can handle
+    JSONB = JSON
+    # Range types and ARRAY are represented as JSON/Text in SQLite tests
+    TSRANGE = JSON
+    INT4RANGE = JSON
+    INET = String(50)
+    # Ensure ARRAY(...) usage maps to JSON for SQLite
+    def ARRAY(item_type):
+        return JSON
+import os
+
+# If running tests with in-memory SQLite, always use SQLite-safe types
+if os.getenv("TEST_USE_SQLITE", "true").lower() == "true":
+    JSONB = JSON
+    TSRANGE = JSON
+    INT4RANGE = JSON
+    INET = String(50)
+    def ARRAY(item_type):
+        return JSON
+    # SQLite does not have a native UUID type; provide callable shim returning String
+    def UUID(*_args, **_kwargs):
+        return String(36)
+    # Avoid creating PostgreSQL-specific indexes in SQLite tests
+    def Index(*_args, **_kwargs):
+        return None
 from sqlalchemy.orm import relationship, backref, declarative_base
 from sqlalchemy.sql import expression
 

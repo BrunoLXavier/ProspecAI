@@ -3,6 +3,7 @@ Funding Sources API Router
 Implements RF-02: Gestão de Fontes de Fomento
 """
 from typing import List, Optional
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from datetime import date, datetime
@@ -10,11 +11,20 @@ from datetime import date, datetime
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from adapters.database.connection import get_db as get_db_session
-from infrastructure.dependencies import get_current_user_id, get_current_tenant_id
+from infrastructure.dependencies import (
+    get_current_user_id,
+    get_current_tenant_id,
+    get_current_institute_ids,
+    get_di_container,
+    ensure_user_member_or_admin,
+    get_funding_use_case,
+)
+from infrastructure.di_container import DependencyContainer
 import json
 from infrastructure.serializers import to_primitive
 
 from domain.entities.funding_source import FundingSource, InstrumentType
+from use_cases.manage_funding import ManageFundingUseCase
 
 router = APIRouter()
 
@@ -123,6 +133,8 @@ async def list_funding_sources(
     session: AsyncSession = Depends(get_db_session),
     current_user: str = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
+    selected_institutes: List[UUID] = Depends(get_current_institute_ids),
+    funding_use_case: ManageFundingUseCase = Depends(get_funding_use_case),
 ):
     """
     List all funding sources with advanced filters.
@@ -164,47 +176,61 @@ async def list_funding_sources(
     
     # Calculate skip
     skip = (page - 1) * page_size
-    
-    # Perform a direct DB query to avoid ORMs mismatch with current schema
-    q = text(
-        """
-        SELECT id, name, source_organization AS institution, instrument_type, status,
-               total_amount, submission_start, submission_end, trl_min, trl_max,
-               ai_confidence_score, created_at, updated_at
-        FROM funding_sources
-        WHERE deleted_at IS NULL
-        ORDER BY created_at DESC
-        LIMIT :limit OFFSET :offset
-        """
+
+    # Build filters dict
+    if status:
+        filters["status"] = status
+    if instrument_type:
+        filters["instrument_type"] = instrument_type
+    if deadline_after:
+        filters["deadline_after"] = deadline_after
+    if deadline_before:
+        filters["deadline_before"] = deadline_before
+    if min_amount is not None:
+        filters["min_amount"] = min_amount
+    if max_amount is not None:
+        filters["max_amount"] = max_amount
+    if trl_min is not None:
+        filters["trl_min"] = trl_min
+    if trl_max is not None:
+        filters["trl_max"] = trl_max
+    if institution:
+        filters["institution"] = institution
+    if search:
+        filters["search"] = search
+
+    # Use use-case to get filtered results scoped to selected institutes
+    results, total = await funding_use_case.list_funding_sources_filtered(
+        filters=filters,
+        skip=skip,
+        limit=page_size,
+        tenant_id=UUID(tenant_id),
+        institute_ids=selected_institutes,
     )
-    result = await session.execute(q, {"limit": page_size, "offset": skip})
-    rows = result.fetchall()
+
     items = []
-    for r in rows:
+    for fs in results:
+        # Use domain entity attributes; fallback safely
         items.append({
-            "id": str(r.id),
-            "name": r.name,
-            "institution": r.institution,
-            "instrument_type": r.instrument_type,
-            "status": r.status,
-            "total_amount": float(r.total_amount) if r.total_amount is not None else 0.0,
-            "submission_start": r.submission_start.date() if r.submission_start else None,
-            "submission_end": r.submission_end.date() if r.submission_end else None,
-            "trl_min": int(r.trl_min) if r.trl_min is not None else None,
-            "trl_max": int(r.trl_max) if r.trl_max is not None else None,
-            "ai_confidence_score": float(r.ai_confidence_score) if r.ai_confidence_score is not None else None,
-            "created_at": r.created_at.isoformat() if r.created_at else None,
-            "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+            "id": str(fs.id),
+            "name": getattr(fs, "name", None),
+            "institution": getattr(fs, "source_organization", None),
+            "instrument_type": getattr(fs, "instrument_type", None),
+            "status": getattr(fs, "status", None),
+            "total_amount": float(getattr(fs, "total_amount", 0)) if getattr(fs, "total_amount", None) is not None else 0.0,
+            "submission_start": getattr(fs, "submission_start", None).isoformat() if getattr(fs, "submission_start", None) else None,
+            "submission_end": getattr(fs, "submission_end", None).isoformat() if getattr(fs, "submission_end", None) else None,
+            "trl_min": getattr(fs, "trl_min", None),
+            "trl_max": getattr(fs, "trl_max", None),
+            "ai_confidence_score": getattr(fs, "ai_confidence_score", None),
+            "created_at": getattr(fs, "created_at", None).isoformat() if getattr(fs, "created_at", None) else None,
+            "updated_at": getattr(fs, "updated_at", None).isoformat() if getattr(fs, "updated_at", None) else None,
         })
-    # Count total
-    cnt = await session.execute(text("SELECT COUNT(1) FROM funding_sources WHERE deleted_at IS NULL"))
-    total = cnt.scalar() or 0
-    funding_sources = items
-    
+
     has_next = (page * page_size) < total
-    
+
     return to_primitive(FundingListResponse(
-        items=funding_sources,
+        items=items,
         total=total,
         page=page,
         page_size=page_size,
@@ -261,12 +287,17 @@ async def create_funding_source(
     session: AsyncSession = Depends(get_db_session),
     current_user: str = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
+    selected_institutes: List[UUID] = Depends(get_current_institute_ids),
+    container: DependencyContainer = Depends(get_di_container),
 ):
     """
     Create a new funding source with AI field extraction
     
     Implements RF-02.03: Criação de editais com assistência IA
     """
+    # Enforce membership or admin for write operations
+    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+
     insert_q = text(
         "INSERT INTO funding_sources (id, tenant_id, name, source_organization, instrument_type, status, total_amount, currency, submission_start, submission_end, trl_min, trl_max, description, requirements, eligibility_criteria, created_by, updated_by, created_at, updated_at) VALUES (gen_random_uuid(), :tenant_id, :name, :institution, :instrument_type, 'draft', :total_amount, 'BRL', :submission_start, :submission_end, :trl_min, :trl_max, :description, :requirements::jsonb, :eligibility_criteria::jsonb, :created_by, :updated_by, now(), now()) RETURNING id, name, source_organization AS institution, instrument_type, status, total_amount, submission_start, submission_end, trl_min, trl_max, ai_confidence_score, created_at, updated_at"
     )
@@ -314,6 +345,8 @@ async def update_funding_source(
     data: FundingSourceUpdate,
     session: AsyncSession = Depends(get_db_session),
     current_user: str = Depends(get_current_user_id),
+    selected_institutes: List[UUID] = Depends(get_current_institute_ids),
+    container: DependencyContainer = Depends(get_di_container),
 ):
     """
     Update an existing funding source
@@ -329,6 +362,9 @@ async def update_funding_source(
     if not updates:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
     q = text(f"UPDATE funding_sources SET {', '.join(updates)}, updated_at = now(), updated_by = :updated_by WHERE id = :id AND deleted_at IS NULL RETURNING id, name, source_organization AS institution, instrument_type, status, total_amount, submission_start, submission_end, trl_min, trl_max, ai_confidence_score, created_at, updated_at")
+    # Enforce membership or admin for write operations
+    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+
     params['updated_by'] = str(current_user)
     res = await session.execute(q, params)
     await session.commit()
@@ -366,6 +402,8 @@ async def delete_funding_source(
     funding_id: str,
     session: AsyncSession = Depends(get_db_session),
     current_user: str = Depends(get_current_user_id),
+    selected_institutes: List[UUID] = Depends(get_current_institute_ids),
+    container: DependencyContainer = Depends(get_di_container),
 ):
     """
     Soft delete a funding source
@@ -373,6 +411,9 @@ async def delete_funding_source(
     Implements RF-02.05: Exclusão lógica de editais
     """
     q = text("UPDATE funding_sources SET deleted_at = now() WHERE id = :id AND deleted_at IS NULL RETURNING id")
+    # Enforce membership or admin for write operations
+    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+
     res = await session.execute(q, {"id": funding_id})
     await session.commit()
     row = res.fetchone()

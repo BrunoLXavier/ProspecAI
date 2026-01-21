@@ -234,6 +234,50 @@ class ProposalRepository(BaseRepository[Proposal, ProposalModel]):
         except Exception as e:
             logger.error(f"Error getting version history: {e}")
             raise
+
+    async def find_by_criteria(
+        self,
+        criteria: Dict[str, Any],
+        skip: int = 0,
+        limit: int = 100,
+        order_by: Optional[str] = None,
+        use_cache: bool = True
+    ) -> List[Proposal]:
+        """
+        Override to support `institute_ids` filter which restricts proposals
+        to those whose linked opportunity's project belongs to the given institutes.
+        """
+        try:
+            institute_ids = None
+            if 'institute_ids' in criteria:
+                institute_ids = criteria.pop('institute_ids')
+
+            # If institute filter provided, resolve proposal ids via SQL join
+            if institute_ids:
+                params = {f"inst_{i}": iid for i, iid in enumerate(institute_ids)}
+                placeholders = ", ".join([f":inst_{i}" for i in range(len(institute_ids))])
+                sql = f"SELECT p.id FROM proposals p JOIN opportunities o ON p.opportunity_id = o.id JOIN projects pj ON o.project_id = pj.id WHERE p.tenant_id = :tenant_id AND p.deleted_at IS NULL AND pj.institute_id IN ({placeholders})"
+                if 'tenant_id' not in criteria:
+                    raise ValueError("tenant_id is required in criteria when using institute filters")
+                params['tenant_id'] = criteria['tenant_id']
+                res = await self.session.execute(sa.text(sql), params)
+                rows = res.fetchall()
+                proposal_ids = [r[0] for r in rows]
+                if not proposal_ids:
+                    return []
+                # Use base finder but restrict by id list
+                new_criteria = {'id': proposal_ids}
+                # Copy tenant filter if present
+                if 'tenant_id' in criteria:
+                    new_criteria['tenant_id'] = criteria['tenant_id']
+                return await super().find_by_criteria(new_criteria, skip=skip, limit=limit, order_by=order_by, use_cache=use_cache)
+
+            # Fallback to base implementation
+            return await super().find_by_criteria(criteria, skip=skip, limit=limit, order_by=order_by, use_cache=use_cache)
+
+        except Exception as e:
+            logger.error(f"Error finding proposals by criteria: {e}")
+            raise
     
     async def compare_versions(
         self,

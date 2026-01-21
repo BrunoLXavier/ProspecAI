@@ -28,6 +28,7 @@ class ProjectRepository:
             id=project.id,
             tenant_id=project.tenant_id,
             portfolio_id=project.portfolio_id,
+            institute_id=getattr(project, 'institute_id', None),
             title=project.title,
             description=project.description,
             research_area=project.research_area,
@@ -49,14 +50,15 @@ class ProjectRepository:
         
         return self._to_entity(model)
     
-    async def get_by_id(self, project_id: str) -> Optional[Project]:
+    async def get_by_id(self, project_id: str, tenant_id: Optional[str] = None) -> Optional[Project]:
         """
         Get project by ID
         """
         stmt = select(ProjectModel).where(
             and_(
                 ProjectModel.id == project_id,
-                ProjectModel.deleted_at.is_(None)
+                ProjectModel.deleted_at.is_(None),
+                *( [ProjectModel.tenant_id == tenant_id] if tenant_id is not None else [] )
             )
         )
         
@@ -71,6 +73,8 @@ class ProjectRepository:
         research_area: Optional[str] = None,
         trl_min: Optional[int] = None,
         trl_max: Optional[int] = None,
+        institute_ids: Optional[List[str]] = None,
+        tenant_id: Optional[str] = None,
         skip: int = 0,
         limit: int = 100,
     ) -> List[Project]:
@@ -90,6 +94,12 @@ class ProjectRepository:
         
         if trl_max is not None:
             conditions.append(ProjectModel.trl_current <= trl_max)
+
+        if institute_ids:
+            conditions.append(ProjectModel.institute_id.in_(institute_ids))
+
+        if tenant_id is not None:
+            conditions.append(ProjectModel.tenant_id == tenant_id)
         
         stmt = (
             select(ProjectModel)
@@ -117,6 +127,8 @@ class ProjectRepository:
         model.description = project.description
         model.status = project.status
         model.trl_current = project.current_trl
+        if getattr(project, 'institute_id', None) is not None:
+            model.institute_id = project.institute_id
         model.budget = project.budget
         model.lessons_learned = project.lessons_learned
         model.trl_history = project.trl_history
@@ -147,6 +159,9 @@ class ProjectRepository:
         """
         Get portfolio statistics
         """
+        # Note: optional tenant/institute filtering can be added by callers using
+        # repository-level helpers; this method now supports passing filters via
+        # optional parameters if needed in future. For now it computes global stats.
         # Total projects
         total_stmt = select(func.count(ProjectModel.id)).where(
             ProjectModel.deleted_at.is_(None)
@@ -199,6 +214,7 @@ class ProjectRepository:
             id=model.id,
             tenant_id=model.tenant_id,
             portfolio_id=getattr(model, 'portfolio_id', None),
+            institute_id=getattr(model, 'institute_id', None),
             title=getattr(model, 'title', ''),
             description=getattr(model, 'description', ''),
             research_area=getattr(model, 'research_area', None),

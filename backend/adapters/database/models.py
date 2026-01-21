@@ -2,8 +2,24 @@
 # Implements RNF-02: Row-Level Security (RLS) and Multi-tenancy
 from datetime import datetime
 from uuid import UUID, uuid4
-from sqlalchemy import Column, String, DateTime, Boolean, Integer, Numeric, Text, JSON, Enum as SQLEnum, Index, ForeignKey, UniqueConstraint, PrimaryKeyConstraint
-from sqlalchemy.dialects.postgresql import UUID as PGUUID, INET
+from sqlalchemy import Column, String, DateTime, Boolean, Integer, Numeric, Text, JSON, Enum as SQLEnum, Index, ForeignKey, UniqueConstraint, PrimaryKeyConstraint, text
+import os
+from sqlalchemy.dialects import postgresql
+try:
+    PGUUID = postgresql.UUID
+    INET = postgresql.INET
+except Exception:
+    from sqlalchemy import String
+    def PGUUID(*_args, **_kwargs):
+        return String(36)
+    INET = String(50)
+
+# If tests run using in-memory SQLite, map PG types to SQLite-friendly types
+if os.getenv("TEST_USE_SQLITE", "true").lower() == "true":
+    from sqlalchemy import String
+    def PGUUID(*_args, **_kwargs):
+        return String(36)
+    INET = String(50)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 
@@ -36,6 +52,7 @@ class FundingSourceModel(BaseModel):
     
     name = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
+    institution = Column(String(300), nullable=False, server_default="")
     instrument_type = Column(String(50), nullable=False)
     
     trl_min = Column(Integer, nullable=False)
@@ -43,7 +60,7 @@ class FundingSourceModel(BaseModel):
     
     # Encrypted fields (via application layer)
     total_amount = Column(Numeric(20, 2), nullable=False)
-    available_amount = Column(Numeric(20, 2), nullable=False)
+    available_amount = Column(Numeric(20, 2), nullable=False, server_default=text('0'))
     currency = Column(String(3), default="BRL")
     
     submission_start = Column(DateTime(timezone=True), nullable=False)
@@ -55,9 +72,27 @@ class FundingSourceModel(BaseModel):
     source_organization = Column(String(500), nullable=False)
     url = Column(Text, nullable=True)
     
-    # AI fields stored as JSONB
+    # Compatibility fields used by enhanced schema and repositories
+    execution_period = Column(JSON, nullable=True)
+    trl_range = Column(JSON, nullable=True)
+    requirements = Column(Text, nullable=True)
+    eligibility_criteria = Column(Text, nullable=True)
+    source_url = Column(Text, nullable=True)
+
+    # AI fields stored as JSON-like structures for SQLite tests
+    ai_extraction_status = Column(String(20), default='pending', server_default="'pending'")
+    ai_extracted_fields = Column(JSON, default=dict, nullable=True, server_default='{}')
+    ai_processed_at = Column(DateTime(timezone=True), nullable=True)
+    contains_pii = Column(Boolean, default=False, server_default=text('0'))
+    pii_anonymized = Column(Boolean, default=False, server_default=text('0'))
+    lgpd_categories = Column(JSON, default=list, nullable=True, server_default='[]')
+
+    # AI fields stored as JSONB in Postgres (fallback to JSON for SQLite)
     ai_extracted_data = Column(JSON, nullable=True)
     ai_confidence_score = Column(Numeric(3, 2), nullable=True)
+
+    # Versioning for optimistic concurrency and repository expectations
+    version = Column(Integer, default=1, server_default=text('1'), nullable=False)
     
     __table_args__ = (
         Index('idx_funding_status_dates', 'status', 'submission_start', 'submission_end'),
@@ -74,6 +109,8 @@ class ProjectModel(BaseModel):
     status = Column(String(50), nullable=False)
     # Optional link to a containing portfolio (nullable)
     portfolio_id = Column(PGUUID(as_uuid=True), nullable=True)
+    # Optional link to an owning institute (nullable during migration)
+    institute_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
     
     trl_current = Column(Integer, nullable=False)
     trl_target = Column(Integer, nullable=True)
@@ -92,7 +129,7 @@ class ProjectModel(BaseModel):
     infrastructure = Column(JSON, nullable=True)
     lessons_learned = Column(JSON, default=list)
     
-    version = Column(Integer, default=1, nullable=False)
+    version = Column(Integer, default=1, server_default=text('1'), nullable=False)
     parent_version_id = Column(PGUUID(as_uuid=True), nullable=True)
     
     __table_args__ = (
@@ -114,9 +151,73 @@ class PortfolioModel(BaseModel):
     
     total_budget = Column(Numeric(20, 2), nullable=True)
     active_projects_count = Column(Integer, default=0)
+    # Optional owning institute
+    institute_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
 
     __table_args__ = (
         Index('idx_tenant_deleted', 'tenant_id', 'deleted_at'),
+    )
+
+
+class InstituteModel(BaseModel):
+    """Model for institutes (tenant-scoped)."""
+    __tablename__ = "institutes"
+
+    name = Column(String(300), nullable=False)
+    code = Column(String(100), nullable=True)
+    description = Column(Text, nullable=True)
+    metadata_ = Column('metadata', JSON, default=dict)
+    meta = metadata_
+
+    __table_args__ = (
+        Index('idx_institutes_tenant', 'tenant_id'),
+        UniqueConstraint('tenant_id', 'name', name='uq_institutes_tenant_name'),
+    )
+
+
+class UserInstituteModel(BaseModel):
+    """Association model linking users to institutes."""
+    __tablename__ = "user_institutes"
+
+    user_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    institute_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    role = Column(String(80), nullable=True)
+    assigned_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'institute_id', name='uq_user_institutes_user_institute'),
+    )
+
+
+class TeamModel(BaseModel):
+    """Model for teams associated with an institute."""
+    __tablename__ = "teams"
+
+    institute_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    member_ids = Column(JSON, default=list)
+    metadata_ = Column('metadata', JSON, default=dict)
+    meta = metadata_
+
+    __table_args__ = (
+        Index('idx_teams_institute', 'institute_id'),
+    )
+
+
+class InfrastructureModel(BaseModel):
+    """Model for infrastructure items (labs, equipment) tied to an institute."""
+    __tablename__ = "infrastructures"
+
+    institute_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    capacity = Column(JSON, default=dict)
+    metadata_ = Column('metadata', JSON, default=dict)
+    meta = metadata_
+
+    __table_args__ = (
+        Index('idx_infrastructures_institute', 'institute_id'),
     )
 
 
@@ -174,10 +275,11 @@ class OpportunityModel(BaseModel):
     description = Column(Text, nullable=False)
     
     stage = Column(String(50), nullable=False, index=True)
-    priority = Column(String(50), nullable=False)
+    priority = Column(String(50), nullable=False, server_default=text("''"))
     
     client_id = Column(PGUUID(as_uuid=True), nullable=True)
     funding_source_id = Column(PGUUID(as_uuid=True), nullable=True)
+    project_id = Column(PGUUID(as_uuid=True), nullable=True)
     portfolio_id = Column(PGUUID(as_uuid=True), nullable=True)
     
     estimated_value = Column(Numeric(20, 2), nullable=True)
@@ -293,6 +395,18 @@ class AuditLogModel(BaseModel):
     
     notes = Column(Text, nullable=True)
     success = Column(Boolean, default=True)
+    # Extended fields (align with enhanced schema)
+    execution_period = Column(JSON, nullable=True)
+    trl_range = Column(JSON, nullable=True)
+    requirements = Column(Text, nullable=True)
+    eligibility_criteria = Column(Text, nullable=True)
+    source_url = Column(Text, nullable=True)
+    ai_extraction_status = Column(String(20), default='pending', server_default="'pending'")
+    ai_extracted_fields = Column(JSON, default=dict, nullable=True, server_default='{}')
+    ai_processed_at = Column(DateTime(timezone=True), nullable=True)
+    contains_pii = Column(Boolean, default=False, server_default=text('0'))
+    pii_anonymized = Column(Boolean, default=False, server_default=text('0'))
+    lgpd_categories = Column(JSON, default=list, nullable=True, server_default='[]')
     error_message = Column(Text, nullable=True)
     
     __table_args__ = (

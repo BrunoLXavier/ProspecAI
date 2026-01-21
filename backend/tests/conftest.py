@@ -59,12 +59,47 @@ async def test_engine():
     )
     
     async with engine.begin() as conn:
+        # If using SQLite in-memory, register helper SQL functions (e.g. gen_random_uuid)
+        if USE_SQLITE:
+            import sqlite3
+            from uuid import uuid4
+
+            def _register_sqlite_functions(sync_conn):
+                # sync_conn is a SQLAlchemy Connection; .connection gives DB-API connection
+                dbapi_conn = sync_conn.connection
+                try:
+                    dbapi_conn.create_function("gen_random_uuid", 0, lambda: str(uuid4()))
+                except Exception:
+                    # older sqlite/pysqlite may expose raw connection differently
+                    try:
+                        dbapi_conn.cursor().connection.create_function("gen_random_uuid", 0, lambda: str(uuid4()))
+                    except Exception:
+                        pass
+
+            await conn.run_sync(_register_sqlite_functions)
+
+        # First create legacy models (institutes, teams, user_institutes, etc.)
+        try:
+            from adapters.database import models as legacy_models
+            await conn.run_sync(legacy_models.Base.metadata.create_all)
+        except Exception:
+            # If legacy models are not available or already present, continue
+            pass
+
+        # Then create new schema models
         await conn.run_sync(BaseModel.metadata.create_all)
     
     yield engine
     
     async with engine.begin() as conn:
+        # Drop new schema
         await conn.run_sync(BaseModel.metadata.drop_all)
+        # Drop legacy models if present
+        try:
+            from adapters.database import models as legacy_models
+            await conn.run_sync(legacy_models.Base.metadata.drop_all)
+        except Exception:
+            pass
     
     await engine.dispose()
 

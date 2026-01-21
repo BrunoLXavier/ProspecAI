@@ -140,20 +140,50 @@ class ManagePipelineUseCase:
     async def get_pipeline_by_stage(
         self,
         tenant_id: UUID,
-        stage: Optional[OpportunityStage] = None
+        stage: Optional[OpportunityStage] = None,
+        institute_ids: Optional[List[UUID]] = None
     ) -> List[Opportunity]:
         """Get all opportunities in a specific stage (Kanban view)."""
         filters = {"tenant_id": tenant_id}
-        
+
         if stage:
             filters["stage"] = stage
-        
+
+        if institute_ids:
+            filters["institute_ids"] = institute_ids
+
         opportunities = await self.opportunity_repository.find_by_criteria(filters)
         
         # Sort by priority score (highest first)
         opportunities.sort(key=lambda x: x.priority_score, reverse=True)
         
         return opportunities
+
+    async def list_opportunities_filtered(
+        self,
+        filters: Dict[str, Any],
+        skip: int = 0,
+        limit: int = 20,
+        tenant_id: Optional[UUID] = None,
+        institute_ids: Optional[List[UUID]] = None
+    ) -> List[Opportunity]:
+        """
+        Generic listing for opportunities supporting `institute_ids` scoping.
+        """
+        criteria: Dict[str, Any] = {}
+        if tenant_id:
+            criteria["tenant_id"] = tenant_id
+
+        for k, v in filters.items():
+            if v is None:
+                continue
+            criteria[k] = v
+
+        if institute_ids:
+            criteria["institute_ids"] = institute_ids
+
+        results = await self.opportunity_repository.find_by_criteria(criteria, skip=skip, limit=limit)
+        return results
     
     async def get_pipeline_statistics(
         self,

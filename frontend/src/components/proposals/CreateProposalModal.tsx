@@ -18,6 +18,7 @@ import {
   FormTextarea,
 } from '@/components/forms';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   createProposalSchema,
   CreateProposalInput,
@@ -38,6 +39,9 @@ export default function CreateProposalModal({
   const t = useTranslations('proposals');
   const tCommon = useTranslations('common');
   const queryClient = useQueryClient();
+  const { user, selectedInstitutes } = useAuth();
+  const isAdmin = (user?.roles || []).includes('admin');
+  const canCreate = isAdmin || (selectedInstitutes && selectedInstitutes.length > 0);
 
   // Fetch opportunities and funding sources for dropdowns
   const { data: opportunities = [] } = useQuery({
@@ -116,7 +120,8 @@ export default function CreateProposalModal({
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {canCreate ? (
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* Title */}
                   <FormInput
                     label={t('titleLabel')}
@@ -194,6 +199,20 @@ export default function CreateProposalModal({
                     </p>
                   )}
                 </form>
+                ) : (
+                  <div className="py-12 px-6 text-center">
+                    <p className="text-lg font-semibold text-gray-900 mb-2">{t('noPermissionTitle') || 'Permission required'}</p>
+                    <p className="text-sm text-gray-600 mb-6">{t('noPermissionMessage') || 'You must be an administrator or have at least one selected institute to create a proposal. Select your institute in the header or contact an administrator.'}</p>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                      >
+                        {tCommon('close') || 'Close'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

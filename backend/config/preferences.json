@@ -59,6 +59,12 @@
       "orderOverride": {},
       "reorderEnabled": false,
       "updated_at": "2026-01-20T00:08:49.326152Z"
+    },
+    {
+      "user_id": "ba4f4bf9-2daf-4be4-81cb-69bc2b832209",
+      "module": "institutes",
+      "selectedInstitutes": [],
+      "updated_at": "2026-01-21T21:56:46.207029Z"
     }
   ]
 }
