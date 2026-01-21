@@ -32,13 +32,14 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
         admin_email = f"admin@{tenant_name.lower().replace(' ', '')}.example.test"
         # Generate a fresh id for non-default tenants
         admin_id = str(uuid.uuid4())
+    # Insert admin user idempotently (avoid conflicts on username)
     conn.execute(
         text(
             """
-            INSERT INTO users (id, tenant_id, email, username, password_hash, first_name, last_name, is_active, email_verified, created_at, updated_at)
-            SELECT :id, :tenant_id, :email, :username, :password_hash, :first_name, :last_name, true, true, now(), now()
+            INSERT INTO users (id, tenant_id, email, username, password_hash, full_name, is_active, email_verified, created_at, updated_at)
+            SELECT :id, :tenant_id, :email, :username, :password_hash, :full_name, true, true, now(), now()
             WHERE NOT EXISTS (
-                SELECT 1 FROM users WHERE tenant_id = :tenant_id AND (email = :email OR username = :username)
+                SELECT 1 FROM users WHERE tenant_id = :tenant_id AND username = :username
             )
             """
         ),
@@ -48,18 +49,18 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
             "email": admin_email,
             "username": "admin",
             "password_hash": DEFAULT_USER_PASS_HASH,
-            "first_name": tenant_name,
-            "last_name": "Administrator",
+            "full_name": f"{tenant_name} Administrator",
         },
     )
 
     # Legacy alias insertion (for convenience in local dev/tests)
     try:
+        # Legacy alias insertion idempotently (avoid conflicts on email)
         conn.execute(
             text(
                 """
-                INSERT INTO users (id, tenant_id, email, username, password_hash, first_name, last_name, is_active, email_verified, created_at, updated_at)
-                SELECT :id2, :tenant_id, :alias_email, :username, :password_hash, :first_name, :last_name, true, true, now(), now()
+                INSERT INTO users (id, tenant_id, email, username, password_hash, full_name, is_active, email_verified, created_at, updated_at)
+                SELECT :id2, :tenant_id, :alias_email, :username, :password_hash, :full_name, true, true, now(), now()
                 WHERE NOT EXISTS (
                     SELECT 1 FROM users WHERE tenant_id = :tenant_id AND email = :alias_email
                 )
@@ -71,8 +72,7 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
                 "alias_email": alias_email,
                 "username": "admin",
                 "password_hash": DEFAULT_USER_PASS_HASH,
-                "first_name": tenant_name,
-                "last_name": "Administrator",
+                "full_name": f"{tenant_name} Administrator",
             },
         )
     except Exception:
@@ -81,37 +81,40 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
 
     # Ensure the admin role association exists for the admin user. Use the existing user id when present.
     # Insert a user_roles row only if not already present.
-    conn.execute(
-        text(
-            """
-            INSERT INTO user_roles (id, user_id, role_id, tenant_id, assigned_at)
-            SELECT :ur_id, u.id, :role_id, u.tenant_id, now()
-            FROM users u
-            WHERE u.tenant_id = :tenant_id
-              AND u.email = :email
-              AND NOT EXISTS (
-                SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role_id = :role_id
-              )
-            """
-        ),
-        {
-            "ur_id": str(uuid.uuid4()),
-            "tenant_id": tenant_id,
-            "email": admin_email,
-            "role_id": "admin",
-        },
-    )
+        conn.execute(
+                text(
+                        """
+                        INSERT INTO user_roles (id, user_id, role_name, assigned_at)
+                        SELECT :ur_id, u.id, :role_name, now()
+                        FROM users u
+                        WHERE u.tenant_id = :tenant_id
+                            AND u.email = :email
+                            AND NOT EXISTS (
+                                SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role_name = :role_name
+                            )
+                        """
+                ),
+                {
+                        "ur_id": str(uuid.uuid4()),
+                        "tenant_id": tenant_id,
+                        "email": admin_email,
+                        "role_name": "admin",
+                },
+        )
 
     # Add a small set of environment/test users
     tag = tenant_id.split("-")[0]
     for u in DEFAULT_USERS:
         email = u["email_template"].format(tag=tag)
         username = u["username_template"].format(tag=tag)
+        # Use username conflict to avoid UniqueViolation on username
         stmt = text(
             """
-            INSERT INTO users (id, tenant_id, email, username, password_hash, first_name, last_name, is_active, email_verified, created_at, updated_at)
-            VALUES (:id, :tenant_id, :email, :username, :password_hash, :first_name, :last_name, true, :email_verified, now(), now())
-            ON CONFLICT (tenant_id, email) DO NOTHING
+            INSERT INTO users (id, tenant_id, email, username, password_hash, full_name, is_active, email_verified, created_at, updated_at)
+            SELECT :id, :tenant_id, :email, :username, :password_hash, :full_name, true, :email_verified, now(), now()
+            WHERE NOT EXISTS (
+                SELECT 1 FROM users WHERE tenant_id = :tenant_id AND username = :username
+            )
             """
         )
         params = {
@@ -120,8 +123,7 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
             "email": email,
             "username": username,
             "password_hash": DEFAULT_USER_PASS_HASH,
-            "first_name": u["first"],
-            "last_name": tenant_name,
+            "full_name": f"{u['first']} {tenant_name}",
             "email_verified": u["email_verified"],
         }
         conn.execute(stmt, params)
@@ -130,26 +132,26 @@ def seed_for_tenant(conn, tenant_id: str, tenant_name: str = "Tenant") -> None:
         role_map = {"admin": "admin", "dev": "developer", "e2e": "e2e"}
         role_id = role_map.get(u.get("suffix"), None)
         if role_id:
-            conn.execute(
-                text(
-                    """
-                    INSERT INTO user_roles (id, user_id, role_id, tenant_id, assigned_at)
-                    SELECT :ur_id, u.id, :role_id, u.tenant_id, now()
-                    FROM users u
-                    WHERE u.tenant_id = :tenant_id
-                      AND u.email = :email
-                      AND NOT EXISTS (
-                        SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role_id = :role_id
-                      )
-                    """
-                ),
-                {
-                    "ur_id": str(uuid.uuid4()),
-                    "tenant_id": tenant_id,
-                    "email": email,
-                    "role_id": role_id,
-                },
-            )
+                        conn.execute(
+                                text(
+                                        """
+                                        INSERT INTO user_roles (id, user_id, role_name, assigned_at)
+                                        SELECT :ur_id, u.id, :role_name, now()
+                                        FROM users u
+                                        WHERE u.tenant_id = :tenant_id
+                                            AND u.email = :email
+                                            AND NOT EXISTS (
+                                                SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role_name = :role_name
+                                            )
+                                        """
+                                ),
+                                {
+                                        "ur_id": str(uuid.uuid4()),
+                                        "tenant_id": tenant_id,
+                                        "email": email,
+                                        "role_name": role_id,
+                                },
+                        )
 
 
 def seed_for_tenants(conn, tenant_ids: Iterable[str]) -> List[str]:

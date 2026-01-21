@@ -24,21 +24,40 @@ def seed_for_tenant(conn, tenant_id: str) -> None:
         return
 
     for cfg in DEFAULT_CONFIGS:
-        stmt = text(
-            """
-            INSERT INTO llm_configs (id, tenant_id, provider, model_name, created_by, updated_by, created_at, updated_at)
-            SELECT :id, :tenant_id, :provider, :model_name, :created_by, :updated_by, now(), now()
+        # Adapt to actual table schema (some migrations add NOT NULL `version` without server default)
+        col_res = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name = :t"), {"t": TABLE_NAME})
+        present_cols = {r[0] for r in col_res.fetchall()}
+
+        cols = ["id", "tenant_id", "provider", "model_name"]
+        if "created_by" in present_cols:
+            cols.append("created_by")
+        if "updated_by" in present_cols and "updated_by" not in cols:
+            cols.append("updated_by")
+        if "version" in present_cols:
+            cols.append("version")
+
+        insert_cols_sql = ", ".join(cols + ["created_at", "updated_at"])
+        select_placeholders = ", ".join([f":{c}" for c in cols] + ["now()", "now()"])
+
+        stmt = text(f"""
+            INSERT INTO llm_configs ({insert_cols_sql})
+            SELECT {select_placeholders}
             WHERE NOT EXISTS (SELECT 1 FROM llm_configs WHERE tenant_id = :tenant_id AND provider = :provider AND model_name = :model_name)
-            """
-        )
+            """)
+
         params = {
             "id": str(uuid.uuid4()),
             "tenant_id": tenant_id,
             "provider": cfg["provider"],
             "model_name": cfg["model_name"],
-            "created_by": os.getenv("SEED_CREATED_BY", "00000000-0000-0000-0000-000000000000"),
-            "updated_by": os.getenv("SEED_CREATED_BY", "00000000-0000-0000-0000-000000000000"),
         }
+        if "created_by" in present_cols:
+            params["created_by"] = os.getenv("SEED_CREATED_BY", "00000000-0000-0000-0000-000000000000")
+        if "updated_by" in present_cols:
+            params["updated_by"] = os.getenv("SEED_CREATED_BY", "00000000-0000-0000-0000-000000000000")
+        if "version" in present_cols:
+            params["version"] = 1
+
         conn.execute(stmt, params)
 
 

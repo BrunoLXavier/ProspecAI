@@ -163,6 +163,11 @@ export default function LayoutPage() {
     }
   }, [config]);
 
+  // Ordered list of available nav items according to current nav order
+  const orderedAvailableNavItems = (navOrder.length ? navOrder : availableNavItems.map(i => i.id))
+    .map(id => availableNavItems.find(x => x.id === id))
+    .filter(Boolean) as typeof availableNavItems;
+
   useEffect(() => {
     if (!config) return;
     const savedOrder = (config.dashboard_widget_order && config.dashboard_widget_order.length) ? [...config.dashboard_widget_order] : (config.dashboard_widgets && config.dashboard_widgets.length ? [...config.dashboard_widgets] : []);
@@ -339,6 +344,48 @@ export default function LayoutPage() {
       updateConfig('nav_order', copy);
       return copy;
     });
+  };
+
+  const getNavIndentLevel = (id: string) => {
+    if (!config) return 0;
+    const parentMap = config.nav_parent_map || {};
+    let level = 0;
+    let cur = parentMap[id];
+    const seen = new Set<string>();
+    while (cur) {
+      if (seen.has(cur)) break;
+      seen.add(cur);
+      level += 1;
+      cur = parentMap[cur];
+    }
+    return level;
+  };
+
+  const indentNavItem = (id: string) => {
+    if (!config) return;
+    const arr = navOrder.length ? navOrder : (config.nav_order || []);
+    const idx = arr.indexOf(id);
+    if (idx <= 0) return; // nothing to indent under
+    const prev = arr[idx - 1];
+    const parentMap = { ...(config.nav_parent_map || {}) };
+    // prevent cycles
+    if (prev === id) return;
+    let p: string | null = prev;
+    while (p) {
+      if (p === id) return; // would create a cycle
+      p = parentMap[p];
+    }
+    parentMap[id] = prev;
+    updateConfig('nav_parent_map', parentMap as any);
+  };
+
+  const outdentNavItem = (id: string) => {
+    if (!config) return;
+    const parentMap = { ...(config.nav_parent_map || {}) };
+    const parent = parentMap[id];
+    if (!parent) return;
+    parentMap[id] = parentMap[parent] || null;
+    updateConfig('nav_parent_map', parentMap as any);
   };
 
   const moveWidget = (id: string, direction: 'up' | 'down') => {
@@ -550,48 +597,71 @@ export default function LayoutPage() {
                 className="flex items-center justify-between p-2 border rounded cursor-move"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="font-medium truncate">{tNav(item.id) || item.label}</span>
+                  <span className="font-medium truncate" style={{ paddingLeft: `${getNavIndentLevel(id) * 12}px` }}>{tNav(item.id) || item.label}</span>
                 </div>
 
-                <div className="flex items-center gap-2 w-52 justify-end">
-                  <div className="flex items-center gap-2 w-40">
-                    <button
-                      onClick={() => moveNavItem(id, 'up')}
-                      disabled={idx === 0}
-                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg font-medium ${idx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      aria-label="Move up"
-                    >
-                      <span className="leading-none">↑</span>
-                    </button>
-                    <button
-                      onClick={() => moveNavItem(id, 'down')}
-                      disabled={idx === (navOrder.length ? navOrder.length - 1 : availableNavItems.length - 1)}
-                      className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg font-medium ${idx === (navOrder.length ? navOrder.length - 1 : availableNavItems.length - 1) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      aria-label="Move down"
-                    >
-                      <span className="leading-none">↓</span>
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2 w-full flex-wrap md:flex-nowrap">
+                  <div className="flex-1 min-w-0" />
 
-                  <div className="flex gap-3 w-full">
-                    <button
-                      onClick={() => { if (!visible) toggleNavItem(id); }}
-                      className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${visible ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
-                      aria-pressed={visible}
-                    >
-                      <span className="font-medium text-gray-900 dark:text-white">Visível</span>
-                      {visible && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => moveNavItem(id, 'up')}
+                        disabled={idx === 0}
+                        className={`flex items-center justify-center p-2 rounded-lg border transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm ${idx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-label="Move up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => moveNavItem(id, 'down')}
+                        disabled={idx === (navOrder.length ? navOrder.length - 1 : availableNavItems.length - 1)}
+                        className={`flex items-center justify-center p-2 rounded-lg border transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm ${idx === (navOrder.length ? navOrder.length - 1 : availableNavItems.length - 1) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-label="Move down"
+                      >
+                        ↓
+                      </button>
+                    </div>
 
-                    <button
-                      onClick={() => { if (visible && id !== 'settings') toggleNavItem(id); }}
-                      disabled={id === 'settings'}
-                      className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-all ${!visible ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'} ${id === 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      aria-disabled={id === 'settings'}
-                    >
-                      <span className="font-medium text-gray-900 dark:text-white">Oculto</span>
-                      {!visible && <CheckIcon className="w-4 h-4 text-primary-500 ml-auto" />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => outdentNavItem(id)}
+                        disabled={!config?.nav_parent_map || !(config.nav_parent_map[id])}
+                        className={`p-2 rounded-lg border transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm ${!config?.nav_parent_map || !(config.nav_parent_map[id]) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-label="Outdent"
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={() => indentNavItem(id)}
+                        disabled={idx === 0}
+                        className={`p-2 rounded-lg border transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm ${idx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-label="Indent"
+                      >
+                        →
+                      </button>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { if (!visible) toggleNavItem(id); }}
+                        className={`w-28 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${visible ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                        aria-pressed={visible}
+                      >
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">Visível</span>
+                        {visible && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
+                      </button>
+
+                      <button
+                        onClick={() => { if (visible && id !== 'settings') toggleNavItem(id); }}
+                        disabled={id === 'settings'}
+                        className={`w-28 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${!visible ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'} ${id === 'settings' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-disabled={id === 'settings'}
+                      >
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">Oculto</span>
+                        {!visible && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </li>
@@ -620,7 +690,7 @@ export default function LayoutPage() {
                     <div className="flex items-center gap-2"><UserGroupIcon className="w-5 h-5" /><span className="font-medium">{role.label}</span></div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {availableNavItems.map(item => {
+                    {orderedAvailableNavItems.map(item => {
                       const globallyVisible = (config.visible_nav_items || []).includes(item.id);
                       const hasAccess = roleNav.includes(item.id);
                         return (

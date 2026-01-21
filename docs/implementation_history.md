@@ -5,6 +5,12 @@
 
 ---
 
+## 2026-01-20
+- **Consolidated migrations:** Added a single Alembic migration `20260120_consolidated` to apply recent schema fixes (roles normalization, `system_config` JSONB fields, `users` name columns, `login_attempts` columns). Helper migration files were retained as no-ops and point to the consolidated revision to keep history tidy.
+- **Next steps:** Run `alembic upgrade head`, restart Postgres and backend, remove temporary runtime workarounds and formalize remaining seed adjustments.
+
+---
+
 ## Executive Summary
 
 ### User Feedback System - IMPLEMENTED ✅ (Session 2026-01-14c)

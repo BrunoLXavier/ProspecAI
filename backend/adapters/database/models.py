@@ -2,7 +2,7 @@
 # Implements RNF-02: Row-Level Security (RLS) and Multi-tenancy
 from datetime import datetime
 from uuid import UUID, uuid4
-from sqlalchemy import Column, String, DateTime, Boolean, Integer, Numeric, Text, JSON, Enum as SQLEnum, Index, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, DateTime, Boolean, Integer, Numeric, Text, JSON, Enum as SQLEnum, Index, ForeignKey, UniqueConstraint, PrimaryKeyConstraint
 from sqlalchemy.dialects.postgresql import UUID as PGUUID, INET
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
@@ -271,7 +271,9 @@ class ProposalVersionModel(BaseModel):
 class AuditLogModel(BaseModel):
     """PostgreSQL model for audit logs."""
     __tablename__ = "audit_logs"
-    
+    # Override id to avoid inheriting primary_key=True from BaseModel
+    id = Column(PGUUID(as_uuid=True), nullable=False)
+
     action = Column(String(50), nullable=False, index=True)
     entity_type = Column(String(100), nullable=False, index=True)
     entity_id = Column(PGUUID(as_uuid=True), nullable=False)
@@ -294,6 +296,7 @@ class AuditLogModel(BaseModel):
     error_message = Column(Text, nullable=True)
     
     __table_args__ = (
+        PrimaryKeyConstraint('id', 'timestamp'),
         Index('idx_audit_entity', 'entity_type', 'entity_id'),
         Index('idx_audit_user_timestamp', 'user_id', 'timestamp'),
     )

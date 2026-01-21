@@ -28,6 +28,8 @@ export interface LayoutConfig {
   sidebar_width: number;
   // Navigation
   visible_nav_items: string[];
+  // Map of nav item -> parent nav item id (for submenus)
+  nav_parent_map?: { [id: string]: string | null };
   // Role-based navigation visibility
   visible_nav_items_by_role?: WidgetRoleConfig;
   nav_order: string[];
@@ -126,6 +128,7 @@ export const DEFAULT_CONFIG: LayoutConfig = {
     'proposals', 'communications', 'institutes', 'teams', 'infrastructure', 'feedbackManagement', 'ingestion', 'piiAnalysis', 'reports', 'reportTemplates', 'activity', 'notifications', 'settings'
   ],
   nav_order: [],
+  nav_parent_map: {},
   dashboard_widgets: [
     'pipeline', 'opportunities', 'metrics', 'activity', 'matching', 'calendar',
     'analytics-kpis', 'analytics-pipeline', 'analytics-trl', 'analytics-trends', 'analytics-export',
@@ -654,6 +657,8 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         modal_text_dark: config.modal_text_dark,
         modal_border_light: config.modal_border_light,
         modal_border_dark: config.modal_border_dark,
+        // Navigation hierarchy (parent map)
+        nav_parent_map: config.nav_parent_map,
         border_light: (config as any).border_light,
         border_dark: (config as any).border_dark,
         modal_overlay_opacity: config.modal_overlay_opacity,
@@ -714,6 +719,7 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         dashboard_widget_order: config.dashboard_widget_order || [],
         nav_order: config.nav_order || [],
         visible_nav_items: config.visible_nav_items || [],
+        nav_parent_map: config.nav_parent_map || {},
       };
       const payloadStr = JSON.stringify(payloadObj);
 
@@ -744,7 +750,7 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     };
   // Trigger autosave when these layout keys change
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.dashboard_widgets, config.dashboard_widget_order, config.nav_order, config.visible_nav_items, isLoading]);
+  }, [config.dashboard_widgets, config.dashboard_widget_order, config.nav_order, config.visible_nav_items, config.nav_parent_map, isLoading]);
 
   // Reset to defaults
   const resetConfig = useCallback(async () => {

@@ -310,13 +310,18 @@ class LoginUser:
             user = await self.user_repo.get_by_email(tenant_id, request.email)
         
         if not user or not User.verify_password(request.password, user.password_hash):
-            # Record failed attempt
-            await self.attempt_repo.record_attempt(
-                email=request.email,
-                ip_address=ip_address,
-                success=False,
-                tenant_id=tenant_id
-            )
+            # Record failed attempt (best-effort; don't fail login flow on DB errors)
+            try:
+                await self.attempt_repo.record_attempt(
+                    email=request.email,
+                    ip_address=ip_address,
+                    success=False,
+                    tenant_id=tenant_id
+                )
+            except Exception as e:
+                # Log and continue; authentication result is primary
+                import logging
+                logging.getLogger(__name__).warning("Failed to record login attempt: %s", e)
             
             remaining = await self.attempt_repo.get_remaining_attempts(
                 request.email,
@@ -332,14 +337,18 @@ class LoginUser:
         if not user.is_active:
             raise InvalidCredentialsError("Account is deactivated")
         
-        # Record successful attempt and clear previous failures
-        await self.attempt_repo.record_attempt(
-            email=request.email,
-            ip_address=ip_address,
-            success=True,
-            tenant_id=tenant_id
-        )
-        await self.attempt_repo.clear_attempts(request.email)
+        # Record successful attempt and clear previous failures (best-effort)
+        try:
+            await self.attempt_repo.record_attempt(
+                email=request.email,
+                ip_address=ip_address,
+                success=True,
+                tenant_id=tenant_id
+            )
+            await self.attempt_repo.clear_attempts(request.email)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("Failed to update login attempts: %s", e)
         
         # Update last login
         await self.user_repo.update_last_login(user.id)

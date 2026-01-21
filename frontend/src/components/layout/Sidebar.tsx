@@ -24,6 +24,7 @@ import {
   DocumentChartBarIcon,
   ClockIcon,
   BellIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 
 // Navigation items configuration
@@ -193,6 +194,95 @@ export default function Sidebar() {
     } catch (e) {}
   }, [orderedIds.join(',')]);
 
+  // Build hierarchy from nav_parent_map
+  const parentMap: { [id: string]: string | null } = config.nav_parent_map || {};
+  const childrenMap: { [id: string]: string[] } = {};
+  orderedIds.forEach(id => {
+    const p = parentMap[id] || null;
+    if (p) {
+      childrenMap[p] = childrenMap[p] || [];
+      childrenMap[p].push(id);
+    }
+  });
+
+  const topLevelIds = orderedIds.filter(id => !parentMap[id]);
+
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const raw = localStorage.getItem('sidebar:expanded');
+        if (raw) return JSON.parse(raw);
+      }
+    } catch (e) {}
+    return {};
+  });
+
+  const toggleExpanded = (id: string) => setExpanded(prev => {
+    const next = { ...prev, [id]: !prev[id] };
+    try { if (typeof window !== 'undefined') localStorage.setItem('sidebar:expanded', JSON.stringify(next)); } catch (e) {}
+    return next;
+  });
+
+  const renderNavItem = (itemId: string, depth = 0) => {
+    const item = navigationItems.find(i => i.id === itemId);
+    if (!item) return null;
+    if (item.isSection) {
+      return (
+        <div key={item.id} className="mt-6 mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          {t('admin')}
+        </div>
+      );
+    }
+    const isActive = item.href
+      ? pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+      : false;
+    const children = childrenMap[item.id] || [];
+    const hasChildren = children && children.length > 0;
+    const hasActiveChild = children.some(cid => {
+      const ci = navigationItems.find(i => i.id === cid);
+      if (!ci || !ci.href) return false;
+      return ci.href === pathname || (ci.href !== '/' && pathname.startsWith(ci.href));
+    });
+    const Icon = item.icon;
+    return (
+      <div key={item.id}>
+        <Link
+          href={item.href ?? '#'}
+          onClick={(e) => { if (!item.href) { e.preventDefault(); toggleExpanded(item.id); } }}
+          className={`
+            sidebar-item group relative flex items-center ${depth > 0 ? 'pl-4' : ''}
+            ${isCollapsed ? 'justify-center px-2' : ''}
+            ${isActive || hasActiveChild ? 'active' : ''}
+          `}
+          title={isCollapsed ? t(item.name) : undefined}
+        >
+          {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive || hasActiveChild ? 'text-white' : 'text-white/70 group-hover:text-white'}`} />}
+          <span className={`
+            font-medium whitespace-nowrap
+            transition-all duration-350
+            ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}
+          `}>
+            {t(item.name)}
+          </span>
+          {hasChildren && !isCollapsed && (
+            <button onClick={(e) => { e.stopPropagation(); e.preventDefault(); toggleExpanded(item.id); }} aria-expanded={!!expanded[item.id]} className="ml-auto p-1 text-white/60 hover:text-white">
+              {expanded[item.id] ? <ChevronDownIcon className="w-4 h-4" /> : <ChevronRightIcon className="w-4 h-4" />}
+            </button>
+          )}
+          {isActive && !isCollapsed && (
+            <span className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-l-full" />
+          )}
+        </Link>
+
+        {hasChildren && expanded[item.id] !== false && (
+          <div className="ml-4 space-y-1">
+            {children.map(cid => renderNavItem(cid, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <aside
       className={`
@@ -241,45 +331,8 @@ export default function Sidebar() {
       </div>
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {visibleItems.map((item, idx) => {
-          if (item.isSection) {
-            // Render section header for Administration
-            return (
-              <div key={item.id} className="mt-6 mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  {t('admin')}
-                </div>
-            );
-          }
-          const isActive = item.href
-            ? pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
-            : false;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.name}
-              href={item.href ?? '#'}
-              className={`
-                sidebar-item group relative
-                ${isCollapsed ? 'justify-center px-2' : ''}
-                ${isActive ? 'active' : ''}
-              `}
-              title={isCollapsed ? t(item.name) : undefined}
-            >
-              {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`} />}
-              <span className={`
-                font-medium whitespace-nowrap
-                transition-all duration-350
-                ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}
-              `}>
-                {t(item.name)}
-              </span>
-              {/* Active Indicator (only when expanded) */}
-              {isActive && !isCollapsed && (
-                <span className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-l-full" />
-              )}
-            </Link>
-          );
-        })}
+        {/* Render top-level items using computed hierarchy */}
+        {topLevelIds.map(id => renderNavItem(id, 0))}
       </nav>
       {/* Expand button when collapsed */}
       {isCollapsed && (

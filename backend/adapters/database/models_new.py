@@ -11,6 +11,8 @@ from sqlalchemy import (
     Boolean, Column, DateTime, ForeignKey, Index, Integer, 
     Numeric, String, Text, UUID, func, text, ARRAY, CheckConstraint
 )
+from sqlalchemy import Computed
+from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy.dialects.postgresql import JSONB, TSRANGE, INT4RANGE, INET
 from sqlalchemy.orm import relationship, backref, declarative_base
 from sqlalchemy.sql import expression
@@ -54,7 +56,9 @@ class TenantModel(BaseModel):
 class AuditLogModel(BaseModel):
     """Enhanced audit logs with performance optimization and partitioning"""
     __tablename__ = 'audit_logs'
-    
+    # Override inherited primary key to use composite PK with timestamp (required for partitioning)
+    id = Column(UUID(as_uuid=True), nullable=False)
+
     tenant_id = Column(UUID(as_uuid=True), ForeignKey('tenants.id'), nullable=False)
     entity_type = Column(String(50), nullable=False)
     entity_id = Column(UUID(as_uuid=True), nullable=False)
@@ -73,11 +77,10 @@ class AuditLogModel(BaseModel):
     
     # Indexes for performance
     __table_args__ = (
+        PrimaryKeyConstraint('id', 'timestamp'),
         Index('idx_audit_tenant_entity', 'tenant_id', 'entity_type', 'entity_id'),
         Index('idx_audit_timestamp', 'timestamp'),
         Index('idx_audit_user', 'user_id', 'timestamp'),
-        # Partial index for recent logs
-        Index('idx_audit_recent', 'timestamp', postgresql_where=text("timestamp > NOW() - INTERVAL '30 days'")),
         # PostgreSQL table partitioning by timestamp (handled in migration)
         {'postgresql_partition_by': 'RANGE (timestamp)'}
     )
@@ -137,7 +140,6 @@ class FundingSourceModel(BaseModel):
         
         # Performance indexes
         Index('idx_funding_tenant_status', 'tenant_id', 'status'),
-        Index('idx_funding_trl_dates', 'trl_range', 'submission_start', 'submission_end', postgresql_using='gist'),
         Index('idx_funding_search', text("to_tsvector('portuguese', name || ' ' || COALESCE(description, ''))"), postgresql_using='gin'),
         Index('idx_funding_ai_extracted', 'ai_extracted_fields', postgresql_using='gin', postgresql_where=text("ai_extraction_status = 'completed'")),
         Index('idx_funding_amount_range', 'total_amount', 'currency'),
@@ -271,7 +273,8 @@ class InteractionModel(BaseModel):
         Index('idx_interactions_client_date', 'client_id', 'interaction_date'),
         Index('idx_interactions_type', 'interaction_type'),
         Index('idx_interactions_sentiment', 'sentiment_score', postgresql_where=text("sentiment_score IS NOT NULL")),
-        Index('idx_interactions_recent', 'tenant_id', 'interaction_date', postgresql_where=text("interaction_date > NOW() - INTERVAL '90 days'")),
+        # Removed non-immutable function from index predicate (NOW()) to avoid creation errors.
+        Index('idx_interactions_recent', 'tenant_id', 'interaction_date'),
     )
 
 
@@ -345,9 +348,8 @@ class MatchingScoreModel(BaseModel):
     # Computed composite score (stored for performance)
     composite_score = Column(
         Numeric(5, 2),
+        Computed("(technical_score * 0.4) + (financial_score * 0.3) + (strategic_score * 0.3)", persisted=True),
         nullable=False,
-        # Computed column: (technical * 0.4) + (financial * 0.3) + (strategic * 0.3)
-        server_default=text("(technical_score * 0.4) + (financial_score * 0.3) + (strategic_score * 0.3)")
     )
     
     # Scoring methodology
