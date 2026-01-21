@@ -75,7 +75,7 @@ export default function TemplatesPage() {
       {viewMode === 'board' ? (
         <ReportsBoard templates={filtered} loading={isLoading} onItemClick={(t) => { setDetailTemplate(t); setIsDetailOpen(true); }} onSelect={() => {}} />
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
           <ReportsList templates={filtered} loading={isLoading} selectedId={null} onSelect={() => {}} onOpenDetail={(t) => { setDetailTemplate(t); setIsDetailOpen(true); }} />
         </div>
       )}

@@ -86,39 +86,39 @@ export default function ReportDetailModal({ isOpen, onClose, template, onDeleted
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 dark:text-white p-6 shadow-xl transition-all">
                   <div className="flex items-center justify-between mb-4">
-                    <Dialog.Title className="text-lg font-semibold text-gray-900">{template.name}</Dialog.Title>
+                    <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">{template.name}</Dialog.Title>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                       <XMarkIcon className="h-6 w-6" />
                     </button>
                   </div>
 
                   <div className="space-y-4">
-                    {template.description && <p className="text-sm text-gray-700">{template.description}</p>}
+                    {template.description && <p className="text-sm text-gray-700 dark:text-gray-200">{template.description}</p>}
 
                     <div>
-                      <h4 className="text-xs text-gray-500 uppercase">{t('parameters')}</h4>
+                      <h4 className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t('parameters')}</h4>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {(template.parameters || []).map((p) => (
-                          <span key={p} className="text-xs bg-gray-100 px-2 py-1 rounded">{p}</span>
+                          <span key={p} className="text-xs bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{p}</span>
                         ))}
                         {(!template.parameters || template.parameters.length === 0) && <span className="text-xs text-gray-400">{t('none')}</span>}
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="text-xs text-gray-500 uppercase">{t('formats')}</h4>
+                      <h4 className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t('formats')}</h4>
                       <div className="mt-2 flex gap-2">
                         {(template.output_formats || []).map((f) => (
-                          <span key={f} className="text-xs bg-gray-100 px-2 py-1 rounded">{f.toUpperCase()}</span>
+                          <span key={f} className="text-xs bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{f.toUpperCase()}</span>
                         ))}
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-6 flex justify-end gap-3">
-                    <button onClick={() => setEditing(true)} className="px-4 py-2 bg-white border rounded-lg flex items-center gap-2">
+                    <button onClick={() => setEditing(true)} className="px-4 py-2 bg-white dark:bg-slate-700 border rounded-lg flex items-center gap-2 text-gray-700 dark:text-white">
                       <PencilIcon className="h-4 w-4" /> {tCommon('edit')}
                     </button>
                     <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg flex items-center gap-2">

@@ -251,35 +251,63 @@ export default function Sidebar() {
           href={item.href ?? '#'}
           onClick={(e) => { if (!item.href) { e.preventDefault(); toggleExpanded(item.id); } }}
           className={`
-            sidebar-item group relative flex items-center ${depth > 0 ? 'pl-4' : ''}
-            ${isCollapsed ? 'justify-center px-2' : ''}
+            sidebar-item group relative flex items-center
+            ${!isCollapsed ? (depth > 0 ? 'pl-6' : 'pl-3') : 'justify-center px-2'}
             ${isActive ? 'active' : hasActiveChild ? 'child-active' : ''}
           `}
           title={isCollapsed ? t(item.name) : undefined}
         >
-          {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : hasActiveChild ? 'text-white/90' : 'text-white/70 group-hover:text-white'}`} />}
-          <span className={`
-            font-medium truncate flex-1 min-w-0 ml-3
-            transition-all duration-350
-            ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}
-            ${isActive ? 'text-white' : hasActiveChild ? 'text-white/90' : ''}
-          `}>
-            {t(item.name)}
-          </span>
-          {hasChildren && !isCollapsed && (
-            <button onClick={(e) => { e.stopPropagation(); e.preventDefault(); toggleExpanded(item.id); }} aria-expanded={!!expanded[item.id]} className="ml-auto p-1 text-white/60 hover:text-white">
-              {expanded[item.id] ? <ChevronDownIcon className="w-4 h-4" /> : <ChevronRightIcon className="w-4 h-4" />}
-            </button>
+          {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${!isCollapsed ? 'ml-3' : ''} ${isActive ? 'text-white' : hasActiveChild ? 'text-white/90' : 'text-white/70 group-hover:text-white'}`} />}
+          {!isCollapsed && (
+            <span className={`
+              font-medium truncate flex-1 min-w-0
+              transition-all duration-350
+              ${isActive ? 'text-white' : hasActiveChild ? 'text-white/90' : ''}
+            `}>
+              {t(item.name)}
+            </span>
           )}
+            {hasChildren && !isCollapsed && (
+              <button onClick={(e) => { e.stopPropagation(); e.preventDefault(); toggleExpanded(item.id); }} aria-expanded={!!expanded[item.id]} className="ml-auto p-1 text-white/60 hover:text-white">
+                {expanded[item.id] ? <ChevronDownIcon className="w-4 h-4" /> : <ChevronRightIcon className="w-4 h-4" />}
+              </button>
+            )}
           {isActive && !isCollapsed && (
             <span className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-l-full" />
           )}
         </Link>
 
-        {hasChildren && expanded[item.id] !== false && (
-          <div className="ml-4 space-y-1">
-            {children.map(cid => renderNavItem(cid, depth + 1))}
-          </div>
+        {hasChildren && (
+          !isCollapsed ? (
+            expanded[item.id] !== false && (
+              <div className="ml-4 space-y-1">
+                {children.map(cid => renderNavItem(cid, depth + 1))}
+              </div>
+            )
+          ) : (
+            <div className="flex flex-col items-center w-full space-y-1 py-1">
+              <div className="w-full h-px bg-white/10" />
+              {children.map(cid => {
+                const child = navigationItems.find(i => i.id === cid);
+                if (!child) return null;
+                const ChildIcon = child.icon;
+                const isChildActive = child.href ? (pathname === child.href || (child.href !== '/' && pathname.startsWith(child.href))) : false;
+                return (
+                  <Link
+                    key={child.id}
+                    href={child.href ?? '#'}
+                    onClick={(e) => { if (!child.href) { e.preventDefault(); toggleExpanded(child.id); } }}
+                    className={`group flex items-center justify-center w-full py-2 ${isChildActive ? 'bg-primary-600 rounded-md' : ''}`}
+                    title={t(child.name)}
+                    aria-current={isChildActive ? 'page' : undefined}
+                  >
+                    {ChildIcon && <ChildIcon className={`w-5 h-5 ${isChildActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`} />}
+                  </Link>
+                );
+              })}
+              <div className="w-full h-px bg-white/10" />
+            </div>
+          )
         )}
       </div>
     );
