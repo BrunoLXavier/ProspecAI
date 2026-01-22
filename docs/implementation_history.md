@@ -1,7 +1,32 @@
 # ProspecAI - Implementation History
 
-**Última atualização:** 14 de Janeiro de 2026  
-**Status:** ✅ Production Ready - User Feedback System
+**Última atualização:** 02 de Fevereiro de 2026  
+**Status:** ✅ Production Ready - Institute Management System
+
+---
+
+## 2026-02-02
+- **Institute Management System - IMPLEMENTED ✅:** Complete institute-scoped architecture with detailed management for Institutes, Teams, Infrastructure, and Portfolio Projects.
+
+### Backend Changes:
+- **Domain Entities:** Created `institute.py`, `team.py`, `infrastructure.py`, `portfolio_project.py` with comprehensive Pydantic models
+- **Repository Pattern:** Created 5 new repositories (InstituteRepository, TeamRepository, InfrastructureRepository, PortfolioProjectRepository, MembershipRepository) with async SQLAlchemy and RLS support
+- **API Routes Updated:** Replaced raw SQL in `institutes_routes.py`, `teams_routes.py`, `infrastructures_routes.py` with repository pattern
+- **Migration:** Added `20260202_institute_management.py` with 20+ new columns for users, institutes, teams, infrastructures, portfolio_projects
+- **Dependencies:** Added `get_db_session` and exported `get_current_institute_ids` for multi-institute header filtering
+
+### Frontend Changes:
+- **InstituteSelectorDropdown:** New Headless UI Popover-based component with chips/badges, search, quick actions (Select All, Clear, My Institutes), localStorage persistence
+- **Header.tsx:** Refactored to use new InstituteSelectorDropdown component
+- **i18n:** Added translations for institute selector in pt-BR, en-US, es-ES
+- **FilterPanel Integration:** Added institute filter to CRM, Portfolio, and Opportunities pages for granular institute-level filtering within selected institutes
+
+### Key Features:
+- Multi-institute selection via header with X-Institute-IDs header for backend filtering
+- User membership validation on all institute-scoped operations
+- Soft delete pattern with deleted_at across all entities
+- Legacy field compatibility (name→nome, code→isi_sigla) for backward compatibility
+- Statistics endpoints for each entity type
 
 ---
 

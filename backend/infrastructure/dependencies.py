@@ -21,7 +21,7 @@ from use_cases.manage_proposals import ManageProposalsUseCase
 from services.institute_service import InstituteService
 
 # Re-export get_container for routes that need it
-__all__ = ['get_container', 'get_current_user_id', 'get_current_tenant_id', 'get_di_container']
+__all__ = ['get_container', 'get_current_user_id', 'get_current_tenant_id', 'get_di_container', 'get_current_institute_ids', 'ensure_user_member_or_admin', 'get_db_session']
 
 
 async def get_current_user_id(
@@ -84,6 +84,16 @@ async def get_current_institute_ids(
         except Exception:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid institute id: {p}")
     return ids
+
+
+# Session dependency for direct repository usage
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Provides raw database session for repository pattern.
+    Use this when you need direct session access without the full DI container.
+    """
+    async for session in get_session():
+        yield session
 
 
 async def get_di_container(

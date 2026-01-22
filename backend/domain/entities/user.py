@@ -3,10 +3,20 @@
 # Implements RNF-02: RBAC with Row-Level Security
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional, List
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 import bcrypt
+
+
+class UserProfile(str, Enum):
+    """User profile/role types."""
+    ADMINISTRATOR = "Administrador"
+    COORDINATOR = "Coordenador"
+    RESEARCHER = "Pesquisador"
+    CONSULTANT = "Consultor"
+    VISITOR = "Visitante"
 
 
 class User(BaseModel):
@@ -23,6 +33,12 @@ class User(BaseModel):
     password_hash: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    
+    # New fields for institute management
+    cpf: Optional[str] = Field(None, min_length=11, max_length=14, description="CPF (11 digits)")
+    pais_emissor_documento: str = Field(default="Brasil", max_length=100)
+    perfil: UserProfile = Field(default=UserProfile.VISITOR)
+    
     is_active: bool = True
     email_verified: bool = False
     last_login_at: Optional[datetime] = None
@@ -30,6 +46,18 @@ class User(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = None
     roles: list[str] = Field(default_factory=list)
+    
+    @field_validator('cpf')
+    @classmethod
+    def validate_cpf(cls, v: Optional[str]) -> Optional[str]:
+        """Validate and format CPF."""
+        if not v:
+            return v
+        # Remove non-numeric characters
+        digits = ''.join(filter(str.isdigit, v))
+        if len(digits) != 11:
+            raise ValueError('CPF must have 11 digits')
+        return digits
     
     class Config:
         from_attributes = True

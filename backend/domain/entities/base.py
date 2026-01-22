@@ -13,8 +13,8 @@ class BaseEntity(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = None
-    created_by: UUID
-    updated_by: UUID
+    created_by: Optional[UUID] = None
+    updated_by: Optional[UUID] = None
     
     class Config:
         from_attributes = True

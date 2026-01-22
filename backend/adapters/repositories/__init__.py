@@ -13,6 +13,11 @@ from .refresh_token_repository import RefreshTokenRepository
 from .login_attempt_repository import LoginAttemptRepository
 from .system_config_repository import SystemConfigRepository
 from .feedback_repository import FeedbackRepository
+from .institute_repository import InstituteRepository
+from .team_repository import TeamRepository
+from .infrastructure_repository import InfrastructureRepository
+from .portfolio_project_repository import PortfolioProjectRepository
+from .membership_repository import MembershipRepository, UserInstituteMembership
 
 __all__ = [
     "FundingRepository",
@@ -27,4 +32,10 @@ __all__ = [
     "LoginAttemptRepository",
     "SystemConfigRepository",
     "FeedbackRepository",
+    "InstituteRepository",
+    "TeamRepository",
+    "InfrastructureRepository",
+    "PortfolioProjectRepository",
+    "MembershipRepository",
+    "UserInstituteMembership",
 ]

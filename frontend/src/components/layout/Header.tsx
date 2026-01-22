@@ -18,6 +18,7 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import { SidebarToggle, useSidebar } from './Sidebar';
+import { InstituteSelectorDropdown } from './InstituteSelectorDropdown';
 import { useLayout } from '@/contexts/LayoutContext';
 import { NotificationBadge } from '../ui/Badge';
 import { SearchInput } from '../ui/Input';
@@ -54,57 +55,7 @@ export default function Header() {
   const t = useTranslations('navigation');
   const { theme, toggleTheme } = useTheme();
   const { isCollapsed } = useSidebar();
-  const { logout, user, selectedInstitutes, setSelectedInstitutes } = useAuth();
-
-  // Load institutes for dropdown
-  const { data: institutes = [] } = useQuery({
-    queryKey: ['institutes', 'header'],
-    queryFn: async () => {
-      try {
-        const resp = await apiClient.get('/api/v1/institutes');
-        return resp?.items ?? resp ?? [];
-      } catch (e) {
-        console.debug('[Header] Failed to load institutes', e);
-        return [];
-      }
-    },
-    staleTime: 60_000,
-  });
-
-  const toggleInstitute = (id: string) => {
-    if (selectedInstitutes.includes(id)) {
-      setSelectedInstitutes(selectedInstitutes.filter(x => x !== id));
-      return;
-    }
-    setSelectedInstitutes([...selectedInstitutes, id]);
-  };
-
-  const isManagedByUser = (ins: any) => {
-    return !!(ins.is_admin || ins.managed || ins.user_role === 'admin' || ins.role === 'admin');
-  };
-
-  const selectMyInstitutes = () => {
-    const mine = institutes.filter((ins: any) => isManagedByUser(ins)).map((ins: any) => String(ins.id));
-    if (mine.length) setSelectedInstitutes(mine);
-  };
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedAt, setSavedAt] = useState<string | null>(null);
-
-  const handleSaveSelection = async () => {
-    try {
-      setIsSaving(true);
-      await apiClient.put('/api/v1/user/preferences/institutes', {
-        user_id: user?.id ?? null,
-        selectedInstitutes: selectedInstitutes,
-      });
-      setSavedAt(new Date().toISOString());
-    } catch (e) {
-      console.debug('[Header] Failed to save selected institutes', e);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -245,43 +196,10 @@ export default function Header() {
           <MagnifyingGlassIcon className="w-5 h-5" />
         </button>
 
+        {/* Institute Selector */}
+        <InstituteSelectorDropdown />
+
         {/* Language Toggle */}
-        <div className="relative">
-          <details className="dropdown-root">
-            <summary className="header-icon-btn flex items-center gap-2">Institutos</summary>
-            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-elevated p-2">
-              <div className="text-sm font-medium px-2 pb-2">Selecione Institutos</div>
-              <div className="max-h-48 overflow-y-auto">
-                {institutes.map((ins: any) => (
-                  <label key={ins.id} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 dark:hover:bg-slate-700 rounded">
-                    <input type="checkbox" checked={selectedInstitutes.includes(ins.id)} onChange={() => toggleInstitute(ins.id)} />
-                    <span className="text-sm">{ins.name || ins.title || ins.label}</span>
-                    {isManagedByUser(ins) && (
-                      <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-primary-100 text-primary-700">Admin</span>
-                    )}
-                  </label>
-                ))}
-                {institutes.length === 0 && (
-                  <div className="p-2 text-sm text-gray-500">Nenhum instituto disponível</div>
-                )}
-              </div>
-              <div className="px-3 py-2 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <button onClick={selectMyInstitutes} className="text-sm text-primary-600 hover:underline">Select my institutes</button>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleSaveSelection}
-                    className={`px-3 py-1 rounded text-sm font-medium ${isSaving ? 'opacity-70 pointer-events-none' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
-                  >
-                    {isSaving ? 'Saving...' : 'Save'}
-                  </button>
-                  <div className="text-xs text-gray-500">{savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString()}` : ''}</div>
-                </div>
-              </div>
-            </div>
-          </details>
-        </div>
         <LanguageToggle />
 
         {/* Dark Mode Toggle */}

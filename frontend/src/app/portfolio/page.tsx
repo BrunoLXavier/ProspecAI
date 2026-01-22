@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import CreateProjectModal from '@/components/portfolio/CreateProjectModal';
 import ViewEditProjectModal from '@/components/portfolio/ViewEditProjectModal';
 import PortfolioBoard from '@/components/portfolio/PortfolioBoard';
@@ -37,6 +38,7 @@ interface FilterValues {
   startDateTo: string;
   minBudget: string;
   maxBudget: string;
+  instituteId: string;
 }
 
 const initialFilters: FilterValues = {
@@ -49,21 +51,56 @@ const initialFilters: FilterValues = {
   startDateTo: '',
   minBudget: '',
   maxBudget: '',
+  instituteId: 'all',
 };
 
 export default function PortfolioPage() {
   const t = useTranslations('portfolio');
   const tCommon = useTranslations('common');
+  const tInstitutes = useTranslations('institutes');
   const searchParams = useSearchParams();
+  const { selectedInstitutes } = useAuth();
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
+
+  // Load institutes for filter dropdown
+  const { data: institutes = [] } = useQuery<any[]>({
+    queryKey: ['institutes', 'filter'],
+    queryFn: async () => {
+      try {
+        const resp = await apiClient.get('/api/v1/institutes');
+        return resp?.items ?? resp ?? [];
+      } catch (e) {
+        return [];
+      }
+    },
+    staleTime: 60_000,
+  });
+
+  // Filter institutes to only show selected ones from header
+  const availableInstitutes = useMemo(() => {
+    if (!selectedInstitutes.length) return institutes;
+    return institutes.filter((ins: any) => selectedInstitutes.includes(ins.id));
+  }, [institutes, selectedInstitutes]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   // Define filter fields configuration
   const filterFields: FilterField[] = useMemo(() => [
+    {
+      key: 'instituteId',
+      label: tInstitutes('title'),
+      type: 'select',
+      options: [
+        { value: 'all', label: tInstitutes('selectAll') },
+        ...availableInstitutes.map((ins: any) => ({
+          value: ins.id,
+          label: ins.nome || ins.name || ins.title || 'Instituto',
+        })),
+      ],
+    },
     {
       key: 'search',
       label: tCommon('search'),
@@ -118,7 +155,7 @@ export default function PortfolioPage() {
       minKey: 'minBudget',
       maxKey: 'maxBudget',
     },
-  ], [t, tCommon]);
+  ], [t, tCommon, tInstitutes, availableInstitutes]);
 
   const handleFilterChange = (key: string, value: string | boolean) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -132,6 +169,7 @@ export default function PortfolioPage() {
     queryKey: ['projects', filters],
     queryFn: async () => {
       const params: Record<string, any> = {};
+      if (filters.instituteId && filters.instituteId !== 'all') params.institute_id = filters.instituteId;
       if (filters.status && filters.status !== 'all') params.status = filters.status;   
       if (filters.researchArea && filters.researchArea !== 'all') params.research_area = filters.researchArea;
       if (filters.trlMin) params.trl_min = Number(filters.trlMin);

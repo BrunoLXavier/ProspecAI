@@ -159,19 +159,121 @@ class PortfolioModel(BaseModel):
     )
 
 
+class PortfolioProjectModel(BaseModel):
+    """
+    PostgreSQL model for portfolio projects (enhanced).
+    Implements RF-03: Portfólio Institucional
+    """
+    __tablename__ = "portfolio_projects"
+    
+    # Required fields
+    instituto_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    nome = Column(String(500), nullable=False)
+    descricao = Column(Text, nullable=False)
+    trl_saida = Column(Integer, nullable=False)
+    
+    # Optional identification
+    id_projeto_sgt = Column(String(100), nullable=True)
+    
+    # Classification
+    categoria_solucao_resultante = Column(String(50), nullable=True)
+    areas_conhecimento = Column(JSON, default=list)
+    macroareas_pesquisa = Column(JSON, default=list)
+    
+    # Funding
+    modalidade_fomento = Column(String(200), nullable=True)
+    
+    # TRL tracking
+    trl_entrada = Column(Integer, nullable=True)
+    
+    # Partnerships and themes
+    parceiros = Column(JSON, default=list)
+    tematicas = Column(JSON, default=list)
+    
+    # Critical information
+    informacoes_criticas = Column(Text, nullable=True)
+    
+    # Company served info
+    empresa_atendida_tipo = Column(String(50), nullable=True)
+    empresa_atendida_nome = Column(String(500), nullable=True)
+    empresa_atendida_pais = Column(String(100), nullable=True)
+    empresa_atendida_setor_cnae = Column(String(50), nullable=True)
+    empresa_atendida_depoimento = Column(Text, nullable=True)
+    
+    # Visibility
+    status = Column(String(50), nullable=False, default='Ativo')
+    pode_ser_divulgado = Column(Boolean, default=True)
+    
+    # Media files
+    midias = Column(JSON, default=list)
+    
+    # Legacy compatibility with Project model
+    team_members = Column(JSON, default=list)
+    competencies = Column(JSON, default=list)
+    start_date = Column(DateTime(timezone=True), nullable=True)
+    end_date = Column(DateTime(timezone=True), nullable=True)
+    budget = Column(Numeric(20, 2), nullable=True)
+    lessons_learned = Column(JSON, default=list)
+
+    __table_args__ = (
+        Index('idx_portfolio_projects_institute', 'instituto_id'),
+        Index('idx_portfolio_projects_status', 'status'),
+        Index('idx_portfolio_projects_trl', 'trl_entrada', 'trl_saida'),
+    )
+
+
 class InstituteModel(BaseModel):
-    """Model for institutes (tenant-scoped)."""
+    """
+    Model for institutes (tenant-scoped).
+    Implements RF-03: Portfólio Institucional
+    """
     __tablename__ = "institutes"
 
-    name = Column(String(300), nullable=False)
-    code = Column(String(100), nullable=True)
-    description = Column(Text, nullable=True)
+    # Required fields
+    nome = Column(String(200), nullable=False)
+    isi_sigla = Column(String(100), nullable=False)
+    endereco_rua = Column(String(500), nullable=False)
+    endereco_bairro = Column(String(200), nullable=False)
+    endereco_cep = Column(String(10), nullable=False)
+    endereco_cidade = Column(String(200), nullable=False)
+    endereco_uf = Column(String(2), nullable=False)
+    descricao = Column(Text, nullable=False)
+    
+    # Optional fields
+    nome_fantasia = Column(String(150), nullable=True)
+    endereco_numero = Column(String(20), nullable=True)
+    endereco_complemento = Column(String(200), nullable=True)
+    area_predial_m2 = Column(Integer, nullable=True)
+    
+    # Status fields
+    status_operacional = Column(String(50), nullable=False, default='Operacional')
+    status = Column(String(50), nullable=False, default='Ativo')
+    
+    # Maturity fields
+    maturidade_gestao = Column(String(10), nullable=True)
+    maturidade_base_tecnologica = Column(Numeric(3, 1), nullable=True)
+    maturidade_produtos_servicos = Column(Numeric(3, 1), nullable=True)
+    maturidade_cooperacao = Column(Numeric(3, 1), nullable=True)
+    
+    # Accreditation
+    credenciamento_cati = Column(Boolean, default=False)
+    credenciamento_ed = Column(Boolean, default=False)
+    
+    # Logo
+    logo_url = Column(String(1000), nullable=True)
+    
+    # Legacy compatibility
+    name = Column(String(300), nullable=True)  # Alias for nome
+    code = Column(String(100), nullable=True)  # Alias for isi_sigla
+    description = Column(Text, nullable=True)  # Alias for descricao
     metadata_ = Column('metadata', JSON, default=dict)
     meta = metadata_
 
     __table_args__ = (
         Index('idx_institutes_tenant', 'tenant_id'),
-        UniqueConstraint('tenant_id', 'name', name='uq_institutes_tenant_name'),
+        Index('idx_institutes_status', 'status', 'status_operacional'),
+        Index('idx_institutes_cidade_uf', 'endereco_cidade', 'endereco_uf'),
+        UniqueConstraint('tenant_id', 'nome', name='uq_institutes_tenant_name'),
     )
 
 
@@ -190,34 +292,95 @@ class UserInstituteModel(BaseModel):
 
 
 class TeamModel(BaseModel):
-    """Model for teams associated with an institute."""
+    """
+    Model for teams (Equipe) - links users to institutes.
+    Implements RF-03: Portfólio Institucional
+    """
     __tablename__ = "teams"
 
-    institute_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
-    name = Column(String(200), nullable=False)
+    # Required fields
+    usuario_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    instituto_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    cargo = Column(String(200), nullable=False)
+    funcao_principal = Column(String(500), nullable=False)
+    
+    # Optional professional info
+    vinculo_principal = Column(Boolean, default=False)
+    email_profissional = Column(String(255), nullable=True)
+    telefone_celular = Column(String(20), nullable=True)
+    
+    # Academic profiles
+    linkedin_url = Column(String(500), nullable=True)
+    lattes_url = Column(String(500), nullable=True)
+    orcid_id = Column(String(50), nullable=True)
+    researchgate_url = Column(String(500), nullable=True)
+    scopus_author_id = Column(String(50), nullable=True)
+    web_of_science_researcher_id = Column(String(50), nullable=True)
+    
+    # Profile photo
+    foto_perfil_url = Column(String(1000), nullable=True)
+    
+    # Link dates
+    data_vinculo_inicio = Column(DateTime(timezone=True), nullable=True)
+    data_vinculo_fim = Column(DateTime(timezone=True), nullable=True)
+    
+    # Legacy compatibility
+    name = Column(String(200), nullable=True)
     description = Column(Text, nullable=True)
     member_ids = Column(JSON, default=list)
     metadata_ = Column('metadata', JSON, default=dict)
     meta = metadata_
 
     __table_args__ = (
-        Index('idx_teams_institute', 'institute_id'),
+        Index('idx_teams_institute', 'instituto_id'),
+        Index('idx_teams_usuario', 'usuario_id'),
+        Index('idx_teams_vinculo_principal', 'vinculo_principal'),
+        UniqueConstraint('usuario_id', 'instituto_id', name='uq_teams_usuario_instituto'),
     )
 
 
 class InfrastructureModel(BaseModel):
-    """Model for infrastructure items (labs, equipment) tied to an institute."""
+    """
+    Model for infrastructure items (labs, equipment) tied to an institute.
+    Implements RF-03: Portfólio Institucional
+    """
     __tablename__ = "infrastructures"
 
-    institute_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
-    name = Column(String(200), nullable=False)
+    # Required fields
+    instituto_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    nome = Column(String(300), nullable=False)
+    descricao = Column(Text, nullable=False)
+    email_laboratorio = Column(String(255), nullable=False)
+    email_responsavel = Column(String(255), nullable=False)
+    area_predial_m2 = Column(Integer, nullable=False)
+    
+    # Status
+    status_isi = Column(String(50), nullable=False, default='Operacional')
+    
+    # Maturity fields
+    maturidade_gestao = Column(String(10), nullable=True)
+    maturidade_base_tecnologica = Column(Numeric(3, 1), nullable=True)
+    maturidade_produtos_servicos = Column(Numeric(3, 1), nullable=True)
+    maturidade_cooperacao = Column(Numeric(3, 1), nullable=True)
+    
+    # Technology platforms and areas (stored as JSON arrays)
+    plataformas_tecnologicas = Column(JSON, default=list)
+    areas_conhecimento = Column(JSON, default=list)
+    macroareas_pesquisa = Column(JSON, default=list)
+    
+    # Media files
+    midias = Column(JSON, default=list)
+    
+    # Legacy compatibility
+    name = Column(String(200), nullable=True)
     description = Column(Text, nullable=True)
     capacity = Column(JSON, default=dict)
     metadata_ = Column('metadata', JSON, default=dict)
     meta = metadata_
 
     __table_args__ = (
-        Index('idx_infrastructures_institute', 'institute_id'),
+        Index('idx_infrastructures_institute', 'instituto_id'),
+        Index('idx_infrastructures_status', 'status_isi'),
     )
 
 
@@ -616,6 +779,11 @@ class UserModel(Base):
     first_name = Column(String(100), nullable=True)
     last_name = Column(String(100), nullable=True)
     
+    # New fields for institute management
+    cpf = Column(String(14), nullable=True, unique=False)  # 11 digits or formatted
+    pais_emissor_documento = Column(String(100), nullable=False, default='Brasil')
+    perfil = Column(String(50), nullable=False, default='Visitante')
+    
     is_active = Column(Boolean, default=True, nullable=False)
     email_verified = Column(Boolean, default=False, nullable=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
@@ -630,6 +798,7 @@ class UserModel(Base):
         Index('idx_user_tenant_email', 'tenant_id', 'email'),
         Index('idx_user_tenant_username', 'tenant_id', 'username'),
         Index('idx_user_active', 'is_active', 'deleted_at'),
+        Index('idx_user_perfil', 'perfil'),
     )
 
 

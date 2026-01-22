@@ -64,7 +64,15 @@
       "user_id": "ba4f4bf9-2daf-4be4-81cb-69bc2b832209",
       "module": "institutes",
       "selectedInstitutes": [],
-      "updated_at": "2026-01-22T04:04:52.665961Z"
+      "updated_at": "2026-01-22T16:11:47.343419Z"
+    },
+    {
+      "user_id": null,
+      "module": "institutes",
+      "visibleStatIds": null,
+      "orderOverride": null,
+      "reorderEnabled": false,
+      "updated_at": "2026-01-22T16:07:13.590263Z"
     }
   ]
 }

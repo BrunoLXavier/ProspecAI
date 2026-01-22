@@ -15,7 +15,7 @@ from .pii_detection import (
     AnonymizationStatus, AnonymizationStrategy
 )
 # User and Authentication
-from .user import User, UserCreate, UserUpdate, UserLogin, PasswordReset, PasswordStrengthConfig
+from .user import User, UserCreate, UserUpdate, UserLogin, PasswordReset, PasswordStrengthConfig, UserProfile
 from .refresh_token import (
     RefreshToken, TokenType, 
     TokenAlreadyUsedException, TokenExpiredException, TokenInvalidException
@@ -28,6 +28,20 @@ from .system_config import (
 from .feedback import (
     Feedback, FeedbackCreate, FeedbackResponse, FeedbackStatistics,
     FeedbackType, FeedbackSeverity, FeedbackStatus, AnnotationStroke
+)
+# Institute and Team Management
+from .institute import (
+    Institute, InstituteCreate, InstituteUpdate,
+    InstituteStatus, OperationalStatus
+)
+from .team import Team, TeamCreate, TeamUpdate
+from .infrastructure import (
+    Infrastructure, InfrastructureCreate, InfrastructureUpdate,
+    InfrastructureStatus
+)
+from .portfolio_project import (
+    PortfolioProject, PortfolioProjectCreate, PortfolioProjectUpdate,
+    PortfolioProjectStatus, SolutionCategory, CompanyType, TRLLevel
 )
 
 __all__ = [
@@ -69,6 +83,7 @@ __all__ = [
     "UserLogin",
     "PasswordReset",
     "PasswordStrengthConfig",
+    "UserProfile",
     "RefreshToken",
     "TokenType",
     "TokenAlreadyUsedException",
@@ -93,4 +108,27 @@ __all__ = [
     "FeedbackSeverity",
     "FeedbackStatus",
     "AnnotationStroke",
+    # Institute Management
+    "Institute",
+    "InstituteCreate",
+    "InstituteUpdate",
+    "InstituteStatus",
+    "OperationalStatus",
+    # Team Management
+    "Team",
+    "TeamCreate",
+    "TeamUpdate",
+    # Infrastructure Management
+    "Infrastructure",
+    "InfrastructureCreate",
+    "InfrastructureUpdate",
+    "InfrastructureStatus",
+    # Portfolio Project Management
+    "PortfolioProject",
+    "PortfolioProjectCreate",
+    "PortfolioProjectUpdate",
+    "PortfolioProjectStatus",
+    "SolutionCategory",
+    "CompanyType",
+    "TRLLevel",
 ]

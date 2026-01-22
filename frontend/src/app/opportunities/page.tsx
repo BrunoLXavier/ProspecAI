@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import OpportunityPipeline from '@/components/dashboard/OpportunityPipeline';
 import { PlusIcon, Squares2X2Icon, ListBulletIcon } from '@heroicons/react/24/outline';
 import CreateOpportunityModal from '@/components/opportunities/CreateOpportunityModal';
@@ -35,6 +36,7 @@ interface FilterValues {
   maxValue: string;
   dateFrom: string;
   dateTo: string;
+  instituteId: string;
 }
 
 const initialFilters: FilterValues = {
@@ -45,18 +47,41 @@ const initialFilters: FilterValues = {
   maxValue: '',
   dateFrom: '',
   dateTo: '',
+  instituteId: 'all',
 };
 
 export default function OpportunitiesPage() {
   const t = useTranslations('opportunities');
   const tCommon = useTranslations('common');
+  const tInstitutes = useTranslations('institutes');
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { selectedInstitutes } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [viewMode, setViewMode] = useState<'board' | 'list'>('list');
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
+
+  // Load institutes for filter dropdown
+  const { data: institutes = [] } = useQuery<any[]>({
+    queryKey: ['institutes', 'filter'],
+    queryFn: async () => {
+      try {
+        const resp = await apiClient.get('/api/v1/institutes');
+        return resp?.items ?? resp ?? [];
+      } catch (e) {
+        return [];
+      }
+    },
+    staleTime: 60_000,
+  });
+
+  // Filter institutes to only show selected ones from header
+  const availableInstitutes = useMemo(() => {
+    if (!selectedInstitutes.length) return institutes;
+    return institutes.filter((ins: any) => selectedInstitutes.includes(ins.id));
+  }, [institutes, selectedInstitutes]);
 
   // Handle ?id= query param to open detail modal
   const opportunityIdParam = searchParams.get('id');
@@ -83,6 +108,18 @@ export default function OpportunitiesPage() {
 
   // Define filter fields configuration
   const filterFields: FilterField[] = useMemo(() => [
+    {
+      key: 'instituteId',
+      label: tInstitutes('title'),
+      type: 'select',
+      options: [
+        { value: 'all', label: tInstitutes('selectAll') },
+        ...availableInstitutes.map((ins: any) => ({
+          value: ins.id,
+          label: ins.nome || ins.name || ins.title || 'Instituto',
+        })),
+      ],
+    },
     {
       key: 'search',
       label: tCommon('search'),
@@ -132,7 +169,7 @@ export default function OpportunitiesPage() {
       label: t('dateTo') || 'To Date',
       type: 'date',
     },
-  ], [t, tCommon]);
+  ], [t, tCommon, tInstitutes, availableInstitutes]);
 
   const handleFilterChange = (key: string, value: string | boolean) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -151,6 +188,7 @@ export default function OpportunitiesPage() {
     queryKey: ['opportunities', filters],
     queryFn: async () => {
       const params: Record<string, any> = {};
+      if (filters.instituteId && filters.instituteId !== 'all') params.institute_id = filters.instituteId;
       if (filters.stage && filters.stage !== 'all') params.stage = filters.stage;
       if (filters.minValue) params.min_value = Number(filters.minValue);
       if (filters.maxValue) params.max_value = Number(filters.maxValue);

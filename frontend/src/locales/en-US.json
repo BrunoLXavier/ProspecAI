@@ -2569,12 +2569,22 @@
   "institutes": {
     "title": "Institutes",
     "subtitle": "Manage research institutes and organizational units",
+    "selectInstitutes": "Select Institutes",
+    "searchPlaceholder": "Search institute...",
+    "selectAll": "Select all",
+    "clearAll": "Clear",
+    "myInstitutes": "My institutes",
+    "selected": "selected",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "loading": "Loading...",
+    "noResults": "No institutes found",
+    "noInstitutes": "No institutes available",
     "filters": {
       "search": "Search",
       "searchPlaceholder": "Search institutes..."
     },
-    "noResults": "No institutes found",
-    "loading": "Loading...",
     "new": "New",
     "boardPlaceholder": "Board view for institutes"
   },

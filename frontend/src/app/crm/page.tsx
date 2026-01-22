@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
 import CreateClientModal from '@/components/crm/CreateClientModal';
 import ViewEditClientModal from '@/components/crm/ViewEditClientModal';
@@ -35,6 +36,7 @@ interface FilterValues {
   minRevenue: string;
   maxRevenue: string;
   aiEnriched: boolean;
+  instituteId: string;
 }
 
 const initialFilters: FilterValues = {
@@ -44,12 +46,15 @@ const initialFilters: FilterValues = {
   minRevenue: '',
   maxRevenue: '',
   aiEnriched: false,
+  instituteId: 'all',
 };
 
 export default function CRMClientsPage() {
   const t = useTranslations('crm');
   const tCommon = useTranslations('common');
+  const tInstitutes = useTranslations('institutes');
   const searchParams = useSearchParams();
+  const { selectedInstitutes } = useAuth();
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
@@ -57,8 +62,40 @@ export default function CRMClientsPage() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
+  // Load institutes for filter dropdown
+  const { data: institutes = [] } = useQuery<any[]>({
+    queryKey: ['institutes', 'filter'],
+    queryFn: async () => {
+      try {
+        const resp = await apiClient.get('/api/v1/institutes');
+        return resp?.items ?? resp ?? [];
+      } catch (e) {
+        return [];
+      }
+    },
+    staleTime: 60_000,
+  });
+
+  // Filter institutes to only show selected ones from header
+  const availableInstitutes = useMemo(() => {
+    if (!selectedInstitutes.length) return institutes;
+    return institutes.filter((ins: any) => selectedInstitutes.includes(ins.id));
+  }, [institutes, selectedInstitutes]);
+
   // Define filter fields configuration
   const filterFields: FilterField[] = useMemo(() => [
+    {
+      key: 'instituteId',
+      label: tInstitutes('title'),
+      type: 'select',
+      options: [
+        { value: 'all', label: tInstitutes('selectAll') },
+        ...availableInstitutes.map((ins: any) => ({
+          value: ins.id,
+          label: ins.nome || ins.name || ins.title || 'Instituto',
+        })),
+      ],
+    },
     {
       key: 'search',
       label: tCommon('search'),
@@ -101,7 +138,7 @@ export default function CRMClientsPage() {
       type: 'checkbox',
       placeholder: t('onlyAiEnriched'),
     },
-  ], [t, tCommon]);
+  ], [t, tCommon, tInstitutes, availableInstitutes]);
 
   const handleFilterChange = (key: string, value: string | boolean) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -115,6 +152,7 @@ export default function CRMClientsPage() {
     queryKey: ['clients', filters],
     queryFn: async () => {
       const params: Record<string, any> = {};
+      if (filters.instituteId && filters.instituteId !== 'all') params.institute_id = filters.instituteId;
       if (filters.segment && filters.segment !== 'all') params.segment = filters.segment;
       if (filters.maturityLevel && filters.maturityLevel !== 'all') params.maturity_level = filters.maturityLevel;
       if (filters.minRevenue) params.min_revenue = Number(filters.minRevenue);

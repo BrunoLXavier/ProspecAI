@@ -2634,12 +2634,22 @@
   "institutes": {
     "title": "Institutos",
     "subtitle": "Gerencie institutos de pesquisa e unidades organizacionais",
+    "selectInstitutes": "Selecionar Institutos",
+    "searchPlaceholder": "Buscar instituto...",
+    "selectAll": "Selecionar todos",
+    "clearAll": "Limpar",
+    "myInstitutes": "Meus institutos",
+    "selected": "selecionado(s)",
+    "save": "Salvar",
+    "saving": "Salvando...",
+    "saved": "Salvo",
+    "loading": "Carregando...",
+    "noResults": "Nenhum instituto encontrado",
+    "noInstitutes": "Nenhum instituto disponível",
     "filters": {
       "search": "Buscar",
       "searchPlaceholder": "Buscar institutos..."
     },
-    "noResults": "Nenhum instituto encontrado",
-    "loading": "Carregando...",
     "new": "Novo",
     "boardPlaceholder": "Visão em quadro para institutos"
   },

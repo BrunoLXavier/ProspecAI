@@ -870,12 +870,22 @@
     "institutes": {
       "title": "Institutos",
       "subtitle": "Gestionar institutos de investigación y unidades organizacionales",
+      "selectInstitutes": "Seleccionar Institutos",
+      "searchPlaceholder": "Buscar instituto...",
+      "selectAll": "Seleccionar todos",
+      "clearAll": "Limpiar",
+      "myInstitutes": "Mis institutos",
+      "selected": "seleccionado(s)",
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "saved": "Guardado",
+      "loading": "Cargando...",
+      "noResults": "No se encontraron institutos",
+      "noInstitutes": "No hay institutos disponibles",
       "filters": {
         "search": "Buscar",
         "searchPlaceholder": "Buscar institutos..."
       },
-      "noResults": "No se encontraron institutos",
-      "loading": "Cargando...",
       "new": "Nuevo",
       "boardPlaceholder": "Vista en tablero para institutos"
     },
