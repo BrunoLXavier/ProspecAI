@@ -2,6 +2,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '@/lib/api-client';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
@@ -24,11 +26,23 @@ export default function TeamsPage() {
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
   ];
 
-  const items: any[] = [];
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ['teams', 'page'],
+    queryFn: async () => {
+      try {
+        const resp = await apiClient.get('/api/v1/teams');
+        return resp?.items ?? resp ?? [];
+      } catch (e) {
+        console.debug('[Teams] Failed to load teams', e);
+        return [];
+      }
+    },
+    staleTime: 60_000,
+  });
 
   const filtered = useMemo(() => {
     if (!filters.search) return items;
-    return items.filter(i => (i.name || '').toLowerCase().includes(filters.search.toLowerCase()));
+    return items.filter((i: any) => (i.name || '').toLowerCase().includes(filters.search.toLowerCase()));
   }, [items, filters.search]);
 
   return (
@@ -60,12 +74,17 @@ export default function TeamsPage() {
         <div className="bg-white dark:bg-slate-800 rounded-lg p-6">{t('boardPlaceholder')}</div>
       ) : (
         <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+          ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('noResults')}</div>
           ) : (
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filtered.map((it, idx) => (
-                <li key={idx} className="px-6 py-4"><button onClick={() => { setSelectedTeam(it); setModalOpen(true); }}>{it.name || 'Team'}</button></li>
+              {filtered.map((it: any, idx: number) => (
+                <li key={it.id || idx} className="px-6 py-4 flex items-center justify-between">
+                  <button onClick={() => { setSelectedTeam(it); setModalOpen(true); }} className="text-left">{it.name || 'Team'}</button>
+                  <div className="text-xs text-gray-400">{it.member_ids ? it.member_ids.length : ''}</div>
+                </li>
               ))}
             </ul>
           )}

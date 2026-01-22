@@ -19,8 +19,8 @@ export default function CommunicationModal({ isOpen, onClose, comm }: Props) {
   const { register, handleSubmit, reset } = useForm();
 
   useEffect(() => {
-    if (comm) reset({ title: comm.title || '', body: comm.body || '' });
-    else reset({ title: '', body: '' });
+    if (comm) reset({ title: comm.title || '', body: comm.body || '', metadata: comm.metadata ? JSON.stringify(comm.metadata, null, 2) : '' });
+    else reset({ title: '', body: '', metadata: '{}' });
   }, [comm, reset]);
 
   const saveMutation = useMutation({
@@ -33,7 +33,15 @@ export default function CommunicationModal({ isOpen, onClose, comm }: Props) {
 
   const deleteMutation = useMutation({ mutationFn: () => apiClient.delete(`/api/v1/communications/${comm!.id}`), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['communications'] }); onClose(); } });
 
-  const onSubmit = (data: any) => saveMutation.mutate(data);
+  const onSubmit = (data: any) => {
+    const payload: any = { title: data.title, body: data.body };
+    try {
+      payload.metadata = data.metadata ? JSON.parse(data.metadata) : {};
+    } catch (e) {
+      payload.metadata = {};
+    }
+    saveMutation.mutate(payload);
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -59,6 +67,10 @@ export default function CommunicationModal({ isOpen, onClose, comm }: Props) {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('body')}</label>
                   <textarea {...register('body')} className="w-full px-4 py-2 border rounded-lg" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('metadata')}</label>
+                  <textarea {...register('metadata')} rows={4} className="w-full px-4 py-2 border rounded-lg font-mono text-sm" />
                 </div>
                 <div className="flex justify-end gap-2">
                   {comm && <button type="button" onClick={() => (deleteMutation as any).mutate()} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete')}</button>}

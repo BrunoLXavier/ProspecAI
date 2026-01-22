@@ -19,8 +19,8 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
   const { register, handleSubmit, reset } = useForm();
 
   useEffect(() => {
-    if (resource) reset({ name: resource.name || '', description: resource.description || '' });
-    else reset({ name: '', description: '' });
+    if (resource) reset({ name: resource.name || '', description: resource.description || '', capacity: resource.capacity ? JSON.stringify(resource.capacity, null, 2) : '', metadata: resource.metadata ? JSON.stringify(resource.metadata, null, 2) : '' });
+    else reset({ name: '', description: '', capacity: '{}', metadata: '{}' });
   }, [resource, reset]);
 
   const saveMutation = useMutation({
@@ -33,7 +33,20 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
 
   const deleteMutation = useMutation({ mutationFn: () => apiClient.delete(`/api/v1/infrastructures/${resource!.id}`), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['infrastructure'] }); onClose(); } });
 
-  const onSubmit = (data: any) => saveMutation.mutate(data);
+  const onSubmit = (data: any) => {
+    const payload: any = { name: data.name, description: data.description };
+    try {
+      payload.capacity = data.capacity ? JSON.parse(data.capacity) : {};
+    } catch (e) {
+      payload.capacity = {};
+    }
+    try {
+      payload.metadata = data.metadata ? JSON.parse(data.metadata) : {};
+    } catch (e) {
+      payload.metadata = {};
+    }
+    saveMutation.mutate(payload);
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -59,6 +72,15 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('description')}</label>
                   <textarea {...register('description')} className="w-full px-4 py-2 border rounded-lg" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('capacity')}</label>
+                  <textarea {...register('capacity')} rows={4} className="w-full px-4 py-2 border rounded-lg font-mono text-sm" />
+                  <p className="text-xs text-gray-400 mt-1">{t('capacity_hint') || 'JSON object, e.g. {"area_m2": 120, "units": 3}'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('metadata')}</label>
+                  <textarea {...register('metadata')} rows={4} className="w-full px-4 py-2 border rounded-lg font-mono text-sm" />
                 </div>
                 <div className="flex justify-end gap-2">
                   {resource && <button type="button" onClick={() => (deleteMutation as any).mutate()} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete')}</button>}

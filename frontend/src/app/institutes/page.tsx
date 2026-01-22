@@ -9,6 +9,7 @@ import { useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import SafeRender from '@/components/ui/SafeRender';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import InstituteModal from '@/components/entities/InstituteModal';
@@ -18,12 +19,13 @@ export default function InstitutesPage() {
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
-  const [filters, setFilters] = useState({ search: '' });
+  const [filters, setFilters] = useState({ search: '', city: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedInstitute, setSelectedInstitute] = useState<any | null>(null);
 
   const filterFields: FilterField[] = [
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
+    { key: 'city', label: t('filters.city') || 'City', type: 'text', placeholder: t('filters.cityPlaceholder') || '' },
   ];
 
   const { data: items = [], isLoading } = useQuery({
@@ -41,9 +43,11 @@ export default function InstitutesPage() {
   });
 
   const filtered = useMemo(() => {
-    if (!filters.search) return items;
-    return items.filter((i: any) => (i.name || '').toLowerCase().includes(filters.search.toLowerCase()));
-  }, [items, filters.search]);
+    let res = items;
+    if (filters.search) res = res.filter((i: any) => (i.name || '').toLowerCase().includes(filters.search.toLowerCase()));
+    if (filters.city) res = res.filter((i: any) => { const m = i.metadata || {}; return (m.city || '').toLowerCase().includes(filters.city.toLowerCase()); });
+    return res;
+  }, [items, filters.search, filters.city]);
 
   return (
     <div className="space-y-6">
@@ -61,13 +65,15 @@ export default function InstitutesPage() {
         )}
       />
 
-      <ConfigurableStatisticsBar module={"institutes" as any} data={filtered} />
+      <SafeRender fallback={<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-4"><div className="text-sm text-gray-500 dark:text-gray-400">{t('statsUnavailable') || 'Statistics unavailable'}</div></div>}>
+        <ConfigurableStatisticsBar module={"institutes" as any} data={filtered} />
+      </SafeRender>
 
       <FilterPanel
         fields={filterFields}
         values={filters}
         onChange={(k, v) => setFilters(prev => ({ ...prev, [k]: v }))}
-        onReset={() => setFilters({ search: '' })}
+        onReset={() => setFilters({ search: '', city: '' })}
       />
 
       {viewMode === 'board' ? (
@@ -86,8 +92,10 @@ export default function InstitutesPage() {
                     <div>
                       <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{it.name}</h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{it.description || ''}</p>
+                      {it.metadata?.city && <p className="text-xs text-gray-400 mt-1">{t('city') || 'City'}: {it.metadata.city}</p>}
+                      {it.metadata?.area_m2 && <p className="text-xs text-gray-400 mt-1">{t('area') || 'Area'}: {it.metadata.area_m2} m²</p>}
                     </div>
-                    <div className="text-xs text-gray-400">{it.member_count ?? ''}</div>
+                    <div className="text-xs text-gray-400">{it.member_ids ? (it.member_ids.length) : (it.member_count ?? '')}</div>
                   </div>
                   <div className="mt-4 flex items-center gap-2">
                     <a href={`/institutes/${it.id}/members`} className="text-sm text-primary-600 hover:underline">Manage members</a>

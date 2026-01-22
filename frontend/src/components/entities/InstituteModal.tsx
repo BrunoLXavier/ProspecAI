@@ -27,10 +27,10 @@ export default function InstituteModal({ isOpen, onClose, institute }: Props) {
 
   useEffect(() => {
     if (institute) {
-      reset({ name: institute.name || '', description: institute.description || '' });
+      reset({ name: institute.name || '', description: institute.description || '', metadata: institute.metadata ? JSON.stringify(institute.metadata, null, 2) : '' });
       setIsEditing(false);
     } else {
-      reset({ name: '', description: '' });
+      reset({ name: '', description: '', metadata: '{}' });
       setIsEditing(true);
     }
   }, [institute, reset]);
@@ -54,7 +54,15 @@ export default function InstituteModal({ isOpen, onClose, institute }: Props) {
     },
   });
 
-  const onSubmit = (data: any) => saveMutation.mutate(data);
+  const onSubmit = (data: any) => {
+    let payload: any = { name: data.name, description: data.description };
+    try {
+      payload.metadata = data.metadata ? JSON.parse(data.metadata) : {};
+    } catch (e) {
+      payload.metadata = {};
+    }
+    saveMutation.mutate(payload);
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -103,6 +111,11 @@ export default function InstituteModal({ isOpen, onClose, institute }: Props) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('description')}</label>
                     <textarea {...register('description')} className="w-full px-4 py-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('metadata')}</label>
+                    <textarea {...register('metadata')} rows={6} className="w-full px-4 py-2 border rounded-lg font-mono text-sm" />
+                    <p className="text-xs text-gray-400 mt-1">{t('metadata_hint') || 'JSON object, e.g. {"city":"São Paulo"}'}</p>
                   </div>
 
                   <div className="flex justify-end gap-2">

@@ -24,8 +24,8 @@ export default function TeamModal({ isOpen, onClose, team }: Props) {
   const { register, handleSubmit, reset } = useForm();
 
   useEffect(() => {
-    if (team) reset({ name: team.name || '', description: team.description || '' });
-    else reset({ name: '', description: '' });
+    if (team) reset({ name: team.name || '', description: team.description || '', member_ids: (team.member_ids || []).join(','), metadata: team.metadata ? JSON.stringify(team.metadata, null, 2) : '' });
+    else reset({ name: '', description: '', member_ids: '', metadata: '{}' });
   }, [team, reset]);
 
   const saveMutation = useMutation({
@@ -47,7 +47,18 @@ export default function TeamModal({ isOpen, onClose, team }: Props) {
     },
   });
 
-  const onSubmit = (data: any) => saveMutation.mutate(data);
+  const onSubmit = (data: any) => {
+    const payload: any = { name: data.name, description: data.description };
+    if (data.member_ids) {
+      payload.member_ids = data.member_ids.split(',').map((s: string) => s.trim()).filter(Boolean);
+    }
+    try {
+      payload.metadata = data.metadata ? JSON.parse(data.metadata) : {};
+    } catch (e) {
+      payload.metadata = {};
+    }
+    saveMutation.mutate(payload);
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -76,6 +87,15 @@ export default function TeamModal({ isOpen, onClose, team }: Props) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('description')}</label>
                     <textarea {...register('description')} className="w-full px-4 py-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('members')}</label>
+                    <input {...register('member_ids')} placeholder={t('members_placeholder') || 'comma-separated UUIDs'} className="w-full px-4 py-2 border rounded-lg" />
+                    <p className="text-xs text-gray-400 mt-1">{t('members_hint') || 'Enter member IDs separated by commas'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('metadata')}</label>
+                    <textarea {...register('metadata')} rows={5} className="w-full px-4 py-2 border rounded-lg font-mono text-sm" />
                   </div>
 
                   <div className="flex justify-end gap-2">

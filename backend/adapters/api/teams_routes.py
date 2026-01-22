@@ -1,7 +1,7 @@
 """Teams API Routes
 Basic listing and CRUD for teams scoped to institutes.
 """
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -18,12 +18,16 @@ class TeamOut(BaseModel):
     name: str
     description: Optional[str] = None
     institute_id: UUID
+    member_ids: List[UUID] = []
+    metadata: Optional[Dict[str, Any]] = None
 
 
 class TeamCreate(BaseModel):
     name: str
     description: Optional[str] = None
     institute_id: UUID
+    member_ids: Optional[List[UUID]] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
 @router.get("", response_model=List[TeamOut])
@@ -32,13 +36,13 @@ async def list_teams(
     container=Depends(get_di_container),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
-    stmt = sa.text("SELECT id, name, description, institute_id FROM teams WHERE tenant_id = :tenant_id AND deleted_at IS NULL" + (" AND institute_id = :inst" if institute_id else "") + " ORDER BY name")
+    stmt = sa.text("SELECT id, name, description, institute_id, member_ids, metadata FROM teams WHERE tenant_id = :tenant_id AND deleted_at IS NULL" + (" AND institute_id = :inst" if institute_id else "") + " ORDER BY name")
     params = {'tenant_id': tenant_id}
     if institute_id:
         params['inst'] = institute_id
     res = await container.session.execute(stmt, params)
     rows = res.fetchall()
-    return [{ 'id': r[0], 'name': r[1], 'description': r[2], 'institute_id': r[3] } for r in rows]
+    return [{ 'id': r[0], 'name': r[1], 'description': r[2], 'institute_id': r[3], 'member_ids': r[4] if len(r) > 4 else [], 'metadata': r[5] if len(r) > 5 else {} } for r in rows]
 
 
 @router.post("", response_model=TeamOut)
@@ -54,16 +58,19 @@ async def create_team(
     if not allowed:
         raise HTTPException(status_code=403, detail="User is not a member of the target institute")
 
-    stmt = sa.text("INSERT INTO teams (id, tenant_id, institute_id, name, description, created_at, updated_at) VALUES (gen_random_uuid(), :tenant_id, :inst, :name, :desc, now(), now()) RETURNING id, name, description, institute_id")
-    res = await container.session.execute(stmt, {'tenant_id': tenant_id, 'inst': str(req.institute_id), 'name': req.name, 'desc': req.description})
+    stmt = sa.text("INSERT INTO teams (id, tenant_id, institute_id, name, description, member_ids, metadata, created_at, updated_at, created_by, updated_by) VALUES (gen_random_uuid(), :tenant_id, :inst, :name, :desc, :member_ids::jsonb, :metadata::jsonb, now(), now(), :created_by, :updated_by) RETURNING id, name, description, institute_id, member_ids, metadata")
+    params = {'tenant_id': tenant_id, 'inst': str(req.institute_id), 'name': req.name, 'desc': req.description, 'member_ids': req.member_ids or [], 'metadata': req.metadata or {}, 'created_by': str(user_id), 'updated_by': str(user_id)}
+    res = await container.session.execute(stmt, params)
     await container.session.commit()
     row = res.first()
-    return {'id': row[0], 'name': row[1], 'description': row[2], 'institute_id': row[3]}
+    return {'id': row[0], 'name': row[1], 'description': row[2], 'institute_id': row[3], 'member_ids': row[4], 'metadata': row[5]}
 
 
 class TeamUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    member_ids: Optional[List[UUID]] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
 @router.patch("/{team_id}", response_model=TeamOut)
@@ -93,17 +100,23 @@ async def update_team(
     if req.description is not None:
         updates.append('description = :description')
         params['description'] = req.description
+    if req.member_ids is not None:
+        updates.append('member_ids = :member_ids::jsonb')
+        params['member_ids'] = req.member_ids
+    if req.metadata is not None:
+        updates.append('metadata = :metadata::jsonb')
+        params['metadata'] = req.metadata
 
     if not updates:
         # nothing to update
         return {'id': row[0], 'name': row[1], 'description': row[2], 'institute_id': row[3]}
 
-    q = sa.text(f"UPDATE teams SET {', '.join(updates)}, updated_at = now(), updated_by = :updated_by WHERE id = :id AND tenant_id = :tenant_id AND deleted_at IS NULL RETURNING id, name, description, institute_id")
+    q = sa.text(f"UPDATE teams SET {', '.join(updates)}, updated_at = now(), updated_by = :updated_by WHERE id = :id AND tenant_id = :tenant_id AND deleted_at IS NULL RETURNING id, name, description, institute_id, member_ids, metadata")
     params['updated_by'] = str(user_id)
     res2 = await container.session.execute(q, params)
     await container.session.commit()
     r2 = res2.first()
-    return {'id': r2[0], 'name': r2[1], 'description': r2[2], 'institute_id': r2[3]}
+    return {'id': r2[0], 'name': r2[1], 'description': r2[2], 'institute_id': r2[3], 'member_ids': r2[4], 'metadata': r2[5]}
 
 
 @router.delete("/{team_id}", status_code=204)

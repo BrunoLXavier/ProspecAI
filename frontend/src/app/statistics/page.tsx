@@ -15,6 +15,9 @@ import {
 	DocumentTextIcon,
 	CloudArrowUpIcon,
 	ShieldExclamationIcon,
+	BuildingOffice2Icon,
+	BuildingLibraryIcon,
+	InboxIcon,
 	CheckIcon,
 	XMarkIcon,
 	PencilIcon,
@@ -73,6 +76,10 @@ const MODULE_INFO: Record<StatisticsModule, { labelKey: string; icon: React.Comp
 	'pii-analysis': { labelKey: 'modules.piiAnalysis', icon: ShieldExclamationIcon },
 	'reports': { labelKey: 'modules.reports', icon: ChartBarIcon },
 	'translations': { labelKey: 'modules.translations', icon: DocumentTextIcon },
+	'institutes': { labelKey: 'modules.institutes', icon: BuildingOffice2Icon as any },
+	'teams': { labelKey: 'modules.teams', icon: UsersIcon },
+	'infrastructure': { labelKey: 'modules.infrastructure', icon: BuildingLibraryIcon as any },
+	'communications': { labelKey: 'modules.communications', icon: InboxIcon as any },
 };
 
 // =============================================================================

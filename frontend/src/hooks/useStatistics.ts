@@ -267,7 +267,7 @@ export function useStatistics({
     return definitions.map(definition => {
       const value = calculateStatValue(definition, data, customCalculators);
       const isAllowed = !permissions || permissions.allowedStatIds.includes(definition.id);
-      const isVisible = preferences?.visibleStatIds.includes(definition.id) ?? definition.defaultVisible;
+      const isVisible = preferences?.visibleStatIds?.includes(definition.id) ?? definition.defaultVisible;
       
       return {
         definition,
@@ -532,5 +532,49 @@ export const PII_CALCULATORS: Record<string, (data: Record<string, any>[]) => nu
     if (data.length === 0) return 0;
     const anonymized = data.filter(d => d.status === 'anonymized').length;
     return Math.round((anonymized / data.length) * 100);
+  },
+};
+
+export const INSTITUTES_CALCULATORS: Record<string, (data: Record<string, any>[]) => number> = {
+  totalArea: (data) => {
+    return data.reduce((sum, it) => {
+      const area = (it.metadata && (it.metadata.area_m2 || it.metadata.area)) || 0;
+      return sum + (Number(area) || 0);
+    }, 0);
+  },
+  totalMembers: (data) => data.reduce((sum, it) => sum + (it.member_ids ? it.member_ids.length : (it.member_count || 0)), 0),
+  avgMembers: (data) => {
+    if (data.length === 0) return 0;
+    const total = data.reduce((sum, it) => sum + (it.member_ids ? it.member_ids.length : (it.member_count || 0)), 0);
+    return Math.round((total / data.length) * 10) / 10;
+  },
+};
+
+export const TEAMS_CALCULATORS: Record<string, (data: Record<string, any>[]) => number> = {
+  avgSize: (data) => {
+    if (data.length === 0) return 0;
+    const total = data.reduce((sum, t) => sum + (t.member_ids ? t.member_ids.length : (t.member_count || 0)), 0);
+    return Math.round((total / data.length) * 10) / 10;
+  },
+};
+
+export const INFRASTRUCTURE_CALCULATORS: Record<string, (data: Record<string, any>[]) => number> = {
+  totalArea: (data) => {
+    return data.reduce((sum, r) => {
+      const area = (r.capacity && (r.capacity.area_m2 || r.capacity.area)) || 0;
+      return sum + (Number(area) || 0);
+    }, 0);
+  },
+  totalUnits: (data) => data.reduce((sum, r) => sum + (r.capacity && r.capacity.units ? Number(r.capacity.units) : 0), 0),
+};
+
+export const COMMUNICATIONS_CALCULATORS: Record<string, (data: Record<string, any>[]) => number> = {
+  recent7d: (data) => {
+    const now = new Date();
+    const past = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return data.filter(d => {
+      const dt = new Date(d.created_at || d.createdAt || d.date || 0);
+      return dt >= past && dt <= now;
+    }).length;
   },
 };

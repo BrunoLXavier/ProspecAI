@@ -13,7 +13,11 @@ export type StatisticsModule =
   | 'ingestion'
   | 'pii-analysis'
   | 'reports'
-  | 'translations';
+  | 'translations'
+  | 'institutes'
+  | 'teams'
+  | 'infrastructure'
+  | 'communications';
 
 /**
  * User roles for permission-based statistics visibility
@@ -252,6 +256,29 @@ export const OPPORTUNITIES_STATISTICS: StatisticDefinition[] = [
   { id: 'opp-created-this-month', key: 'createdThisMonth', module: 'opportunities', labelKey: 'stats.createdThisMonth', category: 'timeline', valueType: 'number', defaultColor: 'info', icon: 'PlusCircleIcon', defaultVisible: false, sortOrder: 42 },
 ];
 
+export const INSTITUTES_STATISTICS: StatisticDefinition[] = [
+  { id: 'institutes-total', key: 'total', module: 'institutes', labelKey: 'stats.total', category: 'overview', valueType: 'number', defaultColor: 'primary', icon: 'BuildingOffice2Icon', defaultVisible: true, sortOrder: 1, aggregation: 'count' },
+  { id: 'institutes-total-area', key: 'totalArea', module: 'institutes', labelKey: 'stats.totalArea', category: 'overview', valueType: 'number', defaultColor: 'info', icon: 'Square2StackIcon', defaultVisible: false, sortOrder: 2 },
+  { id: 'institutes-total-members', key: 'totalMembers', module: 'institutes', labelKey: 'stats.totalMembers', category: 'overview', valueType: 'number', defaultColor: 'success', icon: 'UsersIcon', defaultVisible: false, sortOrder: 3 },
+  { id: 'institutes-avg-members', key: 'avgMembers', module: 'institutes', labelKey: 'stats.avgMembers', category: 'performance', valueType: 'number', defaultColor: 'default', icon: 'ChartBarIcon', defaultVisible: false, sortOrder: 4 },
+];
+
+export const TEAMS_STATISTICS: StatisticDefinition[] = [
+  { id: 'teams-total', key: 'total', module: 'teams', labelKey: 'stats.total', category: 'overview', valueType: 'number', defaultColor: 'primary', icon: 'UsersIcon', defaultVisible: true, sortOrder: 1, aggregation: 'count' },
+  { id: 'teams-avg-size', key: 'avgSize', module: 'teams', labelKey: 'stats.avgSize', category: 'performance', valueType: 'number', defaultColor: 'info', icon: 'UserGroupIcon', defaultVisible: false, sortOrder: 2 },
+];
+
+export const INFRASTRUCTURE_STATISTICS: StatisticDefinition[] = [
+  { id: 'infra-total', key: 'total', module: 'infrastructure', labelKey: 'stats.total', category: 'overview', valueType: 'number', defaultColor: 'primary', icon: 'BuildingLibraryIcon', defaultVisible: true, sortOrder: 1, aggregation: 'count' },
+  { id: 'infra-total-area', key: 'totalArea', module: 'infrastructure', labelKey: 'stats.totalArea', category: 'overview', valueType: 'number', defaultColor: 'info', icon: 'Squares2X2Icon', defaultVisible: true, sortOrder: 2 },
+  { id: 'infra-total-units', key: 'totalUnits', module: 'infrastructure', labelKey: 'stats.totalUnits', category: 'overview', valueType: 'number', defaultColor: 'success', icon: 'ServerStackIcon', defaultVisible: false, sortOrder: 3 },
+];
+
+export const COMMUNICATIONS_STATISTICS: StatisticDefinition[] = [
+  { id: 'comm-total', key: 'total', module: 'communications', labelKey: 'stats.total', category: 'overview', valueType: 'number', defaultColor: 'primary', icon: 'InboxIcon', defaultVisible: true, sortOrder: 1, aggregation: 'count' },
+  { id: 'comm-recent-7d', key: 'recent7d', module: 'communications', labelKey: 'stats.recent7d', category: 'timeline', valueType: 'number', defaultColor: 'info', icon: 'ClockIcon', defaultVisible: false, sortOrder: 2 },
+];
+
 export const PROPOSALS_STATISTICS: StatisticDefinition[] = [
   // Overview
   { id: 'prop-total', key: 'total', module: 'proposals', labelKey: 'stats.total', category: 'overview', valueType: 'number', defaultColor: 'primary', icon: 'DocumentTextIcon', defaultVisible: true, sortOrder: 1, aggregation: 'count' },
@@ -360,6 +387,10 @@ export function getModuleStatistics(module: StatisticsModule): StatisticDefiniti
     case 'proposals': return PROPOSALS_STATISTICS;
     case 'ingestion': return INGESTION_STATISTICS;
     case 'pii-analysis': return PII_ANALYSIS_STATISTICS;
+    case 'institutes': return INSTITUTES_STATISTICS;
+    case 'teams': return TEAMS_STATISTICS;
+    case 'infrastructure': return INFRASTRUCTURE_STATISTICS;
+    case 'communications': return COMMUNICATIONS_STATISTICS;
     default: return [];
   }
 }
@@ -375,6 +406,10 @@ export const ALL_MODULES: StatisticsModule[] = [
   'proposals',
   'ingestion',
   'pii-analysis',
+  'institutes',
+  'teams',
+  'infrastructure',
+  'communications',
   'reports',
   'translations',
 ];

@@ -22,7 +22,7 @@ import {
   StatCategory,
   STAT_CATEGORIES,
 } from '@/types/statistics';
-import { useStatistics } from '@/hooks/useStatistics';
+import { useStatistics, INSTITUTES_CALCULATORS, TEAMS_CALCULATORS, INFRASTRUCTURE_CALCULATORS, COMMUNICATIONS_CALCULATORS } from '@/hooks/useStatistics';
 
 // =============================================================================
 // Icon Resolver
@@ -137,7 +137,7 @@ function StatisticsConfigModal({
                     const isExpanded = expandedCategories.has(category);
                     const CategoryIcon = getIcon(info.icon);
                     const visibleCount = stats.filter(s => 
-                      preferences?.visibleStatIds.includes(s.definition.id)
+                      preferences?.visibleStatIds?.includes(s.definition.id)
                     ).length;
 
                     return (
@@ -169,7 +169,7 @@ function StatisticsConfigModal({
                           <div className="p-4 space-y-3">
                             {stats.map(stat => {
                               const StatIcon = getIcon(stat.definition.icon);
-                              const isVisible = preferences?.visibleStatIds.includes(stat.definition.id);
+                              const isVisible = preferences?.visibleStatIds?.includes(stat.definition.id);
                               const isRequired = requiredStatIds.includes(stat.definition.id);
 
                               return (
@@ -277,6 +277,19 @@ export default function ConfigurableStatisticsBar({
   // errors when the calling code accidentally provides an object.
   const safeData = Array.isArray(data) ? data : (data ? [] : []);
 
+  // Provide module-specific custom calculators for nested fields like metadata/capacity
+  const moduleCustomCalculators = (() => {
+    switch (module) {
+      case 'institutes': return INSTITUTES_CALCULATORS;
+      case 'teams': return TEAMS_CALCULATORS;
+      case 'infrastructure': return INFRASTRUCTURE_CALCULATORS;
+      case 'communications': return COMMUNICATIONS_CALCULATORS;
+      default: return {} as Record<string, (data: Record<string, any>[]) => number | string>;
+    }
+  })();
+
+  const mergedCustom = { ...(customCalculators || {}), ...moduleCustomCalculators };
+
   const {
     visibleStatistics,
     statisticsByCategory,
@@ -289,7 +302,7 @@ export default function ConfigurableStatisticsBar({
   } = useStatistics({
     module,
     data: safeData,
-    customCalculators,
+    customCalculators: mergedCustom,
   });
 
   useEffect(() => {

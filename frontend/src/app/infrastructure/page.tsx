@@ -94,7 +94,9 @@ export default function InfrastructurePage() {
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{r.location || r.type || ''}</p>
                       <p className="text-xs text-gray-400 mt-2">{r.description || ''}</p>
                     </div>
-                    <div className="text-xs text-gray-400">{r.capacity ?? ''}</div>
+                    <div className="text-xs text-gray-400">
+                      {r.capacity?.area_m2 ? `${r.capacity.area_m2} m²` : (r.capacity?.units ? `${r.capacity.units} units` : '')}
+                    </div>
                   </div>
                   <div className="mt-4 flex items-center gap-2">
                     {(
