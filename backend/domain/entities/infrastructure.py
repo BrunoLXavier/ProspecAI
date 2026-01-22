@@ -54,6 +54,8 @@ class Infrastructure(BaseEntity):
     
     # Media files (OneToMany - stored as URLs/references)
     midias: List[Dict[str, Any]] = Field(default_factory=list, description="List of media objects with url, type, description")
+    # Equipments attached to this infrastructure
+    equipamentos: List[Dict[str, Any]] = Field(default_factory=list, description="List of equipment objects with name, serial, description, status")
     
     class Config:
         from_attributes = True
@@ -90,6 +92,7 @@ class InfrastructureCreate(BaseEntity):
     plataformas_tecnologicas: List[str] = Field(default_factory=list)
     areas_conhecimento: List[str] = Field(default_factory=list)
     macroareas_pesquisa: List[str] = Field(default_factory=list)
+    equipamentos: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class InfrastructureUpdate(BaseEntity):
@@ -107,3 +110,4 @@ class InfrastructureUpdate(BaseEntity):
     plataformas_tecnologicas: Optional[List[str]] = None
     areas_conhecimento: Optional[List[str]] = None
     macroareas_pesquisa: Optional[List[str]] = None
+    equipamentos: Optional[List[Dict[str, Any]]] = None

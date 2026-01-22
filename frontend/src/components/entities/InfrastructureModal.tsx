@@ -31,6 +31,7 @@ interface Infrastructure {
   areas_conhecimento: string[];
   macroareas_pesquisa: string[];
   midias: MediaItem[];
+  equipamentos: EquipmentItem[];
 }
 
 interface MediaItem {
@@ -40,6 +41,14 @@ interface MediaItem {
   added_at?: string;
 }
 
+interface EquipmentItem {
+  id?: string;
+  nome: string;
+  serial?: string;
+  descricao?: string;
+  status?: string;
+  added_at?: string;
+}
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -101,6 +110,10 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
   const [newArea, setNewArea] = useState('');
   const [newMacroarea, setNewMacroarea] = useState('');
   const [newMedia, setNewMedia] = useState<MediaItem>({ url: '', type: 'image', description: '' });
+  const [newEquipName, setNewEquipName] = useState('');
+  const [newEquipSerial, setNewEquipSerial] = useState('');
+  const [newEquipDesc, setNewEquipDesc] = useState('');
+  const [newEquipStatus, setNewEquipStatus] = useState('');
 
   const { register, handleSubmit, reset, control, watch, setValue, formState: { errors } } = useForm<Infrastructure>({
     defaultValues: {
@@ -119,6 +132,7 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
       areas_conhecimento: [],
       macroareas_pesquisa: [],
       midias: [],
+      equipamentos: [],
     }
   });
 
@@ -143,6 +157,7 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
   const areas = watch('areas_conhecimento') || [];
   const macroareas = watch('macroareas_pesquisa') || [];
   const midias = watch('midias') || [];
+  const equipamentos = watch('equipamentos') || [];
 
   useEffect(() => {
     if (resource) {
@@ -162,6 +177,7 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
         areas_conhecimento: resource.areas_conhecimento || [],
         macroareas_pesquisa: resource.macroareas_pesquisa || [],
         midias: resource.midias || [],
+        equipamentos: resource.equipamentos || [],
       });
     } else {
       reset({
@@ -180,6 +196,7 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
         areas_conhecimento: [],
         macroareas_pesquisa: [],
         midias: [],
+        equipamentos: [],
       });
     }
   }, [resource, reset]);
@@ -256,9 +273,19 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
     setValue('midias', midias.filter((_, i) => i !== index));
   };
 
+  // Equipments management
+  const addEquipment = (item: EquipmentItem) => {
+    const toAdd = { ...item, added_at: new Date().toISOString() };
+    setValue('equipamentos', [...equipamentos, toAdd]);
+  };
+
+  const removeEquipment = (index: number) => {
+    setValue('equipamentos', equipamentos.filter((_, i) => i !== index));
+  };
+
   const tabs = [
     { name: t('basicInfo') || 'Informações Básicas', key: 'basic' },
-    { name: t('maturityTab') || 'Maturidade', key: 'maturity' },
+    { name: t('equipmentsTab') || 'Equipamentos', key: 'equipments' },
     { name: t('areasTab') || 'Áreas e Plataformas', key: 'areas' },
     { name: t('mediaTab') || 'Mídias', key: 'media' },
   ];
@@ -445,68 +472,54 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
                         </div>
                       </Tab.Panel>
 
-                      {/* Tab 2: Maturity */}
+                      {/* Tab 2: Equipments */}
                       <Tab.Panel className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {t('maturityManagement') || 'Maturidade de Gestão'}
-                          </label>
-                          <select
-                            {...register('maturidade_gestao')}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                          >
-                            <option value="">{t('selectMaturity') || 'Selecione'}</option>
-                            {maturidadeGestaoOptions.map(opt => (
-                              <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                          </select>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{t('equipmentsHint') || 'Registre equipamentos associados a esta infraestrutura.'}</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Add equipment form */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              {t('techBaseMaturity') || 'Base Tecnológica'} (0-5)
-                            </label>
-                            <input
-                              type="number"
-                              step="0.1"
-                              min="0"
-                              max="5"
-                              {...register('maturidade_base_tecnologica', { min: 0, max: 5, valueAsNumber: true })}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentName') || 'Nome'}</label>
+                            <input value={newEquipName} onChange={(e) => setNewEquipName(e.target.value)} className="w-full px-3 py-2 border rounded" />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              {t('productsMaturity') || 'Produtos/Serviços'} (0-5)
-                            </label>
-                            <input
-                              type="number"
-                              step="0.1"
-                              min="0"
-                              max="5"
-                              {...register('maturidade_produtos_servicos', { min: 0, max: 5, valueAsNumber: true })}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentSerial') || 'Serial'}</label>
+                            <input value={newEquipSerial} onChange={(e) => setNewEquipSerial(e.target.value)} className="w-full px-3 py-2 border rounded" />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              {t('cooperationMaturity') || 'Cooperação'} (0-5)
-                            </label>
-                            <input
-                              type="number"
-                              step="0.1"
-                              min="0"
-                              max="5"
-                              {...register('maturidade_cooperacao', { min: 0, max: 5, valueAsNumber: true })}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentStatus') || 'Status'}</label>
+                            <select value={newEquipStatus} onChange={(e) => setNewEquipStatus(e.target.value)} className="w-full px-3 py-2 border rounded">
+                              <option value="">{t('select') || 'Select'}</option>
+                              {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">&nbsp;</label>
+                            <div className="flex gap-2">
+                              <input value={newEquipDesc} onChange={(e) => setNewEquipDesc(e.target.value)} placeholder={t('equipmentDesc') || 'Descrição'} className="flex-1 px-3 py-2 border rounded" />
+                              <button type="button" onClick={() => { if (newEquipName) { addEquipment({ nome: newEquipName, serial: newEquipSerial, descricao: newEquipDesc, status: newEquipStatus }); setNewEquipName(''); setNewEquipSerial(''); setNewEquipDesc(''); setNewEquipStatus(''); } }} className="px-3 py-2 bg-primary-600 text-white rounded">{t('add') || 'Adicionar'}</button>
+                            </div>
                           </div>
                         </div>
 
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                          {t('maturityHint') || 'Os valores de maturidade variam de 0 a 5, com uma casa decimal.'}
-                        </p>
+                        {/* List equipments */}
+                        <div className="space-y-2 mt-4">
+                          {equipamentos.length === 0 && <p className="text-sm text-gray-500">{t('noEquipments') || 'Nenhum equipamento registrado.'}</p>}
+                          {equipamentos.map((eq: EquipmentItem, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between p-3 border rounded">
+                              <div>
+                                <div className="font-medium">{eq.nome} {eq.serial ? `(${eq.serial})` : ''}</div>
+                                <div className="text-sm text-gray-500">{eq.descricao}</div>
+                                <div className="text-xs text-gray-400">{eq.status}</div>
+                              </div>
+                              <div>
+                                <button type="button" onClick={() => removeEquipment(idx)} className="text-red-600">{t('remove') || 'Remover'}</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </Tab.Panel>
 
                       {/* Tab 3: Areas and Platforms */}

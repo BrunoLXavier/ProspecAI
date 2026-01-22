@@ -50,6 +50,7 @@ class InfrastructureRepository:
             areas_conhecimento=model.areas_conhecimento or [],
             macroareas_pesquisa=model.macroareas_pesquisa or [],
             midias=model.midias or [],
+            equipamentos=model.equipamentos or [],
             created_at=model.created_at,
             updated_at=model.updated_at,
             deleted_at=model.deleted_at,
@@ -83,6 +84,7 @@ class InfrastructureRepository:
             areas_conhecimento=data.areas_conhecimento or [],
             macroareas_pesquisa=data.macroareas_pesquisa or [],
             midias=data.midias or [],
+            equipamentos=data.equipamentos or [],
             # Legacy compatibility
             name=data.nome,
             description=data.descricao,

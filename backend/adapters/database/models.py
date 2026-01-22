@@ -206,6 +206,8 @@ class PortfolioProjectModel(BaseModel):
     
     # Media files
     midias = Column(JSON, default=list)
+    # Equipment list stored as JSON objects
+    equipamentos = Column(JSON, default=list)
     
     # Legacy compatibility with Project model
     team_members = Column(JSON, default=list)
