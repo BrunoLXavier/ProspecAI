@@ -5,7 +5,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -31,6 +31,7 @@ interface Opportunity {
 
 export default function OpportunityPipeline() {
   const t = useTranslations('pipeline');
+  const router = useRouter();
 
   // Fetch real pipeline data + sample items per stage
   const { data: pipelineData = { stages: [], stageItems: [] }, isLoading } = useQuery<{ stages: any[]; stageItems: any[] }>({
@@ -114,16 +115,16 @@ export default function OpportunityPipeline() {
 
               {/* Opportunities: hidden on small screens when collapsed, always visible on md+ */}
               <div className={`${openStage === stage.key ? 'block' : 'hidden'} md:block space-y-2`}>
-                {stageOpps.length === 0 ? (
+                  {stageOpps.length === 0 ? (
                   <div className="text-center py-6 text-sm text-gray-400 dark:text-gray-500">
                     Nenhuma oportunidade
                   </div>
                 ) : (
                   stageOpps.map((opp: any) => (
-                    <Link
+                    <button
                       key={opp.id}
-                      href={`/opportunities?id=${opp.id}`}
-                      className="block p-3 bg-white dark:bg-slate-800 rounded-lg shadow-soft hover:shadow-elevated transition-all duration-200 cursor-pointer group w-full"
+                      onClick={() => router.push(`/opportunities?id=${opp.id}`, { scroll: false })}
+                      className="w-full text-left block p-3 bg-white dark:bg-slate-800 rounded-lg shadow-soft hover:shadow-elevated transition-all duration-200 cursor-pointer group"
                     >
                       <h4 className="font-medium text-sm text-gray-900 dark:text-white mb-2 group-hover:text-primary-500 transition-colors">
                         {opp.title}
@@ -138,7 +139,7 @@ export default function OpportunityPipeline() {
                           }).format(opp.estimatedValue)}
                         </span>
                       </div>
-                    </Link>
+                    </button>
                   ))
                 )}
               </div>

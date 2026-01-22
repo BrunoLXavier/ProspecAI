@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   CalendarDaysIcon,
   ClockIcon,
@@ -47,6 +47,7 @@ const priorityColors: Record<string, string> = {
 
 export default function CalendarWidget() {
   const t = useTranslations('calendar');
+  const router = useRouter();
   const [data, setData] = useState<CalendarData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,9 +216,9 @@ export default function CalendarWidget() {
             const cardClassName = `block p-3 rounded-lg bg-gray-50 dark:bg-slate-700/50 border-l-4 ${priorityColors[event.priority] || priorityColors.low} hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer`;
 
             return eventLink ? (
-              <Link key={event.id} href={eventLink} className={cardClassName}>
+              <button key={event.id} onClick={() => router.push(eventLink, { scroll: false })} className={cardClassName}>
                 {cardContent}
-              </Link>
+              </button>
             ) : (
               <div key={event.id} className={cardClassName}>
                 {cardContent}

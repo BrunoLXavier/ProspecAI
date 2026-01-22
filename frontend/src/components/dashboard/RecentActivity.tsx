@@ -4,7 +4,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -33,6 +33,7 @@ const activityIcons: Record<string, { icon: React.ElementType; colors: string }>
 
 export default function RecentActivity() {
   const t = useTranslations('dashboard');
+  const router = useRouter();
 
   // Fetch recent activities from backend: combine recent opportunities and proposals
   const { data: activities = [], isLoading } = useQuery<Activity[]>({
@@ -125,14 +126,15 @@ export default function RecentActivity() {
       </>
     );
 
+    const router = useRouter();
     if (activity.href) {
       return (
-        <Link
-          href={activity.href}
-          className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer"
+        <button
+          onClick={() => router.push(activity.href as string, { scroll: false })}
+          className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer w-full text-left"
         >
           {content}
-        </Link>
+        </button>
       );
     }
 
@@ -158,12 +160,12 @@ export default function RecentActivity() {
 
       {/* View All Link */}
       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
-        <Link
-          href="/activity"
+        <button
+          onClick={() => router.push('/activity')}
           className="text-sm font-medium text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
         >
           Ver toda a atividade →
-        </Link>
+        </button>
       </div>
     </Card>
   );

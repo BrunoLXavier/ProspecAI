@@ -12,6 +12,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import InfrastructureModal from '@/components/entities/InfrastructureModal';
 
 export default function InfrastructurePage() {
   const t = useTranslations('infrastructure');
@@ -19,6 +20,8 @@ export default function InfrastructurePage() {
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
   const [filters, setFilters] = useState({ search: '' });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedResource, setSelectedResource] = useState<any | null>(null);
 
   const filterFields: FilterField[] = [
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
@@ -56,7 +59,7 @@ export default function InfrastructurePage() {
         onViewChange={setViewMode}
         action={(
           canCreateResource ? (
-            <button className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+            <button onClick={() => { setSelectedResource(null); setModalOpen(true); }} className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
               <PlusIcon className="w-5 h-5 mr-2" />
               {t('newResource')}
             </button>
@@ -100,7 +103,7 @@ export default function InfrastructurePage() {
                     ) && (
                       <a href={`/infrastructure/${r.id}/booking`} className="text-sm text-primary-600 hover:underline">Book</a>
                     )}
-                    <a href={`/infrastructure/${r.id}`} className="ml-auto text-sm text-gray-500">Details</a>
+                    <button onClick={() => { setSelectedResource(r); setModalOpen(true); }} className="ml-auto text-sm text-gray-500">Details</button>
                   </div>
                 </li>
               ))}
@@ -108,6 +111,7 @@ export default function InfrastructurePage() {
           )}
         </div>
       )}
+      <InfrastructureModal isOpen={modalOpen} onClose={() => setModalOpen(false)} resource={selectedResource} />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import CommunicationModal from '@/components/entities/CommunicationModal';
 
 export default function CommunicationsPage() {
   const t = useTranslations('communications');
@@ -16,6 +17,8 @@ export default function CommunicationsPage() {
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
   const [filters, setFilters] = useState({ search: '' });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedComm, setSelectedComm] = useState<any | null>(null);
 
   const filterFields: FilterField[] = [
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
@@ -37,7 +40,7 @@ export default function CommunicationsPage() {
         viewMode={viewMode}
         onViewChange={setViewMode}
         action={(
-          <button className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+          <button onClick={() => { setSelectedComm(null); setModalOpen(true); }} className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
             <PlusIcon className="w-5 h-5 mr-2" />
             {t('new')}
           </button>
@@ -62,12 +65,13 @@ export default function CommunicationsPage() {
           ) : (
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {filtered.map((it, idx) => (
-                <li key={idx} className="px-6 py-4">{it.title || 'Item'}</li>
+                <li key={idx} className="px-6 py-4"><button onClick={() => { setSelectedComm(it); setModalOpen(true); }}>{it.title || 'Item'}</button></li>
               ))}
             </ul>
           )}
         </div>
       )}
+      <CommunicationModal isOpen={modalOpen} onClose={() => setModalOpen(false)} comm={selectedComm} />
     </div>
   );
 }

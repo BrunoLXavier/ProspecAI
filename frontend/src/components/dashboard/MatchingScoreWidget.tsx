@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 // translations for this widget are not used; avoid requiring a missing namespace
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   SparklesIcon,
   ArrowRightIcon,
@@ -46,6 +46,7 @@ function getScoreBadge(score: number): { bg: string; text: string } {
 }
 
 export default function MatchingScoreWidget() {
+  const router = useRouter();
   const [data, setData] = useState<MatchingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,10 +137,10 @@ export default function MatchingScoreWidget() {
         {data?.matches.map((match) => {
           const badge = getScoreBadge(match.score);
           return (
-            <Link
+            <button
               key={match.id}
-              href={`/opportunities?id=${match.id}`}
-              className="block p-3 rounded-lg bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              onClick={() => router.push(`/opportunities?id=${match.id}`, { scroll: false })}
+              className="w-full text-left block p-3 rounded-lg bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className={`text-lg font-bold ${getScoreColor(match.score)}`}>
@@ -199,7 +200,7 @@ export default function MatchingScoreWidget() {
                   </div>
                 </div>
               </div>
-            </Link>
+            </button>
           );
         })}
       </div>

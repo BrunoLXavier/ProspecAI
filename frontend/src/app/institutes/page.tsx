@@ -11,6 +11,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import InstituteModal from '@/components/entities/InstituteModal';
 
 export default function InstitutesPage() {
   const t = useTranslations('institutes');
@@ -18,6 +19,8 @@ export default function InstitutesPage() {
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
   const [filters, setFilters] = useState({ search: '' });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedInstitute, setSelectedInstitute] = useState<any | null>(null);
 
   const filterFields: FilterField[] = [
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
@@ -51,7 +54,7 @@ export default function InstitutesPage() {
         viewMode={viewMode}
         onViewChange={setViewMode}
         action={(
-          <button className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+          <button onClick={() => { setSelectedInstitute(null); setModalOpen(true); }} className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
             <PlusIcon className="w-5 h-5 mr-2" />
             {t('new')}
           </button>
@@ -88,7 +91,7 @@ export default function InstitutesPage() {
                   </div>
                   <div className="mt-4 flex items-center gap-2">
                     <a href={`/institutes/${it.id}/members`} className="text-sm text-primary-600 hover:underline">Manage members</a>
-                    <a href={`/institutes/${it.id}`} className="ml-auto text-sm text-gray-500">Details</a>
+                    <button onClick={() => { setSelectedInstitute(it); setModalOpen(true); }} className="ml-auto text-sm text-gray-500">Details</button>
                   </div>
                 </li>
               ))}
@@ -96,6 +99,7 @@ export default function InstitutesPage() {
           )}
         </div>
       )}
+      <InstituteModal isOpen={modalOpen} onClose={() => setModalOpen(false)} institute={selectedInstitute} />
     </div>
   );
 }

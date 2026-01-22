@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ChartBarIcon,
   ArrowTrendingUpIcon,
@@ -53,6 +53,7 @@ const stageLabels: Record<string, string> = {
 
 export default function OpportunitiesWidget() {
   const t = useTranslations('opportunities');
+  const router = useRouter();
   const [data, setData] = useState<OpportunitiesData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -123,13 +124,13 @@ export default function OpportunitiesWidget() {
             Oportunidades Recentes
           </h3>
         </div>
-        <Link
-          href="/opportunities"
+        <button
+          onClick={() => router.push('/opportunities')}
           className="text-sm text-firjan-red hover:text-firjan-red/80 font-medium flex items-center gap-1"
         >
           <EyeIcon className="w-4 h-4" />
           Ver todas
-        </Link>
+        </button>
       </div>
 
       {/* Stats Summary */}
@@ -160,10 +161,10 @@ export default function OpportunitiesWidget() {
       {/* Opportunities List */}
       <div className="space-y-3">
         {data?.opportunities.map((opp) => (
-          <Link
+          <button
             key={opp.id}
-            href={`/opportunities?id=${opp.id}`}
-            className="block p-3 rounded-lg bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+            onClick={() => router.push(`/opportunities?id=${opp.id}`, { scroll: false })}
+            className="w-full text-left block p-3 rounded-lg bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
@@ -183,7 +184,7 @@ export default function OpportunitiesWidget() {
                 </span>
               </div>
             </div>
-          </Link>
+          </button>
         ))}
       </div>
 
