@@ -2604,6 +2604,12 @@
       "city": "City",
       "cityPlaceholder": "Select city"
     },
+    "city": "City",
+    "area": "Area",
+    "members": "Members",
+    "delete": "Delete",
+    "boardProspects": "Prospects",
+    "boardArchived": "Archived",
     "tabs": {
       "basic": "Basic",
       "address": "Address",
@@ -2651,6 +2657,9 @@
       "search": "Search",
       "searchPlaceholder": "Search teams..."
     },
+    "active": "Active",
+    "inactive": "Inactive",
+    "archived": "Archived",
     "noResults": "No teams found",
     "loading": "Loading...",
     "new": "New",
@@ -2698,6 +2707,9 @@
     "mediaTab": "Media",
     "equipmentsTab": "Equipments",
     "equipmentsHint": "List and manage equipment related to this infrastructure",
+    "available": "Available",
+    "booked": "Booked",
+    "maintenance": "Maintenance",
     "newInfrastructure": "New Infrastructure",
     "institute": "Institute",
     "selectInstitute": "Select institute",

@@ -385,6 +385,9 @@
         "search": "Buscar",
         "searchPlaceholder": "Buscar equipos..."
       },
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "archived": "Archivado",
       "noResults": "Ningún equipo encontrado",
       "loading": "Cargando...",
       "new": "Nuevo",
@@ -957,6 +960,12 @@
         "search": "Buscar",
         "searchPlaceholder": "Buscar institutos..."
       },
+      "city": "Ciudad",
+      "area": "Área",
+      "members": "Miembros",
+      "delete": "Eliminar",
+      "boardProspects": "Perspectivas",
+      "boardArchived": "Archivados",
       "new": "Nuevo",
       "boardPlaceholder": "Vista en tablero para institutos"
     },
@@ -990,6 +999,9 @@
     "equipmentsTab": "Equipos",
     "equipmentsHint": "Liste y gestione el equipo relacionado con esta infraestructura",
       "newInfrastructure": "Nueva Infraestructura",
+      "available": "Disponible",
+      "booked": "Reservado",
+      "maintenance": "Mantenimiento",
       "institute": "Instituto",
       "selectInstitute": "Seleccione el instituto",
       "name": "Nombre",

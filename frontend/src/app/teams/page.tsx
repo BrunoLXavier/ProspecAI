@@ -12,6 +12,7 @@ import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar
 import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import TeamModal from '@/components/entities/TeamModal';
+import TeamsBoard from '@/components/teams/TeamsBoard';
 
 export default function TeamsPage() {
   const t = useTranslations('teams');
@@ -71,7 +72,7 @@ export default function TeamsPage() {
       />
 
       {viewMode === 'board' ? (
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-6">{t('boardPlaceholder')}</div>
+        <TeamsBoard items={filtered} onItemClick={(it) => { setSelectedTeam(it); setModalOpen(true); }} />
       ) : (
         <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
           {isLoading ? (

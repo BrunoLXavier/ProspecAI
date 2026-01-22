@@ -14,6 +14,7 @@ import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import InstituteModal from '@/components/entities/InstituteModal';
 import InstitutesListView from '@/components/institutes/InstitutesListView';
+import InstitutesBoard from '@/components/institutes/InstitutesBoard';
 
 export default function InstitutesPage() {
   const t = useTranslations('institutes');
@@ -78,7 +79,7 @@ export default function InstitutesPage() {
       />
 
       {viewMode === 'board' ? (
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-6">{t('boardPlaceholder')}</div>
+        <InstitutesBoard items={filtered} onItemClick={(it) => { setSelectedInstitute(it); setModalOpen(true); }} />
       ) : (
         <InstitutesListView
           items={filtered}

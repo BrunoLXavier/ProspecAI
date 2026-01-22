@@ -250,6 +250,10 @@
   "portfolio": {
     "title": "Portfólio de Projetos",
     "subtitle": "Gerencie projetos de P&D e inovação",
+    "institute": "Instituto",
+    "selectInstituteHelper": "Selecione o instituto responsável por este projeto",
+    "selectInstitutePlaceholder": "Selecione um instituto",
+    "instituteRequired": "Instituto é obrigatório",
     "newProject": "Novo Projeto",
     "loading": "Carregando...",
     "noResults": "Nenhum projeto encontrado",
@@ -2665,6 +2669,12 @@
       "city": "Cidade",
       "cityPlaceholder": "Selecione a cidade"
     },
+    "city": "Cidade",
+    "area": "Área",
+    "members": "Colaboradores",
+    "delete": "Remover",
+    "boardProspects": "Prospectos",
+    "boardArchived": "Arquivados",
     "tabs": {
       "basic": "Básico",
       "address": "Endereço",
@@ -2740,6 +2750,9 @@
     "dates_hint": "Registre as datas de vínculo com o instituto.",
     "cancel": "Cancelar",
     "create": "Criar"
+    ,"active": "Ativo",
+    "inactive": "Inativo",
+    "archived": "Arquivado"
   },
   "infrastructure": {
     "title": "Infraestrutura",
@@ -2760,6 +2773,9 @@
     "equipmentsTab": "Equipamentos",
     "equipmentsHint": "Liste e gerencie os equipamentos relacionados a esta infraestrutura",
     "newInfrastructure": "Nova Infraestrutura",
+    "available": "Disponível",
+    "booked": "Reservado",
+    "maintenance": "Manutenção",
     "institute": "Instituto",
     "selectInstitute": "Selecione o instituto",
     "name": "Nome",

@@ -13,6 +13,7 @@ import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar
 import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import InfrastructureModal from '@/components/entities/InfrastructureModal';
+import InfrastructureBoard from '@/components/infrastructure/InfrastructureBoard';
 
 export default function InfrastructurePage() {
   const t = useTranslations('infrastructure');
@@ -77,7 +78,7 @@ export default function InfrastructurePage() {
       />
 
       {viewMode === 'board' ? (
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-6">{t('boardPlaceholder')}</div>
+        <InfrastructureBoard items={filtered} onItemClick={(r) => { setSelectedResource(r); setModalOpen(true); }} />
       ) : (
         <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
           {isLoading ? (
