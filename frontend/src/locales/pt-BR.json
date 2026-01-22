@@ -185,6 +185,7 @@
       "closed": "Fechados",
       "suspended": "Suspensos"
     },
+    "noInstituteSelectedHint": "Nenhum instituto selecionado — os resultados podem ser globais. Use o seletor de instituto no cabeçalho para filtrar.",
     "statusLabel": "Status",
     "view": "view"
   },
@@ -384,6 +385,8 @@
     "linkedOpportunity": "Linked Opportunity",
     "totalValue": "Total Value"
   },
+  "newResource": "Novo Recurso",
+  "noInstituteSelectedHint": "Nenhum instituto selecionado — os resultados podem ser globais. Use o seletor de instituto no cabeçalho para filtrar.",
   "ingestion": {
     "title": "Ingestão de Dados",
     "titleEdit": "Editar Job de Ingestão",
@@ -2662,6 +2665,7 @@
     "noResults": "Nenhum resultado encontrado",
     "loading": "Carregando...",
     "new": "Novo",
-    "boardPlaceholder": "Visão em quadro para infraestrutura"
+    "boardPlaceholder": "Visão em quadro para infraestrutura",
+    "newResource": "Novo recurso"
   }
 }

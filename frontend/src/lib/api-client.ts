@@ -311,30 +311,30 @@ class ApiClient {
     skip?: number;
     limit?: number;
   }) {
-    const response = await this.client.get('/api/v1/crm/clients', { params });
+    const response = await this.client.get('/api/v1/clients', { params });
     return response.data;
   }
 
   async getClient(id: string) {
-    const response = await this.client.get(`/api/v1/crm/clients/${id}`);
+    const response = await this.client.get(`/api/v1/clients/${id}`);
     return response.data;
   }
 
   async createClient(data: any, enrichFromCNPJ: boolean = true) {
-    const response = await this.client.post('/api/v1/crm/clients', data, {
+    const response = await this.client.post('/api/v1/clients', data, {
       params: { enrich_from_cnpj: enrichFromCNPJ },
     });
     return response.data;
   }
 
   async enrichCNPJ(cnpj: string) {
-    const response = await this.client.post(`/api/v1/crm/enrich-cnpj/${cnpj}`);
+    const response = await this.client.post(`/api/v1/clients/enrich-cnpj/${cnpj}`);
     return response.data;
   }
 
   async createInteraction(clientId: string, data: any, detectDemands: boolean = true) {
     const response = await this.client.post(
-      `/api/v1/crm/clients/${clientId}/interactions`,
+      `/api/v1/clients/${clientId}/interactions`,
       data,
       { params: { detect_demands: detectDemands } }
     );
@@ -342,7 +342,7 @@ class ApiClient {
   }
 
   async listInteractions(clientId: string, params?: { skip?: number; limit?: number }) {
-    const response = await this.client.get(`/api/v1/crm/clients/${clientId}/interactions`, { params });
+    const response = await this.client.get(`/api/v1/clients/${clientId}/interactions`, { params });
     return response.data;
   }
 

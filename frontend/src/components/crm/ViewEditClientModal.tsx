@@ -85,7 +85,7 @@ export default function ViewEditClientModal({
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => 
-      apiClient.put(`/api/v1/crm/clients/${client!.id}`, data),
+      apiClient.put(`/api/v1/clients/${client!.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       setIsEditing(false);
@@ -93,7 +93,7 @@ export default function ViewEditClientModal({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => apiClient.delete(`/api/v1/crm/clients/${client!.id}`),
+    mutationFn: () => apiClient.delete(`/api/v1/clients/${client!.id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       onClose();

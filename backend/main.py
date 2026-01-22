@@ -199,7 +199,7 @@ app.include_router(contact_routes)
 app.include_router(admin_settings_routes)
 app.include_router(funding_routes, prefix="/api/v1/funding")
 app.include_router(portfolio_routes)
-app.include_router(crm_routes, prefix="/api/v1/crm")
+app.include_router(crm_routes, prefix="/api/v1/clients")
 app.include_router(opportunities_routes, prefix="/api/v1/opportunities")
 app.include_router(proposals_routes)
 app.include_router(matching_routes)
@@ -238,7 +238,7 @@ async def api_root():
             "admin_settings": "/api/v1/admin/settings",
             "funding": "/api/v1/funding",
             "portfolio": "/api/v1/portfolio",
-            "crm": "/api/v1/crm",
+            "crm": "/api/v1/clients",
             "opportunities": "/api/v1/opportunities",
             "matching": "/api/v1/matching",
             "proposals": "/api/v1/proposals",

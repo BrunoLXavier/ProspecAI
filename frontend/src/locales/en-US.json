@@ -165,6 +165,7 @@
       "closed": "Closed",
       "suspended": "Suspended"
     },
+    "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter.",
     "view": "view"
   },
   "crm": {
@@ -2599,6 +2600,8 @@
     "noResults": "No results found",
     "loading": "Loading...",
     "new": "New",
-    "boardPlaceholder": "Board view for infrastructure"
-  }
+    "boardPlaceholder": "Board view for infrastructure",
+    "newResource": "New Resource"
+  },
+  "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter."
 }

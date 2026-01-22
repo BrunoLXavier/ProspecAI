@@ -227,24 +227,28 @@ class ClientModel(BaseModel):
     
     name = Column(String(500), nullable=False)
     client_type = Column(String(50), nullable=False)
-    
-    # Encrypted PII fields
-    cnpj = Column(String(14), nullable=True, index=True)
-    email = Column(String(255), nullable=True)
-    phone = Column(String(50), nullable=True)
-    
-    address = Column(JSON, nullable=True)
-    
-    auto_filled_data = Column(JSON, nullable=True)
-    auto_fill_confidence = Column(Numeric(3, 2), nullable=True)
-    
-    contact_person = Column(String(500), nullable=True)
     sector = Column(String(200), nullable=True)
-    website = Column(Text, nullable=True)
-    
-    interaction_ids = Column(JSON, default=list)
-    detected_demands = Column(JSON, default=list)
-    
+    size_category = Column(String(100), nullable=True)
+
+    # Encrypted PII fields - map to actual DB column names used in deployed
+    # schemas (e.g. *_encrypted suffix)
+    cnpj = Column('cnpj_encrypted', Text, nullable=True, index=True)
+    email = Column('email_encrypted', Text, nullable=True)
+    phone = Column('phone_encrypted', Text, nullable=True)
+
+    # Address stored as JSON under a different column name
+    address = Column('address_data', JSON, nullable=True)
+
+    # Auto-fill metadata (timestamp and confidence are present in DB)
+    cnpj_data_source = Column('cnpj_data_source', String(100), nullable=True)
+    auto_fill_confidence = Column('auto_fill_confidence', Numeric(3, 2), nullable=True)
+    auto_filled_at = Column('auto_filled_at', DateTime(timezone=True), nullable=True)
+
+    detected_demands = Column('detected_demands', JSON, default=list)
+    # Historical interaction patterns stored under `interaction_patterns`
+    interaction_ids = Column('interaction_patterns', JSON, default=list)
+    engagement_score = Column('engagement_score', Numeric(5, 2), nullable=True)
+
     __table_args__ = (
         Index('idx_client_type', 'client_type'),
     )

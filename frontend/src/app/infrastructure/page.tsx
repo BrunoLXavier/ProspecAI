@@ -28,7 +28,7 @@ export default function InfrastructurePage() {
     queryKey: ['infrastructure', 'page'],
     queryFn: async () => {
       try {
-        const resp = await apiClient.get('/api/v1/infrastructure');
+        const resp = await apiClient.get('/api/v1/infrastructures');
         return resp?.items ?? resp ?? [];
       } catch (e) {
         console.debug('[Infrastructure] Failed to load resources', e);

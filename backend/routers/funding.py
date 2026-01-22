@@ -25,6 +25,7 @@ from infrastructure.serializers import to_primitive
 
 from domain.entities.funding_source import FundingSource, InstrumentType
 from use_cases.manage_funding import ManageFundingUseCase
+from datetime import datetime as _datetime
 
 router = APIRouter()
 
@@ -35,8 +36,8 @@ class FundingSourceCreate(BaseModel):
     institution: str
     instrument_type: InstrumentType
     total_amount: float
-    submission_start: date
-    submission_end: date
+    submission_start: datetime
+    submission_end: datetime
     trl_min: int = Field(ge=1, le=9)
     trl_max: int = Field(ge=1, le=9)
     description: str
@@ -48,7 +49,7 @@ class FundingSourceUpdate(BaseModel):
     name: Optional[str] = None
     status: Optional[str] = None
     total_amount: Optional[float] = None
-    submission_end: Optional[date] = None
+    submission_end: Optional[datetime] = None
     description: Optional[str] = None
 
 
@@ -59,8 +60,8 @@ class FundingSourceResponse(BaseModel):
     instrument_type: str
     status: str
     total_amount: float
-    submission_start: date
-    submission_end: date
+    submission_start: datetime
+    submission_end: datetime
     trl_min: Optional[int]
     trl_max: Optional[int]
     ai_confidence_score: Optional[float] = None
@@ -211,6 +212,21 @@ async def list_funding_sources(
     items = []
     for fs in results:
         # Use domain entity attributes; fallback safely
+        def _to_iso_datetime(v):
+            if v is None:
+                return None
+            # datetime-like objects
+            if hasattr(v, 'isoformat') and callable(v.isoformat):
+                try:
+                    return v.isoformat()
+                except Exception:
+                    pass
+            # parse string representations
+            try:
+                return _datetime.fromisoformat(str(v)).isoformat()
+            except Exception:
+                return None
+
         items.append({
             "id": str(fs.id),
             "name": getattr(fs, "name", None),
@@ -218,8 +234,8 @@ async def list_funding_sources(
             "instrument_type": getattr(fs, "instrument_type", None),
             "status": getattr(fs, "status", None),
             "total_amount": float(getattr(fs, "total_amount", 0)) if getattr(fs, "total_amount", None) is not None else 0.0,
-            "submission_start": getattr(fs, "submission_start", None).isoformat() if getattr(fs, "submission_start", None) else None,
-            "submission_end": getattr(fs, "submission_end", None).isoformat() if getattr(fs, "submission_end", None) else None,
+            "submission_start": _to_iso_datetime(getattr(fs, "submission_start", None)),
+            "submission_end": _to_iso_datetime(getattr(fs, "submission_end", None)),
             "trl_min": getattr(fs, "trl_min", None),
             "trl_max": getattr(fs, "trl_max", None),
             "ai_confidence_score": getattr(fs, "ai_confidence_score", None),
@@ -263,8 +279,8 @@ async def get_funding_source(
             "instrument_type": row.instrument_type,
             "status": row.status,
             "total_amount": float(row.total_amount) if row.total_amount is not None else 0.0,
-            "submission_start": row.submission_start.date() if row.submission_start else None,
-            "submission_end": row.submission_end.date() if row.submission_end else None,
+            "submission_start": row.submission_start.isoformat() if row.submission_start else None,
+            "submission_end": row.submission_end.isoformat() if row.submission_end else None,
             "trl_min": int(row.trl_min) if row.trl_min is not None else None,
             "trl_max": int(row.trl_max) if row.trl_max is not None else None,
             "ai_confidence_score": float(row.ai_confidence_score) if row.ai_confidence_score is not None else None,
@@ -329,8 +345,8 @@ async def create_funding_source(
         "instrument_type": row.instrument_type,
         "status": row.status,
         "total_amount": float(row.total_amount) if row.total_amount is not None else 0.0,
-        "submission_start": row.submission_start.date() if row.submission_start else None,
-        "submission_end": row.submission_end.date() if row.submission_end else None,
+            "submission_start": row.submission_start.isoformat() if row.submission_start else None,
+            "submission_end": row.submission_end.isoformat() if row.submission_end else None,
         "trl_min": int(row.trl_min) if row.trl_min is not None else None,
         "trl_max": int(row.trl_max) if row.trl_max is not None else None,
         "ai_confidence_score": float(row.ai_confidence_score) if row.ai_confidence_score is not None else None,

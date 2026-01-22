@@ -166,6 +166,7 @@
       "closed": "Cerrado",
       "suspended": "Suspendido"
     },
+    "noInstituteSelectedHint": "Ningún instituto seleccionado — los resultados pueden ser globales. Use el selector de instituto en el encabezado para filtrar.",
     "view": "view"
   },
   "crm": {
@@ -471,7 +472,8 @@
     "opportunity": "opportunity",
     "opportunityPlaceholder": "opportunityPlaceholder",
     "view": "view",
-    "createJob": "Create Job",
+    "boardPlaceholder": "Board view for infrastructure",
+    "newResource": "Nuevo recurso",
     "createJobPrompt": "Create a new job to get started",
     "creating": "Creating...",
     "noJobs": "No ingestion jobs found",
@@ -2623,4 +2625,7 @@
     "portfolio": "Portfolio",
     "proposals": "Proposals"
   }
+  ,
+  "newResource": "Nuevo Recurso",
+  "noInstituteSelectedHint": "Ningún instituto seleccionado — los resultados pueden ser globales. Use el selector de instituto en el encabezado para filtrar."
 }

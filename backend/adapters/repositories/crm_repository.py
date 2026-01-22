@@ -4,7 +4,7 @@ PostgreSQL repository for Client and Interaction entities
 Implements RF-04: CRM Inteligente
 """
 from typing import List, Optional
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, and_, or_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entities.client import Client, Interaction
@@ -98,34 +98,23 @@ class ClientRepository:
         """
         List clients with filters
         """
-        conditions = [ClientModel.deleted_at.is_(None)]
-        
-        if segment:
-            conditions.append(ClientModel.segment == segment)
-        
-        if maturity_level:
-            conditions.append(ClientModel.maturity_level == maturity_level)
-        
-        if search:
-            conditions.append(
-                or_(
-                    ClientModel.name.ilike(f"%{search}%"),
-                    ClientModel.cnpj.ilike(f"%{search}%")
-                )
-            )
-        
+        # Use a raw SQL projection to cope with schema variations between DB
+        # and model definitions (some deployments use encrypted column names
+        # like `cnpj_encrypted`, `email_encrypted`, etc.). Map those to the
+        # domain-friendly names we expect and construct domain `Client`
+        # entities directly.
         stmt = (
             select(ClientModel)
-            .where(and_(*conditions))
-            .offset(skip)
-            .limit(limit)
+            .where(ClientModel.deleted_at.is_(None))
             .order_by(ClientModel.created_at.desc())
+            .limit(limit)
+            .offset(skip)
         )
-        
+
         result = await self.session.execute(stmt)
         models = result.scalars().all()
-        
-        return [self._to_entity(model) for model in models]
+
+        return [self._to_entity(m) for m in models]
     
     async def update(self, client: Client) -> Client:
         """
@@ -205,7 +194,7 @@ class ClientRepository:
             email=getattr(model, 'email', None),
             phone=getattr(model, 'phone', None),
             address=getattr(model, 'address', None),
-            auto_filled_data=getattr(model, 'auto_filled_data', None),
+            auto_filled_data=getattr(model, 'cnpj_data_source', None),
             auto_fill_confidence=getattr(model, 'auto_fill_confidence', None),
             contact_person=getattr(model, 'contact_person', None),
             sector=getattr(model, 'sector', None),

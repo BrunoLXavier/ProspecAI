@@ -87,7 +87,7 @@ class CNPJEnrichmentResponse(BaseModel):
     confidence_score: float
 
 
-@router.get("/clients", response_model=List[ClientResponse])
+@router.get("/", response_model=List[ClientResponse])
 async def list_clients(
     segment: Optional[str] = Query(
         None,
@@ -176,7 +176,7 @@ async def list_clients(
     return to_primitive(out)
 
 
-@router.get("/clients/{client_id}", response_model=ClientResponse)
+@router.get("/{client_id}", response_model=ClientResponse)
 async def get_client(
     client_id: str,
     container: DependencyContainer = Depends(get_di_container),
@@ -211,7 +211,7 @@ async def get_client(
     })
 
 
-@router.post("/clients", response_model=ClientResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ClientResponse, status_code=status.HTTP_201_CREATED)
 async def create_client(
     data: ClientCreate,
     enrich_from_cnpj: bool = True,
@@ -257,7 +257,7 @@ async def create_client(
     })
 
 
-@router.patch("/clients/{client_id}", response_model=ClientResponse)
+@router.patch("/{client_id}", response_model=ClientResponse)
 async def update_client(
     client_id: str,
     data: ClientUpdate,
@@ -292,7 +292,7 @@ async def update_client(
     return to_primitive(client)
 
 
-@router.post("/clients/{client_id}/interactions", response_model=InteractionResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/{client_id}/interactions", response_model=InteractionResponse, status_code=status.HTTP_201_CREATED)
 async def create_interaction(
     client_id: str,
     data: InteractionCreate,
@@ -325,7 +325,7 @@ async def create_interaction(
     return to_primitive(interaction)
 
 
-@router.get("/clients/{client_id}/interactions", response_model=List[InteractionResponse])
+@router.get("/{client_id}/interactions", response_model=List[InteractionResponse])
 async def list_client_interactions(
     client_id: str,
     skip: int = 0,
@@ -363,7 +363,7 @@ async def enrich_from_cnpj(
     raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="CNPJ enrichment not configured")
 
 
-@router.delete("/clients/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_client(
     client_id: str,
     container: DependencyContainer = Depends(get_di_container),
