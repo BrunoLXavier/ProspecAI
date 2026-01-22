@@ -954,3 +954,136 @@ class FeedbackModel(BaseModel):
 
 
 
+# ---------------------------------------------------------------------------
+# Communications models
+# ---------------------------------------------------------------------------
+
+
+class CommunicationThreadModel(BaseModel):
+    __tablename__ = "communication_threads"
+
+    subject = Column(String(500), nullable=True)
+    metadata_ = Column('metadata', JSON, default=dict)
+    meta = metadata_
+    last_message_preview = Column(Text, nullable=True)
+    last_message_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Linked entity for context (proposal, opportunity, client)
+    linked_entity_type = Column(String(50), nullable=True)  # 'proposal', 'opportunity', 'client'
+    linked_entity_id = Column(PGUUID(as_uuid=True), nullable=True)
+    
+    # Human-in-the-loop flags for auto-created content
+    is_auto_created = Column(Boolean, default=False)
+    auto_created_confirmed = Column(Boolean, default=False)
+
+    __table_args__ = (
+        Index('idx_comm_threads_tenant', 'tenant_id'),
+        Index('idx_comm_threads_last_message_at', 'last_message_at'),
+        Index('idx_comm_threads_linked_entity', 'linked_entity_type', 'linked_entity_id'),
+    )
+
+
+class CommunicationMessageModel(BaseModel):
+    __tablename__ = "communication_messages"
+
+    thread_id = Column(PGUUID(as_uuid=True), ForeignKey('communication_threads.id', ondelete='CASCADE'), nullable=False, index=True)
+    author = Column(String(200), nullable=False)
+    author_name = Column(String(300), nullable=True)
+    body = Column(Text, nullable=False)
+    attachments = Column(JSON, default=list)
+    
+    # Message type: text, email, meeting, audio, video
+    message_type = Column(String(50), default='text')
+    
+    # Email-specific metadata (from, to, cc, subject, etc.)
+    email_metadata = Column(JSON, default=dict)
+    
+    # Human-in-the-loop flags
+    is_auto_created = Column(Boolean, default=False)
+    auto_created_confirmed = Column(Boolean, default=False)
+
+    __table_args__ = (
+        Index('idx_comm_messages_thread', 'thread_id'),
+        Index('idx_comm_messages_created_at', 'created_at'),
+        Index('idx_comm_messages_tenant', 'tenant_id'),
+    )
+
+
+class CommunicationAttachmentModel(BaseModel):
+    __tablename__ = "communication_attachments"
+
+    thread_id = Column(PGUUID(as_uuid=True), ForeignKey('communication_threads.id', ondelete='CASCADE'), nullable=False, index=True)
+    message_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
+    filename = Column(String(1000), nullable=False)
+    object_name = Column(String(1000), nullable=False)
+    bucket = Column(String(100), nullable=False)
+    url = Column(Text, nullable=True)
+    content_type = Column(String(200), nullable=True)
+    size = Column(Integer, nullable=True)
+
+    __table_args__ = (
+        Index('idx_comm_attachments_thread', 'thread_id'),
+        Index('idx_comm_attachments_message', 'message_id'),
+        Index('idx_comm_attachments_tenant', 'tenant_id'),
+    )
+
+
+class MeetingMinutesModel(BaseModel):
+    __tablename__ = "meeting_minutes"
+
+    thread_id = Column(PGUUID(as_uuid=True), ForeignKey('communication_threads.id', ondelete='CASCADE'), nullable=False, index=True)
+    title = Column(String(500), nullable=True)
+    content = Column(Text, nullable=True)
+    status = Column(String(50), nullable=False, default='pending')
+    generated_at = Column(DateTime(timezone=True), nullable=True)
+    generated_by = Column(PGUUID(as_uuid=True), nullable=True)
+
+    __table_args__ = (
+        Index('idx_minutes_thread', 'thread_id'),
+        Index('idx_minutes_status', 'status'),
+        Index('idx_minutes_tenant', 'tenant_id'),
+    )
+
+
+class CommunicationThreadParticipantModel(Base):
+    """Thread participants with roles (owner, editor, viewer)."""
+    __tablename__ = "communication_thread_participants"
+
+    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    tenant_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    thread_id = Column(PGUUID(as_uuid=True), ForeignKey('communication_threads.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    role = Column(String(50), nullable=False, default='viewer')  # owner, editor, viewer
+    added_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    added_by = Column(PGUUID(as_uuid=True), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint('thread_id', 'user_id', name='uq_thread_participant'),
+        Index('idx_comm_participants_tenant', 'tenant_id'),
+        Index('idx_comm_participants_thread', 'thread_id'),
+        Index('idx_comm_participants_user', 'user_id'),
+    )
+
+
+class CommunicationDraftModel(Base):
+    """Draft messages for persistence."""
+    __tablename__ = "communication_drafts"
+
+    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    tenant_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    thread_id = Column(PGUUID(as_uuid=True), ForeignKey('communication_threads.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    body = Column(Text, nullable=True)
+    attachments = Column(JSON, default=list)
+    last_updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint('thread_id', 'user_id', name='uq_draft_thread_user'),
+        Index('idx_comm_drafts_tenant', 'tenant_id'),
+        Index('idx_comm_drafts_thread', 'thread_id'),
+        Index('idx_comm_drafts_user', 'user_id'),
+    )
+
+
+

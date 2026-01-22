@@ -12,6 +12,7 @@ from .matching import router as matching_router
 from .proposals import router as proposals_router
 from .notifications import router as notifications_router
 from .reports import router as reports_router
+from .communications import router as communications_router
 
 # Main API router
 api_router = APIRouter(prefix="/api/v1")
@@ -25,3 +26,4 @@ api_router.include_router(matching_router, prefix="/matching", tags=["Matching"]
 api_router.include_router(proposals_router, prefix="/proposals", tags=["Proposals"])
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(reports_router, prefix="/reports", tags=["Reports"])
+api_router.include_router(communications_router, prefix="/communications", tags=["Communications"])

@@ -64,7 +64,7 @@
       "user_id": "ba4f4bf9-2daf-4be4-81cb-69bc2b832209",
       "module": "institutes",
       "selectedInstitutes": [],
-      "updated_at": "2026-01-22T19:24:13.006352Z"
+      "updated_at": "2026-01-22T23:34:07.086722Z"
     },
     {
       "user_id": null,
@@ -93,6 +93,17 @@
       "orderOverride": {},
       "reorderEnabled": false,
       "updated_at": "2026-01-22T19:20:15.787257Z"
+    },
+    {
+      "user_id": "ba4f4bf9-2daf-4be4-81cb-69bc2b832209",
+      "module": "communications",
+      "visibleStatIds": [
+        "comm-recent-7d",
+        "comm-total"
+      ],
+      "orderOverride": {},
+      "reorderEnabled": false,
+      "updated_at": "2026-01-22T23:34:12.620585Z"
     }
   ]
 }
