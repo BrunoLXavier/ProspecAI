@@ -13,12 +13,13 @@ import SafeRender from '@/components/ui/SafeRender';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import InstituteModal from '@/components/entities/InstituteModal';
+import InstitutesListView from '@/components/institutes/InstitutesListView';
 
 export default function InstitutesPage() {
   const t = useTranslations('institutes');
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'board');
   const [filters, setFilters] = useState({ search: '', city: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedInstitute, setSelectedInstitute] = useState<any | null>(null);
@@ -79,33 +80,11 @@ export default function InstitutesPage() {
       {viewMode === 'board' ? (
         <div className="bg-white dark:bg-slate-800 rounded-lg p-6">{t('boardPlaceholder')}</div>
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
-          ) : filtered.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('noResults')}</div>
-          ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-              {filtered.map((it: any) => (
-                <li key={it.id} className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-4 shadow-sm">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{it.name}</h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{it.description || ''}</p>
-                      {it.metadata?.city && <p className="text-xs text-gray-400 mt-1">{t('city') || 'City'}: {it.metadata.city}</p>}
-                      {it.metadata?.area_m2 && <p className="text-xs text-gray-400 mt-1">{t('area') || 'Area'}: {it.metadata.area_m2} m²</p>}
-                    </div>
-                    <div className="text-xs text-gray-400">{it.member_ids ? (it.member_ids.length) : (it.member_count ?? '')}</div>
-                  </div>
-                  <div className="mt-4 flex items-center gap-2">
-                    <a href={`/institutes/${it.id}/members`} className="text-sm text-primary-600 hover:underline">Manage members</a>
-                    <button onClick={() => { setSelectedInstitute(it); setModalOpen(true); }} className="ml-auto text-sm text-gray-500">Details</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <InstitutesListView
+          items={filtered}
+          isLoading={isLoading}
+          onItemClick={(it) => { setSelectedInstitute(it); setModalOpen(true); }}
+        />
       )}
       <InstituteModal isOpen={modalOpen} onClose={() => setModalOpen(false)} institute={selectedInstitute} />
     </div>

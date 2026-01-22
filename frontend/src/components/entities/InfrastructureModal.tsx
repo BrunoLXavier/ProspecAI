@@ -355,7 +355,7 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
                       ))}
                     </Tab.List>
 
-                    <Tab.Panels className="p-6 max-h-[60vh] overflow-y-auto">
+                    <Tab.Panels className="p-6 max-h-[60vh] overflow-y-auto overflow-x-hidden">
                       {/* Tab 1: Basic Info */}
                       <Tab.Panel className="space-y-4">
                         {/* Institute Selector */}
@@ -478,16 +478,18 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
                           <p className="text-sm text-gray-600 dark:text-gray-300">{t('equipmentsHint') || 'Registre equipamentos associados a esta infraestrutura.'}</p>
                         </div>
 
-                        {/* Add equipment form */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                        {/* Add equipment form (verticalized) */}
+                        <div className="space-y-3">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentName') || 'Nome'}</label>
                             <input value={newEquipName} onChange={(e) => setNewEquipName(e.target.value)} className="w-full px-3 py-2 border rounded" />
                           </div>
+
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentSerial') || 'Serial'}</label>
                             <input value={newEquipSerial} onChange={(e) => setNewEquipSerial(e.target.value)} className="w-full px-3 py-2 border rounded" />
                           </div>
+
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentStatus') || 'Status'}</label>
                             <select value={newEquipStatus} onChange={(e) => setNewEquipStatus(e.target.value)} className="w-full px-3 py-2 border rounded">
@@ -495,12 +497,14 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
                               {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                             </select>
                           </div>
+
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">&nbsp;</label>
-                            <div className="flex gap-2">
-                              <input value={newEquipDesc} onChange={(e) => setNewEquipDesc(e.target.value)} placeholder={t('equipmentDesc') || 'Descrição'} className="flex-1 px-3 py-2 border rounded" />
-                              <button type="button" onClick={() => { if (newEquipName) { addEquipment({ nome: newEquipName, serial: newEquipSerial, descricao: newEquipDesc, status: newEquipStatus }); setNewEquipName(''); setNewEquipSerial(''); setNewEquipDesc(''); setNewEquipStatus(''); } }} className="px-3 py-2 bg-primary-600 text-white rounded">{t('add') || 'Adicionar'}</button>
-                            </div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentDesc') || 'Descrição'}</label>
+                            <input value={newEquipDesc} onChange={(e) => setNewEquipDesc(e.target.value)} placeholder={t('equipmentDesc') || 'Descrição'} className="w-full px-3 py-2 border rounded" />
+                          </div>
+
+                          <div className="flex justify-end">
+                            <button type="button" onClick={() => { if (newEquipName) { addEquipment({ nome: newEquipName, serial: newEquipSerial, descricao: newEquipDesc, status: newEquipStatus }); setNewEquipName(''); setNewEquipSerial(''); setNewEquipDesc(''); setNewEquipStatus(''); } }} className="px-4 py-2 bg-primary-600 text-white rounded">{t('add') || 'Adicionar'}</button>
                           </div>
                         </div>
 
