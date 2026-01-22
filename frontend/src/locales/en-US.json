@@ -351,7 +351,10 @@
       "strategic_fit": "Strategic Fit",
       "financial_impact": "Financial Impact",
       "probability": "Success Probability",
-      "urgency": "Urgency"
+      "urgency": "Urgency",
+      "totalArea": "Total Area (m²)",
+      "totalMembers": "Total Members",
+      "totalUnits": "Total Units"
     },
     "stats": {
       "total": "Total Opportunities",
@@ -419,7 +422,12 @@
     "noResults": "No proposals found",
     "version": "Version",
     "created": "Created",
-    "noJobs": "No ingestion jobs found",
+      "view": "view",
+      "institute": "Institute",
+      "selectInstituteHelper": "Select the institute responsible for the project",
+      "selectInstitutePlaceholder": "Select an institute",
+      "instituteRequired": "Institute is required"
+    ,
     "createJobPrompt": "Create a new job to get started",
     "startProcessingTitle": "Start processing",
     "creating": "Creating...",
@@ -2583,10 +2591,49 @@
     "noInstitutes": "No institutes available",
     "filters": {
       "search": "Search",
-      "searchPlaceholder": "Search institutes..."
+      "searchPlaceholder": "Search institutes...",
+      "city": "City",
+      "cityPlaceholder": "Select city"
     },
-    "new": "New",
-    "boardPlaceholder": "Board view for institutes"
+    "tabs": {
+      "basic": "Basic",
+      "address": "Address",
+      "maturity": "Maturity",
+      "accreditation": "Accreditations"
+    },
+    "fields": {
+      "nome": "Name",
+      "nome_fantasia": "Display Name",
+      "isi_sigla": "Acronym",
+      "descricao": "Description",
+      "status_operacional": "Operational Status",
+      "status": "Status",
+      "logo_url": "Logo",
+      "endereco_rua": "Street",
+      "endereco_numero": "Number",
+      "endereco_complemento": "Complement",
+      "endereco_bairro": "Neighborhood",
+      "endereco_cep": "ZIP Code",
+      "endereco_cidade": "City",
+      "endereco_uf": "State",
+      "area_predial_m2": "Building Area (m²)",
+      "maturidade_gestao": "Management Maturity",
+      "maturidade_base_tecnologica": "Technological Base Maturity",
+      "maturidade_produtos_servicos": "Products/Services Maturity",
+      "maturidade_cooperacao": "Cooperation Maturity",
+      "credenciamento_cati": "CATI Accreditation",
+      "credenciamento_ed": "ED Accreditation"
+    },
+    "maturity_hint": "Assess institutional maturity across different dimensions.",
+    "accreditation_hint": "Mark accreditations applicable to the institute.",
+    "statsUnavailable": "Statistics unavailable",
+    "cancel": "Cancel",
+    "create": "Create",
+    "stats": {
+      "totalArea": "Total Area (m²)",
+      "totalMembers": "Total Members",
+      "totalUnits": "Total Units"
+    }
   },
   "teams": {
     "title": "Teams",
@@ -2598,7 +2645,31 @@
     "noResults": "No teams found",
     "loading": "Loading...",
     "new": "New",
-    "boardPlaceholder": "Board view for teams"
+    "boardPlaceholder": "Board view for teams",
+    "tabs": {
+      "basic": "Basic",
+      "profiles": "Profiles",
+      "dates": "Dates"
+    },
+    "fields": {
+      "usuario": "User",
+      "instituto": "Institute",
+      "cargo": "Position",
+      "funcao_principal": "Main Role",
+      "email_profissional": "Work Email",
+      "telefone_celular": "Mobile Phone",
+      "vinculo_principal": "Primary Affiliation",
+      "vinculo_principal_hint": "Mark if this is the primary affiliation",
+      "foto_perfil_url": "Profile Photo",
+      "data_vinculo_inicio": "Start Date",
+      "data_vinculo_fim": "End Date",
+      "data_vinculo_fim_hint": "Leave empty if current",
+      "email": "Email"
+    },
+    "profiles_hint": "Add the collaborator's professional profiles.",
+    "dates_hint": "Record affiliation start/end dates.",
+    "cancel": "Cancel",
+    "create": "Create"
   },
   "infrastructure": {
     "title": "Infrastructure",
@@ -2611,7 +2682,43 @@
     "loading": "Loading...",
     "new": "New",
     "boardPlaceholder": "Board view for infrastructure",
-    "newResource": "New Resource"
+    "newResource": "New Resource",
+    "basicInfo": "Basic Info",
+    "maturityTab": "Maturity",
+    "areasTab": "Areas",
+    "mediaTab": "Media",
+    "newInfrastructure": "New Infrastructure",
+    "institute": "Institute",
+    "selectInstitute": "Select institute",
+    "name": "Name",
+    "description": "Description",
+    "labEmail": "Lab Email",
+    "responsibleEmail": "Responsible Email",
+    "areaM2": "Area (m²)",
+    "status": "Status",
+    "maturityManagement": "Management Maturity",
+    "selectMaturity": "Select maturity",
+    "techBaseMaturity": "Technological Base Maturity",
+    "productsMaturity": "Products/Services Maturity",
+    "cooperationMaturity": "Cooperation Maturity",
+    "maturityHint": "Assess the maturity of this infrastructure.",
+    "techPlatforms": "Tech Platforms",
+    "selectOrType": "Select or type",
+    "customPlatform": "Custom platform",
+    "knowledgeAreas": "Knowledge Areas",
+    "customArea": "Custom area",
+    "researchMacroareas": "Research Macroareas",
+    "customMacroarea": "Custom macroarea",
+    "addMedia": "Add Media",
+    "image": "Image",
+    "video": "Video",
+    "document": "Document",
+    "3dModel": "3D Model",
+    "mediaDescription": "Media description",
+    "add": "Add",
+    "noMedia": "No media",
+    "cancel": "Cancel",
+    "create": "Create"
   },
   "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter."
 }

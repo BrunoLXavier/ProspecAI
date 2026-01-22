@@ -1827,6 +1827,9 @@
       "risk": "Risco",
       "ai": "Inteligência Artificial"
     },
+    "totalArea": "Área Total (m²)",
+    "totalMembers": "Total de Colaboradores",
+    "totalUnits": "Total de Unidades",
     "total": "Total",
     "open": "Abertas",
     "closed": "Fechadas",
@@ -1881,6 +1884,11 @@
     "avgConfidence": "Confiança Média IA",
     "highConfidence": "Alta Confiança",
     "highConfidenceDesc": "Score de confiança >= 80%",
+      "institute": "Instituto",
+      "selectInstituteHelper": "Selecione o instituto responsável pelo projeto",
+      "selectInstitutePlaceholder": "Selecione um instituto",
+      "instituteRequired": "Instituto é obrigatório"
+    ,
     "avgTrl": "TRL Médio",
     "completionRate": "Taxa de Conclusão",
     "onTrack": "No Prazo",
@@ -2648,10 +2656,49 @@
     "noInstitutes": "Nenhum instituto disponível",
     "filters": {
       "search": "Buscar",
-      "searchPlaceholder": "Buscar institutos..."
+      "searchPlaceholder": "Buscar institutos...",
+      "city": "Cidade",
+      "cityPlaceholder": "Selecione a cidade"
     },
-    "new": "Novo",
-    "boardPlaceholder": "Visão em quadro para institutos"
+    "tabs": {
+      "basic": "Básico",
+      "address": "Endereço",
+      "maturity": "Maturidade",
+      "accreditation": "Credenciamentos"
+    },
+    "fields": {
+      "nome": "Nome",
+      "nome_fantasia": "Nome Fantasia",
+      "isi_sigla": "Sigla",
+      "descricao": "Descrição",
+      "status_operacional": "Status Operacional",
+      "status": "Status",
+      "logo_url": "Logo",
+      "endereco_rua": "Rua",
+      "endereco_numero": "Número",
+      "endereco_complemento": "Complemento",
+      "endereco_bairro": "Bairro",
+      "endereco_cep": "CEP",
+      "endereco_cidade": "Cidade",
+      "endereco_uf": "UF",
+      "area_predial_m2": "Área Predial (m²)",
+      "maturidade_gestao": "Maturidade da Gestão",
+      "maturidade_base_tecnologica": "Maturidade da Base Tecnológica",
+      "maturidade_produtos_servicos": "Maturidade de Produtos/Serviços",
+      "maturidade_cooperacao": "Maturidade de Cooperação",
+      "credenciamento_cati": "Credenciamento CATI",
+      "credenciamento_ed": "Credenciamento ED"
+    },
+    "maturity_hint": "Avalie a maturidade institucional em diferentes dimensões.",
+    "accreditation_hint": "Marque os credenciamentos aplicáveis ao instituto.",
+    "statsUnavailable": "Estatísticas indisponíveis",
+    "cancel": "Cancelar",
+    "create": "Criar",
+    "stats": {
+      "totalArea": "Área Total (m²)",
+      "totalMembers": "Total de Colaboradores",
+      "totalUnits": "Total de Unidades"
+    }
   },
   "teams": {
     "title": "Equipes",
@@ -2663,7 +2710,31 @@
     "noResults": "Nenhuma equipe encontrada",
     "loading": "Carregando...",
     "new": "Novo",
-    "boardPlaceholder": "Visão em quadro para equipes"
+    "boardPlaceholder": "Visão em quadro para equipes",
+    "tabs": {
+      "basic": "Básico",
+      "profiles": "Perfis",
+      "dates": "Vínculos"
+    },
+    "fields": {
+      "usuario": "Usuário",
+      "instituto": "Instituto",
+      "cargo": "Cargo",
+      "funcao_principal": "Função Principal",
+      "email_profissional": "Email Profissional",
+      "telefone_celular": "Telefone Celular",
+      "vinculo_principal": "Vínculo Principal",
+      "vinculo_principal_hint": "Marque se este for o vínculo principal",
+      "foto_perfil_url": "Foto de Perfil",
+      "data_vinculo_inicio": "Data Início",
+      "data_vinculo_fim": "Data Fim",
+      "data_vinculo_fim_hint": "Deixe em branco se vigente",
+      "email": "Email"
+    },
+    "profiles_hint": "Adicione perfis profissionais do colaborador.",
+    "dates_hint": "Registre as datas de vínculo com o instituto.",
+    "cancel": "Cancelar",
+    "create": "Criar"
   },
   "infrastructure": {
     "title": "Infraestrutura",
@@ -2676,6 +2747,42 @@
     "loading": "Carregando...",
     "new": "Novo",
     "boardPlaceholder": "Visão em quadro para infraestrutura",
-    "newResource": "Novo recurso"
+    "newResource": "Novo recurso",
+    "basicInfo": "Informações Básicas",
+    "maturityTab": "Maturidade",
+    "areasTab": "Áreas",
+    "mediaTab": "Mídias",
+    "newInfrastructure": "Nova Infraestrutura",
+    "institute": "Instituto",
+    "selectInstitute": "Selecione o instituto",
+    "name": "Nome",
+    "description": "Descrição",
+    "labEmail": "Email do Laboratório",
+    "responsibleEmail": "Email do Responsável",
+    "areaM2": "Área (m²)",
+    "status": "Status",
+    "maturityManagement": "Maturidade da Gestão",
+    "selectMaturity": "Selecione a maturidade",
+    "techBaseMaturity": "Maturidade da Base Tecnológica",
+    "productsMaturity": "Maturidade de Produtos/Serviços",
+    "cooperationMaturity": "Maturidade de Cooperação",
+    "maturityHint": "Avalie a maturidade desta infraestrutura.",
+    "techPlatforms": "Plataformas Tecnológicas",
+    "selectOrType": "Selecione ou digite",
+    "customPlatform": "Outra plataforma",
+    "knowledgeAreas": "Áreas de Conhecimento",
+    "customArea": "Outra área",
+    "researchMacroareas": "Macroáreas de Pesquisa",
+    "customMacroarea": "Outra macroárea",
+    "addMedia": "Adicionar Mídia",
+    "image": "Imagem",
+    "video": "Vídeo",
+    "document": "Documento",
+    "3dModel": "Modelo 3D",
+    "mediaDescription": "Descrição da mídia",
+    "add": "Adicionar",
+    "noMedia": "Sem mídias",
+    "cancel": "Cancelar",
+    "create": "Criar"
   }
 }

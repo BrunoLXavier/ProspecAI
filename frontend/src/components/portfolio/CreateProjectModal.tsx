@@ -10,7 +10,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 
 import {
   FormInput,
@@ -69,8 +69,38 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
     },
   });
 
+  // Load institutes for the select field so we can show names
+  const { data: institutes = [] } = useQuery({
+    queryKey: ['institutes', 'for-project-modal'],
+    queryFn: async () => {
+      try {
+        const resp = await apiClient.get('/api/v1/institutes');
+        return resp?.items ?? resp ?? [];
+      } catch (e) {
+        console.debug('[CreateProjectModal] Failed loading institutes', e);
+        return [];
+      }
+    },
+    staleTime: 60_000,
+  });
+
+  // Build select options
+  const instituteOptions = (institutes || []).map((ins: any) => {
+    const displayName = ins.nome || ins.name || ins.title || ins.label || ins.id;
+    const code = ins.isi_sigla || ins.code || (ins.id ? String(ins.id).slice(0, 6) : '');
+    return { value: ins.id, label: code ? `${displayName} (${code})` : displayName };
+  });
+
+  // Pre-fill instituto_id from header selection if available
+  const defaultInstituteId = selectedInstitutes && selectedInstitutes.length > 0 ? selectedInstitutes[0] : undefined;
+  const multipleInstitutesAvailable = instituteOptions.length > 1;
+
   const onSubmit = (data: CreateProjectInput) => {
-    createMutation.mutate(data);
+    const payload: any = {
+      ...data,
+      instituto_id: (data as any).instituto_id || defaultInstituteId,
+    };
+    createMutation.mutate(payload);
   };
 
   return (
@@ -147,6 +177,19 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                       {...register('current_trl', { valueAsNumber: true })}
                     />
                   </div>
+
+                  {/* Institute selector (optional) */}
+                  {instituteOptions.length > 0 && (
+                    <FormSelect
+                      label={t('institute') || 'Instituto'}
+                      options={instituteOptions}
+                      error={(errors as any).instituto_id}
+                      helperText={multipleInstitutesAvailable ? (t('selectInstituteHelper') || 'Selecione o instituto responsável pelo projeto') : undefined}
+                      placeholder={t('selectInstitutePlaceholder') || 'Selecione um instituto'}
+                      {...register('instituto_id', { required: multipleInstitutesAvailable ? (t('instituteRequired') || 'Selecione um instituto') : false })}
+                      required={multipleInstitutesAvailable}
+                    />
+                  )}
 
                   {/* Financial and Research */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

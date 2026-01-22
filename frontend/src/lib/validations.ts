@@ -62,6 +62,7 @@ export const createProjectSchema = z.object({
   description: requiredString.min(50, 'Mínimo 50 caracteres'),
   status: ProjectStatusEnum.default('PLANNING'),
   current_trl: trlValidator,
+  instituto_id: z.string().optional(),
   budget: positiveNumber,
   research_area: requiredString,
   keywords: z.array(z.string()).min(1, 'Adicione pelo menos uma palavra-chave'),
