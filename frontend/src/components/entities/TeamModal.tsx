@@ -79,8 +79,8 @@ export default function TeamModal({ isOpen, onClose, team }: Props) {
                   </div>
 
                   <div className="flex justify-end gap-2">
-                    {team && (<button type="button" onClick={() => deleteMutation.mutate()} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete')}</button>)}
-                    <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg">{team ? t('save') : t('create')}</button>
+                    {team && (<button type="button" onClick={() => (deleteMutation as any).mutate()} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete')}</button>)}
+                    <button type="submit" disabled={Boolean((saveMutation as any).isLoading)} className="px-4 py-2 bg-primary-600 text-white rounded-lg">{team ? t('save') : t('create')}</button>
                   </div>
                 </form>
               </Dialog.Panel>

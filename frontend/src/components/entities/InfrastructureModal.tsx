@@ -61,8 +61,8 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
                   <textarea {...register('description')} className="w-full px-4 py-2 border rounded-lg" />
                 </div>
                 <div className="flex justify-end gap-2">
-                  {resource && <button type="button" onClick={() => deleteMutation.mutate()} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete')}</button>}
-                  <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg">{resource ? t('save') : t('create')}</button>
+                  {resource && <button type="button" onClick={() => (deleteMutation as any).mutate()} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete')}</button>}
+                  <button type="submit" disabled={Boolean((saveMutation as any).isLoading)} className="px-4 py-2 bg-primary-600 text-white rounded-lg">{resource ? t('save') : t('create')}</button>
                 </div>
               </form>
             </Dialog.Panel>

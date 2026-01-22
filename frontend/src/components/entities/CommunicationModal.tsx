@@ -61,8 +61,8 @@ export default function CommunicationModal({ isOpen, onClose, comm }: Props) {
                   <textarea {...register('body')} className="w-full px-4 py-2 border rounded-lg" />
                 </div>
                 <div className="flex justify-end gap-2">
-                  {comm && <button type="button" onClick={() => deleteMutation.mutate()} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete')}</button>}
-                  <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg">{comm ? t('save') : t('create')}</button>
+                  {comm && <button type="button" onClick={() => (deleteMutation as any).mutate()} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete')}</button>}
+                  <button type="submit" disabled={Boolean((saveMutation as any).isLoading)} className="px-4 py-2 bg-primary-600 text-white rounded-lg">{comm ? t('save') : t('create')}</button>
                 </div>
               </form>
             </Dialog.Panel>
