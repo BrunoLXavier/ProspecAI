@@ -3,7 +3,7 @@
 // Implements RF-09: Admin User Management
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -12,11 +12,11 @@ import {
 	TrashIcon,
 	MagnifyingGlassIcon,
 	UserCircleIcon,
-	ShieldCheckIcon,
 	CheckIcon,
 	XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { apiClient } from '@/lib/api-client';
+import UserModal from '@/components/users/UserModal';
 
 interface User {
 	id: string;
@@ -53,15 +53,6 @@ export default function UsersPage() {
 	const [selectedRole, setSelectedRole] = useState<string>('');
 	const [showModal, setShowModal] = useState(false);
 	const [editingUser, setEditingUser] = useState<User | null>(null);
-	const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  
-	const [formData, setFormData] = useState<UserFormData>({
-		email: '',
-		name: '',
-		role: 'analyst',
-		password: '',
-		is_active: true,
-	});
 	const [formError, setFormError] = useState<string | null>(null);
 
 	// Fetch users
@@ -115,32 +106,21 @@ export default function UsersPage() {
 			apiClient.delete(`/api/v1/admin/users/${id}`),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['users'] });
-			setShowDeleteConfirm(null);
+			closeModal();
+		},
+		onError: (error: any) => {
+			setFormError(error.response?.data?.detail || 'Failed to delete user');
 		},
 	});
 
 	const openCreateModal = () => {
 		setEditingUser(null);
-		setFormData({
-			email: '',
-			name: '',
-			role: 'analyst',
-			password: '',
-			is_active: true,
-		});
 		setFormError(null);
 		setShowModal(true);
 	};
 
 	const openEditModal = (user: User) => {
 		setEditingUser(user);
-		setFormData({
-			email: user.email,
-			name: user.name,
-			role: user.role,
-			password: '',
-			is_active: user.is_active,
-		});
 		setFormError(null);
 		setShowModal(true);
 	};
@@ -151,34 +131,26 @@ export default function UsersPage() {
 		setFormError(null);
 	};
 
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
+	const handleSave = async (data: UserFormData, isEdit: boolean, userId?: string) => {
 		setFormError(null);
-
-		if (!formData.email || !formData.name) {
-			setFormError('Email and name are required');
-			return;
-		}
-
-		if (!editingUser && !formData.password) {
-			setFormError('Password is required for new users');
-			return;
-		}
-
-		if (editingUser) {
+		if (isEdit && userId) {
 			const updates: Partial<UserFormData> = {
-				email: formData.email,
-				name: formData.name,
-				role: formData.role,
-				is_active: formData.is_active,
+				email: data.email,
+				name: data.name,
+				role: data.role,
+				is_active: data.is_active,
 			};
-			if (formData.password) {
-				updates.password = formData.password;
+			if (data.password) {
+				updates.password = data.password;
 			}
-			updateMutation.mutate({ id: editingUser.id, updates });
+			await updateMutation.mutateAsync({ id: userId, updates });
 		} else {
-			createMutation.mutate(formData);
+			await createMutation.mutateAsync(data);
 		}
+	};
+
+	const handleDelete = async (id: string) => {
+		await deleteMutation.mutateAsync(id);
 	};
 
 	const getRoleConfig = (role: string) => {
@@ -344,37 +316,13 @@ export default function UsersPage() {
 														<PencilIcon className="w-5 h-5" />
 													</button>
 													<button
-														onClick={() => setShowDeleteConfirm(user.id)}
+														onClick={() => openEditModal(user)}
 														className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
 														title={tCommon('delete') || 'Delete'}
 													>
 														<TrashIcon className="w-5 h-5" />
 													</button>
 												</div>
-                        
-												{/* Delete Confirmation */}
-												{showDeleteConfirm === user.id && (
-													<div className="absolute right-4 mt-2 p-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
-														<p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-															{t('users.deleteConfirmation') || 'Delete this user?'}
-														</p>
-														<div className="flex gap-2">
-															<button
-																onClick={() => deleteMutation.mutate(user.id)}
-																disabled={deleteMutation.isPending}
-																className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-															>
-																{tCommon('delete') || 'Delete'}
-															</button>
-															<button
-																onClick={() => setShowDeleteConfirm(null)}
-																className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
-															>
-																{tCommon('cancel') || 'Cancel'}
-															</button>
-														</div>
-													</div>
-												)}
 											</td>
 										</tr>
 									);
@@ -392,129 +340,17 @@ export default function UsersPage() {
 				</div>
 			</div>
 
-			{/* Create/Edit Modal */}
-			{showModal && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-					<div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6 m-4">
-						<div className="flex items-center justify-between mb-6">
-							<h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-								{editingUser 
-									? t('users.editUser') || 'Edit User' 
-									: t('users.newUser') || 'New User'}
-							</h2>
-							<button
-								onClick={closeModal}
-								className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-							>
-								<XMarkIcon className="w-6 h-6" />
-							</button>
-						</div>
-            
-						{formError && (
-							<div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-								<p className="text-sm text-red-700 dark:text-red-400">{formError}</p>
-							</div>
-						)}
-
-						<form onSubmit={handleSubmit} className="space-y-4">
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-									{t('users.name') || 'Name'} *
-								</label>
-								<input
-									type="text"
-									value={formData.name}
-									onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-									className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-									required
-								/>
-							</div>
-              
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-									{t('users.email') || 'Email'} *
-								</label>
-								<input
-									type="email"
-									value={formData.email}
-									onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-									className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-									required
-								/>
-							</div>
-
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-									{t('users.password') || 'Password'} {!editingUser && '*'}
-								</label>
-								<input
-									type="password"
-									value={formData.password}
-									onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-									className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-									placeholder={editingUser ? t('users.leaveBlank') || 'Leave blank to keep current' : ''}
-									required={!editingUser}
-								/>
-							</div>
-
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-									{t('users.role') || 'Role'}
-								</label>
-								<select
-									value={formData.role}
-									onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-									className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-								>
-									{ROLES.map(role => (
-										<option key={role.value} value={role.value}>{t(`users.roleTypes.${role.value}`) || role.value}</option>
-									))}
-								</select>
-							</div>
-
-							<div className="flex items-center gap-3">
-								<button
-									type="button"
-									onClick={() => setFormData(prev => ({ ...prev, is_active: !prev.is_active }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-										formData.is_active ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'
-									}`}
-								>
-									<span
-										className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-											formData.is_active ? 'translate-x-6' : 'translate-x-1'
-										}`}
-									/>
-								</button>
-								<span className="text-sm text-gray-700 dark:text-gray-300">
-									{t('users.activeUser') || 'Active user'}
-								</span>
-							</div>
-
-							<div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-								<button
-									type="button"
-									onClick={closeModal}
-									className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-								>
-									{tCommon('cancel') || 'Cancel'}
-								</button>
-								<button
-									type="submit"
-									disabled={createMutation.isPending || updateMutation.isPending}
-									className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-								>
-									{(createMutation.isPending || updateMutation.isPending) 
-										? tCommon('saving') || 'Saving...' 
-										: editingUser 
-											? tCommon('save') || 'Save'
-											: t('users.create') || 'Create'}
-								</button>
-							</div>
-						</form>
-					</div>
-				</div>
-			)}
+			{/* User Modal */}
+			<UserModal
+				isOpen={showModal}
+				onClose={closeModal}
+				user={editingUser}
+				onSave={handleSave}
+				onDelete={handleDelete}
+				saving={createMutation.isPending || updateMutation.isPending}
+				deleting={deleteMutation.isPending}
+				error={formError}
+			/>
 		</div>
 	);
 }

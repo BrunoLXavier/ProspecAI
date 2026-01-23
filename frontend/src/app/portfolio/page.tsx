@@ -9,8 +9,7 @@ import { useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
-import CreateProjectModal from '@/components/portfolio/CreateProjectModal';
-import ViewEditProjectModal from '@/components/portfolio/ViewEditProjectModal';
+import ProjectModal from '@/components/portfolio/ProjectModal';
 import PortfolioBoard from '@/components/portfolio/PortfolioBoard';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
@@ -225,13 +224,11 @@ export default function PortfolioPage() {
         }
       />
 
-      {/* Create Project Modal */}
-      <CreateProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> 
-
-      {/* View/Edit Project Modal */}
-      <ViewEditProjectModal
-        isOpen={isViewModalOpen}
+      {/* Create/Edit Project Modal */}
+      <ProjectModal 
+        isOpen={isModalOpen || isViewModalOpen} 
         onClose={() => {
+          setIsModalOpen(false);
           setIsViewModalOpen(false);
           setSelectedProject(null);
         }}

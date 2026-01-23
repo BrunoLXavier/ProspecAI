@@ -10,8 +10,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
-import CreateClientModal from '@/components/crm/CreateClientModal';
-import ViewEditClientModal from '@/components/crm/ViewEditClientModal';
+import ClientModal from '@/components/crm/ClientModal';
 import CRMBoard from '@/components/crm/CRMBoard';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
@@ -203,13 +202,11 @@ export default function CRMClientsPage() {
         }
       />
 
-      {/* Create Client Modal */}
-      <CreateClientModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-      {/* View/Edit Client Modal */}
-      <ViewEditClientModal 
-        isOpen={isViewModalOpen} 
+      {/* Create/Edit Client Modal */}
+      <ClientModal 
+        isOpen={isModalOpen || isViewModalOpen} 
         onClose={() => {
+          setIsModalOpen(false);
           setIsViewModalOpen(false);
           setSelectedClient(null);
         }}

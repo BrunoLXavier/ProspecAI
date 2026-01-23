@@ -10,8 +10,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
-import CreateFundingModal from '@/components/funding/CreateFundingModal';
-import ViewEditFundingModal from '@/components/funding/ViewEditFundingModal';
+import FundingModal from '@/components/funding/FundingModal';
 import FundingBoard from '@/components/funding/FundingBoard';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
@@ -196,13 +195,11 @@ export default function FundingPage() {
         }
       />
 
-      {/* Create Funding Modal */}
-      <CreateFundingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-      {/* View/Edit Funding Modal */}
-      <ViewEditFundingModal 
-        isOpen={isViewModalOpen} 
+      {/* Create/Edit Funding Modal */}
+      <FundingModal 
+        isOpen={isModalOpen || isViewModalOpen} 
         onClose={() => {
+          setIsModalOpen(false);
           setIsViewModalOpen(false);
           setSelectedFunding(null);
         }}

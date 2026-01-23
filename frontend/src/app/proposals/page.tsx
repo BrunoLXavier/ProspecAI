@@ -9,8 +9,7 @@ import { useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 import { PlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
-import CreateProposalModal from '@/components/proposals/CreateProposalModal';
-import ProposalDetailModal from '@/components/proposals/ProposalDetailModal';
+import ProposalModal from '@/components/proposals/ProposalModal';
 import ProposalsBoard from '@/components/proposals/ProposalsBoard';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
@@ -176,16 +175,11 @@ export default function ProposalsPage() {
         }
       />
 
-      {/* Create Proposal Modal */}
-      <CreateProposalModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-      />
-
-      {/* Proposal Detail Modal */}
-      <ProposalDetailModal
-        isOpen={isDetailModalOpen}
+      {/* Create/Edit Proposal Modal */}
+      <ProposalModal 
+        isOpen={isModalOpen || isDetailModalOpen} 
         onClose={() => {
+          setIsModalOpen(false);
           setIsDetailModalOpen(false);
           setSelectedProposal(null);
         }}

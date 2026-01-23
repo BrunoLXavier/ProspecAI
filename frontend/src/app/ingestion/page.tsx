@@ -24,7 +24,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import IngestionBoard from '@/components/ingestion/IngestionBoard';
-import IngestionDetailModal from '@/components/ingestion/IngestionDetailModal';
+import IngestionModal from '@/components/ingestion/IngestionModal';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import { getStoredAccessToken } from '@/contexts/AuthContext';
 import apiClient from '@/lib/api-client';
@@ -681,8 +681,8 @@ export default function IngestionPage() {
           </div>
         )}
       
-      {/* Ingestion Detail Modal */}
-      <IngestionDetailModal
+      {/* Ingestion Modal */}
+      <IngestionModal
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
         job={selectedJob}

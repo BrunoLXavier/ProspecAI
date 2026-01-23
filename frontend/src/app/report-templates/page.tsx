@@ -12,8 +12,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import ReportsList from '@/components/reports/ReportsList';
 import ReportsBoard from '@/components/reports/reportsboard';
-import ReportFormModal from '@/components/reports/ReportFormModal';
-import ReportDetailModal from '@/components/reports/ReportDetailModal';
+import ReportModal from '@/components/reports/ReportModal';
 import { ViewMode } from '@/components/ui/ViewToggle';
 
 export default function TemplatesPage() {
@@ -80,8 +79,16 @@ export default function TemplatesPage() {
         </div>
       )}
 
-      <ReportFormModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} initial={null} />
-      <ReportDetailModal isOpen={isDetailOpen} onClose={() => setIsDetailOpen(false)} template={detailTemplate} onDeleted={(id) => { if (detailTemplate?.id === id) setDetailTemplate(null); }} />
+      <ReportModal 
+        isOpen={isCreateOpen || isDetailOpen} 
+        onClose={() => { 
+          setIsCreateOpen(false); 
+          setIsDetailOpen(false); 
+          setDetailTemplate(null); 
+        }} 
+        template={detailTemplate} 
+        onDelete={(id) => { if (detailTemplate?.id === id) setDetailTemplate(null); }} 
+      />
     </div>
   );
 }

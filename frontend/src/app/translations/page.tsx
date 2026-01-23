@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import TranslationDetailModal from '@/components/translations/TranslationDetailModal';
+import TranslationModal from '@/components/translations/TranslationModal';
 import { apiClient } from '@/lib/api-client';
 
 interface TranslationKey {
@@ -665,7 +665,7 @@ export default function TranslationsPage() {
 			)}
 		</div>
     
-		<TranslationDetailModal
+		<TranslationModal
 			isOpen={showDetailModal}
 			onClose={() => { setShowDetailModal(false); setSelectedTranslation(null); }}
 			translation={selectedTranslation}

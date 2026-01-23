@@ -10,8 +10,7 @@ import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import OpportunityPipeline from '@/components/dashboard/OpportunityPipeline';
 import { PlusIcon, Squares2X2Icon, ListBulletIcon } from '@heroicons/react/24/outline';
-import CreateOpportunityModal from '@/components/opportunities/CreateOpportunityModal';
-import OpportunityDetailModal from '@/components/opportunities/OpportunityDetailModal';
+import OpportunityModal from '@/components/opportunities/OpportunityModal';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
@@ -274,13 +273,11 @@ export default function OpportunitiesPage() {
         </div>
       </div>
 
-      {/* Create Opportunity Modal */}
-      <CreateOpportunityModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-      {/* Opportunity Detail Modal */}
-      <OpportunityDetailModal
-        isOpen={isDetailModalOpen}
+      {/* Create/Edit Opportunity Modal */}
+      <OpportunityModal 
+        isOpen={isModalOpen || isDetailModalOpen} 
         onClose={() => {
+          setIsModalOpen(false);
           setIsDetailModalOpen(false);
           setSelectedOpportunity(null);
           // Clear URL param when closing modal

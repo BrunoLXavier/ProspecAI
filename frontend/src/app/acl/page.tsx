@@ -6,17 +6,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-	MagnifyingGlassIcon,
 	PencilIcon,
 	TrashIcon,
 	PlusIcon,
 	CheckIcon,
-	XMarkIcon,
 	ShieldCheckIcon,
-	UserGroupIcon,
-	LockClosedIcon,
 } from '@heroicons/react/24/outline';
 import { apiClient } from '@/lib/api-client';
+import ACLRoleModal from '@/components/acl/ACLRoleModal';
 
 interface Role {
 	id: string;
@@ -71,16 +68,11 @@ export default function ACLPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
   
-	// Edit state
+	// Modal state
+	const [showModal, setShowModal] = useState(false);
 	const [editingRole, setEditingRole] = useState<Role | null>(null);
-	const [editPermissions, setEditPermissions] = useState<Record<string, string[]>>({});
 	const [saving, setSaving] = useState(false);
-  
-	// New role modal
-	const [showNewRoleModal, setShowNewRoleModal] = useState(false);
-	const [newRoleName, setNewRoleName] = useState('');
-	const [newRoleDescription, setNewRoleDescription] = useState('');
-	const [newRolePermissions, setNewRolePermissions] = useState<Record<string, string[]>>({});
+	const [deleting, setDeleting] = useState(false);
 
 	// Load roles
 	const loadRoles = async () => {
@@ -104,46 +96,37 @@ export default function ACLPage() {
 		loadRoles();
 	}, []);
 
-	// Start editing
-	const startEditing = (role: Role) => {
+	// Open modal for editing
+	const openEditModal = (role: Role) => {
 		setEditingRole(role);
-		setEditPermissions({ ...role.permissions });
+		setShowModal(true);
 	};
 
-	// Cancel editing
-	const cancelEditing = () => {
+	// Open modal for creating
+	const openCreateModal = () => {
 		setEditingRole(null);
-		setEditPermissions({});
+		setShowModal(true);
 	};
 
-	// Toggle permission
-	const togglePermission = (
-		resource: string,
-		permission: string,
-		isNew: boolean = false
-	) => {
-		const setter = isNew ? setNewRolePermissions : setEditPermissions;
-		setter(prev => {
-			const current = prev[resource] || [];
-			if (current.includes(permission)) {
-				return { ...prev, [resource]: current.filter(p => p !== permission) };
-			} else {
-				return { ...prev, [resource]: [...current, permission] };
-			}
-		});
+	// Close modal
+	const closeModal = () => {
+		setShowModal(false);
+		setEditingRole(null);
 	};
 
-	// Save edits
-	const saveEdits = async () => {
-		if (!editingRole) return;
-    
+	// Save role (create or update)
+	const handleSave = async (data: { name: string; description: string; permissions: Record<string, string[]> }) => {
 		setSaving(true);
 		try {
-			await apiClient.put(`/api/v1/acl/roles/${editingRole.id}`, {
-				permissions: editPermissions
-			});
+			if (editingRole) {
+				await apiClient.put(`/api/v1/acl/roles/${editingRole.id}`, {
+					permissions: data.permissions
+				});
+			} else {
+				await apiClient.post('/api/v1/acl/roles', data);
+			}
 			await loadRoles();
-			cancelEditing();
+			closeModal();
 		} catch (err: any) {
 			setError(err.message || 'Failed to save role');
 		} finally {
@@ -152,38 +135,16 @@ export default function ACLPage() {
 	};
 
 	// Delete role
-	const deleteRole = async (roleId: string) => {
-		if (!confirm(t('acl.deleteConfirm'))) return;
-    
+	const handleDelete = async (roleId: string) => {
+		setDeleting(true);
 		try {
 			await apiClient.delete(`/api/v1/acl/roles/${roleId}`);
 			await loadRoles();
+			closeModal();
 		} catch (err: any) {
 			setError(err.message || 'Failed to delete role');
-		}
-	};
-
-	// Create new role
-	const createRole = async () => {
-		if (!newRoleName.trim()) return;
-    
-		setSaving(true);
-		try {
-			await apiClient.post('/api/v1/acl/roles', {
-				name: newRoleName,
-				description: newRoleDescription,
-				permissions: newRolePermissions,
-			});
-
-			setShowNewRoleModal(false);
-			setNewRoleName('');
-			setNewRoleDescription('');
-			setNewRolePermissions({});
-			await loadRoles();
-		} catch (err: any) {
-			setError(err.message || 'Failed to create role');
 		} finally {
-			setSaving(false);
+			setDeleting(false);
 		}
 	};
 
@@ -192,27 +153,24 @@ export default function ACLPage() {
 		resource,
 		permission,
 		checked,
-		onChange,
-		disabled = false
+		disabled = true
 	}: {
 		resource: string;
 		permission: string;
 		checked: boolean;
-		onChange: () => void;
+		onChange?: () => void;
 		disabled?: boolean;
 	}) => (
 		<td className="px-2 py-2 text-center">
-			<button
-				onClick={onChange}
-				disabled={disabled}
-				className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${
+			<div
+				className={`w-6 h-6 rounded flex items-center justify-center ${
 					checked
 						? 'bg-primary-600 text-white'
 						: 'bg-gray-200 dark:bg-gray-700 text-gray-400'
-				} ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'}`}
+				} opacity-80`}
 			>
 				{checked && <CheckIcon className="w-4 h-4" />}
-			</button>
+			</div>
 		</td>
 	);
 
@@ -230,7 +188,7 @@ export default function ACLPage() {
 				</div>
         
 				<button
-					onClick={() => setShowNewRoleModal(true)}
+					onClick={openCreateModal}
 					className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
 				>
 					<PlusIcon className="w-5 h-5" />
@@ -284,43 +242,24 @@ export default function ACLPage() {
 								</div>
                 
 								<div className="flex gap-2">
-									{editingRole?.id === role.id ? (
-										<>
-												<button
-													onClick={saveEdits}
-													disabled={saving}
-													className="p-2 text-green-600 hover:text-green-800 disabled:opacity-50"
-													title={tCommon('save') || 'Save'}
-												>
-													<CheckIcon className="w-5 h-5" />
-												</button>
-												<button
-													onClick={cancelEditing}
-													className="p-2 text-gray-600 hover:text-gray-800"
-													title={tCommon('cancel') || 'Cancel'}
-												>
-													<XMarkIcon className="w-5 h-5" />
-												</button>
-										</>
-									) : (
-										<>
-											<button
-												onClick={() => startEditing(role)}
-												className="p-2 text-primary-600 hover:text-primary-800"
-												title={tCommon('edit') || 'Edit'}
-											>
-												<PencilIcon className="w-5 h-5" />
-											</button>
-											{!role.is_system && (
-												<button
-													onClick={() => deleteRole(role.id)}
-													className="p-2 text-red-600 hover:text-red-800"
-													title={tCommon('delete') || 'Delete'}
-												>
-													<TrashIcon className="w-5 h-5" />
-												</button>
-											)}
-										</>
+									<button
+										onClick={() => openEditModal(role)}
+										className="p-2 text-primary-600 hover:text-primary-800"
+										title={tCommon('edit') || 'Edit'}
+									>
+										<PencilIcon className="w-5 h-5" />
+									</button>
+									{!role.is_system && (
+										<button
+											onClick={() => {
+												setEditingRole(role);
+												setShowModal(true);
+											}}
+											className="p-2 text-red-600 hover:text-red-800"
+											title={tCommon('delete') || 'Delete'}
+										>
+											<TrashIcon className="w-5 h-5" />
+										</button>
 									)}
 								</div>
 							</div>
@@ -342,9 +281,7 @@ export default function ACLPage() {
 									</thead>
 									<tbody className="divide-y divide-gray-100 dark:divide-gray-700">
 										{resources.map(resource => {
-											const rolePerms = editingRole?.id === role.id
-												? editPermissions[resource] || []
-												: role.permissions[resource] || [];
+											const rolePerms = role.permissions[resource] || [];
                       
 											return (
 												<tr key={resource} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
@@ -357,8 +294,6 @@ export default function ACLPage() {
 															resource={resource}
 															permission={perm}
 															checked={rolePerms.includes(perm)}
-															onChange={() => togglePermission(resource, perm)}
-															disabled={editingRole?.id !== role.id}
 														/>
 													))}
 												</tr>
@@ -372,101 +307,18 @@ export default function ACLPage() {
 				)}
 			</div>
 
-			{/* New Role Modal */}
-			{showNewRoleModal && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto">
-					<div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-4xl p-6 m-4 max-h-[90vh] overflow-y-auto">
-						<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-							{t('acl.createRoleModalTitle') || t('acl.createRole') || 'Create New Role'}
-						</h2>
-            
-						<div className="space-y-4 mb-6">
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-									{t('acl.roleName') || 'Role Name'}
-								</label>
-								<input
-									type="text"
-									placeholder={t('acl.exampleRoleName') || 'e.g., Content Manager'}
-									value={newRoleName}
-									onChange={(e) => setNewRoleName(e.target.value)}
-									className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-								/>
-							</div>
-              
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-									{t('acl.roleDescriptionLabel') || 'Description'}
-								</label>
-								<input
-									type="text"
-									placeholder="Describe the role's purpose"
-									value={newRoleDescription}
-									onChange={(e) => setNewRoleDescription(e.target.value)}
-									className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-								/>
-							</div>
-						</div>
-            
-						{/* Permissions Matrix for New Role */}
-						<div className="overflow-x-auto mb-6 border border-gray-200 dark:border-gray-700 rounded-lg">
-							<table className="w-full text-sm">
-								<thead className="bg-gray-50 dark:bg-slate-700">
-									<tr>
-										<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-											Resource
-										</th>
-										{permissions.map(perm => (
-											<th key={perm} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-													{t(`acl.permissions.${perm}`) || PERMISSION_LABELS[perm] || perm}
-												</th>
-										))}
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-									{resources.map(resource => (
-										<tr key={resource} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
-											<td className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
-												{RESOURCE_LABELS[resource] || resource}
-											</td>
-											{permissions.map(perm => (
-												<PermissionCell
-													key={perm}
-													resource={resource}
-													permission={perm}
-													checked={(newRolePermissions[resource] || []).includes(perm)}
-													onChange={() => togglePermission(resource, perm, true)}
-												/>
-											))}
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-            
-						<div className="flex justify-end gap-3">
-							<button
-								onClick={() => {
-									setShowNewRoleModal(false);
-									setNewRoleName('');
-									setNewRoleDescription('');
-									setNewRolePermissions({});
-								}}
-								className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-							>
-								{tCommon('cancel')}
-							</button>
-							<button
-								onClick={createRole}
-								disabled={saving || !newRoleName.trim()}
-								className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-							>
-								{saving ? `${t('settings.saving')}...` : t('acl.createRole')}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			{/* ACL Role Modal */}
+			<ACLRoleModal
+				isOpen={showModal}
+				onClose={closeModal}
+				role={editingRole}
+				resources={resources}
+				permissions={permissions}
+				onSave={handleSave}
+				onDelete={handleDelete}
+				saving={saving}
+				deleting={deleting}
+			/>
 		</div>
 	);
 }

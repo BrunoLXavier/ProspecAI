@@ -1,17 +1,22 @@
 /**
  * InfrastructureModal - Full CRUD Modal
  * Implements RF-03: Portfólio Institucional - Gestão de Infraestrutura
- * Complete with all entity fields organized in tabs
+ * 
+ * Refactored to use BaseModal + ModalTabs with mobile-friendly navigation
+ * No horizontal scroll, 4 tabs organized for better UX
  */
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
-import { Dialog, Transition, Tab } from '@headlessui/react';
-import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useForm, Controller } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { BuildingOfficeIcon, CpuChipIcon, BeakerIcon, PhotoIcon, PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/api-client';
+
+import BaseModal, { ModalFooter } from '@/components/ui/BaseModal';
+import ModalTabs, { TabHint, type TabItem } from '@/components/ui/ModalTabs';
+import DeleteConfirmation from '@/components/ui/DeleteConfirmation';
 
 // Types
 interface Infrastructure {
@@ -49,6 +54,7 @@ interface EquipmentItem {
   status?: string;
   added_at?: string;
 }
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -61,51 +67,32 @@ const statusOptions = [
   { value: 'Inativo', label: 'Inativo' },
 ];
 
-const maturidadeGestaoOptions = [
-  'M1a', 'M1b', 'M1c',
-  'M2a', 'M2b', 'M2c',
-  'M3a', 'M3b', 'M3c',
-  'M4a', 'M4b', 'M4c',
-];
-
 const predefinedPlatforms = [
-  'IoT',
-  'Robótica',
-  'IA/ML',
-  'Automação Industrial',
-  'Realidade Estendida',
-  'Manufatura Aditiva',
-  'Nanotecnologia',
-  'Biotecnologia',
-  'Eletrônica',
-  'Energia',
+  'IoT', 'Robótica', 'IA/ML', 'Automação Industrial', 'Realidade Estendida',
+  'Manufatura Aditiva', 'Nanotecnologia', 'Biotecnologia', 'Eletrônica', 'Energia',
 ];
 
 const predefinedAreas = [
-  'Ciências Exatas',
-  'Engenharias',
-  'Ciências Biológicas',
-  'Ciências da Saúde',
-  'Ciências Agrárias',
-  'Ciências Sociais',
-  'Ciências Humanas',
-  'Linguística e Artes',
+  'Ciências Exatas', 'Engenharias', 'Ciências Biológicas', 'Ciências da Saúde',
+  'Ciências Agrárias', 'Ciências Sociais', 'Ciências Humanas', 'Linguística e Artes',
 ];
 
 const predefinedMacroareas = [
-  'Manufatura Avançada',
-  'Mobilidade',
-  'Energia Sustentável',
-  'Saúde',
-  'Segurança',
-  'TIC',
-  'Meio Ambiente',
+  'Manufatura Avançada', 'Mobilidade', 'Energia Sustentável', 'Saúde',
+  'Segurança', 'TIC', 'Meio Ambiente',
 ];
+
+const inputClasses = "w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent";
+const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
 
 export default function InfrastructureModal({ isOpen, onClose, resource }: Props) {
   const t = useTranslations('infrastructure');
+  const tCommon = useTranslations('common');
   const queryClient = useQueryClient();
-  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Dynamic array state
   const [newPlatform, setNewPlatform] = useState('');
   const [newArea, setNewArea] = useState('');
   const [newMacroarea, setNewMacroarea] = useState('');
@@ -115,34 +102,22 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
   const [newEquipDesc, setNewEquipDesc] = useState('');
   const [newEquipStatus, setNewEquipStatus] = useState('');
 
-  const { register, handleSubmit, reset, control, watch, setValue, formState: { errors } } = useForm<Infrastructure>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<Infrastructure>({
     defaultValues: {
-      instituto_id: '',
-      nome: '',
-      descricao: '',
-      email_laboratorio: '',
-      email_responsavel: '',
-      area_predial_m2: 0,
-      status_isi: 'Operacional',
-      maturidade_gestao: '',
-      maturidade_base_tecnologica: undefined,
-      maturidade_produtos_servicos: undefined,
-      maturidade_cooperacao: undefined,
-      plataformas_tecnologicas: [],
-      areas_conhecimento: [],
-      macroareas_pesquisa: [],
-      midias: [],
-      equipamentos: [],
+      instituto_id: '', nome: '', descricao: '', email_laboratorio: '', email_responsavel: '',
+      area_predial_m2: 0, status_isi: 'Operacional', maturidade_gestao: '',
+      maturidade_base_tecnologica: undefined, maturidade_produtos_servicos: undefined,
+      maturidade_cooperacao: undefined, plataformas_tecnologicas: [], areas_conhecimento: [],
+      macroareas_pesquisa: [], midias: [], equipamentos: [],
     }
   });
 
-  // Fetch institutes for dropdown (use stable public institutes endpoint)
+  // Fetch institutes for dropdown
   const { data: institutes = [] } = useQuery({
     queryKey: ['institutes', 'for-infra-modal'],
     queryFn: async () => {
       try {
         const res = await apiClient.get('/api/v1/institutes');
-        // apiClient returns response.data already; support different shapes
         return (res && (res.items || res.data || res)) || [];
       } catch (e) {
         console.debug('[InfrastructureModal] Failed loading institutes', e);
@@ -179,25 +154,18 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
         midias: resource.midias || [],
         equipamentos: resource.equipamentos || [],
       });
+      setSelectedTab(0);
+      setShowDeleteConfirm(false);
     } else {
       reset({
-        instituto_id: '',
-        nome: '',
-        descricao: '',
-        email_laboratorio: '',
-        email_responsavel: '',
-        area_predial_m2: 0,
-        status_isi: 'Operacional',
-        maturidade_gestao: '',
-        maturidade_base_tecnologica: undefined,
-        maturidade_produtos_servicos: undefined,
-        maturidade_cooperacao: undefined,
-        plataformas_tecnologicas: [],
-        areas_conhecimento: [],
-        macroareas_pesquisa: [],
-        midias: [],
-        equipamentos: [],
+        instituto_id: '', nome: '', descricao: '', email_laboratorio: '', email_responsavel: '',
+        area_predial_m2: 0, status_isi: 'Operacional', maturidade_gestao: '',
+        maturidade_base_tecnologica: undefined, maturidade_produtos_servicos: undefined,
+        maturidade_cooperacao: undefined, plataformas_tecnologicas: [], areas_conhecimento: [],
+        macroareas_pesquisa: [], midias: [], equipamentos: [],
       });
+      setSelectedTab(0);
+      setShowDeleteConfirm(false);
     }
   }, [resource, reset]);
 
@@ -224,8 +192,10 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
     },
   });
 
-  const onSubmit = (data: Infrastructure) => {
-    saveMutation.mutate(data);
+  const onSubmit = (data: Infrastructure) => saveMutation.mutate(data);
+
+  const handleDelete = () => {
+    deleteMutation.mutate();
   };
 
   // Array management functions
@@ -273,519 +243,321 @@ export default function InfrastructureModal({ isOpen, onClose, resource }: Props
     setValue('midias', midias.filter((_, i) => i !== index));
   };
 
-  // Equipments management
-  const addEquipment = (item: EquipmentItem) => {
-    const toAdd = { ...item, added_at: new Date().toISOString() };
-    setValue('equipamentos', [...equipamentos, toAdd]);
+  const addEquipment = () => {
+    if (newEquipName) {
+      setValue('equipamentos', [...equipamentos, { 
+        nome: newEquipName, 
+        serial: newEquipSerial, 
+        descricao: newEquipDesc, 
+        status: newEquipStatus,
+        added_at: new Date().toISOString() 
+      }]);
+      setNewEquipName('');
+      setNewEquipSerial('');
+      setNewEquipDesc('');
+      setNewEquipStatus('');
+    }
   };
 
   const removeEquipment = (index: number) => {
     setValue('equipamentos', equipamentos.filter((_, i) => i !== index));
   };
 
-  const tabs = [
-    { name: t('basicInfo') || 'Informações Básicas', key: 'basic' },
-    { name: t('equipmentsTab') || 'Equipamentos', key: 'equipments' },
-    { name: t('areasTab') || 'Áreas e Plataformas', key: 'areas' },
-    { name: t('mediaTab') || 'Mídias', key: 'media' },
-  ];
+  // Tab Content Components
+  const BasicInfoTab = (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="sm:col-span-2">
+          <label className={labelClasses}>{t('institute') || 'Instituto'} *</label>
+          <select {...register('instituto_id', { required: true })} className={inputClasses}>
+            <option value="">{t('selectInstitute') || 'Selecione um instituto'}</option>
+            {institutes?.map((inst: any) => (
+              <option key={inst.id} value={inst.id}>{inst.nome || inst.name}</option>
+            ))}
+          </select>
+          {errors.instituto_id && <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>}
+        </div>
+        <div className="sm:col-span-2">
+          <label className={labelClasses}>{t('name') || 'Nome'} *</label>
+          <input {...register('nome', { required: true })} className={inputClasses} placeholder="Laboratório de Realidade Estendida" />
+          {errors.nome && <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>}
+        </div>
+        <div className="sm:col-span-2">
+          <label className={labelClasses}>{t('description') || 'Descrição'} *</label>
+          <textarea {...register('descricao', { required: true })} rows={3} className={inputClasses} placeholder="Descrição da infraestrutura..." />
+          {errors.descricao && <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>}
+        </div>
+        <div>
+          <label className={labelClasses}>{t('labEmail') || 'Email do Laboratório'} *</label>
+          <input type="email" {...register('email_laboratorio', { required: true })} className={inputClasses} placeholder="lab@senai.br" />
+          {errors.email_laboratorio && <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>}
+        </div>
+        <div>
+          <label className={labelClasses}>{t('responsibleEmail') || 'Email do Responsável'} *</label>
+          <input type="email" {...register('email_responsavel', { required: true })} className={inputClasses} placeholder="responsavel@senai.br" />
+          {errors.email_responsavel && <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>}
+        </div>
+        <div>
+          <label className={labelClasses}>{t('areaM2') || 'Área Predial (m²)'} *</label>
+          <input type="number" {...register('area_predial_m2', { required: true, min: 0, valueAsNumber: true })} className={inputClasses} placeholder="500" />
+          {errors.area_predial_m2 && <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>}
+        </div>
+        <div>
+          <label className={labelClasses}>{t('status') || 'Status'}</label>
+          <select {...register('status_isi')} className={inputClasses}>
+            {statusOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
 
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
-        </Transition.Child>
+  const EquipmentsTab = (
+    <div className="space-y-4">
+      <TabHint variant="info">
+        {t('equipmentsHint') || 'Registre equipamentos associados a esta infraestrutura.'}
+      </TabHint>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-3xl transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-xl transition-all">
-                {/* Header */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-start justify-between">
-                  <div>
-                    <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {resource ? resource.nome : t('newInfrastructure') || 'Nova Infraestrutura'}
-                    </Dialog.Title>
-                    {resource && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">ID: {resource.id}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg"
-                  >
-                    <XMarkIcon className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Form with Tabs */}
-                <form onSubmit={handleSubmit(onSubmit)}>
-                  <Tab.Group selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                    <Tab.List className="flex space-x-1 border-b border-gray-200 dark:border-gray-700 px-6 bg-gray-50 dark:bg-slate-900">
-                      {tabs.map((tab) => (
-                        <Tab
-                          key={tab.key}
-                          className={({ selected }) =>
-                            `px-4 py-3 text-sm font-medium transition-colors focus:outline-none ${
-                              selected
-                                ? 'text-primary-600 border-b-2 border-primary-600'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                            }`
-                          }
-                        >
-                          {tab.name}
-                        </Tab>
-                      ))}
-                    </Tab.List>
-
-                    <Tab.Panels className="p-6 max-h-[60vh] overflow-y-auto overflow-x-hidden">
-                      {/* Tab 1: Basic Info */}
-                      <Tab.Panel className="space-y-4">
-                        {/* Institute Selector */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {t('institute') || 'Instituto'} *
-                          </label>
-                          <select
-                            {...register('instituto_id', { required: true })}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                          >
-                            <option value="">{t('selectInstitute') || 'Selecione um instituto'}</option>
-                            {institutes?.map((inst: any) => (
-                              <option key={inst.id} value={inst.id}>
-                                {inst.nome || inst.name}
-                              </option>
-                            ))}
-                          </select>
-                          {errors.instituto_id && (
-                            <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>
-                          )}
-                        </div>
-
-                        {/* Nome */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {t('name') || 'Nome'} *
-                          </label>
-                          <input
-                            {...register('nome', { required: true, minLength: 1, maxLength: 300 })}
-                            placeholder="e.g. Laboratório de Realidade Estendida"
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                          />
-                          {errors.nome && (
-                            <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>
-                          )}
-                        </div>
-
-                        {/* Descrição */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {t('description') || 'Descrição'} *
-                          </label>
-                          <textarea
-                            {...register('descricao', { required: true, minLength: 1, maxLength: 4000 })}
-                            rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                          />
-                          {errors.descricao && (
-                            <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>
-                          )}
-                        </div>
-
-                        {/* Emails */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              {t('labEmail') || 'Email do Laboratório'} *
-                            </label>
-                            <input
-                              type="email"
-                              {...register('email_laboratorio', { required: true })}
-                              placeholder="lab@senai.br"
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
-                            {errors.email_laboratorio && (
-                              <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              {t('responsibleEmail') || 'Email do Responsável'} *
-                            </label>
-                            <input
-                              type="email"
-                              {...register('email_responsavel', { required: true })}
-                              placeholder="responsavel@senai.br"
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
-                            {errors.email_responsavel && (
-                              <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Área e Status */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              {t('areaM2') || 'Área Predial (m²)'} *
-                            </label>
-                            <input
-                              type="number"
-                              {...register('area_predial_m2', { required: true, min: 0, valueAsNumber: true })}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
-                            {errors.area_predial_m2 && (
-                              <p className="text-red-500 text-xs mt-1">{t('required') || 'Campo obrigatório'}</p>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              {t('status') || 'Status'}
-                            </label>
-                            <select
-                              {...register('status_isi')}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            >
-                              {statusOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </Tab.Panel>
-
-                      {/* Tab 2: Equipments */}
-                      <Tab.Panel className="space-y-4">
-                        <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{t('equipmentsHint') || 'Registre equipamentos associados a esta infraestrutura.'}</p>
-                        </div>
-
-                        {/* Add equipment form (verticalized) */}
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentName') || 'Nome'}</label>
-                            <input value={newEquipName} onChange={(e) => setNewEquipName(e.target.value)} className="w-full px-3 py-2 border rounded" />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentSerial') || 'Serial'}</label>
-                            <input value={newEquipSerial} onChange={(e) => setNewEquipSerial(e.target.value)} className="w-full px-3 py-2 border rounded" />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentStatus') || 'Status'}</label>
-                            <select value={newEquipStatus} onChange={(e) => setNewEquipStatus(e.target.value)} className="w-full px-3 py-2 border rounded">
-                              <option value="">{t('select') || 'Select'}</option>
-                              {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('equipmentDesc') || 'Descrição'}</label>
-                            <input value={newEquipDesc} onChange={(e) => setNewEquipDesc(e.target.value)} placeholder={t('equipmentDesc') || 'Descrição'} className="w-full px-3 py-2 border rounded" />
-                          </div>
-
-                          <div className="flex justify-end">
-                            <button type="button" onClick={() => { if (newEquipName) { addEquipment({ nome: newEquipName, serial: newEquipSerial, descricao: newEquipDesc, status: newEquipStatus }); setNewEquipName(''); setNewEquipSerial(''); setNewEquipDesc(''); setNewEquipStatus(''); } }} className="px-4 py-2 bg-primary-600 text-white rounded">{t('add') || 'Adicionar'}</button>
-                          </div>
-                        </div>
-
-                        {/* List equipments */}
-                        <div className="space-y-2 mt-4">
-                          {equipamentos.length === 0 && <p className="text-sm text-gray-500">{t('noEquipments') || 'Nenhum equipamento registrado.'}</p>}
-                          {equipamentos.map((eq: EquipmentItem, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between p-3 border rounded">
-                              <div>
-                                <div className="font-medium">{eq.nome} {eq.serial ? `(${eq.serial})` : ''}</div>
-                                <div className="text-sm text-gray-500">{eq.descricao}</div>
-                                <div className="text-xs text-gray-400">{eq.status}</div>
-                              </div>
-                              <div>
-                                <button type="button" onClick={() => removeEquipment(idx)} className="text-red-600">{t('remove') || 'Remover'}</button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </Tab.Panel>
-
-                      {/* Tab 3: Areas and Platforms */}
-                      <Tab.Panel className="space-y-6">
-                        {/* Technology Platforms */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            {t('techPlatforms') || 'Plataformas Tecnológicas'}
-                          </label>
-                          <div className="flex gap-2 mb-2">
-                            <select
-                              value={newPlatform}
-                              onChange={(e) => setNewPlatform(e.target.value)}
-                              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            >
-                              <option value="">{t('selectOrType') || 'Selecione ou digite'}</option>
-                              {predefinedPlatforms.filter(p => !plataformas.includes(p)).map(p => (
-                                <option key={p} value={p}>{p}</option>
-                              ))}
-                            </select>
-                            <input
-                              type="text"
-                              value={newPlatform}
-                              onChange={(e) => setNewPlatform(e.target.value)}
-                              placeholder={t('customPlatform') || 'Ou digite uma nova...'}
-                              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
-                            <button
-                              type="button"
-                              onClick={addPlatform}
-                              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                            >
-                              <PlusIcon className="w-5 h-5" />
-                            </button>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {plataformas.map((p) => (
-                              <span key={p} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                                {p}
-                                <button type="button" onClick={() => removePlatform(p)} className="ml-2 text-blue-600 hover:text-blue-800">
-                                  <XMarkIcon className="w-4 h-4" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Knowledge Areas */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            {t('knowledgeAreas') || 'Áreas de Conhecimento'}
-                          </label>
-                          <div className="flex gap-2 mb-2">
-                            <select
-                              value={newArea}
-                              onChange={(e) => setNewArea(e.target.value)}
-                              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            >
-                              <option value="">{t('selectOrType') || 'Selecione ou digite'}</option>
-                              {predefinedAreas.filter(a => !areas.includes(a)).map(a => (
-                                <option key={a} value={a}>{a}</option>
-                              ))}
-                            </select>
-                            <input
-                              type="text"
-                              value={newArea}
-                              onChange={(e) => setNewArea(e.target.value)}
-                              placeholder={t('customArea') || 'Ou digite uma nova...'}
-                              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
-                            <button
-                              type="button"
-                              onClick={addArea}
-                              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                            >
-                              <PlusIcon className="w-5 h-5" />
-                            </button>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {areas.map((a) => (
-                              <span key={a} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                {a}
-                                <button type="button" onClick={() => removeArea(a)} className="ml-2 text-green-600 hover:text-green-800">
-                                  <XMarkIcon className="w-4 h-4" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Research Macro-areas */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            {t('researchMacroareas') || 'Macroáreas de Pesquisa'}
-                          </label>
-                          <div className="flex gap-2 mb-2">
-                            <select
-                              value={newMacroarea}
-                              onChange={(e) => setNewMacroarea(e.target.value)}
-                              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            >
-                              <option value="">{t('selectOrType') || 'Selecione ou digite'}</option>
-                              {predefinedMacroareas.filter(m => !macroareas.includes(m)).map(m => (
-                                <option key={m} value={m}>{m}</option>
-                              ))}
-                            </select>
-                            <input
-                              type="text"
-                              value={newMacroarea}
-                              onChange={(e) => setNewMacroarea(e.target.value)}
-                              placeholder={t('customMacroarea') || 'Ou digite uma nova...'}
-                              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
-                            <button
-                              type="button"
-                              onClick={addMacroarea}
-                              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                            >
-                              <PlusIcon className="w-5 h-5" />
-                            </button>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {macroareas.map((m) => (
-                              <span key={m} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
-                                {m}
-                                <button type="button" onClick={() => removeMacroarea(m)} className="ml-2 text-purple-600 hover:text-purple-800">
-                                  <XMarkIcon className="w-4 h-4" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </Tab.Panel>
-
-                      {/* Tab 4: Media */}
-                      <Tab.Panel className="space-y-4">
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                            {t('addMedia') || 'Adicionar Mídia'}
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                            <input
-                              type="url"
-                              value={newMedia.url}
-                              onChange={(e) => setNewMedia({ ...newMedia, url: e.target.value })}
-                              placeholder="URL da mídia"
-                              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
-                            <select
-                              value={newMedia.type}
-                              onChange={(e) => setNewMedia({ ...newMedia, type: e.target.value })}
-                              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            >
-                              <option value="image">{t('image') || 'Imagem'}</option>
-                              <option value="video">{t('video') || 'Vídeo'}</option>
-                              <option value="document">{t('document') || 'Documento'}</option>
-                              <option value="3d_model">{t('3dModel') || 'Modelo 3D'}</option>
-                            </select>
-                            <input
-                              type="text"
-                              value={newMedia.description || ''}
-                              onChange={(e) => setNewMedia({ ...newMedia, description: e.target.value })}
-                              placeholder={t('mediaDescription') || 'Descrição'}
-                              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            onClick={addMedia}
-                            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
-                          >
-                            <PlusIcon className="w-4 h-4" />
-                            {t('add') || 'Adicionar'}
-                          </button>
-                        </div>
-
-                        {/* Media List */}
-                        <div className="space-y-2">
-                          {midias.length === 0 ? (
-                            <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                              {t('noMedia') || 'Nenhuma mídia adicionada'}
-                            </p>
-                          ) : (
-                            midias.map((media, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg"
-                              >
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-slate-600 px-2 py-1 rounded">
-                                      {media.type}
-                                    </span>
-                                    <a
-                                      href={media.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate max-w-xs"
-                                    >
-                                      {media.url}
-                                    </a>
-                                  </div>
-                                  {media.description && (
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{media.description}</p>
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => removeMedia(index)}
-                                  className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                >
-                                  <TrashIcon className="w-5 h-5" />
-                                </button>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </Tab.Panel>
-                    </Tab.Panels>
-                  </Tab.Group>
-
-                  {/* Footer Actions */}
-                  <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-between">
-                    <div>
-                      {resource && (
-                        <button
-                          type="button"
-                          onClick={() => deleteMutation.mutate()}
-                          disabled={deleteMutation.isPending}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                        >
-                          {t('delete') || 'Excluir'}
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
-                      >
-                        {t('cancel') || 'Cancelar'}
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={saveMutation.isPending}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                      >
-                        {saveMutation.isPending
-                          ? (t('saving') || 'Salvando...')
-                          : resource
-                            ? (t('save') || 'Salvar')
-                            : (t('create') || 'Criar')}
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </Dialog.Panel>
-            </Transition.Child>
+      {/* Add equipment form */}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className={labelClasses}>{t('equipmentName') || 'Nome'} *</label>
+            <input value={newEquipName} onChange={(e) => setNewEquipName(e.target.value)} className={inputClasses} />
+          </div>
+          <div>
+            <label className={labelClasses}>{t('equipmentSerial') || 'Serial'}</label>
+            <input value={newEquipSerial} onChange={(e) => setNewEquipSerial(e.target.value)} className={inputClasses} />
+          </div>
+          <div>
+            <label className={labelClasses}>{t('equipmentStatus') || 'Status'}</label>
+            <select value={newEquipStatus} onChange={(e) => setNewEquipStatus(e.target.value)} className={inputClasses}>
+              <option value="">{t('select') || 'Selecione'}</option>
+              {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelClasses}>{t('equipmentDesc') || 'Descrição'}</label>
+            <input value={newEquipDesc} onChange={(e) => setNewEquipDesc(e.target.value)} className={inputClasses} />
           </div>
         </div>
-      </Dialog>
-    </Transition>
+        <div className="flex justify-end">
+          <button type="button" onClick={addEquipment} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2">
+            <PlusIcon className="w-4 h-4" />
+            {t('add') || 'Adicionar'}
+          </button>
+        </div>
+      </div>
+
+      {/* Equipment list */}
+      <div className="space-y-2">
+        {equipamentos.length === 0 && <p className="text-sm text-gray-500 text-center py-4">{t('noEquipments') || 'Nenhum equipamento registrado.'}</p>}
+        {equipamentos.map((eq: EquipmentItem, idx: number) => (
+          <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-gray-900 dark:text-white">{eq.nome} {eq.serial ? `(${eq.serial})` : ''}</div>
+              {eq.descricao && <div className="text-sm text-gray-500 dark:text-gray-400 truncate">{eq.descricao}</div>}
+              {eq.status && <div className="text-xs text-gray-400">{eq.status}</div>}
+            </div>
+            <button type="button" onClick={() => removeEquipment(idx)} className="p-2 text-red-600 hover:text-red-800 shrink-0">
+              <TrashIcon className="w-5 h-5" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const AreasTab = (
+    <div className="space-y-6">
+      {/* Technology Platforms */}
+      <div>
+        <label className={labelClasses}>{t('techPlatforms') || 'Plataformas Tecnológicas'}</label>
+        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+          <select value={newPlatform} onChange={(e) => setNewPlatform(e.target.value)} className={`${inputClasses} sm:flex-1`}>
+            <option value="">{t('selectOrType') || 'Selecione'}</option>
+            {predefinedPlatforms.filter(p => !plataformas.includes(p)).map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <div className="flex gap-2">
+            <input type="text" value={newPlatform} onChange={(e) => setNewPlatform(e.target.value)} placeholder={t('customPlatform') || 'Ou digite...'} className={`${inputClasses} flex-1`} />
+            <button type="button" onClick={addPlatform} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shrink-0">
+              <PlusIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {plataformas.map((p) => (
+            <span key={p} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+              {p}
+              <button type="button" onClick={() => removePlatform(p)} className="ml-2 text-blue-600 hover:text-blue-800"><XMarkIcon className="w-4 h-4" /></button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Knowledge Areas */}
+      <div>
+        <label className={labelClasses}>{t('knowledgeAreas') || 'Áreas de Conhecimento'}</label>
+        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+          <select value={newArea} onChange={(e) => setNewArea(e.target.value)} className={`${inputClasses} sm:flex-1`}>
+            <option value="">{t('selectOrType') || 'Selecione'}</option>
+            {predefinedAreas.filter(a => !areas.includes(a)).map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <div className="flex gap-2">
+            <input type="text" value={newArea} onChange={(e) => setNewArea(e.target.value)} placeholder={t('customArea') || 'Ou digite...'} className={`${inputClasses} flex-1`} />
+            <button type="button" onClick={addArea} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shrink-0">
+              <PlusIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {areas.map((a) => (
+            <span key={a} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+              {a}
+              <button type="button" onClick={() => removeArea(a)} className="ml-2 text-green-600 hover:text-green-800"><XMarkIcon className="w-4 h-4" /></button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Research Macro-areas */}
+      <div>
+        <label className={labelClasses}>{t('researchMacroareas') || 'Macroáreas de Pesquisa'}</label>
+        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+          <select value={newMacroarea} onChange={(e) => setNewMacroarea(e.target.value)} className={`${inputClasses} sm:flex-1`}>
+            <option value="">{t('selectOrType') || 'Selecione'}</option>
+            {predefinedMacroareas.filter(m => !macroareas.includes(m)).map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <div className="flex gap-2">
+            <input type="text" value={newMacroarea} onChange={(e) => setNewMacroarea(e.target.value)} placeholder={t('customMacroarea') || 'Ou digite...'} className={`${inputClasses} flex-1`} />
+            <button type="button" onClick={addMacroarea} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shrink-0">
+              <PlusIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {macroareas.map((m) => (
+            <span key={m} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
+              {m}
+              <button type="button" onClick={() => removeMacroarea(m)} className="ml-2 text-purple-600 hover:text-purple-800"><XMarkIcon className="w-4 h-4" /></button>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const MediaTab = (
+    <div className="space-y-4">
+      <TabHint variant="info">
+        {t('mediaHint') || 'Adicione imagens, vídeos e outros arquivos de mídia associados à infraestrutura.'}
+      </TabHint>
+
+      {/* Add media form */}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="sm:col-span-2">
+            <label className={labelClasses}>URL *</label>
+            <input type="url" value={newMedia.url} onChange={(e) => setNewMedia({ ...newMedia, url: e.target.value })} className={inputClasses} placeholder="https://..." />
+          </div>
+          <div>
+            <label className={labelClasses}>{t('mediaType') || 'Tipo'}</label>
+            <select value={newMedia.type} onChange={(e) => setNewMedia({ ...newMedia, type: e.target.value })} className={inputClasses}>
+              <option value="image">{t('image') || 'Imagem'}</option>
+              <option value="video">{t('video') || 'Vídeo'}</option>
+              <option value="document">{t('document') || 'Documento'}</option>
+              <option value="3d_model">{t('3dModel') || 'Modelo 3D'}</option>
+            </select>
+          </div>
+          <div className="sm:col-span-3">
+            <label className={labelClasses}>{t('mediaDescription') || 'Descrição'}</label>
+            <input type="text" value={newMedia.description || ''} onChange={(e) => setNewMedia({ ...newMedia, description: e.target.value })} className={inputClasses} />
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <button type="button" onClick={addMedia} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2">
+            <PlusIcon className="w-4 h-4" />
+            {t('add') || 'Adicionar'}
+          </button>
+        </div>
+      </div>
+
+      {/* Media list */}
+      <div className="space-y-2">
+        {midias.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400 text-center py-4">{t('noMedia') || 'Nenhuma mídia adicionada'}</p>
+        ) : (
+          midias.map((media, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-slate-600 px-2 py-1 rounded shrink-0">
+                    {media.type}
+                  </span>
+                  <a href={media.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate">
+                    {media.url}
+                  </a>
+                </div>
+                {media.description && <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 truncate">{media.description}</p>}
+              </div>
+              <button type="button" onClick={() => removeMedia(index)} className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 shrink-0">
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const tabs: TabItem[] = [
+    { name: t('basicInfo') || 'Básico', icon: BuildingOfficeIcon, content: BasicInfoTab },
+    { name: t('equipmentsTab') || 'Equipamentos', icon: CpuChipIcon, content: EquipmentsTab },
+    { name: t('areasTab') || 'Áreas', icon: BeakerIcon, content: AreasTab },
+    { name: t('mediaTab') || 'Mídias', icon: PhotoIcon, content: MediaTab },
+  ];
+
+  const modalTitle = resource 
+    ? (resource.nome || t('edit') || 'Editar Infraestrutura')
+    : (t('newInfrastructure') || 'Nova Infraestrutura');
+
+  const modalSubtitle = resource?.id ? `ID: ${resource.id}` : undefined;
+
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={modalTitle}
+      subtitle={modalSubtitle}
+      icon={<BuildingOfficeIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />}
+      size="3xl"
+      footer={
+        <ModalFooter
+          onCancel={onClose}
+          onSubmit={handleSubmit(onSubmit)}
+          submitLabel={resource ? (t('save') || 'Salvar') : (t('create') || 'Criar')}
+          cancelLabel={tCommon('cancel') || 'Cancelar'}
+          deleteLabel={t('delete') || 'Excluir'}
+          isSubmitting={saveMutation.isPending}
+          isDeleting={deleteMutation.isPending}
+          showDelete={!!resource}
+          onDelete={() => setShowDeleteConfirm(true)}
+        />
+      }
+    >
+      <DeleteConfirmation
+        isVisible={showDeleteConfirm}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        isDeleting={deleteMutation.isPending}
+        message={t('confirmDelete') || 'Tem certeza que deseja excluir esta infraestrutura?'}
+      />
+      
+      <ModalTabs
+        tabs={tabs}
+        selectedIndex={selectedTab}
+        onChange={setSelectedTab}
+      />
+    </BaseModal>
   );
 }

@@ -2,16 +2,22 @@
  * TeamModal
  * Full CRUD modal for Team (Equipe) management
  * Implements RF-03: Portfólio Institucional - Team Management
+ * 
+ * Refactored to use BaseModal + ModalTabs with mobile-friendly navigation
+ * No horizontal scroll, tabs organized for better UX
  */
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
-import { Dialog, Transition, Tab } from '@headlessui/react';
-import { XMarkIcon, UserCircleIcon, LinkIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
+import { UserCircleIcon, LinkIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/api-client';
+
+import BaseModal, { ModalFooter } from '@/components/ui/BaseModal';
+import ModalTabs, { TabHint, type TabItem } from '@/components/ui/ModalTabs';
+import DeleteConfirmation from '@/components/ui/DeleteConfirmation';
 
 interface TeamFormData {
   usuario_id: string;
@@ -38,14 +44,15 @@ interface Props {
   team: any | null;
 }
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
+const inputClasses = "w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent";
+const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
 
 export default function TeamModal({ isOpen, onClose, team }: Props) {
   const t = useTranslations('teams');
+  const tCommon = useTranslations('common');
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const defaultValues: TeamFormData = {
     usuario_id: '', instituto_id: '', cargo: '', funcao_principal: '',
@@ -63,7 +70,6 @@ export default function TeamModal({ isOpen, onClose, team }: Props) {
     queryFn: async () => {
       try {
         const resp = await apiClient.get('/api/v1/users');
-        // Normalize possible response shapes (resp may already be data)
         if (!resp) return [];
         return resp.items ?? resp.data?.items ?? resp.data ?? resp ?? [];
       } catch (e) {
@@ -106,9 +112,11 @@ export default function TeamModal({ isOpen, onClose, team }: Props) {
         data_vinculo_fim: team.data_vinculo_fim || '',
       });
       setSelectedTab(0);
+      setShowDeleteConfirm(false);
     } else {
       reset(defaultValues);
       setSelectedTab(0);
+      setShowDeleteConfirm(false);
     }
   }, [team, reset]);
 
@@ -118,183 +126,181 @@ export default function TeamModal({ isOpen, onClose, team }: Props) {
       if (team?.id) return apiClient.put(`/api/v1/teams/${team.id}`, payload);
       return apiClient.post('/api/v1/teams', payload);
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); onClose(); },
+    onSuccess: () => { 
+      queryClient.invalidateQueries({ queryKey: ['teams'] }); 
+      onClose(); 
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => apiClient.delete(`/api/v1/teams/${team!.id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); onClose(); },
+    onSuccess: () => { 
+      queryClient.invalidateQueries({ queryKey: ['teams'] }); 
+      onClose(); 
+    },
   });
 
   const onSubmit = (data: TeamFormData) => saveMutation.mutate(data);
 
-  const tabs = [
-    { name: t('tabs.basic') || 'Informações Básicas', icon: UserCircleIcon },
-    { name: t('tabs.profiles') || 'Perfis Acadêmicos', icon: LinkIcon },
-    { name: t('tabs.dates') || 'Período do Vínculo', icon: CalendarIcon },
+  const handleDelete = () => {
+    deleteMutation.mutate();
+  };
+
+  // Tab Content Components
+  const BasicInfoTab = (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClasses}>{t('fields.usuario') || 'Usuário'} *</label>
+          <select {...register('usuario_id', { required: 'Usuário é obrigatório' })} className={inputClasses}>
+            <option value="">Selecione...</option>
+            {users.map((u: any) => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
+          </select>
+          {errors.usuario_id && <p className="text-red-500 text-xs mt-1">{errors.usuario_id.message}</p>}
+        </div>
+        <div>
+          <label className={labelClasses}>{t('fields.instituto') || 'Instituto'} *</label>
+          <select {...register('instituto_id', { required: 'Instituto é obrigatório' })} className={inputClasses}>
+            <option value="">Selecione...</option>
+            {institutes.map((i: any) => <option key={i.id} value={i.id}>{i.nome || i.name}</option>)}
+          </select>
+          {errors.instituto_id && <p className="text-red-500 text-xs mt-1">{errors.instituto_id.message}</p>}
+        </div>
+        <div>
+          <label className={labelClasses}>{t('fields.cargo') || 'Cargo'} *</label>
+          <input {...register('cargo', { required: 'Cargo é obrigatório' })} className={inputClasses} placeholder="Coordenador, Pesquisador Chefe, CTO..." />
+          {errors.cargo && <p className="text-red-500 text-xs mt-1">{errors.cargo.message}</p>}
+        </div>
+        <div>
+          <label className={labelClasses}>{t('fields.funcao_principal') || 'Função Principal'} *</label>
+          <input {...register('funcao_principal', { required: 'Função é obrigatória' })} className={inputClasses} placeholder="Gerência de projetos de P&D..." />
+          {errors.funcao_principal && <p className="text-red-500 text-xs mt-1">{errors.funcao_principal.message}</p>}
+        </div>
+        <div>
+          <label className={labelClasses}>{t('fields.email_profissional') || 'E-mail Profissional'}</label>
+          <input {...register('email_profissional')} type="email" className={inputClasses} placeholder="nome@instituto.org.br" />
+        </div>
+        <div>
+          <label className={labelClasses}>{t('fields.telefone_celular') || 'Telefone Celular'}</label>
+          <input {...register('telefone_celular')} className={inputClasses} placeholder="(47) 99999-9999" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer">
+            <input type="checkbox" {...register('vinculo_principal')} className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">{t('fields.vinculo_principal') || 'Vínculo Principal'}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('fields.vinculo_principal_hint') || 'Marque se este é o instituto principal do colaborador'}</p>
+            </div>
+          </label>
+        </div>
+        <div className="sm:col-span-2">
+          <label className={labelClasses}>{t('fields.foto_perfil_url') || 'URL da Foto de Perfil'}</label>
+          <input {...register('foto_perfil_url')} type="url" className={inputClasses} placeholder="https://..." />
+        </div>
+      </div>
+    </div>
+  );
+
+  const AcademicProfilesTab = (
+    <div className="space-y-4">
+      <TabHint variant="info">
+        {t('profiles_hint') || 'Links para perfis acadêmicos e de pesquisa do colaborador.'}
+      </TabHint>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClasses}>LinkedIn</label>
+          <input {...register('linkedin_url')} type="url" className={inputClasses} placeholder="https://linkedin.com/in/..." />
+        </div>
+        <div>
+          <label className={labelClasses}>Currículo Lattes</label>
+          <input {...register('lattes_url')} type="url" className={inputClasses} placeholder="https://lattes.cnpq.br/..." />
+        </div>
+        <div>
+          <label className={labelClasses}>ORCID iD</label>
+          <input {...register('orcid_id')} className={inputClasses} placeholder="0000-0000-0000-0000" />
+        </div>
+        <div>
+          <label className={labelClasses}>ResearchGate</label>
+          <input {...register('researchgate_url')} type="url" className={inputClasses} placeholder="https://researchgate.net/profile/..." />
+        </div>
+        <div>
+          <label className={labelClasses}>Scopus Author ID</label>
+          <input {...register('scopus_author_id')} className={inputClasses} placeholder="12345678900" />
+        </div>
+        <div>
+          <label className={labelClasses}>Web of Science Researcher ID</label>
+          <input {...register('web_of_science_researcher_id')} className={inputClasses} placeholder="A-1234-5678" />
+        </div>
+      </div>
+    </div>
+  );
+
+  const DatesTab = (
+    <div className="space-y-4">
+      <TabHint variant="warning">
+        {t('dates_hint') || 'Período de vigência do vínculo com o instituto.'}
+      </TabHint>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClasses}>{t('fields.data_vinculo_inicio') || 'Data de Início'}</label>
+          <input {...register('data_vinculo_inicio')} type="date" className={inputClasses} />
+        </div>
+        <div>
+          <label className={labelClasses}>{t('fields.data_vinculo_fim') || 'Data de Término'}</label>
+          <input {...register('data_vinculo_fim')} type="date" className={inputClasses} />
+          <p className="text-xs text-gray-400 mt-1">{t('fields.data_vinculo_fim_hint') || 'Deixe em branco para vínculo ativo'}</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const tabs: TabItem[] = [
+    { name: t('tabs.basic') || 'Básico', icon: UserCircleIcon, content: BasicInfoTab },
+    { name: t('tabs.profiles') || 'Perfis', icon: LinkIcon, content: AcademicProfilesTab },
+    { name: t('tabs.dates') || 'Período', icon: CalendarIcon, content: DatesTab },
   ];
 
+  const modalTitle = team 
+    ? (watch('cargo') || team.cargo || t('edit') || 'Editar Membro')
+    : (t('new') || 'Novo Membro da Equipe');
+
+  const modalSubtitle = team ? (watch('funcao_principal') || team.funcao_principal) : undefined;
+
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
-        </Transition.Child>
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-xl transition-all">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-start justify-between">
-                  <div>
-                    <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                      <UserCircleIcon className="w-6 h-6 text-primary-600" />
-                      {team ? (watch('cargo') || team.cargo || t('edit') || 'Editar Membro') : (t('new') || 'Novo Membro da Equipe')}
-                    </Dialog.Title>
-                    {team && <p className="text-sm text-gray-500 mt-1">{watch('funcao_principal') || team.funcao_principal}</p>}
-                  </div>
-                  <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700">
-                    <XMarkIcon className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <Tab.Group selectedIndex={selectedTab} onChange={setSelectedTab}>
-                  <Tab.List className="flex border-b border-gray-200 dark:border-gray-700 px-6">
-                    {tabs.map((tab) => (
-                      <Tab key={tab.name} className={({ selected }) => classNames('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px outline-none', selected ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')}>
-                        <tab.icon className="w-4 h-4" />{tab.name}
-                      </Tab>
-                    ))}
-                  </Tab.List>
-
-                  <form onSubmit={handleSubmit(onSubmit)}>
-                    <Tab.Panels className="p-6 max-h-[60vh] overflow-y-auto">
-                      {/* Tab 1: Basic Info */}
-                      <Tab.Panel className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.usuario') || 'Usuário'} *</label>
-                            <select {...register('usuario_id', { required: 'Usuário é obrigatório' })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                              <option value="">Selecione...</option>
-                              {users.map((u: any) => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
-                            </select>
-                            {errors.usuario_id && <p className="text-red-500 text-xs mt-1">{errors.usuario_id.message}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.instituto') || 'Instituto'} *</label>
-                            <select {...register('instituto_id', { required: 'Instituto é obrigatório' })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                              <option value="">Selecione...</option>
-                              {institutes.map((i: any) => <option key={i.id} value={i.id}>{i.nome || i.name}</option>)}
-                            </select>
-                            {errors.instituto_id && <p className="text-red-500 text-xs mt-1">{errors.instituto_id.message}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.cargo') || 'Cargo'} *</label>
-                            <input {...register('cargo', { required: 'Cargo é obrigatório' })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="Coordenador, Pesquisador Chefe, CTO..." />
-                            {errors.cargo && <p className="text-red-500 text-xs mt-1">{errors.cargo.message}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.funcao_principal') || 'Função Principal'} *</label>
-                            <input {...register('funcao_principal', { required: 'Função é obrigatória' })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="Gerência de projetos de P&D..." />
-                            {errors.funcao_principal && <p className="text-red-500 text-xs mt-1">{errors.funcao_principal.message}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.email_profissional') || 'E-mail Profissional'}</label>
-                            <input {...register('email_profissional')} type="email" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="nome@instituto.org.br" />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.telefone_celular') || 'Telefone Celular'}</label>
-                            <input {...register('telefone_celular')} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="(47) 99999-9999" />
-                          </div>
-                          <div className="col-span-2">
-                            <label className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer">
-                              <input type="checkbox" {...register('vinculo_principal')} className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">{t('fields.vinculo_principal') || 'Vínculo Principal'}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{t('fields.vinculo_principal_hint') || 'Marque se este é o instituto principal do colaborador'}</p>
-                              </div>
-                            </label>
-                          </div>
-                          <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.foto_perfil_url') || 'URL da Foto de Perfil'}</label>
-                            <input {...register('foto_perfil_url')} type="url" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="https://..." />
-                          </div>
-                        </div>
-                      </Tab.Panel>
-
-                      {/* Tab 2: Academic Profiles */}
-                      <Tab.Panel className="space-y-4">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
-                          <p className="text-sm text-blue-700 dark:text-blue-300">{t('profiles_hint') || 'Links para perfis acadêmicos e de pesquisa do colaborador.'}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">LinkedIn</label>
-                            <input {...register('linkedin_url')} type="url" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="https://linkedin.com/in/..." />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currículo Lattes</label>
-                            <input {...register('lattes_url')} type="url" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="https://lattes.cnpq.br/..." />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ORCID iD</label>
-                            <input {...register('orcid_id')} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="0000-0000-0000-0000" />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ResearchGate</label>
-                            <input {...register('researchgate_url')} type="url" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="https://researchgate.net/profile/..." />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Scopus Author ID</label>
-                            <input {...register('scopus_author_id')} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="12345678900" />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Web of Science Researcher ID</label>
-                            <input {...register('web_of_science_researcher_id')} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" placeholder="A-1234-5678" />
-                          </div>
-                        </div>
-                      </Tab.Panel>
-
-                      {/* Tab 3: Dates */}
-                      <Tab.Panel className="space-y-4">
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
-                          <p className="text-sm text-yellow-700 dark:text-yellow-300">{t('dates_hint') || 'Período de vigência do vínculo com o instituto.'}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.data_vinculo_inicio') || 'Data de Início'}</label>
-                            <input {...register('data_vinculo_inicio')} type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('fields.data_vinculo_fim') || 'Data de Término'}</label>
-                            <input {...register('data_vinculo_fim')} type="date" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500" />
-                            <p className="text-xs text-gray-400 mt-1">{t('fields.data_vinculo_fim_hint') || 'Deixe em branco para vínculo ativo'}</p>
-                          </div>
-                        </div>
-                      </Tab.Panel>
-                    </Tab.Panels>
-
-                    <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                      <div>
-                        {team && (
-                          <button type="button" onClick={() => { if (confirm(t('confirmDelete') || 'Tem certeza que deseja excluir este vínculo?')) deleteMutation.mutate(); }} disabled={deleteMutation.isPending} className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                            {t('delete') || 'Excluir'}
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">{t('cancel') || 'Cancelar'}</button>
-                        <button type="submit" disabled={saveMutation.isPending} className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors">
-                          {saveMutation.isPending ? (t('saving') || 'Salvando...') : (team ? (t('save') || 'Salvar') : (t('create') || 'Criar'))}
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </Tab.Group>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={modalTitle}
+      subtitle={modalSubtitle}
+      icon={<UserCircleIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />}
+      size="2xl"
+      footer={
+        <ModalFooter
+          onCancel={onClose}
+          onSubmit={handleSubmit(onSubmit)}
+          submitLabel={team ? (t('save') || 'Salvar') : (t('create') || 'Criar')}
+          cancelLabel={tCommon('cancel') || 'Cancelar'}
+          deleteLabel={t('delete') || 'Excluir'}
+          isSubmitting={saveMutation.isPending}
+          isDeleting={deleteMutation.isPending}
+          showDelete={!!team}
+          onDelete={() => setShowDeleteConfirm(true)}
+        />
+      }
+    >
+      <DeleteConfirmation
+        isVisible={showDeleteConfirm}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        isDeleting={deleteMutation.isPending}
+        message={t('confirmDelete') || 'Tem certeza que deseja excluir este vínculo?'}
+      />
+      
+      <ModalTabs
+        tabs={tabs}
+        selectedIndex={selectedTab}
+        onChange={setSelectedTab}
+      />
+    </BaseModal>
   );
 }
