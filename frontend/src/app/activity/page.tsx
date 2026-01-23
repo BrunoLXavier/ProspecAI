@@ -23,6 +23,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import StatCard from '@/components/ui/StatCard';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import Icon from '@/components/ui/Icon';
 
 interface Activity {
   id: string;
@@ -217,6 +219,39 @@ export default function ActivityPage() {
     }
   };
 
+  // Map activity type to TimelineView status
+  const getTimelineStatus = (type: Activity['type']): TimelineItem['status'] => {
+    switch (type) {
+      case 'create': return 'success';
+      case 'update': return 'info';
+      case 'delete': return 'error';
+      case 'transition': return 'pending';
+      case 'match': return 'warning';
+      case 'submit': return 'success';
+      default: return 'default';
+    }
+  };
+
+  // Transform activities to TimelineItems
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return safeActivities.map((activity) => ({
+      id: activity.id,
+      title: activity.entityName,
+      description: getActivityDescription(activity),
+      date: activity.createdAt,
+      status: getTimelineStatus(activity.type),
+      icon: getActionIcon(activity.type),
+      tags: [
+        { label: t(`types.${activity.type}`), color: getActionColor(activity.type) },
+        { label: t(`entities.${activity.entity}`) },
+      ],
+      author: {
+        name: activity.actor.name,
+      },
+      onClick: () => setSelectedActivity(activity),
+    }));
+  }, [safeActivities, t]);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -251,77 +286,39 @@ export default function ActivityPage() {
       />
 
       {/* Activity Area */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('loading')}</div>
-        ) : safeActivities.length === 0 ? (
-          <div className="p-12 text-center">
-            <ClockIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">{t('empty')}</p>
-          </div>
-        ) : (
-          <div className="relative p-4">
-            {viewMode === 'list' ? (
-              <div className="relative">
-                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
-                <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {safeActivities.map((activity) => (
-                    // defensive: skip any malformed entries
-                    !activity ? null : (
-                    <li key={activity.id} className="relative p-6 pl-16 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer" onClick={() => setSelectedActivity(activity)}>
-                      <div className={`absolute left-6 w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 ${activity.actor.type === 'system' ? 'bg-yellow-400' : 'bg-primary-500'}`} />
-
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getActionColor(activity.type)}`}>
-                              {getActionIcon(activity.type)}
-                              {t(`types.${activity.type}`)}
-                            </span>
-                            <span className="text-gray-400 dark:text-gray-500 text-xs">{formatTimeAgo(activity.createdAt)}</span>
-                          </div>
-
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-gray-500 dark:text-gray-400">{getEntityIcon(activity.entity)}</span>
-                            <a href={`/${activity.entity}/${activity.entityId}`} className="font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400">{activity.entityName}</a>
-                          </div>
-
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{getActivityDescription(activity)}</p>
-
-                          <div className="flex items-center gap-2 mt-2">
-                            {activity.actor.type === 'system' ? <CpuChipIcon className="w-4 h-4 text-yellow-500" /> : <UserIcon className="w-4 h-4 text-gray-400" />}
-                            <span className="text-xs text-gray-500 dark:text-gray-400">{activity.actor.name}</span>
-                          </div>
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden p-6">
+        {viewMode === 'list' ? (
+          <TimelineView
+            items={timelineItems}
+            size="md"
+            showConnectors={true}
+            animated={true}
+            loading={isLoading}
+            loadingCount={5}
+            emptyMessage={t('empty')}
+            formatDate={(date) => formatTimeAgo(String(date))}
+          />
+            ) : (
+          // Board view: group by entity
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from(new Set(safeActivities.map(a => a.entity))).map((entity) => (
+              <div key={entity} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 capitalize">{t(`entities.${entity}`)}</h3>
+                <div className="space-y-3">
+                  {safeActivities.filter(a => a.entity === entity).map((a) => (
+                    <div key={a.id} onClick={() => setSelectedActivity(a)} className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg cursor-pointer hover:shadow">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getActionColor(a.type)}`}>{getActionIcon(a.type)}{t(`types.${a.type}`)}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(a.createdAt)}</span>
                         </div>
                       </div>
-                    </li>
-                    )
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              // Board view: group by entity
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from(new Set(safeActivities.map(a => a.entity))).map((entity) => (
-                  <div key={entity} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 capitalize">{t(`entities.${entity}`)}</h3>
-                    <div className="space-y-3">
-                      {safeActivities.filter(a => a.entity === entity).map((a) => (
-                        <div key={a.id} onClick={() => setSelectedActivity(a)} className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg cursor-pointer hover:shadow">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getActionColor(a.type)}`}>{getActionIcon(a.type)}{t(`types.${a.type}`)}</span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(a.createdAt)}</span>
-                            </div>
-                          </div>
-                          <p className="mt-2 text-sm text-gray-800 dark:text-gray-200 line-clamp-2">{a.entityName}</p>
-                        </div>
-                      ))}
+                      <p className="mt-2 text-sm text-gray-800 dark:text-gray-200 line-clamp-2">{a.entityName}</p>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            )}
+            ))}
           </div>
         )}
       </div>

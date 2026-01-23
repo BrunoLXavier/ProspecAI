@@ -172,7 +172,7 @@ class InstituteRepository:
         skip: int = 0,
         limit: int = 100,
     ) -> List[Institute]:
-        """List institutes where user has membership."""
+        """List institutes where user has membership - with deduplication."""
         query = (
             select(InstituteModel)
             .join(
@@ -189,7 +189,7 @@ class InstituteRepository:
                     InstituteModel.deleted_at.is_(None)
                 )
             )
-            .distinct()
+            .group_by(InstituteModel.id)
             .order_by(InstituteModel.nome)
             .offset(skip)
             .limit(limit)

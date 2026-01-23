@@ -16,6 +16,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 interface FundingSource {
   id: string;
@@ -62,6 +63,11 @@ export default function FundingPage() {
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFunding, setSelectedFunding] = useState<FundingSource | null>(null);
+  
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   // Define filter fields configuration
@@ -153,6 +159,17 @@ export default function FundingPage() {
 
   const { selectedInstitutes } = useAuth();
 
+  // Paginate funding sources client-side
+  const paginatedFundingSources = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return fundingSources.slice(start, start + pageSize);
+  }, [fundingSources, currentPage, pageSize]);
+
+  // Reset page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       open: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
@@ -238,73 +255,92 @@ export default function FundingPage() {
         />
       ) : (
         /* List View */
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-              {tCommon('loading')}
-            </div>
-          ) : fundingSources.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-              {tCommon('noResults')}
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-              {fundingSources.map((funding) => (
-                <li
-                  key={funding.id}
-                  className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
-                  onClick={() => handleFundingClick(funding)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {funding.name}
-                        </h3>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(funding.status)}`}
-                        >
-                          {t(`status.${funding.status}`)}
-                        </span>
-                        {funding.aiConfidenceScore && (
-                          <ConfidenceBadge score={funding.aiConfidenceScore} />
-                        )}
-                      </div>
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                {tCommon('loading')}
+              </div>
+            ) : fundingSources.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                {tCommon('noResults')}
+              </div>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedFundingSources.map((funding) => (
+                  <li
+                    key={funding.id}
+                    className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                    onClick={() => handleFundingClick(funding)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {funding.name}
+                          </h3>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(funding.status)}`}
+                          >
+                            {t(`status.${funding.status}`)}
+                          </span>
+                          {funding.aiConfidenceScore && (
+                            <ConfidenceBadge score={funding.aiConfidenceScore} />
+                          )}
+                        </div>
 
-                      <div className="mt-2 grid grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('type')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {t(`types.${funding.instrumentType}`)}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('amount')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL',
-                            }).format(funding.totalAmount)}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('trl')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {funding.trlMin} - {funding.trlMax}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('deadline')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {daysUntilDeadline(funding.submissionEnd)} dias
-                          </p>
+                        <div className="mt-2 grid grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('type')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {t(`types.${funding.instrumentType}`)}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('amount')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              }).format(funding.totalAmount)}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('trl')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {funding.trlMin} - {funding.trlMax}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('deadline')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {daysUntilDeadline(funding.submissionEnd)} dias
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {fundingSources.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={fundingSources.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
           )}
         </div>
       )}

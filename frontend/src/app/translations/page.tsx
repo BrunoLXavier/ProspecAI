@@ -16,6 +16,8 @@ import {
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import TranslationModal from '@/components/translations/TranslationModal';
+import TableView, { TableColumn } from '@/components/ui/TableView';
+import Pagination from '@/components/ui/Pagination';
 import { apiClient } from '@/lib/api-client';
 
 interface TranslationKey {
@@ -195,6 +197,29 @@ export default function TranslationsPage() {
 		{ key: 'search', label: tCommon('search') || 'Search', type: 'text', placeholder: t('translations.searchPlaceholder') || 'Search keys or values...' },
 		{ key: 'namespace', label: t('translations.namespace') || 'Namespace', type: 'select', options: [{ value: '', label: tCommon('all') || 'All' }, ...namespaces.map(ns => ({ value: ns, label: ns }))] },
 	];
+
+	// Table columns definition for TableView
+	const translationColumns: TableColumn<TranslationKey>[] = useMemo(() => [
+		{
+			key: 'path',
+			header: t('translations.keyPath') || 'Key Path',
+			accessor: 'path',
+			sortable: true,
+			width: '33%',
+			cellClassName: 'font-mono',
+		},
+		...locales.map((locale) => ({
+			key: locale,
+			header: `${LOCALE_FLAGS[locale]} ${LOCALE_NAMES[locale]}`,
+			accessor: (row: TranslationKey) => row.values[locale] || '',
+			sortable: false,
+			render: (value: unknown, row: TranslationKey) => (
+				<span className={!row.values[locale] ? 'text-red-500 italic' : ''}>
+					{row.values[locale] || tCommon('noResults')}
+				</span>
+			),
+		})),
+	], [locales, t, tCommon]);
 
 	const maxPage = Math.max(1, Math.ceil((total || 0) / pageSize));
 
@@ -422,82 +447,31 @@ export default function TranslationsPage() {
 				defaultExpanded={false}
 			/>
 
-			{/* Translations Table */}
-			<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
-				{loading ? (
-					<div className="p-8 text-center text-gray-500 dark:text-gray-400">
-						Loading translations...
-					</div>
-				) : filteredTranslations.length === 0 ? (
-					<div className="p-8 text-center text-gray-500 dark:text-gray-400">
-						No translations found
-					</div>
-				) : (
-					<div className="overflow-hidden">
-						<table className="w-full table-fixed">
-							<thead className="bg-gray-50 dark:bg-slate-700">
-								<tr>
-									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-1/3 min-w-0">
-										{t('translations.keyPath')}
-									</th>
-									{locales.map(locale => (
-										<th key={locale} className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-0 max-w-[14rem]">
-											{LOCALE_FLAGS[locale]} {LOCALE_NAMES[locale]}
-										</th>
-									))}
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-								{filteredTranslations.map((translation) => (
-									<tr
-										key={translation.path}
-										role="button"
-										tabIndex={0}
-										onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedTranslation(translation); setShowDetailModal(true); } }}
-										onClick={() => { setSelectedTranslation(translation); setShowDetailModal(true); }}
-										className="hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer"
-									>
-										<td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white w-1/3 min-w-0 break-words whitespace-normal">
-											{translation.path}
-										</td>
-										{locales.map(locale => (
-											<td key={locale} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 min-w-0 break-words max-w-[14rem] whitespace-normal">
-												<span className={!translation.values[locale] ? 'text-red-500 italic' : ''}>
-													{translation.values[locale] || tCommon('noResults')}
-												</span>
-											</td>
-										))}
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				)}
-        
-				{/* Summary & Pagination */}
-				<div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-gray-600 flex items-center justify-between gap-4">
-					<div>
-						<p className="text-sm text-gray-600 dark:text-gray-400">
-							{t('translations.showing')} {(total === 0) ? 0 : ( (page - 1) * pageSize + 1 )} - {Math.min(total, (page * pageSize))} {t('translations.of') || 'of'} {total} {t('translations.translationKeys')}
-						</p>
-					</div>
-
-					<div className="flex items-center gap-3">
-						<div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{t('layout.uiPreferences.itemsPerPage') || 'items per page'}</div>
-						<select value={pageSize} onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }} className="px-2 py-1 border rounded bg-white dark:bg-slate-700 w-20 text-sm">
-							{[10,20,25,50,100].map(s => <option key={s} value={s}>{s}</option>)}
-						</select>
-
-						<div className="flex items-center gap-1">
-							<button onClick={() => setPage(1)} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">«</button>
-							<button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">‹</button>
-							<span className="px-3 text-sm text-gray-700 dark:text-gray-300">{page} / {maxPage}</span>
-							<button onClick={() => setPage(p => Math.min(maxPage, p + 1))} disabled={page >= maxPage} className="px-2 py-1 border rounded disabled:opacity-50">›</button>
-							<button onClick={() => setPage(maxPage)} disabled={page >= maxPage} className="px-2 py-1 border rounded disabled:opacity-50">»</button>
-						</div>
-					</div>
-				</div>
-			</div>
+			{/* Translations Table - Using standardized TableView */}
+			<TableView<TranslationKey>
+				data={filteredTranslations}
+				columns={translationColumns}
+				getRowKey={(row) => row.path}
+				onRowClick={(row) => {
+					setSelectedTranslation(row);
+					setShowDetailModal(true);
+				}}
+				loading={loading}
+				emptyMessage={tCommon('noResults') || 'No translations found'}
+				searchable={false}
+				paginated={true}
+				pageSize={pageSize}
+				currentPage={page}
+				totalItems={total}
+				onPageChange={setPage}
+				onPageSizeChange={(size) => {
+					setPageSize(size);
+					setPage(1);
+				}}
+				pageSizeOptions={[10, 20, 25, 50, 100]}
+				striped={true}
+				hoverable={true}
+			/>
 
 			{/* New Key Modal */}
 			{showNewKeyModal && (

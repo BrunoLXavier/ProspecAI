@@ -1,7 +1,7 @@
 // Infrastructure Page
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -14,6 +14,7 @@ import { ViewMode } from '@/components/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import InfrastructureModal from '@/components/entities/InfrastructureModal';
 import InfrastructureBoard from '@/components/infrastructure/InfrastructureBoard';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 export default function InfrastructurePage() {
   const t = useTranslations('infrastructure');
@@ -23,6 +24,11 @@ export default function InfrastructurePage() {
   const [filters, setFilters] = useState({ search: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedResource, setSelectedResource] = useState<any | null>(null);
+
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const filterFields: FilterField[] = [
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
@@ -46,6 +52,17 @@ export default function InfrastructurePage() {
     if (!filters.search) return items;
     return items.filter((r: any) => (r.name || '').toLowerCase().includes(filters.search.toLowerCase()));
   }, [items, filters.search]);
+
+  // Paginate filtered items for list view
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   const { selectedInstitutes = [], user } = useAuth();
   const canCreateResource = (user?.roles || []).includes('admin') || (selectedInstitutes && selectedInstitutes.length > 0);
@@ -80,37 +97,56 @@ export default function InfrastructurePage() {
       {viewMode === 'board' ? (
         <InfrastructureBoard items={filtered} onItemClick={(r) => { setSelectedResource(r); setModalOpen(true); }} />
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
-          ) : filtered.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('noResults')}</div>
-          ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-              {filtered.map((r: any) => (
-                <li key={r.id} className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-4 shadow-sm">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{r.name}</h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{r.location || r.type || ''}</p>
-                      <p className="text-xs text-gray-400 mt-2">{r.description || ''}</p>
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+            ) : filtered.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('noResults')}</div>
+            ) : (
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                {paginatedItems.map((r: any) => (
+                  <li key={r.id} className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{r.name}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{r.location || r.type || ''}</p>
+                        <p className="text-xs text-gray-400 mt-2">{r.description || ''}</p>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {r.capacity?.area_m2 ? `${r.capacity.area_m2} m²` : (r.capacity?.units ? `${r.capacity.units} units` : '')}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {r.capacity?.area_m2 ? `${r.capacity.area_m2} m²` : (r.capacity?.units ? `${r.capacity.units} units` : '')}
+                    <div className="mt-4 flex items-center gap-2">
+                      {(
+                        (user?.roles || []).includes('admin') ||
+                        selectedInstitutes.includes(String(r.institute_id))
+                      ) && (
+                        <a href={`/infrastructure/${r.id}/booking`} className="text-sm text-primary-600 hover:underline">Book</a>
+                      )}
+                      <button onClick={() => { setSelectedResource(r); setModalOpen(true); }} className="ml-auto text-sm text-gray-500">Details</button>
                     </div>
-                  </div>
-                  <div className="mt-4 flex items-center gap-2">
-                    {(
-                      (user?.roles || []).includes('admin') ||
-                      selectedInstitutes.includes(String(r.institute_id))
-                    ) && (
-                      <a href={`/infrastructure/${r.id}/booking`} className="text-sm text-primary-600 hover:underline">Book</a>
-                    )}
-                    <button onClick={() => { setSelectedResource(r); setModalOpen(true); }} className="ml-auto text-sm text-gray-500">Details</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {filtered.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
           )}
         </div>
       )}

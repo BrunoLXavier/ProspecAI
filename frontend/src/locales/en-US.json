@@ -1750,7 +1750,31 @@
     "chars": "chars",
     "moveLeft": "moveLeft",
     "moveRight": "moveRight",
-    "view": "view"
+    "view": "view",
+    "pagination": {
+      "showing": "Showing",
+      "to": "to",
+      "of": "of",
+      "items": "items",
+      "perPage": "Per page",
+      "first": "First page",
+      "last": "Last page",
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "Page"
+    },
+    "table": {
+      "search": "Search...",
+      "empty": "No data available",
+      "noResults": "No results found",
+      "sortAsc": "Sort ascending",
+      "sortDesc": "Sort descending",
+      "selectAll": "Select all",
+      "selected": "selected"
+    },
+    "timeline": {
+      "empty": "No activity to display"
+    }
   },
   "auth": {
     "login": {

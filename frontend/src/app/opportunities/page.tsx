@@ -14,6 +14,7 @@ import OpportunityModal from '@/components/opportunities/OpportunityModal';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 interface Opportunity {
   id: string;
@@ -61,6 +62,11 @@ export default function OpportunitiesPage() {
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [viewMode, setViewMode] = useState<'board' | 'list'>('list');
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
+
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   // Load institutes for filter dropdown
   const { data: institutes = [] } = useQuery<any[]>({
@@ -209,6 +215,17 @@ export default function OpportunitiesPage() {
     }
   });
 
+  // Paginate opportunities for list view
+  const paginatedOpportunities = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return opportunities.slice(start, start + pageSize);
+  }, [opportunities, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   // Calculate statistics from opportunities data
   const calculatedStats = useMemo(() => {
     const total = opportunities.length;
@@ -308,61 +325,80 @@ export default function OpportunitiesPage() {
         <OpportunityPipeline />
       ) : (
         /* List View */
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('loading')}</div>
-          ) : opportunities.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('noResults')}</div>
-          ) : (
-            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-              {opportunities.map((opp) => (
-                <li
-                  key={opp.id}
-                  className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
-                  onClick={() => handleOpportunityClick(opp)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {opp.title}
-                        </h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStageColor(opp.stage)}`}>
-                          {opp.stage ? t(`stages.${opp.stage}`) : (opp.stage ?? '—')}
-                        </span>
-                        <ConfidenceBadge score={opp.probability / 100} />
-                      </div>
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('loading')}</div>
+            ) : opportunities.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('noResults')}</div>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedOpportunities.map((opp) => (
+                  <li
+                    key={opp.id}
+                    className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                    onClick={() => handleOpportunityClick(opp)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {opp.title}
+                          </h3>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStageColor(opp.stage)}`}>
+                            {opp.stage ? t(`stages.${opp.stage}`) : (opp.stage ?? '—')}
+                          </span>
+                          <ConfidenceBadge score={opp.probability / 100} />
+                        </div>
 
-                      <div className="grid grid-cols-4 gap-4 text-sm mt-3">
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('client') || 'Client'}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">{opp.client_name}</p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('estimatedValue') || 'Value'}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL',
-                            }).format(opp.estimated_value)}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('deadline') || 'Deadline'}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Date(opp.deadline).toLocaleDateString('pt-BR')}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('owner') || 'Owner'}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">{opp.owner}</p>
+                        <div className="grid grid-cols-4 gap-4 text-sm mt-3">
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('client') || 'Client'}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{opp.client_name}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('estimatedValue') || 'Value'}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              }).format(opp.estimated_value)}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('deadline') || 'Deadline'}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {new Date(opp.deadline).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('owner') || 'Owner'}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{opp.owner}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {opportunities.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={opportunities.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
           )}
         </div>
       )}

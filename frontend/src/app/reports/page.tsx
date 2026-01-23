@@ -4,17 +4,19 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DocumentTextIcon, PlusIcon, ChartBarIcon, FolderIcon, FunnelIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/api-client';
 import PageHeader from '@/components/ui/PageHeader';
+import Icon from '@/components/ui/Icon';
 // StatCard not required here
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 // report templates components are used in templates page
 import { ViewMode } from '@/components/ui/ViewToggle';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 // =============================================================================
 // Types
@@ -63,6 +65,11 @@ export default function ReportsPage() {
   const [isLoadingReports, setIsLoadingReports] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+
   // load generated reports (backend may expose /api/v1/reports)
   const loadReports = async () => {
     try {
@@ -94,6 +101,17 @@ export default function ReportsPage() {
     const s = filters.search.toLowerCase();
     return (r.template_id || '').toLowerCase().includes(s) || (r.generated_at || '').toLowerCase().includes(s) || (r.format || '').toLowerCase().includes(s);
   });
+
+  // Paginate reports for list view
+  const paginatedReports = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   const handleDelete = async (report: GeneratedReport) => {
     if (!report) return;
@@ -158,11 +176,11 @@ export default function ReportsPage() {
               filtered.map((r, idx) => (
                 <div key={idx} className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 hover:shadow-elevated transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-gray-100">
-                      <DocumentTextIcon className="w-6 h-6 text-gray-600" />
-                    </div>
+                    <Icon color="secondary" size="lg">
+                      <DocumentTextIcon />
+                    </Icon>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{r.template_id || '—'}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{r.template_id || '—'}</h3>
                       <p className="text-sm text-gray-500 mt-2">{new Date(r.generated_at).toLocaleString()}</p>
                       <div className="mt-4 flex items-center justify-between">
                         <div className="text-xs text-gray-400">{(r.format || '').toUpperCase()}</div>
@@ -178,42 +196,63 @@ export default function ReportsPage() {
             )}
           </div>
         ) : (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
-            {isLoadingReports ? (
-              <div className="p-8 text-center text-gray-500">{t('loading')}</div>
-            ) : filtered.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">{t('noReports')}</div>
-            ) : (
-              <ul className="divide-y divide-gray-200">
-                {filtered.map((r, idx) => (
-                  <li key={idx} className="p-6 hover:bg-gray-50 transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <DocumentTextIcon className="w-6 h-6 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-gray-900">{r.template_id}</h3>
-                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">{(r.format || '').toUpperCase()}</span>
-                        </div>
+          <div className="space-y-4">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+              {isLoadingReports ? (
+                <div className="p-8 text-center text-gray-500">{t('loading')}</div>
+              ) : filtered.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">{t('noReports')}</div>
+              ) : (
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {paginatedReports.map((r, idx) => (
+                    <li key={idx} className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <Icon color="secondary" size="md" withBackground={false}>
+                              <DocumentTextIcon />
+                            </Icon>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{r.template_id}</h3>
+                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{(r.format || '').toUpperCase()}</span>
+                          </div>
 
-                        <div className="grid grid-cols-3 gap-4 text-sm mt-3">
-                          <div>
-                            <span className="text-gray-500">{t('generated')}:</span>
-                            <p className="font-medium text-gray-900">{new Date(r.generated_at).toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">{t('templateLabel')}:</span>
-                            <p className="font-medium text-gray-900">{r.template_id || '—'}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">{t('statusLabel')}:</span>
-                            <p className="font-medium text-gray-900">{r.download_url ? t('available') : t('processed')}</p>
+                          <div className="grid grid-cols-3 gap-4 text-sm mt-3">
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400">{t('generated')}:</span>
+                              <p className="font-medium text-gray-900 dark:text-white">{new Date(r.generated_at).toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400">{t('templateLabel')}:</span>
+                              <p className="font-medium text-gray-900 dark:text-white">{r.template_id || '—'}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400">{t('statusLabel')}:</span>
+                              <p className="font-medium text-gray-900 dark:text-white">{r.download_url ? t('available') : t('processed')}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Pagination */}
+            {filtered.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filtered.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+                persistInUrl={true}
+                showTotal={true}
+                showPageSizeSelector={true}
+              />
             )}
           </div>
         )}

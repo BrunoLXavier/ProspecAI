@@ -2,7 +2,7 @@
 // Implements RF-03: Gestão de Portfólio Institucional
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
@@ -15,6 +15,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 interface Project {
   id: string;
@@ -62,6 +63,11 @@ export default function PortfolioPage() {
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
+
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   // Load institutes for filter dropdown
   const { data: institutes = [] } = useQuery<any[]>({
@@ -183,6 +189,17 @@ export default function PortfolioPage() {
     }
   });
 
+  // Paginate projects for list view
+  const paginatedProjects = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return projects.slice(start, start + pageSize);
+  }, [projects, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       planning: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',     
@@ -258,66 +275,85 @@ export default function PortfolioPage() {
         />
       ) : (
         /* List View */
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">  
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('loading')}</div>
-          ) : projects.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('noResults')}</div>
-          ) : (
-            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-              {projects.map((project) => (
-                <li
-                  key={project.id}
-                  className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
-                  onClick={() => handleProjectClick(project)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {project.title}
-                        </h3>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}
-                        >
-                          {t(`status.${project.status}`)}
-                        </span>
-                      </div>
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">  
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('loading')}</div>
+            ) : projects.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('noResults')}</div>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedProjects.map((project) => (
+                  <li
+                    key={project.id}
+                    className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                    onClick={() => handleProjectClick(project)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {project.title}
+                          </h3>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}
+                          >
+                            {t(`status.${project.status}`)}
+                          </span>
+                        </div>
 
-                      <div className="grid grid-cols-4 gap-4 text-sm mt-3">
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('trl')}:</span>
-                          <p className={`font-bold ${getTRLColor(project.trl)}`}>
-                            TRL {project.trl}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('budget')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL',
-                              notation: 'compact',
-                            }).format(project.budget)}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('area')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">{project.researchArea}</p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('period')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Date(project.startDate).toLocaleDateString('pt-BR')} -{' '}
-                            {new Date(project.endDate).toLocaleDateString('pt-BR')}
-                          </p>
+                        <div className="grid grid-cols-4 gap-4 text-sm mt-3">
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('trl')}:</span>
+                            <p className={`font-bold ${getTRLColor(project.trl)}`}>
+                              TRL {project.trl}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('budget')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                                notation: 'compact',
+                              }).format(project.budget)}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('area')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{project.researchArea}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('period')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {new Date(project.startDate).toLocaleDateString('pt-BR')} -{' '}
+                              {new Date(project.endDate).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {projects.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={projects.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
           )}
         </div>
       )}

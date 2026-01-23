@@ -605,3 +605,171 @@ input[type="range"]::-moz-range-thumb {
   color: var(--text-secondary);
   @apply transition-colors duration-200;
 }
+
+/* ================================================
+   Standardized Components - Animations & Utilities
+   ================================================ */
+
+/* Fade In Animation for TimelineView and Tooltip */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+/* Slide animations for dropdowns */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+/* ================================================
+   Custom Scrollbar Styles for ScrollArea
+   ================================================ */
+
+/* Base scrollbar styling */
+.scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) var(--bg-tertiary);
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 9999px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 9999px;
+  border: 2px solid var(--bg-tertiary);
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Thin scrollbar variant */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  border: none;
+}
+
+/* Thick scrollbar variant */
+.scrollbar-thick::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+/* Rounded scrollbar track/thumb */
+.scrollbar-rounded::-webkit-scrollbar-track,
+.scrollbar-rounded::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+}
+
+/* Hidden scrollbar (accessible, just invisible) */
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scrollbar color variants */
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+}
+
+.scrollbar-thumb-gray-400::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+}
+
+.scrollbar-thumb-gray-500::-webkit-scrollbar-thumb {
+  background-color: #6b7280;
+}
+
+.scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+.scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background-color: #f3f4f6;
+}
+
+.scrollbar-track-gray-800::-webkit-scrollbar-track {
+  background-color: #1f2937;
+}
+
+/* Primary color scrollbar */
+.scrollbar-thumb-primary-300::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.3);
+}
+
+.scrollbar-thumb-primary-500::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary, #E30613);
+}
+
+.scrollbar-thumb-primary-600::-webkit-scrollbar-thumb {
+  background-color: var(--brand-primary-hover, #c00510);
+}
+
+.scrollbar-track-primary-50::-webkit-scrollbar-track {
+  background-color: rgba(var(--brand-primary-rgb, 227,6,19), 0.05);
+}
+
+/* Dark mode scrollbar overrides */
+.dark .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+.dark .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+}
+
+.dark .scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background-color: #374151;
+}
+
+.dark .scrollbar-track-gray-800::-webkit-scrollbar-track {
+  background-color: #111827;
+}
+
+/* Hover states for scrollbar */
+.hover\:scrollbar-thumb-gray-400:hover::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+}
+
+.dark .hover\:scrollbar-thumb-gray-500:hover::-webkit-scrollbar-thumb {
+  background-color: #6b7280;
+}
+

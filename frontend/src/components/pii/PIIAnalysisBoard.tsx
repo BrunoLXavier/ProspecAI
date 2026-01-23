@@ -5,13 +5,6 @@
 
 import { useTranslations } from 'next-intl';
 import KanbanBoard, { KanbanColumn } from '@/components/ui/KanbanBoard';
-import { 
-  ClockIcon,
-  CheckCircleIcon, 
-  XCircleIcon,
-  ShieldCheckIcon,
-  ExclamationTriangleIcon 
-} from '@heroicons/react/24/outline';
 
 interface PIIEntity {
   type: string;
@@ -87,17 +80,7 @@ export default function PIIAnalysisBoard({ detections, onItemClick }: PIIAnalysi
     items: detections.filter(d => d.anonymization_status === status.key),
   }));
 
-  const getStatusIcon = (status: string) => {
-    const iconClass = 'w-4 h-4';
-    switch (status) {
-      case 'pending_review': return <ClockIcon className={iconClass} />;
-      case 'approved': return <CheckCircleIcon className={iconClass} />;
-      case 'anonymized': return <ShieldCheckIcon className={iconClass} />;
-      case 'rejected': return <XCircleIcon className={iconClass} />;
-      case 'failed': return <ExclamationTriangleIcon className={iconClass} />;
-      default: return <ClockIcon className={iconClass} />;
-    }
-  };
+  // Icon configuration removed - status is shown via KanbanBoard column colors
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('pt-BR', {

@@ -1,7 +1,7 @@
 // Institutes Page
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { useTranslations } from 'next-intl';
@@ -15,6 +15,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import InstituteModal from '@/components/entities/InstituteModal';
 import InstitutesListView from '@/components/institutes/InstitutesListView';
 import InstitutesBoard from '@/components/institutes/InstitutesBoard';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 export default function InstitutesPage() {
   const t = useTranslations('institutes');
@@ -24,6 +25,11 @@ export default function InstitutesPage() {
   const [filters, setFilters] = useState({ search: '', city: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedInstitute, setSelectedInstitute] = useState<any | null>(null);
+
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const filterFields: FilterField[] = [
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
@@ -50,6 +56,17 @@ export default function InstitutesPage() {
     if (filters.city) res = res.filter((i: any) => { const m = i.metadata || {}; return (m.city || '').toLowerCase().includes(filters.city.toLowerCase()); });
     return res;
   }, [items, filters.search, filters.city]);
+
+  // Paginate filtered items for list view
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   return (
     <div className="space-y-6">
@@ -81,11 +98,30 @@ export default function InstitutesPage() {
       {viewMode === 'board' ? (
         <InstitutesBoard items={filtered} onItemClick={(it) => { setSelectedInstitute(it); setModalOpen(true); }} />
       ) : (
-        <InstitutesListView
-          items={filtered}
-          isLoading={isLoading}
-          onItemClick={(it) => { setSelectedInstitute(it); setModalOpen(true); }}
-        />
+        <div className="space-y-4">
+          <InstitutesListView
+            items={paginatedItems}
+            isLoading={isLoading}
+            onItemClick={(it) => { setSelectedInstitute(it); setModalOpen(true); }}
+          />
+
+          {/* Pagination */}
+          {filtered.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
+          )}
+        </div>
       )}
       <InstituteModal isOpen={modalOpen} onClose={() => setModalOpen(false)} institute={selectedInstitute} />
     </div>

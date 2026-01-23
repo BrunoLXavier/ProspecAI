@@ -2290,7 +2290,31 @@
     },
     "statisticsPermissions": "Statistics Permissions",
     "statisticsPreferences": "Statistics Preferences",
-    "userRole": "User Role"
+    "userRole": "User Role",
+    "pagination": {
+      "showing": "Mostrando",
+      "to": "hasta",
+      "of": "de",
+      "items": "elementos",
+      "perPage": "Por página",
+      "first": "Primera página",
+      "last": "Última página",
+      "previous": "Página anterior",
+      "next": "Página siguiente",
+      "page": "Página"
+    },
+    "table": {
+      "search": "Buscar...",
+      "empty": "No hay datos disponibles",
+      "noResults": "No se encontraron resultados",
+      "sortAsc": "Ordenar ascendente",
+      "sortDesc": "Ordenar descendente",
+      "selectAll": "Seleccionar todo",
+      "selected": "seleccionados"
+    },
+    "timeline": {
+      "empty": "No hay actividad para mostrar"
+    }
   },
   "confirm": {
     "deleteLLM": "deleteLLM"

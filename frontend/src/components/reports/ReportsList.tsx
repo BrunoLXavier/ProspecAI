@@ -39,7 +39,7 @@ export default function ReportsList({ templates = [], loading = false, selectedI
       {templates.length === 0 ? (
         <div className="p-8 text-center text-gray-500">{t('noTemplates')}</div>
       ) : (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {templates.map((template) => (
             <li
               key={template.id}

@@ -48,7 +48,11 @@ export function InstituteSelectorDropdown() {
     queryFn: async () => {
       try {
         const resp = await apiClient.get('/api/v1/institutes');
-        return resp?.items ?? resp ?? [];
+        const data = resp?.items ?? resp ?? [];
+        console.debug('[InstituteSelectorDropdown] Full response:', resp);
+        console.debug('[InstituteSelectorDropdown] Loaded institutes:', data);
+        console.debug('[InstituteSelectorDropdown] Institutes count:', Array.isArray(data) ? data.length : 0);
+        return data;
       } catch (e) {
         console.debug('[InstituteSelectorDropdown] Failed to load institutes', e);
         return [];

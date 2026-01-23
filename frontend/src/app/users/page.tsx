@@ -3,7 +3,7 @@
 // Implements RF-09: Admin User Management
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { apiClient } from '@/lib/api-client';
 import UserModal from '@/components/users/UserModal';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 interface User {
 	id: string;
@@ -54,6 +55,11 @@ export default function UsersPage() {
 	const [showModal, setShowModal] = useState(false);
 	const [editingUser, setEditingUser] = useState<User | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
+
+	// Pagination state
+	const { initialPage, initialPageSize } = usePagination(20, true);
+	const [currentPage, setCurrentPage] = useState(initialPage);
+	const [pageSize, setPageSize] = useState(initialPageSize);
 
 	// Fetch users
 	const { data: users = [], isLoading } = useQuery<User[]>({
@@ -173,6 +179,17 @@ export default function UsersPage() {
 		});
 	}, [users, searchQuery, selectedRole]);
 
+	// Paginate users for table
+	const paginatedUsers = useMemo(() => {
+		const start = (currentPage - 1) * pageSize;
+		return filteredUsers.slice(start, start + pageSize);
+	}, [filteredUsers, currentPage, pageSize]);
+
+	// Reset to first page when filters change
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchQuery, selectedRole]);
+
 	return (
 		<div className="max-w-6xl mx-auto space-y-6">
 			{/* Header */}
@@ -256,7 +273,7 @@ export default function UsersPage() {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-								{filteredUsers.map((user) => {
+								{paginatedUsers.map((user) => {
 									const roleConfig = getRoleConfig(user.role);
 									return (
 										<tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
@@ -339,6 +356,23 @@ export default function UsersPage() {
 					</p>
 				</div>
 			</div>
+
+			{/* Pagination */}
+			{filteredUsers.length > 0 && (
+				<Pagination
+					currentPage={currentPage}
+					totalItems={filteredUsers.length}
+					pageSize={pageSize}
+					onPageChange={setCurrentPage}
+					onPageSizeChange={(size) => {
+						setPageSize(size);
+						setCurrentPage(1);
+					}}
+					persistInUrl={true}
+					showTotal={true}
+					showPageSizeSelector={true}
+				/>
+			)}
 
 			{/* User Modal */}
 			<UserModal

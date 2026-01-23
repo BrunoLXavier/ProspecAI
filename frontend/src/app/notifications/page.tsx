@@ -2,7 +2,7 @@
 // User notification center
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -18,6 +18,8 @@ import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar
 import apiClient from '@/lib/api-client';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
+import Icon from '@/components/ui/Icon';
 
 interface Notification {
   id: string;
@@ -34,6 +36,11 @@ export default function NotificationsPage() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<{ type: string; read: string }>({ type: 'all', read: 'all' });
   const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
+
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['notifications', filters.type, filters.read],
@@ -83,31 +90,20 @@ export default function NotificationsPage() {
     },
   });
 
-  const getTypeIcon = (type: Notification['type']) => {
+  const getTypeIconConfig = (type: Notification['type']): { icon: React.ReactNode; color: 'success' | 'warning' | 'error' | 'info' } => {
     switch (type) {
       case 'success':
-        return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
+        return { icon: <CheckCircleIcon />, color: 'success' };
       case 'warning':
-        return <ExclamationCircleIcon className="w-5 h-5 text-yellow-500" />;
+        return { icon: <ExclamationCircleIcon />, color: 'warning' };
       case 'error':
-        return <XMarkIcon className="w-5 h-5 text-red-500" />;
+        return { icon: <XMarkIcon />, color: 'error' };
       default:
-        return <InformationCircleIcon className="w-5 h-5 text-blue-500" />;
+        return { icon: <InformationCircleIcon />, color: 'info' };
     }
   };
 
-  const getTypeBgColor = (type: Notification['type']) => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-50 dark:bg-green-900/20';
-      case 'warning':
-        return 'bg-yellow-50 dark:bg-yellow-900/20';
-      case 'error':
-        return 'bg-red-50 dark:bg-red-900/20';
-      default:
-        return 'bg-blue-50 dark:bg-blue-900/20';
-    }
-  };
+  // Legacy function removed - now using Icon component with getTypeIconConfig
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -123,6 +119,17 @@ export default function NotificationsPage() {
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Paginate notifications for list view
+  const paginatedNotifications = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return notifications.slice(start, start + pageSize);
+  }, [notifications, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   return (
     <div className="space-y-6">
@@ -184,84 +191,106 @@ export default function NotificationsPage() {
 
       {/* Notifications List / Board */}
       {viewMode === 'list' ? (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-              {t('loading')}
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="p-12 text-center">
-              <InboxIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">{t('empty')}</p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-              {notifications.map((notification) => (
-                <li
-                  key={notification.id}
-                  className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition ${
-                    !notification.read ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''
-                  }`}
-                >
-                  <div className="flex gap-4">
-                    <div className={`p-2 rounded-lg ${getTypeBgColor(notification.type)}`}>
-                      {getTypeIcon(notification.type)}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className={`text-sm font-medium ${
-                            !notification.read 
-                              ? 'text-gray-900 dark:text-white' 
-                              : 'text-gray-700 dark:text-gray-300'
-                          }`}>
-                            {notification.title}
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                {t('loading')}
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="p-12 text-center">
+                <InboxIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400">{t('empty')}</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                {paginatedNotifications.map((notification) => {
+                  const iconConfig = getTypeIconConfig(notification.type);
+                  return (
+                  <li
+                    key={notification.id}
+                    className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition ${
+                      !notification.read ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''
+                    }`}
+                  >
+                    <div className="flex gap-4">
+                      <Icon color={iconConfig.color} size="md">
+                        {iconConfig.icon}
+                      </Icon>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h3 className={`text-sm font-medium ${
+                              !notification.read 
+                                ? 'text-gray-900 dark:text-white' 
+                                : 'text-gray-700 dark:text-gray-300'
+                            }`}>
+                              {notification.title}
+                              {!notification.read && (
+                                <span className="ml-2 inline-block w-2 h-2 bg-primary-500 rounded-full" />
+                              )}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                              {formatTimeAgo(notification.createdAt)}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
                             {!notification.read && (
-                              <span className="ml-2 inline-block w-2 h-2 bg-primary-500 rounded-full" />
+                              <button
+                                onClick={() => markAsReadMutation.mutate(notification.id)}
+                                className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition"
+                                title={t('markRead')}
+                              >
+                                <CheckIcon className="w-4 h-4" />
+                              </button>
                             )}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                            {formatTimeAgo(notification.createdAt)}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {!notification.read && (
                             <button
-                              onClick={() => markAsReadMutation.mutate(notification.id)}
-                              className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition"
-                              title={t('markRead')}
+                              onClick={() => deleteNotificationMutation.mutate(notification.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition"
+                              title={t('delete')}
                             >
-                              <CheckIcon className="w-4 h-4" />
+                              <TrashIcon className="w-4 h-4" />
                             </button>
-                          )}
-                          <button
-                            onClick={() => deleteNotificationMutation.mutate(notification.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition"
-                            title={t('delete')}
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
+                          </div>
                         </div>
-                      </div>
 
-                      {notification.link && (
-                        <a
-                          href={notification.link}
-                          className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:underline mt-2"
-                        >
-                          {t('viewDetails')} →
-                        </a>
-                      )}
+                        {notification.link && (
+                          <a
+                            href={notification.link}
+                            className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:underline mt-2"
+                          >
+                            {t('viewDetails')} →
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {notifications.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={notifications.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
           )}
         </div>
       ) : (
@@ -270,10 +299,14 @@ export default function NotificationsPage() {
             <div key={type} className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-soft">
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 capitalize">{type}</h3>
               <div className="space-y-3">
-                {notifications.filter(n => n.type === type).map(n => (
+                {notifications.filter(n => n.type === type).map(n => {
+                  const iconConfig = getTypeIconConfig(n.type);
+                  return (
                   <div key={n.id} className="p-3 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-100 dark:border-slate-700">
                     <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${getTypeBgColor(n.type)}`}>{getTypeIcon(n.type)}</div>
+                      <Icon color={iconConfig.color} size="md">
+                        {iconConfig.icon}
+                      </Icon>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <div>
@@ -288,7 +321,8 @@ export default function NotificationsPage() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}

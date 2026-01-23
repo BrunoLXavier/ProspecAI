@@ -2,7 +2,7 @@
 // Implements RF-04: CRM Inteligente
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
@@ -16,6 +16,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 interface Client {
   id: string;
@@ -60,6 +61,11 @@ export default function CRMClientsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   // Load institutes for filter dropdown
   const { data: institutes = [] } = useQuery<any[]>({
@@ -163,6 +169,17 @@ export default function CRMClientsPage() {
     }
   });
 
+  // Paginate clients for list view
+  const paginatedClients = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return clients.slice(start, start + pageSize);
+  }, [clients, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   const getMaturityColor = (level: string) => {
     const colors: Record<string, string> = {
       startup: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
@@ -237,60 +254,79 @@ export default function CRMClientsPage() {
         />
       ) : (
         /* List View */
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('loading')}</div>
-          ) : clients.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('noResults')}</div>
-          ) : (
-            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-              {clients.map((client) => (
-                <li
-                  key={client.id}
-                  className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
-                  onClick={() => handleClientClick(client)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {client.name}
-                        </h3>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getMaturityColor(client.maturityLevel)}`}
-                        >
-                          {t(`maturity.${client.maturityLevel}`)}
-                        </span>
-                        {client.aiEnrichedData && client.aiConfidenceScore && (
-                          <ConfidenceBadge score={client.aiConfidenceScore} />
-                        )}
-                      </div>
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('loading')}</div>
+            ) : clients.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('noResults')}</div>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedClients.map((client) => (
+                  <li
+                    key={client.id}
+                    className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                    onClick={() => handleClientClick(client)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {client.name}
+                          </h3>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getMaturityColor(client.maturityLevel)}`}
+                          >
+                            {t(`maturity.${client.maturityLevel}`)}
+                          </span>
+                          {client.aiEnrichedData && client.aiConfidenceScore && (
+                            <ConfidenceBadge score={client.aiConfidenceScore} />
+                          )}
+                        </div>
 
-                      <div className="grid grid-cols-3 gap-4 text-sm mt-3">
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('cnpj')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">{client.cnpj}</p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('segment')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">{client.segment}</p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('revenue')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL',
-                              notation: 'compact',
-                            }).format(client.annualRevenue)}
-                          </p>
+                        <div className="grid grid-cols-3 gap-4 text-sm mt-3">
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('cnpj')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{client.cnpj}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('segment')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{client.segment}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('revenue')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                                notation: 'compact',
+                              }).format(client.annualRevenue)}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {clients.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={clients.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
           )}
         </div>
       )}

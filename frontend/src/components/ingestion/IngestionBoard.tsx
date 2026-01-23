@@ -5,6 +5,7 @@
 
 import { useTranslations } from 'next-intl';
 import KanbanBoard, { KanbanColumn } from '@/components/ui/KanbanBoard';
+import Icon from '@/components/ui/Icon';
 import { 
   DocumentTextIcon, 
   ArrowPathIcon, 
@@ -69,16 +70,15 @@ export default function IngestionBoard({ jobs, onItemClick }: IngestionBoardProp
     items: jobs.filter(j => j.status === status.key),
   }));
 
-  const getStatusIcon = (status: string) => {
-    const iconClass = 'w-4 h-4';
+  const getStatusIconConfig = (status: string): { icon: React.ReactNode; color: 'secondary' | 'info' | 'warning' | 'success' | 'error'; spin?: boolean } => {
     switch (status) {
-      case 'pending': return <DocumentTextIcon className={iconClass} />;
+      case 'pending': return { icon: <DocumentTextIcon />, color: 'secondary' };
       case 'validating':
-      case 'processing': return <ArrowPathIcon className={`${iconClass} animate-spin`} />;
-      case 'pii_detection': return <ShieldExclamationIcon className={iconClass} />;
-      case 'completed': return <CheckCircleIcon className={iconClass} />;
-      case 'failed': return <XCircleIcon className={iconClass} />;
-      default: return <DocumentTextIcon className={iconClass} />;
+      case 'processing': return { icon: <ArrowPathIcon className="animate-spin" />, color: 'info', spin: true };
+      case 'pii_detection': return { icon: <ShieldExclamationIcon />, color: 'warning' };
+      case 'completed': return { icon: <CheckCircleIcon />, color: 'success' };
+      case 'failed': return { icon: <XCircleIcon />, color: 'error' };
+      default: return { icon: <DocumentTextIcon />, color: 'secondary' };
     }
   };
 
@@ -91,15 +91,17 @@ export default function IngestionBoard({ jobs, onItemClick }: IngestionBoardProp
     });
   };
 
-  const renderJobItem = (job: IngestionJob) => (
+  const renderJobItem = (job: IngestionJob) => {
+    const iconConfig = getStatusIconConfig(job.status);
+    return (
     <div
       onClick={() => onItemClick?.(job)}
       className="block p-3 bg-white dark:bg-slate-800 rounded-lg shadow-soft hover:shadow-elevated transition-all duration-200 cursor-pointer group"
     >
       <div className="flex items-start gap-2 mb-2">
-        <span className="text-gray-500 dark:text-gray-400 mt-0.5">
-          {getStatusIcon(job.status)}
-        </span>
+        <Icon color={iconConfig.color} size="sm" withBackground={false}>
+          {iconConfig.icon}
+        </Icon>
         <h4 className="font-medium text-sm text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors line-clamp-2 flex-1">
           {job.name}
         </h4>
@@ -145,7 +147,8 @@ export default function IngestionBoard({ jobs, onItemClick }: IngestionBoardProp
         {formatDate(job.created_at)}
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <KanbanBoard

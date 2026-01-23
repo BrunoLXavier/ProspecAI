@@ -2,7 +2,7 @@
 // Implements RF-08: Repositório de Propostas
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
@@ -15,6 +15,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 interface ProposalFilters {
   search: string;
@@ -45,6 +46,11 @@ export default function ProposalsPage() {
     dateFrom: '',
     dateTo: '',
   });
+
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const filterFields: FilterField[] = [
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
@@ -115,6 +121,17 @@ export default function ProposalsPage() {
       return true;
     });
   }, [proposals, filters]);
+
+  // Paginate proposals for list view
+  const paginatedProposals = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredProposals.slice(start, start + pageSize);
+  }, [filteredProposals, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
 
 
@@ -224,62 +241,81 @@ export default function ProposalsPage() {
         />
       ) : (
         /* List View */
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('loading')}</div>
-          ) : filteredProposals.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('noResults')}</div>
-          ) : (
-            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredProposals.map((proposal: any) => (
-                <li
-                  key={proposal.id}
-                  className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer"
-                  onClick={() => handleProposalClick(proposal)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <DocumentTextIcon className="w-6 h-6 text-gray-400 dark:text-gray-500" />
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {proposal.title}
-                        </h3>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(proposal.status)}`}
-                        >
-                          {t(`status.${proposal.status}`)}
-                        </span>
-                        {proposal.adherence_score && (
-                          <ConfidenceBadge score={proposal.adherence_score} />
-                        )}
-                      </div>
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('loading')}</div>
+            ) : filteredProposals.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('noResults')}</div>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedProposals.map((proposal: any) => (
+                  <li
+                    key={proposal.id}
+                    className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer"
+                    onClick={() => handleProposalClick(proposal)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <DocumentTextIcon className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {proposal.title}
+                          </h3>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(proposal.status)}`}
+                          >
+                            {t(`status.${proposal.status}`)}
+                          </span>
+                          {proposal.adherence_score && (
+                            <ConfidenceBadge score={proposal.adherence_score} />
+                          )}
+                        </div>
 
-                      <div className="grid grid-cols-3 gap-4 text-sm mt-3">
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('version')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">v{proposal.current_version}</p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">{t('created')}:</span>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {new Date(proposal.created_at).toLocaleDateString('pt-BR')}
-                          </p>
-                        </div>
-                        {proposal.submitted_at && (
+                        <div className="grid grid-cols-3 gap-4 text-sm mt-3">
                           <div>
-                            <span className="text-gray-500 dark:text-gray-400">{t('submitted')}:</span>
+                            <span className="text-gray-500 dark:text-gray-400">{t('version')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">v{proposal.current_version}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('created')}:</span>
                             <p className="font-medium text-gray-900 dark:text-white">
-                              {new Date(proposal.submitted_at).toLocaleDateString('pt-BR')}
+                              {new Date(proposal.created_at).toLocaleDateString('pt-BR')}
                             </p>
                           </div>
-                        )}
+                          {proposal.submitted_at && (
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400">{t('submitted')}:</span>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {new Date(proposal.submitted_at).toLocaleDateString('pt-BR')}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          </div>
+
+          {/* Pagination */}
+          {filteredProposals.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredProposals.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
+          )}
         </div>
       )}
     </div>
