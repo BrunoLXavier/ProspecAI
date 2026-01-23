@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260126_add_projects_research_area'
+revision = '20260126_projects_area'
 down_revision = '20260125_add_funding_url'
 branch_labels = None
 depends_on = None

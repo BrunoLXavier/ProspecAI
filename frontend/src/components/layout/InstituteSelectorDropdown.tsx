@@ -77,20 +77,42 @@ export function InstituteSelectorDropdown() {
   };
 
   // Filter institutes by search query
+  // Deduplicate institutes by id (defensive: backend/client may occasionally return duplicates)
+  const dedupedInstitutes = useMemo(() => {
+    if (!Array.isArray(institutes)) return [] as Institute[];
+    const seenById = new Map<string, Institute>();
+    for (const ins of institutes) {
+      const key = String(ins.id);
+      if (!seenById.has(key)) seenById.set(key, ins);
+    }
+
+    // Additionally dedupe by display name (normalized) to avoid duplicate visible entries
+    const seenNames = new Set<string>();
+    const finalList: Institute[] = [];
+    for (const ins of Array.from(seenById.values())) {
+      const nameKey = getInstituteName(ins).trim().toLowerCase();
+      if (!seenNames.has(nameKey)) {
+        seenNames.add(nameKey);
+        finalList.push(ins);
+      }
+    }
+    return finalList;
+  }, [institutes]);
+
   const filteredInstitutes = useMemo(() => {
-    if (!searchQuery.trim()) return institutes;
+    if (!searchQuery.trim()) return dedupedInstitutes;
     const query = searchQuery.toLowerCase();
-    return institutes.filter(ins => {
+    return dedupedInstitutes.filter(ins => {
       const name = getInstituteName(ins).toLowerCase();
       const code = getInstituteCode(ins).toLowerCase();
       return name.includes(query) || code.includes(query);
     });
-  }, [institutes, searchQuery]);
+  }, [dedupedInstitutes, searchQuery]);
 
   // Get selected institute objects
   const selectedInstitutesData = useMemo(() => {
-    return institutes.filter(ins => selectedInstitutes.includes(ins.id));
-  }, [institutes, selectedInstitutes]);
+    return dedupedInstitutes.filter(ins => selectedInstitutes.includes(ins.id));
+  }, [dedupedInstitutes, selectedInstitutes]);
 
   const toggleInstitute = (id: string) => {
     if (selectedInstitutes.includes(id)) {
@@ -101,7 +123,7 @@ export function InstituteSelectorDropdown() {
   };
 
   const selectAllInstitutes = () => {
-    setSelectedInstitutes(institutes.map(ins => ins.id));
+    setSelectedInstitutes(dedupedInstitutes.map(ins => ins.id));
   };
 
   const clearAllInstitutes = () => {
@@ -109,7 +131,7 @@ export function InstituteSelectorDropdown() {
   };
 
   const selectMyInstitutes = () => {
-    const mine = institutes.filter(isManagedByUser).map(ins => ins.id);
+    const mine = dedupedInstitutes.filter(isManagedByUser).map(ins => ins.id);
     if (mine.length) setSelectedInstitutes(mine);
   };
 

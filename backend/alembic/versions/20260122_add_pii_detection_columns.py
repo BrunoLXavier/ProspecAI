@@ -1,6 +1,6 @@
 """add missing pii_detections columns expected by code
 
-Revision ID: 20260122_add_pii_detection_columns
+Revision ID: 20260122_pii_detections
 Revises: 20260121_add_pii_document_id
 Create Date: 2026-01-21 00:10:00.000000
 """
@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '20260122_add_pii_detection_columns'
+revision = '20260122_pii_detections'
 down_revision = '20260121_add_pii_document_id'
 branch_labels = None
 depends_on = None

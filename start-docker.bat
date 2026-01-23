@@ -1,125 +1,148 @@
 @echo off
+REM ================================================================
+REM  ProspecAI Docker Startup Script with Service Health Checks
+REM  Usage: start-docker.bat [flags]
+REM  Flags: --restart --fresh --skip-ai --no-migrate --show-migrations --help
+REM ================================================================
+
 setlocal EnableDelayedExpansion
 set "LOG_FILE=%~dp0start-docker.run.log"
+set "BACKEND_LOG=%~dp0start-docker.backend.log"
+set "TEMP_ENV=%~dp0.env.start.tmp"
+set "STEP=0"
+
+REM Initialize flags with defaults
+set "RESTART_MODE="
+set "SKIP_AI="
+set "NO_MIGRATE="
+set "SHOW_MIGRATIONS="
+set "RUN_MIGRATIONS=1"
+set "RUN_ENV_ARGS="
+set "SEED_TENANT_IDS="
+
+REM Clean up old logs
 if exist "%LOG_FILE%" del /q "%LOG_FILE%" >nul 2>&1
-set /a STEP=0
+if exist "%TEMP_ENV%" del /q "%TEMP_ENV%" >nul 2>&1
 
+REM Parse arguments
+:parse_flags
+if "%~1"=="" goto :parse_done
+if /I "%~1"=="--help" goto :show_help
+if /I "%~1"=="/?" goto :show_help
+if /I "%~1"=="--restart" (set "RESTART_MODE=restart" & shift & goto :parse_flags)
+if /I "%~1"=="--fresh" (set "RESTART_MODE=fresh" & shift & goto :parse_flags)
+if /I "%~1"=="--skip-ai" (set "SKIP_AI=1" & shift & goto :parse_flags)
+if /I "%~1"=="--no-migrate" (set "NO_MIGRATE=1" & shift & goto :parse_flags)
+if /I "%~1"=="--show-migrations" (set "SHOW_MIGRATIONS=1" & shift & goto :parse_flags)
+echo [WARN] Unknown argument: %~1
+shift
+goto :parse_flags
 
-rem Simple helper-based Docker Compose startup script for Windows
-rem Usage: start-docker.bat [compose options]
+:parse_done
+if "%NO_MIGRATE%"=="1" set "RUN_MIGRATIONS=0"
 
-rem If any arg is --help, show usage
-for %%H in (%*) do (
-  if "%%~H"=="--help" (
-    echo Usage: start-docker.bat [docker-compose args]
-    echo Example: start-docker.bat up -d
-    echo
-    echo Optional flags:
-    echo   --restart    Stop and remove existing compose containers/networks before starting
-    echo   --fresh      Stop and remove containers, volumes and local images before starting
-    echo   --skip-ai    Do not load heavy AI models inside containers (dev-safe)
-    echo   --no-migrate Skip running alembic migrations
-    goto :eof
-  )
-)
-
-rem Parse optional restart flags (also can be provided via RESTART_MODE env var)
-if "%1"=="--restart" (
-  set "RESTART_MODE=restart"
-  shift
-)
-if "%1"=="--fresh" (
-  set "RESTART_MODE=fresh"
-  shift
-)
-if "%1"=="--skip-ai" (
-  set "SKIP_AI=1"
-  shift
-)
-if "%1"=="--no-migrate" (
-  set "NO_MIGRATE=1"
-  shift
-)
-
-goto :main
+REM ================================================================
+REM  MAIN EXECUTION FLOW
+REM ================================================================
 
 :main
-rem If RESTART_MODE set to restart/fresh, bring the stack down first
+call :log [START] ProspecAI Docker startup
+
+REM Stop and clean up if RESTART_MODE is set
 if defined RESTART_MODE (
-  echo RESTART_MODE=%RESTART_MODE% requested: stopping existing compose stack...
+  call :log Stopping existing services ^(mode=%RESTART_MODE%^)
   if "%RESTART_MODE%"=="restart" (
-    docker compose down --remove-orphans
+    docker compose down --remove-orphans 2>nul
   ) else (
-    docker compose down --volumes --rmi local --remove-orphans
+    docker compose down --volumes --rmi local --remove-orphans 2>nul
   )
-  if errorlevel 1 (
-    echo [WARN] `docker compose down` returned non-zero; continuing.
-  )
-  echo Short pause to allow docker to settle...
+  if !ERRORLEVEL! NEQ 0 call :log [WARN] docker compose down returned error; continuing anyway
+  call :log Waiting 2 seconds for Docker to settle...
   timeout /t 2 >nul
 )
 
-rem Build ARGS by removing any internal flags so we don't forward them to docker compose
-set "ARGS="
-for %%A in (%*) do (
-  if /I NOT "%%~A"=="--restart" if /I NOT "%%~A"=="--fresh" if /I NOT "%%~A"=="--skip-ai" if /I NOT "%%~A"=="--no-migrate" (
-    if defined ARGS (
-      set "ARGS=!ARGS! %%~A"
-    ) else (
-      set "ARGS=%%~A"
-    )
+REM Setup environment variables
+call :setup_env
+
+REM Start services
+call :log Bringing up compose services...
+docker compose up -d >nul 2>&1
+if !ERRORLEVEL! NEQ 0 (
+  call :log [ERROR] docker compose up failed
+  call :cleanup
+  exit /b 1
+)
+
+REM Wait for services to initialize
+call :log Waiting 5 seconds for services to initialize...
+timeout /t 5 >nul
+
+REM Wait for each service to reach healthy state
+call :log Waiting for services to reach healthy state...
+set "WAIT_SERVICES=postgres:60:1:8 backend:120:1:8 neo4j:120:1:8 frontend:60:1:8"
+for %%E in (%WAIT_SERVICES%) do (
+  call :wait_for_service_dispatch %%E
+  if !ERRORLEVEL! NEQ 0 (
+    call :log [ERROR] Service failed to reach healthy state
+    call :cleanup
+    exit /b 1
   )
 )
 
-rem Create a temporary env file when requested so we don't rely on host env vars
-set "TEMP_ENV=%~dp0\.env.start.tmp"
-del /q "%TEMP_ENV%" >nul 2>&1
-if defined SKIP_AI (
-  echo SKIP_AI_MODELS=1>> "%TEMP_ENV%"
-)
-if defined NO_MIGRATE (
-  echo RUN_MIGRATIONS=0>> "%TEMP_ENV%"
+REM Run migrations if enabled
+if "%RUN_MIGRATIONS%"=="1" (
+  call :run_migrations
+  if !ERRORLEVEL! NEQ 0 (
+    call :cleanup
+    exit /b 1
+  )
 )
 
-rem Build extra -e args for docker compose run invocations
-set "RUN_ENV_ARGS="
-if defined SKIP_AI set "RUN_ENV_ARGS=-e SKIP_AI_MODELS=1"
-if defined NO_MIGRATE (
+REM Ensure frontend is running
+call :log Ensuring frontend is running...
+docker compose start frontend >nul 2>&1
+
+REM Run seed scripts
+call :run_seeds
+
+REM Final cleanup - remove temp files only on success
+call :log Cleaning up temporary files...
+del /q "%~dp0tmp_status_*.txt" >nul 2>&1
+if exist "%TEMP_ENV%" del /q "%TEMP_ENV%" >nul 2>&1
+
+REM Keep log files for user review
+call :log [SUCCESS] All services are running
+call :log To follow logs, run: docker compose logs -f
+call :log Backend log saved to: %BACKEND_LOG%
+call :log Startup log saved to: %LOG_FILE%
+
+endlocal
+exit /b 0
+
+REM ================================================================
+REM  HELPER FUNCTIONS
+REM ================================================================
+
+:setup_env
+REM Setup environment file and variables based on flags
+if "%SKIP_AI%"=="1" (
+  if not exist "%TEMP_ENV%" echo.>"%TEMP_ENV%"
+  echo SKIP_AI_MODELS=1>> "%TEMP_ENV%"
+  set "RUN_ENV_ARGS=-e SKIP_AI_MODELS=1"
+)
+if "%NO_MIGRATE%"=="1" (
+  if not exist "%TEMP_ENV%" echo.>"%TEMP_ENV%"
+  echo RUN_MIGRATIONS=0>> "%TEMP_ENV%"
   if defined RUN_ENV_ARGS (
     set "RUN_ENV_ARGS=!RUN_ENV_ARGS! -e RUN_MIGRATIONS=0"
   ) else (
     set "RUN_ENV_ARGS=-e RUN_MIGRATIONS=0"
   )
 )
+goto :eof
 
-call :log Bringing up compose services...
-if exist "%TEMP_ENV%" (
-  call :log Invoking: docker compose --env-file "%TEMP_ENV%" up -d !ARGS!
-  docker compose --env-file "%TEMP_ENV%" up -d !ARGS!
-) else (
-  call :log Invoking: docker compose up -d !ARGS!
-  docker compose up -d !ARGS!
-)
-if errorlevel 1 (
-  echo docker compose up failed.
-         if exist "%TEMP_ENV%" del /q "%TEMP_ENV%" >nul 2>&1
-         exit /b 1
-)
-
-rem Short settle to allow compose to present statuses
-call :log Waiting 5 seconds for services to settle...
-timeout /t 5 >nul
-
-rem Per-service polling (safe on Windows) with per-service custom timeout and exponential backoff
-rem Format for WAIT_SERVICES entries: service[:timeout[:initDelay[:maxDelay]]]
-rem Example: postgres:60:1:8 backend:120:2:16 neo4j frontend:30
-set "WAIT_SERVICES=postgres:60:1:8 backend:120:1:8 neo4j:120:1:8 frontend:60:1:8"
-for %%E in (%WAIT_SERVICES%) do call :wait_dispatch %%E
-
-goto :after_waits
-
-:wait_dispatch
-rem Parse entry like service:timeout:initDelay:maxDelay
+:wait_for_service_dispatch
+REM Parse service config and call wait function
 for /f "tokens=1-4 delims=:" %%a in ("%~1") do (
   set "SVC=%%a"
   set "SVC_TIMEOUT=%%b"
@@ -129,157 +152,133 @@ for /f "tokens=1-4 delims=:" %%a in ("%~1") do (
 if "%SVC_TIMEOUT%"=="" set "SVC_TIMEOUT=60"
 if "%SVC_INIT%"=="" set "SVC_INIT=1"
 if "%SVC_MAX%"=="" set "SVC_MAX=8"
-call :wait_for_service %SVC% %SVC_TIMEOUT% %SVC_INIT% %SVC_MAX%
-if errorlevel 1 (
-  echo [ERROR] Service %SVC% failed to reach healthy/Up state
-  del /q "%~dp0\tmp_status_*.txt" >nul 2>&1
-         if exist "%TEMP_ENV%" del /q "%TEMP_ENV%" >nul 2>&1
-         exit /b 1
-)
+call :wait_for_service "%SVC%" %SVC_TIMEOUT% %SVC_INIT% %SVC_MAX%
 goto :eof
 
-:after_waits
-
-call :log finished waiting for services
-
-rem Run Alembic migrations by default unless RUN_MIGRATIONS=0
-if not defined RUN_MIGRATIONS set RUN_MIGRATIONS=1
-if "%RUN_MIGRATIONS%"=="1" goto :do_migrate
-goto :after_migrate
-
-:do_migrate
-call :log [*] RUN_MIGRATIONS=1; running database migrations (alembic upgrade heads)...
-rem Use RUN_ENV_ARGS to inject requested env vars into the run invocation (if any)
-if defined RUN_ENV_ARGS (
-  docker compose run --rm %RUN_ENV_ARGS% backend sh -c "current=$(alembic -c /app/alembic.ini current | awk '{print $1}'); head=$(alembic -c /app/alembic.ini heads | head -n1 | awk '{print $1}'); if [ \"$current\" = \"$head\" ]; then echo [start-docker] DB already at head $head; else alembic -c /app/alembic.ini upgrade heads; fi"
-) else (
-  rem no special envs to pass
-  docker compose run --rm backend sh -c "current=$(alembic -c /app/alembic.ini current | awk '{print $1}'); head=$(alembic -c /app/alembic.ini heads | head -n1 | awk '{print $1}'); if [ \"$current\" = \"$head\" ]; then echo [start-docker] DB already at head $head; else alembic -c /app/alembic.ini upgrade heads; fi"
-)
-if %ERRORLEVEL% NEQ 0 goto :migrate_failed
-call :log [*] Migrations completed
-goto :after_migrate
-
-:migrate_failed
-echo [ERROR] Alembic migrations failed
-docker-compose logs backend
-del /q "%~dp0\tmp_status_*.txt" >nul 2>&1
-  if exist "%TEMP_ENV%" del /q "%TEMP_ENV%" >nul 2>&1
-  exit /b 1
-
-:after_migrate
-call :log [*] Migrations step complete (skipped unless RUN_MIGRATIONS=1)
-
-rem Ensure frontend is started (compose up -d might have already started it)
-call :log [*] Ensuring Frontend is up...
-docker compose up -d frontend >nul 2>&1
-
-rem Run seed runner to ensure sample data is inserted (idempotent)
-call :log [*] Running seed scripts (if available)...
-set "DEFAULT_SEED_TENANTS=00000000-0000-0000-0000-000000000001"
-if defined SEED_TENANT_IDS (
-  set "SEED_TENANTS=%SEED_TENANT_IDS%"
-) else (
-  set "SEED_TENANTS=%DEFAULT_SEED_TENANTS%"
-)
-rem Prefer top-level scripts/run_seeds_fixed.py, but fall back to backend/scripts/run_seeds_fixed.py
-set "SEED_RUNNER_PATH="
-REM Prefer top-level scripts/run_seeds_fixed.py, but fall back to backend/scripts/run_seeds_fixed.py
-REM Note: backend service mounts ./backend -> /app inside the container, so the
-REM seed runner inside the container will always be reachable as /app/scripts/run_seeds_fixed.py
-set "SEED_RUNNER_PATH="
-if exist "%~dp0scripts\run_seeds_fixed.py" (
-  set "SEED_RUNNER_PATH=scripts/run_seeds_fixed.py"
-) else if exist "%~dp0backend\scripts\run_seeds_fixed.py" (
-  rem Use the path that is valid inside the backend container (working dir /app)
-  set "SEED_RUNNER_PATH=scripts/run_seeds_fixed.py"
-)
-if not "%SEED_RUNNER_PATH%"=="" (
-  if defined RUN_ENV_ARGS (
-    call :log Invoking seed runner with RUN_ENV_ARGS (path: %SEED_RUNNER_PATH%)
-    docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend python %SEED_RUNNER_PATH% --tenants "%SEED_TENANTS%"
-  ) else (
-    call :log Invoking seed runner (path: %SEED_RUNNER_PATH%)
-    docker compose run --rm --entrypoint "" backend python %SEED_RUNNER_PATH% --tenants "%SEED_TENANTS%"
-  )
-  if %ERRORLEVEL% NEQ 0 (
-    echo [WARN] Seed runner returned non-zero; continuing.
-  ) else (
-    call :log Seed runner completed.
-  )
-) else (
-  call :log No seed runner found; skipping seeds.
-)
-
-rem Clean up temporary status files
-del /q "%~dp0\tmp_status_*.txt" >nul 2>&1
-rem Clean up temporary env file if created
-if exist "%TEMP_ENV%" del /q "%TEMP_ENV%" >nul 2>&1
-
-call :log All requested services are up.
-call :log To follow logs run: docker compose logs -f
-
-endlocal
-exit /b 0
-
-rem --------------------------------------------------
-
-
 :wait_for_service
+setlocal EnableDelayedExpansion
 set "SERVICE=%~1"
 set "TIMEOUT=%~2"
 set "INIT_DELAY=%~3"
 set "MAX_DELAY=%~4"
-if "%TIMEOUT%"=="" set TIMEOUT=60
-if "%INIT_DELAY%"=="" set INIT_DELAY=1
-if "%MAX_DELAY%"=="" set MAX_DELAY=8
-set /a COUNT=0
-set /a DELAY=INIT_DELAY
-echo Waiting for %SERVICE% (timeout %TIMEOUT% seconds, init delay %INIT_DELAY%s, max delay %MAX_DELAY%s)...
-:_wait_loop
-del /q "%~dp0\tmp_status_%SERVICE%.txt" >nul 2>&1
-docker compose ps %SERVICE% > "%~dp0\tmp_status_%SERVICE%.txt" 2>nul
-findstr /i "healthy" "%~dp0\tmp_status_%SERVICE%.txt" >nul 2>&1
-if not errorlevel 1 (
-  set "WAIT_STATUS=0"
-  echo %SERVICE% is healthy via docker compose ps
-  goto :_wait_done
-)
-findstr /i "Up" "%~dp0\tmp_status_%SERVICE%.txt" >nul 2>&1
-if not errorlevel 1 (
-  set "WAIT_STATUS=0"
-  echo %SERVICE% is Up via docker compose ps
-  goto :_wait_done
-)
-    findstr /i "Running" "%~dp0\tmp_status_%SERVICE%.txt" >nul 2>&1
-    if not errorlevel 1 (
-      set "WAIT_STATUS=0"
-      echo %SERVICE% is Running via docker compose ps
-      goto :_wait_done
-    )
-rem Sleep for DELAY seconds (backoff)
-timeout /t %DELAY% >nul
-set /a COUNT+=DELAY
-rem Exponential backoff: double DELAY up to MAX_DELAY
-if %DELAY% LSS %MAX_DELAY% (
-  set /a DELAY=DELAY*2
-  if %DELAY% GTR %MAX_DELAY% set /a DELAY=%MAX_DELAY%
-)
-if %COUNT% GEQ %TIMEOUT% (
-  echo Timeout waiting for %SERVICE% to be healthy.
-  set "WAIT_STATUS=1"
-  goto :_wait_done
-)
-goto :_wait_loop
+set "ELAPSED=0"
+set "DELAY=!INIT_DELAY!"
 
-:_wait_done
-rem return to caller; WAIT_STATUS set to 0 (ok) or 1 (timeout)
+call :log Waiting for %SERVICE% ^(timeout=%TIMEOUT%s, init=%INIT_DELAY%s, max=%MAX_DELAY%s^)
+
+:wait_loop
+docker compose ps "%SERVICE%" > "%~dp0tmp_status_%SERVICE%.txt" 2>nul
+findstr /I "healthy Up Running" "%~dp0tmp_status_%SERVICE%.txt" >nul 2>&1
+if !ERRORLEVEL! EQU 0 (
+  call :log [OK] %SERVICE% is healthy
+  del /q "%~dp0tmp_status_%SERVICE%.txt" >nul 2>&1
+  endlocal
+  goto :eof
+)
+
+REM Check timeout
+if !ELAPSED! GEQ %TIMEOUT% (
+  call :log [ERROR] Timeout waiting for %SERVICE%
+  del /q "%~dp0tmp_status_%SERVICE%.txt" >nul 2>&1
+  endlocal
+  exit /b 1
+)
+
+REM Sleep and apply exponential backoff
+timeout /t !DELAY! /nobreak >nul
+set /a "ELAPSED=ELAPSED+DELAY"
+if !DELAY! LSS %MAX_DELAY% (
+  set /a "DELAY=DELAY*2"
+  if !DELAY! GTR %MAX_DELAY% set "DELAY=%MAX_DELAY%"
+)
+
+goto :wait_loop
+
+:run_migrations
+call :log Running database migrations...
+set "MIGRATION_CMD=alembic -c /app/alembic.ini upgrade heads"
+
+REM Run migrations, capture output to log, then print to console
+call :log Streaming migrations to %BACKEND_LOG% (output will be shown after completion)...
+if defined RUN_ENV_ARGS (
+  docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend sh -c "%MIGRATION_CMD%" > "%BACKEND_LOG%" 2>&1
+) else (
+  docker compose run --rm --entrypoint "" backend sh -c "%MIGRATION_CMD%" > "%BACKEND_LOG%" 2>&1
+)
+
+set "MIG_EXIT=%ERRORLEVEL%"
+type "%BACKEND_LOG%" || echo [WARN] Could not display %BACKEND_LOG%
+
+if %MIG_EXIT% NEQ 0 (
+  call :log [ERROR] Migrations failed - see %BACKEND_LOG%
+  docker compose logs backend >> "%BACKEND_LOG%" 2>&1
+  exit /b 1
+)
+call :log [OK] Migrations completed
+goto :eof
+
+:run_seeds
+call :log Running seed scripts...
+set "DEFAULT_SEED_TENANTS=00000000-0000-0000-0000-000000000001"
+if defined SEED_TENANT_IDS (
+  set "SEED_TENANTS=!SEED_TENANT_IDS!"
+) else (
+  set "SEED_TENANTS=%DEFAULT_SEED_TENANTS%"
+)
+
+REM Find seed runner script
+set "SEED_RUNNER_PATH="
+if exist "%~dp0scripts\run_seeds_fixed.py" (
+  set "SEED_RUNNER_PATH=scripts/run_seeds_fixed.py"
+) else if exist "%~dp0backend\scripts\run_seeds_fixed.py" (
+  set "SEED_RUNNER_PATH=scripts/run_seeds_fixed.py"
+)
+
+if not "!SEED_RUNNER_PATH!"=="" (
+  call :log Invoking seed runner ^(path: !SEED_RUNNER_PATH!^) with tenants: %SEED_TENANTS%
+  if defined RUN_ENV_ARGS (
+    docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend python "!SEED_RUNNER_PATH!" --tenants "%SEED_TENANTS%" >> "%BACKEND_LOG%" 2>&1
+  ) else (
+    docker compose run --rm --entrypoint "" backend python "!SEED_RUNNER_PATH!" --tenants "%SEED_TENANTS%" >> "%BACKEND_LOG%" 2>&1
+  )
+  if !ERRORLEVEL! NEQ 0 (
+    call :log [WARN] Seed runner returned error; continuing anyway
+  ) else (
+    call :log [OK] Seed runner completed
+  )
+) else (
+  call :log [WARN] No seed runner found; skipping seeds
+)
+goto :eof
+
+:cleanup
+REM Clean up temporary files
+del /q "%~dp0tmp_status_*.txt" >nul 2>&1
 goto :eof
 
 :log
 set /a STEP+=1
 set "TS=%DATE% %TIME%"
-echo [%STEP%] %TS% - %* 
+echo [%STEP%] %TS% - %*
 echo [%STEP%] %TS% - %* >> "%LOG_FILE%"
 goto :eof
+
+:show_help
+echo.
+echo Usage: start-docker.bat [flags]
+echo.
+echo Flags:
+echo   --restart         Stop and remove containers before starting (default)
+echo   --fresh           Stop, remove volumes and rebuild from scratch
+echo   --skip-ai         Skip loading AI models (dev-safe)
+echo   --no-migrate      Skip running database migrations
+echo   --show-migrations Stream migration output to console
+echo   --help            Show this help message
+echo.
+echo Examples:
+echo   start-docker.bat
+echo   start-docker.bat --fresh --skip-ai
+echo   start-docker.bat --no-migrate --show-migrations
+echo.
+exit /b 0
 
