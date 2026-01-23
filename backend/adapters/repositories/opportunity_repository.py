@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from domain.entities.opportunity import Opportunity, OpportunityStage
-from adapters.database.models_new import OpportunityModel, ClientModel, FundingSourceModel
+from adapters.database.models import OpportunityModel, ClientModel, FundingSourceModel
 from adapters.repositories.base_repository import BaseRepository
 from adapters.database.neo4j_connection import Neo4jConnection
 

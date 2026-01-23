@@ -501,6 +501,7 @@ def upgrade() -> None:
         tenant_id uuid NOT NULL,
         proposal_id uuid NULL,
         client_id uuid NULL,
+        funding_source_id uuid NULL,
         name varchar(300) NOT NULL DEFAULT '',
         title varchar(300) NULL,
         description text NULL,
@@ -516,7 +517,8 @@ def upgrade() -> None:
         created_by uuid NULL,
         updated_by uuid NULL,
         created_at timestamptz DEFAULT now(),
-        updated_at timestamptz DEFAULT now()
+        updated_at timestamptz DEFAULT now(),
+        deleted_at timestamptz NULL
     );
     """))
     conn.execute(sa.text("CREATE INDEX IF NOT EXISTS idx_opportunities_tenant ON opportunities (tenant_id);"))
@@ -529,18 +531,23 @@ def upgrade() -> None:
     CREATE TABLE IF NOT EXISTS proposals (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id uuid NOT NULL,
+        opportunity_id uuid NULL,
+        funding_source_id uuid NULL,
         title varchar(500) NOT NULL,
         description text NULL,
         owner_id uuid NULL,
-        status varchar(50) NOT NULL DEFAULT 'draft',
+        current_status varchar(30) NOT NULL DEFAULT 'draft',
         current_version integer DEFAULT 1,
         head_version_id uuid NULL,
         latest_adherence_score numeric(3,2) NULL,
         adherence_analysis jsonb NULL,
         version integer DEFAULT 1,
         last_ai_check timestamptz NULL,
+        created_by uuid NULL,
+        updated_by uuid NULL,
         created_at timestamptz DEFAULT now(),
-        updated_at timestamptz DEFAULT now()
+        updated_at timestamptz DEFAULT now(),
+        deleted_at timestamptz NULL
     );
     """))
     conn.execute(sa.text("CREATE INDEX IF NOT EXISTS idx_proposals_tenant ON proposals (tenant_id);"))
@@ -565,10 +572,27 @@ def upgrade() -> None:
     CREATE TABLE IF NOT EXISTS matching_scores (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id uuid NOT NULL,
-        proposal_id uuid NULL,
-        score numeric(5,4) NULL,
-        details jsonb NULL,
-        created_at timestamptz DEFAULT now()
+        opportunity_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        funding_source_id uuid NULL,
+        technical_score numeric(5,2) NOT NULL,
+        financial_score numeric(5,2) NOT NULL,
+        strategic_score numeric(5,2) NOT NULL,
+        composite_score numeric(5,2) NOT NULL,
+        algorithm_version varchar(10) NOT NULL DEFAULT '1.0',
+        calculation_details jsonb NOT NULL,
+        confidence_level numeric(3,2) NOT NULL,
+        validation_status varchar(20) NOT NULL DEFAULT 'pending',
+        validated_by uuid NULL,
+        validated_at timestamptz NULL,
+        validation_notes text NULL,
+        human_override_score numeric(5,2) NULL,
+        created_by uuid NULL,
+        updated_by uuid NULL,
+        created_at timestamptz DEFAULT now(),
+        updated_at timestamptz DEFAULT now(),
+        deleted_at timestamptz NULL,
+        version integer DEFAULT 1 NOT NULL
     );
     """))
     conn.execute(sa.text("CREATE INDEX IF NOT EXISTS idx_matching_scores_tenant ON matching_scores (tenant_id);"))

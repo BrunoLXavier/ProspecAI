@@ -47,7 +47,7 @@ def event_loop() -> Generator:
 @pytest.fixture(scope="function")
 async def test_engine():
     """Create in-memory test database engine for fast CI"""
-    from adapters.database.models_new import BaseModel
+    from adapters.database.models import BaseModel
     
     connect_args = {"check_same_thread": False} if USE_SQLITE else {}
     

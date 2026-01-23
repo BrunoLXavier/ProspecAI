@@ -16,7 +16,7 @@ from sqlalchemy import select, and_, or_, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entities.matching import MatchingScore, MatchingResult
-from adapters.database.models_new import MatchingScoreModel, FundingSourceModel, ClientModel
+from adapters.database.models import MatchingScoreModel, FundingSourceModel, ClientModel
 from adapters.repositories.base_repository import BaseRepository
 from adapters.database.neo4j_connection import Neo4jConnection
 
