@@ -21,6 +21,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import { ViewMode } from '@/components/ui/ViewToggle';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 import { PlusIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import CommunicationModal from '@/components/entities/CommunicationModal';
 import CommunicationsList from '@/components/communications/CommunicationsList';
@@ -56,6 +57,11 @@ export default function CommunicationsPage() {
     showAutoCreated: true,
   });
   
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
@@ -96,6 +102,17 @@ export default function CommunicationsPage() {
   const threads: Thread[] = useMemo(() => {
     return threadsData?.items || [];
   }, [threadsData]);
+
+  // Paginate threads for list view
+  const paginatedThreads = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return threads.slice(start, start + pageSize);
+  }, [threads, currentPage, pageSize]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   // Statistics are rendered by the shared component used elsewhere
 
@@ -253,13 +270,32 @@ export default function CommunicationsPage() {
           </div>
         ) : (
           // List/Master-Detail view
-          <CommunicationsList
-            items={threads}
-            selectedId={activeThreadId}
-            onSelect={handleSelectThread}
-            onCreateThread={handleCreateThread}
-            currentUserId={currentUserId}
-          />
+          <div className="space-y-4">
+            <CommunicationsList
+              items={paginatedThreads}
+              selectedId={activeThreadId}
+              onSelect={handleSelectThread}
+              onCreateThread={handleCreateThread}
+              currentUserId={currentUserId}
+            />
+
+            {/* Pagination */}
+            {threads.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalItems={threads.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+                persistInUrl={true}
+                showTotal={true}
+                showPageSizeSelector={true}
+              />
+            )}
+          </div>
         )}
       </div>
 

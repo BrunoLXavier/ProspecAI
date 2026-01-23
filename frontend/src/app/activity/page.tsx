@@ -24,6 +24,7 @@ import StatCard from '@/components/ui/StatCard';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 import Icon from '@/components/ui/Icon';
 
 interface Activity {
@@ -46,6 +47,11 @@ export default function ActivityPage() {
   const [filters, setFilters] = useState<{ entity: string; type: string }>({ entity: 'all', type: 'all' });
   const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const { data: activities = [], isLoading } = useQuery<Activity[]>({
     queryKey: ['activities', filters.entity, filters.type],
@@ -180,6 +186,12 @@ export default function ActivityPage() {
 
     return list;
   }, [activities]);
+  
+  // Paginated activities
+  const paginatedActivities = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return safeActivities.slice(start, start + pageSize);
+  }, [safeActivities, currentPage, pageSize]);
 
   const stats = useMemo(() => {
     const total = safeActivities.length;
@@ -232,9 +244,9 @@ export default function ActivityPage() {
     }
   };
 
-  // Transform activities to TimelineItems
+  // Transform activities to TimelineItems (using paginated)
   const timelineItems: TimelineItem[] = useMemo(() => {
-    return safeActivities.map((activity) => ({
+    return paginatedActivities.map((activity) => ({
       id: activity.id,
       title: activity.entityName,
       description: getActivityDescription(activity),
@@ -250,7 +262,13 @@ export default function ActivityPage() {
       },
       onClick: () => setSelectedActivity(activity),
     }));
-  }, [safeActivities, t]);
+  }, [paginatedActivities, t]);
+  
+  // Handle filter change with pagination reset
+  const handleFilterChange = (key: string, value: string | boolean) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -280,8 +298,8 @@ export default function ActivityPage() {
       <FilterPanel
         fields={activityFilterFields}
         values={filters as any}
-        onChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value }))}
-        onReset={() => setFilters({ entity: 'all', type: 'all' })}
+        onChange={handleFilterChange}
+        onReset={() => { setFilters({ entity: 'all', type: 'all' }); setCurrentPage(1); }}
         defaultExpanded={false}
       />
 
@@ -322,6 +340,16 @@ export default function ActivityPage() {
           </div>
         )}
       </div>
+      
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={safeActivities.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        syncWithUrl={true}
+      />
 
       {/* Detail Modal */}
       {selectedActivity && (

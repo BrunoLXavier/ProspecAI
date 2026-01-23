@@ -18,6 +18,9 @@ import {
 import { apiClient } from '@/lib/api-client';
 import UserModal from '@/components/users/UserModal';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import PageHeader from '@/components/ui/PageHeader';
+import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import { ViewMode } from '@/components/ui/ViewToggle';
 
 interface User {
 	id: string;
@@ -55,6 +58,7 @@ export default function UsersPage() {
 	const [showModal, setShowModal] = useState(false);
 	const [editingUser, setEditingUser] = useState<User | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
+	const [viewMode, setViewMode] = useState<ViewMode>('list');
 
 	// Pagination state
 	const { initialPage, initialPageSize } = usePagination(20, true);
@@ -193,23 +197,25 @@ export default function UsersPage() {
 	return (
 		<div className="max-w-6xl mx-auto space-y-6">
 			{/* Header */}
-			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-				<div>
-					<h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-						{t('users.title') || 'User Management'}
-					</h1>
-					<p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-						{t('users.subtitle') || 'Manage system users and their permissions'}
-					</p>
-				</div>
-				<button
-					onClick={openCreateModal}
-					className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-				>
-					<PlusIcon className="w-5 h-5" />
-					{t('users.newUser') || 'New User'}
-				</button>
-			</div>
+			<PageHeader
+				title={t('users.title') || 'User Management'}
+				subtitle={t('users.subtitle') || 'Manage system users and their permissions'}
+				viewToggle={true}
+				viewMode={viewMode}
+				onViewChange={(m) => setViewMode(m)}
+				action={(
+					<button
+						onClick={openCreateModal}
+						className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+					>
+						<PlusIcon className="w-5 h-5" />
+						{t('users.newUser') || 'New User'}
+					</button>
+				)}
+			/>
+			
+			{/* Statistics Bar */}
+			<ConfigurableStatisticsBar module="users" data={users} />
 
 			{/* Filters */}
 			<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-4">
@@ -240,7 +246,57 @@ export default function UsersPage() {
 				</div>
 			</div>
 
-			{/* Users Table */}
+			{/* Users View */}
+			{viewMode === 'board' ? (
+				/* Board View - Grouped by Role */
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+					{ROLES.map(roleConfig => {
+						const roleUsers = filteredUsers.filter(u => u.role === roleConfig.value);
+						return (
+							<div key={roleConfig.value} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
+								<h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-between">
+									<span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
+										{t(`users.roleTypes.${roleConfig.value}`) || roleConfig.value}
+									</span>
+									<span className="text-xs text-gray-500 dark:text-gray-400">{roleUsers.length}</span>
+								</h3>
+								<div className="space-y-3">
+									{roleUsers.map(user => (
+										<div 
+											key={user.id} 
+											onClick={() => openEditModal(user)}
+											className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-lg cursor-pointer hover:shadow"
+										>
+											<div className="flex items-center gap-3">
+												<div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+													<UserCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+												</div>
+												<div className="min-w-0 flex-1">
+													<p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.name}</p>
+													<p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+												</div>
+												<span className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full ${
+													user.is_active
+														? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+														: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+												}`}>
+													{user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+												</span>
+											</div>
+										</div>
+									))}
+									{roleUsers.length === 0 && (
+										<p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">
+											{t('users.noUsers') || 'No users'}
+										</p>
+									)}
+								</div>
+							</div>
+						);
+					})}
+				</div>
+			) : (
+			/* List View - Table */
 			<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
 				{isLoading ? (
 					<div className="p-8 text-center text-gray-500 dark:text-gray-400">
@@ -356,6 +412,7 @@ export default function UsersPage() {
 					</p>
 				</div>
 			</div>
+			)}
 
 			{/* Pagination */}
 			{filteredUsers.length > 0 && (

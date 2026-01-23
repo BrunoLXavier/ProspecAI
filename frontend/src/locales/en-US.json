@@ -16,7 +16,7 @@
     "activity": "Recent Activity",
     "feedbackManagement": "Feedback Management",
     "/": "/",
-    "admin": "admin",
+    "admin": "Admin",
     "notifications": "Notifications",
     "communications": "Communications",
     "comunications": "Communications",
@@ -56,105 +56,21 @@
   "stats.recent7d": "Recent (7d)",
   "communications": {
     "title": "Communications",
-    "subtitle": "Manage client and proposal communications",
-    "threads": "Threads",
-    "new": "New",
-    "newThread": "New Thread",
-    "editThread": "Edit Thread",
-    "selectThread": "Select a thread",
-    "selectThreadHint": "Choose a conversation from the list to view messages",
-    "searchThreads": "Search threads...",
-    "loading": "Loading...",
-    "noResults": "No results found",
-    "noThreads": "No threads found",
-    "noMessages": "No messages yet",
-    "noMinutes": "No meeting minutes yet",
-    "writeMessage": "Write a message...",
-    "attach": "Attach file",
-    "chooseFiles": "Choose files",
-    "record": "Record",
-    "recording": "Recording...",
-    "startRecording": "Record audio",
-    "stopRecording": "Stop recording",
-    "stop": "Stop",
-    "generateMinutes": "Generate Minutes",
-    "generating": "Generating...",
-    "meetingMinutes": "Meeting Minutes",
-    "send": "Send",
-    "sendHint": "Press Enter to send, Shift+Enter for new line",
-    "saving": "Saving...",
-    "draftSaved": "Draft saved",
-    "attachments": "Attachments",
-    "untitled": "Untitled",
-    "unknown": "Unknown",
-    "participants": "participants",
-    "refresh": "Refresh",
-    "retry": "Retry",
-    "confirm": "Confirm",
-    "reject": "Reject",
-    "cancel": "Cancel",
-    "save": "Save",
-    "create": "Create",
-    "delete": "Delete",
-    "add": "Add",
-    "subject": "Subject",
-    "subjectRequired": "Subject is required",
-    "subjectPlaceholder": "Enter thread subject...",
-    "linkedEntity": "Link to Entity",
-    "selectType": "Select type...",
-    "entityId": "Entity ID",
-    "entityIdPlaceholder": "Enter entity ID or search...",
-    "entityIdHint": "Enter the ID of the related entity",
-    "participantIdPlaceholder": "Enter user ID...",
-    "initialMessage": "Initial Message",
-    "initialMessagePlaceholder": "Start the conversation...",
-    "autoCreatedNeedsConfirmation": "Auto-created - Needs confirmation",
-    "autoCreatedConfirmed": "Auto-created (Confirmed)",
-    "autoCreatedPending": "Auto-created thread - Needs confirmation",
-    "threadAutoCreated": "This thread was auto-created from an email",
-    "confirmThread": "Confirm",
-    "rejectThread": "Reject",
-    "threadConfirmed": "Thread confirmed",
-    "unconfirmedMessages": "{count} message(s) need confirmation",
-    "showAutoCreated": "Show auto-created",
-    "showUnconfirmedAutoCreated": "Show unconfirmed auto-created threads",
-    "needsReview": "needs review",
-    "from": "From",
-    "to": "To",
-    "cc": "CC",
-    "received": "Received",
-    "noSubject": "(No subject)",
+    "subtitle": "Manage platform communications and announcements",
     "filters": {
       "search": "Search",
-      "searchPlaceholder": "Search threads...",
-      "all": "All",
-      "linkedEntityType": "Linked To",
-      "proposal": "Proposal",
-      "client": "Client",
-      "fundingSource": "Funding Source",
-      "opportunity": "Opportunity"
+      "searchPlaceholder": "Search communications..."
     },
-    "stats": {
-      "totalThreads": "Total Threads",
-      "total": "Total Threads",
-      "recent7d": "Recent (7d)",
-      "autoCreated": "From Emails",
-      "needsReview": "Needs Review",
-      "confirmed": "Confirmed"
-    },
-    "entityTypes": {
-      "proposal": "Proposals",
-      "client": "Clients",
-      "opportunity": "Opportunities",
-      "other": "Other"
-    },
-    "linkedTo": {
-      "proposal": "Linked to Proposal",
-      "client": "Linked to Client",
-      "funding_source": "Linked to Funding Source",
-      "opportunity": "Linked to Opportunity",
-      "project": "Linked to Project"
-    }
+    "noResults": "No communications found",
+    "loading": "Loading...",
+    "new": "New",
+    "boardPlaceholder": "Board view for communications",
+    "titleLabel": "Title",
+    "body": "Body",
+    "metadata": "Metadata",
+    "create": "Create",
+    "save": "Save",
+    "delete": "Delete"
   },
   "reports": {
     "title": "Reports",
@@ -207,11 +123,11 @@
   "reports.filters.searchPlaceholder": "Search reports...",
   "reports.noReports": "No generated reports.",
   "dashboard": {
-      "view": "view",
-      "institute": "Institute",
-      "selectInstituteHelper": "Select the institute responsible for the project",
-      "selectInstitutePlaceholder": "Select an institute",
-      "instituteRequired": "Institute is required",
+    "view": "View",
+    "institute": "Institute",
+    "selectInstituteHelper": "Select the institute responsible for the project",
+    "selectInstitutePlaceholder": "Select an institute",
+    "instituteRequired": "Institute is required",
     "lastUpdate": "Last update",
     "recentActivity": "Recent Activity",
     "stats": {
@@ -223,15 +139,15 @@
     "chatbot": {
       "open": "Open assistant"
     },
-    "@/components/analytics-widgets/AnalyticsExport": "@/components/analytics-widgets/AnalyticsExport",
-    "@/components/analytics-widgets/AnalyticsKPIs": "@/components/analytics-widgets/AnalyticsKPIs",
-    "@/components/analytics-widgets/AnalyticsPeriodSelector": "@/components/analytics-widgets/AnalyticsPeriodSelector",
-    "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/AnalyticsPipeline",
-    "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/AnalyticsTRL",
-    "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/AnalyticsTrends",
-    "@/components/dashboard/CalendarWidget": "@/components/dashboard/CalendarWidget",
-    "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/MatchingScoreWidget",
-    "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/OpportunitiesWidget",
+    "@/components/analytics-widgets/AnalyticsExport": "@/components/analytics-widgets/analyticsexport",
+    "@/components/analytics-widgets/AnalyticsKPIs": "@/components/analytics-widgets/analyticskpis",
+    "@/components/analytics-widgets/AnalyticsPeriodSelector": "@/components/analytics-widgets/analyticsperiodselector",
+    "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/analyticspipeline",
+    "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/analyticstrl",
+    "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/analyticstrends",
+    "@/components/dashboard/CalendarWidget": "@/components/dashboard/calendarwidget",
+    "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/matchingscorewidget",
+    "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/opportunitieswidget",
     "inputPlaceholder": "",
     "period": "",
     "welcomeSubtitle": "",
@@ -246,11 +162,11 @@
       "registration": "Registration",
       "conversion": "Conversion",
       "post_sale": "Post-Sale",
-      "lost": "lost",
-      "negotiation": "negotiation",
-      "proposal": "proposal",
-      "qualification": "qualification",
-      "won": "won"
+      "lost": "Lost",
+      "negotiation": "Negotiation",
+      "proposal": "Proposal",
+      "qualification": "Qualification",
+      "won": "Won"
     }
   },
   "funding": {
@@ -281,7 +197,7 @@
     "focusAreasPlaceholder": "",
     "url": "URL",
     "updateError": "Error updating funding source. Please try again.",
-    "status": "status",
+    "status": "Status",
     "types": {
       "grant": "Grant",
       "subsidy": "Subsidy",
@@ -298,7 +214,7 @@
       "suspended": "Suspended"
     },
     "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter.",
-    "view": "view"
+    "view": "View"
   },
   "crm": {
     "title": "CRM - Clients",
@@ -353,10 +269,10 @@
       "allMaturity": "All Maturities"
     },
     "perYear": "/year",
-    "address": "address",
-    "email": "email",
-    "phone": "phone",
-    "view": "view"
+    "address": "Address",
+    "email": "Email",
+    "phone": "Phone",
+    "view": "View"
   },
   "portfolio": {
     "title": "Project Portfolio",
@@ -407,11 +323,11 @@
       "completed": "Completed",
       "suspended": "Suspended"
     },
-    "deleteConfirmation": "deleteConfirmation",
-    "description": "description",
-    "editProject": "editProject",
-    "updateError": "updateError",
-    "view": "view"
+    "deleteConfirmation": "Are you sure you want to delete this?",
+    "description": "Description",
+    "editProject": "Edit project",
+    "updateError": "Error updating. Please try again.",
+    "view": "View"
   },
   "opportunities": {
     "title": "Opportunities",
@@ -465,7 +381,7 @@
     "updatedAt": "Last Updated",
     "daysAgo": "days ago",
     "today": "Today",
-    "days": "days",
+    "days": "Days",
     "updateError": "Error updating opportunity. Please try again.",
     "filters": {
       "allStages": "All Stages"
@@ -498,9 +414,9 @@
       "conversionRate": "Conversion Rate"
     },
     "T": "T",
-    "deleteConfirmation": "deleteConfirmation",
-    "id": "id",
-    "priority": "priority"
+    "deleteConfirmation": "Are you sure you want to delete this?",
+    "id": "ID",
+    "priority": "Priority"
   },
   "ingestion": {
     "title": "Data Ingestion",
@@ -546,8 +462,8 @@
       "piiDetected": "PII Detected",
       "failures": "Failures"
     },
-    "search": "search",
-    "view": "view"
+    "search": "Search",
+    "view": "View"
   },
   "proposals": {
     "title": "Proposals",
@@ -558,12 +474,11 @@
     "noResults": "No proposals found",
     "version": "Version",
     "created": "Created",
-      "view": "view",
-      "institute": "Institute",
-      "selectInstituteHelper": "Select the institute responsible for the project",
-      "selectInstitutePlaceholder": "Select an institute",
-      "instituteRequired": "Institute is required"
-    ,
+    "view": "View",
+    "institute": "Institute",
+    "selectInstituteHelper": "Select the institute responsible for the project",
+    "selectInstitutePlaceholder": "Select an institute",
+    "instituteRequired": "Institute is required",
     "createJobPrompt": "Create a new job to get started",
     "startProcessingTitle": "Start processing",
     "creating": "Creating...",
@@ -610,17 +525,16 @@
     "createError": "Error creating proposal. Please try again.",
     "updateError": "Error updating proposal. Please try again.",
     "author": "Autor",
-    "description": "description",
+    "description": "Description",
     "descriptionLabel": "Descripción / Resumen",
     "fundingSource": "Fuente de Financiamiento",
-    "fundingSourcePlaceholder": "fundingSourcePlaceholder",
+    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
     "linkedOpportunity": "Oportunidad Vinculada",
-    "noProposals": "noProposals",
-    "opportunity": "opportunity",
-    "opportunityPlaceholder": "opportunityPlaceholder",
+    "noProposals": "Noproposals",
+    "opportunity": "Opportunity",
+    "opportunityPlaceholder": "Opportunityplaceholder",
     "submitted": "Enviado",
-    "totalValue": "Valor Total",
-    "view": "view"
+    "totalValue": "Valor Total"
   },
   "settings": {
     "title": "Settings",
@@ -771,7 +685,7 @@
       "keyPath": "Key Path",
       "importExport": "Import/Export",
       "filtersTitle": "Filters",
-      "of": "of",
+      "of": "Of",
       "addNewKey": "Add New Translation Key",
       "create": "Create",
       "searchPlaceholder": "Search translation keys...",
@@ -865,8 +779,8 @@
         "light": "Light",
         "dark": "Dark",
         "primaryColor": "Primary Color",
-        "secondaryColor": "Secondary Color"
-        ,"appearance": "Appearance",
+        "secondaryColor": "Secondary Color",
+        "appearance": "Appearance",
         "appearanceOptions": {
           "default": "Default",
           "highContrast": "High Contrast",
@@ -924,8 +838,8 @@
       "never": "Never",
       "actions": "Actions",
       "showing": "Showing",
-      "of": "of",
-      "users": "users",
+      "of": "Of",
+      "users": "Users",
       "usersDesc": "Manage users and permissions",
       "feedback": "Feedback",
       "feedbackDesc": "Manage user feedback and annotations",
@@ -948,14 +862,14 @@
       "reset": "Reset Defaults",
       "save": "Save Changes",
       "saving": "Saving...",
-      "allowed": "allowed",
-      "required": "required",
+      "allowed": "Allowed",
+      "required": "Required",
       "allowAll": "Allow All",
       "denyAll": "Deny All"
     },
     "/api/v1/translations/export/${locale}": "/api/v1/translations/export/${locale}",
-    "a": "a",
-    "content-type": "content-type"
+    "a": "A",
+    "content-type": "Content-type"
   },
   "users": {
     "title": "User Management",
@@ -1016,16 +930,16 @@
       "emailExists": "This email is already in use"
     },
     "activeUser": "Active user",
-    "allRoles": "allRoles",
-    "create": "create",
-    "deleteConfirmation": "deleteConfirmation",
+    "allRoles": "Allroles",
+    "create": "Create",
+    "deleteConfirmation": "Are you sure you want to delete this?",
     "leaveBlank": "Leave blank",
-    "never": "never",
-    "noUsers": "noUsers",
-    "of": "of",
-    "showing": "showing",
-    "user": "user",
-    "users": "users"
+    "never": "Never",
+    "noUsers": "Nousers",
+    "of": "Of",
+    "showing": "Showing",
+    "user": "User",
+    "users": "Users"
   },
   "notifications": {
     "title": "Notifications",
@@ -1048,12 +962,12 @@
       "read": "Read",
       "readed": "Read"
     },
-    "deadlines": "deadlines",
-    "description": "description",
-    "digest": "digest",
-    "email": "email",
-    "matching": "matching",
-    "push": "push",
+    "deadlines": "Deadlines",
+    "description": "Description",
+    "digest": "Digest",
+    "email": "Email",
+    "matching": "Matching",
+    "push": "Push",
     "perYear": "/año"
   },
   "activity": {
@@ -1720,8 +1634,8 @@
     "statistics": {
       "title": "Configure Statistics",
       "subtitle": "Select which statistics you want to view on this page",
-      "allowed": "allowed",
-      "required": "required",
+      "allowed": "Allowed",
+      "required": "Required",
       "allowAll": "Allow All",
       "denyAll": "Deny All",
       "reset": "Reset",
@@ -1745,17 +1659,17 @@
       "proposals": "Proposals",
       "ingestion": "Data Ingestion",
       "piiAnalysis": "PII Analysis",
-      "chars": "chars"
+      "chars": "Chars"
     },
-    "chars": "chars",
-    "moveLeft": "moveLeft",
-    "moveRight": "moveRight",
-    "view": "view",
+    "chars": "Chars",
+    "moveLeft": "Moveleft",
+    "moveRight": "Moveright",
+    "view": "View",
     "pagination": {
       "showing": "Showing",
-      "to": "to",
-      "of": "of",
-      "items": "items",
+      "to": "To",
+      "of": "Of",
+      "items": "Items",
       "perPage": "Per page",
       "first": "First page",
       "last": "Last page",
@@ -1770,7 +1684,7 @@
       "sortAsc": "Sort ascending",
       "sortDesc": "Sort descending",
       "selectAll": "Select all",
-      "selected": "selected"
+      "selected": "Selected"
     },
     "timeline": {
       "empty": "No activity to display"
@@ -1965,12 +1879,12 @@
     },
     "trl": {
       "title": "TRL Distribution",
-      "projects": "projects"
+      "projects": "Projects"
     },
     "trends": {
       "title": "Matching Trends",
       "noData": "Insufficient data",
-      "matches": "matches",
+      "matches": "Matches",
       "score": "Score"
     },
     "export": {
@@ -1982,8 +1896,8 @@
     "/api/v1/analytics/overview?period=${period}": "/api/v1/analytics/overview?period=${period}",
     "/api/v1/analytics/pipeline": "/api/v1/analytics/pipeline",
     "/api/v1/analytics/trl-distribution": "/api/v1/analytics/trl-distribution",
-    "csv": "csv",
-    "json": "json"
+    "csv": "Csv",
+    "json": "Json"
   },
   "stats": {
     "categories": {
@@ -2121,12 +2035,12 @@
     "falsePositiveRate": "False Positive Rate",
     "needsReview": "Needs Review",
     "needsReviewDesc": "Low confidence, requires validation",
-    "failures": "failures",
-    "files": "files",
-    "matchingScore": "matchingScore",
-    "openFunding": "openFunding",
-    "proposalsInReview": "proposalsInReview",
-    "records": "records"
+    "failures": "Failures",
+    "files": "Files",
+    "matchingScore": "Matchingscore",
+    "openFunding": "Openfunding",
+    "proposalsInReview": "Proposalsinreview",
+    "records": "Records"
   },
   "modules": {
     "funding": "Funding Sources",
@@ -2147,8 +2061,8 @@
     "viewer": "Viewer",
     "viewerDesc": "View only",
     "${role}": "${role}",
-    "note": "note",
-    "title": "title"
+    "note": "Note",
+    "title": "Title"
   },
   "feedback": {
     "title": "Feedback",
@@ -2273,8 +2187,8 @@
     },
     "/api/v1/feedback/statistics": "/api/v1/feedback/statistics",
     "2d": "2d",
-    "canvas": "canvas",
-    "video": "video",
+    "canvas": "Canvas",
+    "video": "Video",
     "createJob": "Criar Job",
     "createJobPrompt": "Crie um novo job para começar",
     "creating": "Criando...",
@@ -2287,20 +2201,12 @@
     "welcomeSubtitle": "I can help with funding calls, projects and matches.",
     "inputPlaceholder": "Type your question..."
   },
-  "": {
-    "/locales/${locale}": {
-      "json": "./locales/${locale}.json"
-    }
-  },
   "/api/v1/crm/clients/${id}": "/api/v1/crm/clients/${id}",
   "/api/v1/crm/enrich-cnpj/${cnpj}": "/api/v1/crm/enrich-cnpj/${cnpj}",
-  "/api/v1/feedback/?${params": {
-    "toString()}": "toString()}"
-  },
   "/api/v1/funding/${id}": "/api/v1/funding/${id}",
   "/api/v1/layout/reset": "/api/v1/layout/reset",
-  "/api/v1/matching/explain/${projectId}/${fundingId}": "/api/v1/matching/explain/${projectId}/${fundingId}",
-  "/api/v1/matching/scores/${projectId}/${fundingId}": "/api/v1/matching/scores/${projectId}/${fundingId}",
+  "/api/v1/matching/explain/${projectId}/${fundingId}": "/api/v1/matching/explain/${projectid}/${fundingid}",
+  "/api/v1/matching/scores/${projectId}/${fundingId}": "/api/v1/matching/scores/${projectid}/${fundingid}",
   "/api/v1/opportunities/${id}": "/api/v1/opportunities/${id}",
   "/api/v1/opportunities/stats/pipeline": "/api/v1/opportunities/stats/pipeline",
   "/api/v1/portfolio/projects/${id}": "/api/v1/portfolio/projects/${id}",
@@ -2309,90 +2215,90 @@
   "/api/v1/proposals/${id}/adherence": "/api/v1/proposals/${id}/adherence",
   "/api/v1/proposals/${id}/submit": "/api/v1/proposals/${id}/submit",
   "/api/v1/translations/${editingPath}?${params": {
-    "toString()}": "toString()}"
+    "toString()}": "Tostring()}"
   },
   "/funding?${params": {
-    "toString()}": "toString()}"
+    "toString()}": "Tostring()}"
   },
   "45%": "45%",
   "65%": "65%",
   "80%": "80%",
   "85%": "85%",
-  "DRAFT": "DRAFT",
-  "INTELLIGENCE": "INTELLIGENCE",
-  "PLANNING": "PLANNING",
+  "DRAFT": "Draft",
+  "INTELLIGENCE": "Intelligence",
+  "PLANNING": "Planning",
   "acl": {
-    "createRole": "createRole",
-    "deleteConfirm": "deleteConfirm"
+    "createRole": "Createrole",
+    "deleteConfirm": "Deleteconfirm"
   },
   "actions": {
-    "submitted": "submitted",
-    "updatedGeneric": "updatedGeneric"
+    "submitted": "Submitted",
+    "updatedGeneric": "Updatedgeneric"
   },
   "admin": {
-    "acl": "acl",
-    "aclDesc": "aclDesc",
-    "addResponse": "addResponse",
-    "description": "description",
-    "feedback": "feedback",
-    "feedbackDesc": "feedbackDesc",
-    "layout": "layout",
-    "layoutDesc": "layoutDesc",
-    "llmProvider": "llmProvider",
-    "llmProviderDesc": "llmProviderDesc",
-    "page": "page",
-    "previousResponse": "previousResponse",
-    "priority": "priority",
-    "respondedAt": "respondedAt",
-    "responsePlaceholder": "responsePlaceholder",
-    "screenshot": "screenshot",
-    "sendResponse": "sendResponse",
-    "sending": "sending",
-    "statistics": "statistics",
-    "statisticsDesc": "statisticsDesc",
-    "title": "title",
-    "translations": "translations",
-    "translationsDesc": "translationsDesc",
-    "updateResponse": "updateResponse",
-    "updateStatus": "updateStatus",
-    "userComment": "userComment",
-    "users": "users",
-    "usersDesc": "usersDesc"
+    "acl": "Acl",
+    "aclDesc": "Acldesc",
+    "addResponse": "Addresponse",
+    "description": "Description",
+    "feedback": "Feedback",
+    "feedbackDesc": "Feedbackdesc",
+    "layout": "Layout",
+    "layoutDesc": "Layoutdesc",
+    "llmProvider": "Llmprovider",
+    "llmProviderDesc": "Llmproviderdesc",
+    "page": "Page",
+    "previousResponse": "Previousresponse",
+    "priority": "Priority",
+    "respondedAt": "Respondedat",
+    "responsePlaceholder": "Responseplaceholder",
+    "screenshot": "Screenshot",
+    "sendResponse": "Sendresponse",
+    "sending": "Sending",
+    "statistics": "Statistics",
+    "statisticsDesc": "Statisticsdesc",
+    "title": "Title",
+    "translations": "Translations",
+    "translationsDesc": "Translationsdesc",
+    "updateResponse": "Updateresponse",
+    "updateStatus": "Updatestatus",
+    "userComment": "Usercomment",
+    "users": "Users",
+    "usersDesc": "Usersdesc"
   },
   "annotate": {
-    "clear": "clear",
+    "clear": "Clear",
     "colors": {
       "${opt": {
-        "key}": "key}"
+        "key}": "Key}"
       }
     },
-    "confirm": "confirm",
-    "description": "description",
-    "extraThick": "extraThick",
-    "medium": "medium",
-    "pen": "pen",
-    "redo": "redo",
-    "thick": "thick",
-    "thickness": "thickness",
-    "thin": "thin",
-    "undo": "undo"
+    "confirm": "Confirm",
+    "description": "Description",
+    "extraThick": "Extrathick",
+    "medium": "Medium",
+    "pen": "Pen",
+    "redo": "Redo",
+    "thick": "Thick",
+    "thickness": "Thickness",
+    "thin": "Thin",
+    "undo": "Undo"
   },
   "appearance": {
-    "dark": "dark",
-    "description": "description",
-    "light": "light",
-    "theme": "theme",
-    "title": "title"
+    "dark": "Dark",
+    "description": "Description",
+    "light": "Light",
+    "theme": "Theme",
+    "title": "Title"
   },
   "areas": {
-    "agribusiness": "agribusiness",
-    "health": "health",
+    "agribusiness": "Agribusiness",
+    "health": "Health",
     "industry_4_0": "industry 4 0",
-    "sustainability": "sustainability"
+    "sustainability": "Sustainability"
   },
   "button": {
-    "label": "label",
-    "title": "title"
+    "label": "Label",
+    "title": "Title"
   },
   "calendar": {
     "T": "T",
@@ -2411,258 +2317,258 @@
     "viewAll": "Ver todos os eventos"
   },
   "capture": {
-    "buttonLabel": "buttonLabel",
-    "description": "description",
-    "title": "title"
+    "buttonLabel": "Buttonlabel",
+    "description": "Description",
+    "title": "Title"
   },
   "comment": {
-    "back": "back",
-    "charLimitWarning": "charLimitWarning",
-    "commentLabel": "commentLabel",
-    "editAnnotations": "editAnnotations",
-    "placeholder": "placeholder",
-    "typeLabel": "typeLabel"
+    "back": "Back",
+    "charLimitWarning": "Charlimitwarning",
+    "commentLabel": "Commentlabel",
+    "editAnnotations": "Editannotations",
+    "placeholder": "Placeholder",
+    "typeLabel": "Typelabel"
   },
   "confirm": {
-    "deleteLLM": "deleteLLM"
+    "deleteLLM": "Deletellm"
   },
   "entities": {
     "${activity": {
-      "entity}": "entity}"
+      "entity}": "Entity}"
     },
     "${entity}": "${entity}",
-    "client": "client",
-    "funding": "funding",
-    "opportunity": "opportunity",
-    "project": "project",
-    "proposal": "proposal"
+    "client": "Client",
+    "funding": "Funding",
+    "opportunity": "Opportunity",
+    "project": "Project",
+    "proposal": "Proposal"
   },
   "error": {
-    "captureFailed": "captureFailed",
-    "description": "description",
-    "documentBodyNotFound": "documentBodyNotFound",
-    "noComment": "noComment",
-    "retry": "retry",
-    "title": "title"
+    "captureFailed": "Capturefailed",
+    "description": "Description",
+    "documentBodyNotFound": "Documentbodynotfound",
+    "noComment": "Nocomment",
+    "retry": "Retry",
+    "title": "Title"
   },
   "errors": {
-    "activate": "activate",
-    "delete": "delete",
-    "save": "save",
-    "unknown": "unknown"
+    "activate": "Activate",
+    "delete": "Delete",
+    "save": "Save",
+    "unknown": "Unknown"
   },
   "export": {
-    "csv": "csv",
-    "json": "json",
-    "title": "title"
+    "csv": "Csv",
+    "json": "Json",
+    "title": "Title"
   },
   "factors": {
     "${key}": "${key}"
   },
   "filter": {
-    "all": "all",
-    "unread": "unread"
+    "all": "All",
+    "unread": "Unread"
   },
   "filters": {
     "${status": {
-      "key}": "key}"
+      "key}": "Key}"
     },
-    "active": "active",
-    "allActions": "allActions",
-    "allAreas": "allAreas",
-    "allEntities": "allEntities",
-    "allMaturity": "allMaturity",
-    "allSegments": "allSegments",
-    "allStages": "allStages",
-    "allStatus": "allStatus",
-    "allStatuses": "allStatuses",
-    "allTypes": "allTypes",
-    "closed": "closed",
-    "completed": "completed",
-    "dateFrom": "dateFrom",
-    "dateTo": "dateTo",
-    "entity": "entity",
-    "fundingSource": "fundingSource",
-    "fundingSourcePlaceholder": "fundingSourcePlaceholder",
-    "open": "open",
-    "opportunity": "opportunity",
-    "opportunityPlaceholder": "opportunityPlaceholder",
-    "planning": "planning",
-    "search": "search",
-    "searchPlaceholder": "searchPlaceholder",
-    "status": "status",
-    "suspended": "suspended",
-    "type": "type",
-    "version": "version"
+    "active": "Active",
+    "allActions": "Allactions",
+    "allAreas": "Allareas",
+    "allEntities": "Allentities",
+    "allMaturity": "Allmaturity",
+    "allSegments": "Allsegments",
+    "allStages": "Allstages",
+    "allStatus": "Allstatus",
+    "allStatuses": "Allstatuses",
+    "allTypes": "Alltypes",
+    "closed": "Closed",
+    "completed": "Completed",
+    "dateFrom": "Datefrom",
+    "dateTo": "Dateto",
+    "entity": "Entity",
+    "fundingSource": "Fundingsource",
+    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
+    "open": "Open",
+    "opportunity": "Opportunity",
+    "opportunityPlaceholder": "Opportunityplaceholder",
+    "planning": "Planning",
+    "search": "Search",
+    "searchPlaceholder": "Searchplaceholder",
+    "status": "Status",
+    "suspended": "Suspended",
+    "type": "Type",
+    "version": "Version"
   },
   "kpis": {
-    "activeOpportunities": "activeOpportunities",
-    "totalClients": "totalClients",
-    "totalProjects": "totalProjects"
+    "activeOpportunities": "Activeopportunities",
+    "totalClients": "Totalclients",
+    "totalProjects": "Totalprojects"
   },
   "language": {
-    "description": "description",
-    "title": "title"
+    "description": "Description",
+    "title": "Title"
   },
   "layout": {
     "branding": {
-      "description": "description",
-      "leaveEmptyForDefault": "leaveEmptyForDefault",
-      "siteFaviconUrl": "siteFaviconUrl",
-      "siteLogoUrl": "siteLogoUrl",
-      "siteName": "siteName",
-      "title": "title"
+      "description": "Description",
+      "leaveEmptyForDefault": "Leaveemptyfordefault",
+      "siteFaviconUrl": "Sitefaviconurl",
+      "siteLogoUrl": "Sitelogourl",
+      "siteName": "Sitename",
+      "title": "Title"
     },
     "buttons": {
-      "reset": "reset",
-      "saveChanges": "saveChanges"
+      "reset": "Reset",
+      "saveChanges": "Savechanges"
     },
     "dashboardWidgets": {
-      "description": "description",
-      "layoutStyle": "layoutStyle",
-      "title": "title"
+      "description": "Description",
+      "layoutStyle": "Layoutstyle",
+      "title": "Title"
     },
-    "description": "description",
+    "description": "Description",
     "messages": {
-      "resetConfirm": "resetConfirm"
+      "resetConfirm": "Resetconfirm"
     },
     "navigationItems": {
-      "description": "description",
-      "orderDescription": "orderDescription",
-      "orderTitle": "orderTitle",
-      "resetOrder": "resetOrder",
-      "title": "title"
+      "description": "Description",
+      "orderDescription": "Orderdescription",
+      "orderTitle": "Ordertitle",
+      "resetOrder": "Resetorder",
+      "title": "Title"
     },
     "sidebar": {
-      "collapsedByDefault": "collapsedByDefault",
-      "description": "description",
-      "position": "position",
-      "title": "title",
-      "width": "width"
+      "collapsedByDefault": "Collapsedbydefault",
+      "description": "Description",
+      "position": "Position",
+      "title": "Title",
+      "width": "Width"
     },
     "themeColors": {
-      "colorMode": "colorMode",
-      "dark": "dark",
-      "description": "description",
-      "light": "light",
-      "primaryColor": "primaryColor",
-      "secondaryColor": "secondaryColor",
-      "title": "title"
+      "colorMode": "Colormode",
+      "dark": "Dark",
+      "description": "Description",
+      "light": "Light",
+      "primaryColor": "Primarycolor",
+      "secondaryColor": "Secondarycolor",
+      "title": "Title"
     },
-    "title": "title",
+    "title": "Title",
     "typography": {
-      "description": "description",
-      "fontFamily": "fontFamily",
-      "fontSize": "fontSize",
-      "large": "large",
-      "monospace": "monospace",
-      "normal": "normal",
-      "sansSerif": "sansSerif",
-      "serif": "serif",
-      "small": "small",
-      "title": "title"
+      "description": "Description",
+      "fontFamily": "Fontfamily",
+      "fontSize": "Fontsize",
+      "large": "Large",
+      "monospace": "Monospace",
+      "normal": "Normal",
+      "sansSerif": "Sansserif",
+      "serif": "Serif",
+      "small": "Small",
+      "title": "Title"
     },
     "uiPreferences": {
-      "compactMode": "compactMode",
-      "defaultPageSize": "defaultPageSize",
-      "denseTables": "denseTables",
-      "description": "description",
-      "enableAnimations": "enableAnimations",
-      "itemsPerPage": "itemsPerPage",
-      "title": "title"
+      "compactMode": "Compactmode",
+      "defaultPageSize": "Defaultpagesize",
+      "denseTables": "Densetables",
+      "description": "Description",
+      "enableAnimations": "Enableanimations",
+      "itemsPerPage": "Itemsperpage",
+      "title": "Title"
     }
   },
   "llm": {
-    "activate": "activate",
-    "apiKey": "apiKey",
-    "apiKeyStored": "apiKeyStored",
-    "baseUrl": "baseUrl",
-    "delete": "delete",
+    "activate": "Activate",
+    "apiKey": "Apikey",
+    "apiKeyStored": "Apikeystored",
+    "baseUrl": "Baseurl",
+    "delete": "Delete",
     "errors": {
-      "apiKeyRequired": "apiKeyRequired",
-      "baseUrlRequired": "baseUrlRequired",
-      "testError": "testError"
+      "apiKeyRequired": "Apikeyrequired",
+      "baseUrlRequired": "Baseurlrequired",
+      "testError": "Testerror"
     },
-    "maxTokens": "maxTokens",
-    "modelLabel": "modelLabel",
-    "noConfigs": "noConfigs",
-    "save": "save",
-    "saveActivate": "saveActivate",
-    "saving": "saving",
-    "selectProvider": "selectProvider",
+    "maxTokens": "Maxtokens",
+    "modelLabel": "Modellabel",
+    "noConfigs": "Noconfigs",
+    "save": "Save",
+    "saveActivate": "Saveactivate",
+    "saving": "Saving",
+    "selectProvider": "Selectprovider",
     "status": {
-      "active": "active",
-      "failed": "failed",
-      "tested": "tested",
-      "untested": "untested"
+      "active": "Active",
+      "failed": "Failed",
+      "tested": "Tested",
+      "untested": "Untested"
     },
-    "subtitle": "subtitle",
-    "temperature": "temperature",
-    "temperatureHint": "temperatureHint",
+    "subtitle": "Subtitle",
+    "temperature": "Temperature",
+    "temperatureHint": "Temperaturehint",
     "testButton": {
-      "label": "label",
-      "testing": "testing"
+      "label": "Label",
+      "testing": "Testing"
     },
-    "title": "title"
+    "title": "Title"
   },
   "maturity": {
     "${client": {
-      "maturityLevel}": "maturityLevel}"
+      "maturityLevel}": "Maturitylevel}"
     },
-    "${displayMaturity}": "${displayMaturity}",
+    "${displayMaturity}": "${displaymaturity}",
     "${level": {
-      "key}": "key}"
+      "key}": "Key}"
     },
-    "growth": "growth",
-    "mature": "mature",
-    "startup": "startup"
+    "growth": "Growth",
+    "mature": "Mature",
+    "startup": "Startup"
   },
   "modal": {
-    "cancel": "cancel",
-    "close": "close",
-    "submit": "submit",
-    "submitting": "submitting",
-    "title": "title"
+    "cancel": "Cancel",
+    "close": "Close",
+    "submit": "Submit",
+    "submitting": "Submitting",
+    "title": "Title"
   },
   "period": {
-    "label": "label",
-    "month": "month",
-    "quarter": "quarter",
-    "week": "week",
-    "year": "year"
+    "label": "Label",
+    "month": "Month",
+    "quarter": "Quarter",
+    "week": "Week",
+    "year": "Year"
   },
   "personalInfo": {
-    "department": "department",
-    "email": "email",
-    "emailNote": "emailNote",
-    "name": "name",
-    "phone": "phone",
-    "title": "title"
+    "department": "Department",
+    "email": "Email",
+    "emailNote": "Emailnote",
+    "name": "Name",
+    "phone": "Phone",
+    "title": "Title"
   },
   "preferences": {
-    "statistics": "statistics",
-    "statisticsDesc": "statisticsDesc",
-    "title": "title"
+    "statistics": "Statistics",
+    "statisticsDesc": "Statisticsdesc",
+    "title": "Title"
   },
   "security": {
-    "changePassword": "changePassword",
-    "confirmPassword": "confirmPassword",
-    "currentPassword": "currentPassword",
-    "description": "description",
-    "lastLogin": "lastLogin",
-    "newPassword": "newPassword",
-    "title": "title",
-    "updatePassword": "updatePassword"
+    "changePassword": "Changepassword",
+    "confirmPassword": "Confirmpassword",
+    "currentPassword": "Currentpassword",
+    "description": "Description",
+    "lastLogin": "Lastlogin",
+    "newPassword": "Newpassword",
+    "title": "Title",
+    "updatePassword": "Updatepassword"
   },
   "segments": {
-    "agribusiness": "agribusiness",
-    "manufacturing": "manufacturing",
-    "services": "services",
-    "technology": "technology"
+    "agribusiness": "Agribusiness",
+    "manufacturing": "Manufacturing",
+    "services": "Services",
+    "technology": "Technology"
   },
   "severity": {
     "${feedback": {
-      "severity}": "severity}"
+      "severity}": "Severity}"
     }
   },
   "sourceTypes": {
@@ -2670,141 +2576,123 @@
       "source_type}": "source type}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     }
   },
   "stages": {
     "${opp": {
-      "stage}": "stage}"
+      "stage}": "Stage}"
     },
     "${opportunityData": {
-      "stage}": "stage}"
+      "stage}": "Stage}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     },
     "${stage": {
-      "key}": "key}"
+      "key}": "Key}"
     },
     "${stage}": "${stage}",
-    "approach": "approach",
-    "intelligence": "intelligence",
-    "lost": "lost",
-    "negotiation": "negotiation",
-    "proposal": "proposal",
-    "won": "won"
+    "approach": "Approach",
+    "intelligence": "Intelligence",
+    "lost": "Lost",
+    "negotiation": "Negotiation",
+    "proposal": "Proposal",
+    "won": "Won"
   },
   "statistics": {
-    "reset": "reset",
-    "save": "save",
-    "saving": "saving",
-    "subtitle": "subtitle",
-    "title": "title"
+    "reset": "Reset",
+    "save": "Save",
+    "saving": "Saving",
+    "subtitle": "Subtitle",
+    "title": "Title"
   },
   "status": {
     "${funding": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${job": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${project": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${proposal": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${status": {
-      "key}": "key}"
+      "key}": "Key}"
     },
     "${status}": "${status}",
-    "approved": "approved",
-    "draft": "draft",
+    "approved": "Approved",
+    "draft": "Draft",
     "in_review": "in review",
-    "rejected": "rejected",
-    "submitted": "submitted"
+    "rejected": "Rejected",
+    "submitted": "Submitted"
   },
   "statuses": {
     "${opportunityData": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     },
-    "active": "active",
-    "completed": "completed",
-    "pending": "pending"
+    "active": "Active",
+    "completed": "Completed",
+    "pending": "Pending"
   },
   "success": {
-    "close": "close",
-    "description": "description",
-    "title": "title"
+    "close": "Close",
+    "description": "Description",
+    "title": "Title"
   },
-  "token": "token",
+  "token": "Token",
   "translations": {
-    "addNewKey": "addNewKey",
-    "create": "create",
-    "deleteConfirm": "deleteConfirm",
-    "keyPath": "keyPath",
-    "showing": "showing",
-    "translationKeys": "translationKeys"
+    "addNewKey": "Addnewkey",
+    "create": "Create",
+    "deleteConfirm": "Deleteconfirm",
+    "keyPath": "Keypath",
+    "showing": "Showing",
+    "translationKeys": "Translationkeys"
   },
   "trends": {
-    "matches": "matches",
-    "noData": "noData",
-    "score": "score",
-    "title": "title"
+    "matches": "Matches",
+    "noData": "Nodata",
+    "score": "Score",
+    "title": "Title"
   },
   "trl": {
-    "projects": "projects",
-    "title": "title"
+    "projects": "Projects",
+    "title": "Title"
   },
   "types": {
     "${a": {
-      "type}": "type}"
+      "type}": "Type}"
     },
     "${activity": {
-      "type}": "type}"
+      "type}": "Type}"
     },
     "${feedback": {
       "feedback_type}": "feedback type}"
     },
     "${funding": {
-      "instrumentType}": "instrumentType}"
+      "instrumentType}": "Instrumenttype}"
     },
     "${selectedActivity": {
-      "type}": "type}"
+      "type}": "Type}"
     },
-    "create": "create",
-    "credit": "credit",
-    "delete": "delete",
-    "equity": "equity",
-    "grant": "grant",
-    "match": "match",
-    "submit": "submit",
-    "subsidy": "subsidy",
-    "transition": "transition",
-    "update": "update"
-  },
-  "view": "view",
-  "communications": {
-    "title": "Communications",
-    "subtitle": "Manage platform communications and announcements",
-    "filters": {
-      "search": "Search",
-      "searchPlaceholder": "Search communications..."
-    },
-    "noResults": "No communications found",
-    "loading": "Loading...",
-    "new": "New",
-    "boardPlaceholder": "Board view for communications",
-    "titleLabel": "Title",
-    "body": "Body",
-    "metadata": "Metadata",
     "create": "Create",
-    "save": "Save",
-    "delete": "Delete"
+    "credit": "Credit",
+    "delete": "Delete",
+    "equity": "Equity",
+    "grant": "Grant",
+    "match": "Match",
+    "submit": "Submit",
+    "subsidy": "Subsidy",
+    "transition": "Transition",
+    "update": "Update"
   },
+  "view": "View",
   "institutes": {
     "title": "Institutes",
     "subtitle": "Manage research institutes and organizational units",
@@ -2813,7 +2701,7 @@
     "selectAll": "Select all",
     "clearAll": "Clear",
     "myInstitutes": "My institutes",
-    "selected": "selected",
+    "selected": "Selected",
     "save": "Save",
     "saving": "Saving...",
     "saved": "Saved",
@@ -2972,5 +2860,52 @@
     "cancel": "Cancel",
     "create": "Create"
   },
-  "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter."
+  "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter.",
+  "crm.tabContact": "Contact",
+  "crm.tabNotes": "Notes",
+  "crm.contactHint": "Primary contact information",
+  "crm.tabBasic": "Basic information",
+  "portfolio.lessonsLearnedHint": "Lessonslearnedhint",
+  "portfolio.tabs.basic": "Basic",
+  "portfolio.tabs.financial": "Financial",
+  "portfolio.tabs.lessons": "Lessons",
+  "teams.delete": "Delete",
+  "teams.confirmDelete": "Are you sure you want to delete this team?",
+  "communications.deleteConfirmation": "Are you sure you want to delete this thread?",
+  "proposals.contentHint": "Proposal content (may include attachments)",
+  "proposals.metadataAvailableAfterCreate": "Proposal metadata will be available after creation",
+  "proposals.tabs.basic": "Basic",
+  "proposals.tabs.content": "Content",
+  "proposals.tabs.metadata": "Metadata",
+  "institutes.confirmDelete": "Confirmdelete",
+  "infrastructure.mediaHint": "Drag or paste media files here",
+  "infrastructure.mediaType": "Media type",
+  "infrastructure.delete": "Delete",
+  "infrastructure.confirmDelete": "Are you sure you want to delete this infrastructure item?",
+  "funding.tabBasic": "Basic",
+  "funding.tabTRL": "TRL",
+  "funding.tabDetails": "Details",
+  "opportunities.scoreFormula": "Scoreformula",
+  "opportunities.tabs.basic": "Basic",
+  "opportunities.tabs.values": "Values",
+  "opportunities.tabs.priority": "Priority",
+  "opportunities.currentScore": "Currentscore",
+  "opportunities.editOpportunity": "Editopportunity",
+  "reports.namePlaceholder": "Nameplaceholder",
+  "reports.descriptionPlaceholder": "Descriptionplaceholder",
+  "reports.noParameters": "Noparameters",
+  "reports.addParameterPlaceholder": "Addparameterplaceholder",
+  "common.add": "Add",
+  "reports.formatsHelp": "Formatshelp",
+  "reports.addFormatPlaceholder": "Addformatplaceholder",
+  "reports.commonFormats": "Commonformats",
+  "reports.tabs.basic": "Basic",
+  "reports.tabs.parameters": "Parameters",
+  "reports.tabs.formats": "Formats",
+  "common.createdAt": "Createdat",
+  "common.modules.institutes": "Institutes",
+  "common.modules.teams": "Teams",
+  "common.modules.infrastructure": "Infrastructure",
+  "common.modules.communications": "Communications",
+  "settings.translations.autoTranslate": "Autotranslate"
 }

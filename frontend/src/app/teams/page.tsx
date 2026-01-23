@@ -100,9 +100,36 @@ export default function TeamsPage() {
             ) : (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                 {paginatedItems.map((it: any, idx: number) => (
-                  <li key={it.id || idx} className="px-6 py-4 flex items-center justify-between">
-                    <button onClick={() => { setSelectedTeam(it); setModalOpen(true); }} className="text-left">{it.name || 'Team'}</button>
-                    <div className="text-xs text-gray-400">{it.member_ids ? it.member_ids.length : ''}</div>
+                  <li 
+                    key={it.id || idx} 
+                    onClick={() => { setSelectedTeam(it); setModalOpen(true); }}
+                    className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                          <span className="text-primary-600 dark:text-primary-400 font-semibold">
+                            {(it.name || 'T').charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white">{it.name || 'Team'}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {it.description || t('noDescription') || 'No description'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {it.member_ids && it.member_ids.length > 0 && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                            {it.member_ids.length} {t('members') || 'members'}
+                          </span>
+                        )}
+                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>

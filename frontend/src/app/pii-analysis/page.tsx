@@ -32,6 +32,7 @@ import { ViewMode } from '@/components/ui/ViewToggle';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PIIAnalysisBoard from '@/components/pii/PIIAnalysisBoard';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 
 // =============================================================================
 // Types
@@ -298,6 +299,11 @@ export default function PIIAnalysisPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  
   // Filters
   const [filters, setFilters] = useState<{ status: string; risk: string; search: string }>({
     status: 'pending_review',
@@ -536,6 +542,18 @@ export default function PIIAnalysisPage() {
     }
     return true;
   });
+  
+  // Paginated detections
+  const paginatedDetections = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredDetections.slice(start, start + pageSize);
+  }, [filteredDetections, currentPage, pageSize]);
+  
+  // Handle filter change with pagination reset
+  const handleFilterChange = (key: string, value: string | boolean) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
 
   const filterFields: FilterField[] = [
     { key: 'search', label: 'Buscar', type: 'text', placeholder: 'Buscar detecções...' },
@@ -596,8 +614,8 @@ export default function PIIAnalysisPage() {
       <FilterPanel
         fields={filterFields}
         values={filters}
-        onChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value }))}
-        onReset={() => setFilters({ status: 'all', risk: 'all', search: '' })}
+        onChange={handleFilterChange}
+        onReset={() => { setFilters({ status: 'all', risk: 'all', search: '' }); setCurrentPage(1); }}
         defaultExpanded={false}
       />
       
@@ -659,7 +677,7 @@ export default function PIIAnalysisPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredDetections.map((detection) => {
+              {paginatedDetections.map((detection) => {
                 const riskColor = RISK_COLORS[detection.risk_level];
                 const statusConfig = STATUS_CONFIG[detection.anonymization_status];
                 
@@ -722,6 +740,16 @@ export default function PIIAnalysisPage() {
         )}
       </div>
       )}
+      
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={filteredDetections.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        syncWithUrl={true}
+      />
       
       {/* Review Modal */}
       {reviewModal && (

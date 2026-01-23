@@ -26,6 +26,7 @@ import { ViewMode } from '@/components/ui/ViewToggle';
 import IngestionBoard from '@/components/ingestion/IngestionBoard';
 import IngestionModal from '@/components/ingestion/IngestionModal';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 import { getStoredAccessToken } from '@/contexts/AuthContext';
 import apiClient from '@/lib/api-client';
 
@@ -160,6 +161,11 @@ export default function IngestionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  
   // Upload state
   const [showNewModal, setShowNewModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -230,6 +236,7 @@ export default function IngestionPage() {
 
   const handleFilterChange = (key: string, value: string | boolean) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
   };
 
   const handleResetFilters = () => {
@@ -240,6 +247,7 @@ export default function IngestionPage() {
       dateFrom: '',
       dateTo: '',
     });
+    setCurrentPage(1);
   };
 
   // Filter jobs based on current filters
@@ -267,6 +275,12 @@ export default function IngestionPage() {
       return true;
     });
   }, [jobs, filters]);
+  
+  // Paginated jobs
+  const paginatedJobs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredJobs.slice(start, start + pageSize);
+  }, [filteredJobs, currentPage, pageSize]);
 
   // Calculate statistics from filtered jobs
   const stats = useMemo(() => {
@@ -586,7 +600,7 @@ export default function IngestionPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredJobs.map((job) => {
+                {paginatedJobs.map((job) => {
                   const s = {
                     total_files: job.total_files ?? 0,
                     total_records: job.total_records ?? 0,
@@ -680,6 +694,16 @@ export default function IngestionPage() {
             )}
           </div>
         )}
+      
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={filteredJobs.length}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        syncWithUrl={true}
+      />
       
       {/* Ingestion Modal */}
       <IngestionModal

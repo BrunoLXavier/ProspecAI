@@ -24,7 +24,7 @@
     "activity": "Atividades Recentes",
     "feedbackManagement": "Gestão de Feedbacks",
     "/": "/",
-    "admin": "admin",
+    "admin": "Admin",
     "notifications": "Notificações",
     "communications": "Comunicações",
     "comunications": "Comunicações",
@@ -71,11 +71,9 @@
     "parametersHelp": "Adicione um parâmetro e pressione Enter.",
     "saveChanges": "Salvar alterações",
     "select": "Selecionar",
-    "": "",
     "/api/v1/reports": "/api/v1/reports",
     "/api/v1/reports/templates": "/api/v1/reports/templates",
-    "Erro ao gerar relatório": "Erro ao gerar relatório",
-    ",": ""
+    "Erro ao gerar relatório": "Erro ao gerar relatório"
   },
   "reports.title": "Relatórios",
   "reports.subtitle": "Relatórios gerados e históricos",
@@ -98,17 +96,17 @@
     "chatbot": {
       "open": "Abrir assistente"
     },
-    "@/components/analytics-widgets/AnalyticsExport": "@/components/analytics-widgets/AnalyticsExport",
-    "@/components/analytics-widgets/AnalyticsKPIs": "@/components/analytics-widgets/AnalyticsKPIs",
-    "@/components/analytics-widgets/AnalyticsPeriodSelector": "@/components/analytics-widgets/AnalyticsPeriodSelector",
-    "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/AnalyticsPipeline",
-    "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/AnalyticsTRL",
-    "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/AnalyticsTrends",
-      "piiAnalysis": "Análise de PII",
-      "pii-analysis": "Análise de PII",
-      "reports": "Relatórios",
-      "reportTemplates": "Modelos de Relatórios",
-      "report-templates": "Modelos de Relatórios",
+    "@/components/analytics-widgets/AnalyticsExport": "@/components/analytics-widgets/analyticsexport",
+    "@/components/analytics-widgets/AnalyticsKPIs": "@/components/analytics-widgets/analyticskpis",
+    "@/components/analytics-widgets/AnalyticsPeriodSelector": "@/components/analytics-widgets/analyticsperiodselector",
+    "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/analyticspipeline",
+    "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/analyticstrl",
+    "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/analyticstrends",
+    "piiAnalysis": "Análise de PII",
+    "pii-analysis": "Análise de PII",
+    "reports": "Relatórios",
+    "reportTemplates": "Modelos de Relatórios",
+    "report-templates": "Modelos de Relatórios",
     "inputPlaceholder": "",
     "period": "",
     "welcomeSubtitle": "",
@@ -125,148 +123,20 @@
       "statistics": "Estatísticas",
       "feedback": "Feedback",
       "llm-provider": "Provedor de LLM",
-      "validation": "Validação",
-    "communications": {
-      "title": "Comunicações",
-      "subtitle": "Gerencie comunicações com clientes e propostas",
-      "threads": "Conversas",
-      "new": "Novo",
-      "newThread": "Nova Conversa",
-      "editThread": "Editar Conversa",
-      "selectThread": "Selecione uma conversa",
-      "selectThreadHint": "Escolha uma conversa da lista para ver as mensagens",
-      "searchThreads": "Buscar conversas...",
-      "loading": "Carregando...",
-      "noResults": "Nenhum resultado",
-      "noThreads": "Nenhuma conversa encontrada",
-      "noMessages": "Nenhuma mensagem ainda",
-      "noMinutes": "Nenhuma ata de reunião ainda",
-      "writeMessage": "Escreva uma mensagem...",
-      "attach": "Anexar arquivo",
-      "chooseFiles": "Escolher arquivos",
-      "record": "Gravar",
-      "recording": "Gravando...",
-      "startRecording": "Gravar áudio",
-      "stopRecording": "Parar gravação",
-      "stop": "Parar",
-      "generateMinutes": "Gerar Ata",
-      "generating": "Gerando...",
-      "meetingMinutes": "Atas de Reunião",
-      "send": "Enviar",
-      "sendHint": "Pressione Enter para enviar, Shift+Enter para nova linha",
-      "saving": "Salvando...",
-      "draftSaved": "Rascunho salvo",
-      "attachments": "Anexos",
-      "untitled": "Sem título",
-      "unknown": "Desconhecido",
-      "participants": "participantes",
-      "refresh": "Atualizar",
-      "retry": "Tentar novamente",
-      "confirm": "Confirmar",
-      "reject": "Rejeitar",
-      "cancel": "Cancelar",
-      "save": "Salvar",
-      "create": "Criar",
-      "delete": "Excluir",
-      "add": "Adicionar",
-      "subject": "Assunto",
-      "subjectRequired": "Assunto é obrigatório",
-      "subjectPlaceholder": "Digite o assunto da conversa...",
-      "linkedEntity": "Vincular a Entidade",
-      "selectType": "Selecione o tipo...",
-      "entityId": "ID da Entidade",
-      "entityIdPlaceholder": "Digite o ID da entidade ou busque...",
-      "entityIdHint": "Digite o ID da entidade relacionada",
-      "participantIdPlaceholder": "Digite o ID do usuário...",
-      "initialMessage": "Mensagem Inicial",
-      "initialMessagePlaceholder": "Inicie a conversa...",
-      "autoCreatedNeedsConfirmation": "Criado automaticamente - Precisa de confirmação",
-      "autoCreatedConfirmed": "Criado automaticamente (Confirmado)",
-      "autoCreatedPending": "Conversa criada automaticamente - Precisa de confirmação",
-      "threadAutoCreated": "Esta conversa foi criada automaticamente a partir de um email",
-      "confirmThread": "Confirmar",
-      "rejectThread": "Rejeitar",
-      "threadConfirmed": "Conversa confirmada",
-      "unconfirmedMessages": "{count} mensagem(ns) precisam de confirmação",
-      "showAutoCreated": "Mostrar criados automaticamente",
-      "showUnconfirmedAutoCreated": "Mostrar conversas não confirmadas criadas automaticamente",
-      "needsReview": "precisa revisão",
-      "from": "De",
-      "to": "Para",
-      "cc": "CC",
-      "received": "Recebido",
-      "noSubject": "(Sem assunto)",
-      "titleLabel": "Título",
-      "body": "Corpo",
-      "metadata": "Metadados",
-      "filters": {
-        "search": "Buscar",
-        "searchPlaceholder": "Buscar conversas...",
-        "all": "Todos",
-        "linkedEntityType": "Vinculado a",
-        "proposal": "Proposta",
-        "client": "Cliente",
-        "fundingSource": "Fonte de Fomento",
-        "opportunity": "Oportunidade"
-      },
-      "stats": {
-        "totalThreads": "Total de Conversas",
-        "autoCreated": "De Emails",
-        "needsReview": "Precisa Revisão",
-        "confirmed": "Confirmadas"
-      },
-      "entityTypes": {
-        "proposal": "Propostas",
-        "client": "Clientes",
-        "opportunity": "Oportunidades",
-        "other": "Outros"
-      },
-      "linkedTo": {
-        "proposal": "Vinculado a Proposta",
-        "client": "Vinculado a Cliente",
-        "funding_source": "Vinculado a Fonte de Fomento",
-        "opportunity": "Vinculado a Oportunidade",
-        "project": "Vinculado a Projeto"
-      }
-    },
-
-  "communications.filters.linkedEntityType": "Vinculado a",
-  "communications.filters.all": "Todos",
-  "communications.filters.proposal": "Proposta",
-  "communications.filters.client": "Cliente",
-  "communications.filters.fundingSource": "Fonte de Fomento",
-  "communications.filters.opportunity": "Oportunidade",
-  "communications.newThread": "Nova Conversa",
-  "communications.showUnconfirmedAutoCreated": "Mostrar conversas não confirmadas criadas automaticamente",
-  "communications.subject": "Assunto",
-  "communications.subjectRequired": "Assunto é obrigatório",
-  "communications.subjectPlaceholder": "Digite o assunto da conversa...",
-  "communications.linkedEntity": "Vincular a Entidade",
-  "communications.participants": "participantes",
-  "communications.participantIdPlaceholder": "Digite o ID do usuário...",
-  "communications.add": "Adicionar",
-  "communications.initialMessage": "Mensagem Inicial",
-  "communications.initialMessagePlaceholder": "Inicie a conversa...",
-  "communications.cancel": "Cancelar",
-  "communications.create": "Criar",
-  "communications.threads": "Conversas",
-  "communications.searchThreads": "Buscar conversas...",
-  "communications.noThreads": "Nenhuma conversa encontrada",
-  "communications.refresh": "Atualizar",
-  "communications.selectThread": "Selecione uma conversa",
-  "communications.selectThreadHint": "Escolha uma conversa da lista para ver as mensagens",
-  "stats.recent7d": "Últimos 7 dias",
-
-      "approach": "Abordagem",
-      "registration": "Registro",
-      "conversion": "Conversão",
-      "post_sale": "Pós-venda",
-      "lost": "Perdido",
-      "negotiation": "Negociação",
-      "proposal": "Proposta",
-      "qualification": "Qualificação",
-      "won": "Ganho"
+      "validation": "Validação"
     }
+  },
+  "communications": {
+    "title": "Comunicações",
+    "subtitle": "Gerencie comunicações e anúncios da plataforma",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar comunicações..."
+    },
+    "noResults": "Nenhuma comunicação encontrada",
+    "loading": "Carregando...",
+    "new": "Novo",
+    "boardPlaceholder": "Visão em quadro para comunicações"
   },
   "funding": {
     "title": "Fontes de Fomento",
@@ -320,7 +190,7 @@
     },
     "noInstituteSelectedHint": "Nenhum instituto selecionado — os resultados podem ser globais. Use o seletor de instituto no cabeçalho para filtrar.",
     "statusLabel": "Status",
-    "view": "view"
+    "view": "Ver"
   },
   "crm": {
     "title": "CRM - Clientes",
@@ -375,10 +245,10 @@
       "allMaturity": "Todas as Maturidades"
     },
     "perYear": "/ano",
-    "address": "address",
-    "email": "email",
-    "phone": "phone",
-    "view": "view"
+    "address": "Address",
+    "email": "Email",
+    "phone": "Phone",
+    "view": "Ver"
   },
   "portfolio": {
     "title": "Portfólio de Projetos",
@@ -429,11 +299,11 @@
       "completed": "Concluídos",
       "suspended": "Suspensos"
     },
-    "deleteConfirmation": "deleteConfirmation",
-    "description": "description",
-    "editProject": "editProject",
-    "updateError": "updateError",
-    "view": "view"
+    "deleteConfirmation": "Tem certeza que deseja excluir este item?",
+    "description": "Descrição",
+    "editProject": "Editar projeto",
+    "updateError": "Erro ao atualizar. Tente novamente.",
+    "view": "Ver"
   },
   "opportunities": {
     "title": "Oportunidades",
@@ -513,14 +383,14 @@
       "conversionRate": "Taxa de Conversão"
     },
     "T": "T",
-    "deleteConfirmation": "deleteConfirmation",
-    "fundingSource": "Funding Source",
-    "id": "id",
-    "priority": "priority",
-    "author": "Author",
-    "descriptionLabel": "Description / Summary",
-    "linkedOpportunity": "Linked Opportunity",
-    "totalValue": "Total Value"
+    "deleteConfirmation": "Tem certeza que deseja excluir este item?",
+    "fundingSource": "Fonte de Fomento",
+    "id": "ID",
+    "priority": "Prioridade",
+    "author": "Autor",
+    "descriptionLabel": "Descrição / Resumo",
+    "linkedOpportunity": "Oportunidade vinculada",
+    "totalValue": "Valor total"
   },
   "newResource": "Novo Recurso",
   "noInstituteSelectedHint": "Nenhum instituto selecionado — os resultados podem ser globais. Use o seletor de instituto no cabeçalho para filtrar.",
@@ -568,8 +438,8 @@
       "piiDetected": "PII Detectados",
       "failures": "Falhas"
     },
-    "search": "search",
-    "view": "view"
+    "search": "Search",
+    "view": "Ver"
   },
   "proposals": {
     "title": "Propostas",
@@ -626,12 +496,12 @@
     "fundingSource": "Fonte de Fomento",
     "author": "Autor",
     "descriptionLabel": "Descrição / Resumo",
-    "description": "description",
-    "fundingSourcePlaceholder": "fundingSourcePlaceholder",
-    "noProposals": "noProposals",
-    "opportunity": "opportunity",
-    "opportunityPlaceholder": "opportunityPlaceholder",
-    "view": "view",
+    "description": "Descrição",
+    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
+    "noProposals": "Noproposals",
+    "opportunity": "Opportunity",
+    "opportunityPlaceholder": "Opportunityplaceholder",
+    "view": "Ver",
     "institute": "Instituto",
     "selectInstituteHelper": "Selecione o instituto responsável pelo projeto",
     "selectInstitutePlaceholder": "Selecione um instituto",
@@ -975,8 +845,8 @@
       "denyAll": "Negar Todos"
     },
     "/api/v1/translations/export/${locale}": "/api/v1/translations/export/${locale}",
-    "a": "a",
-    "content-type": "content-type"
+    "a": "A",
+    "content-type": "Content-type"
   },
   "users": {
     "title": "Gestão de Usuários",
@@ -1046,7 +916,7 @@
     "of": "de",
     "showing": "Mostrando",
     "user": "Usuário",
-    "users": "users"
+    "users": "Users"
   },
   "notifications": {
     "title": "Notificações",
@@ -1069,12 +939,12 @@
       "read": "Lidas",
       "readed": "Lidas"
     },
-    "deadlines": "deadlines",
-    "description": "description",
-    "digest": "digest",
-    "email": "email",
-    "matching": "matching",
-    "push": "push",
+    "deadlines": "Deadlines",
+    "description": "Descrição",
+    "digest": "Digest",
+    "email": "Email",
+    "matching": "Matching",
+    "push": "Push",
     "perYear": "/año"
   },
   "activity": {
@@ -1809,10 +1679,10 @@
       "piiAnalysis": "Análise de PII",
       "chars": "caracteres"
     },
-    "chars": "chars",
-    "moveLeft": "moveLeft",
-    "moveRight": "moveRight",
-    "view": "view",
+    "chars": "Chars",
+    "moveLeft": "Moveleft",
+    "moveRight": "Moveright",
+    "view": "Ver",
     "pagination": {
       "showing": "Exibindo",
       "to": "até",
@@ -2032,7 +1902,7 @@
     "trends": {
       "title": "Tendência de Matching",
       "noData": "Sem dados suficientes",
-      "matches": "matches",
+      "matches": "Matches",
       "score": "Score"
     },
     "export": {
@@ -2044,8 +1914,8 @@
     "/api/v1/analytics/overview?period=${period}": "/api/v1/analytics/overview?period=${period}",
     "/api/v1/analytics/pipeline": "/api/v1/analytics/pipeline",
     "/api/v1/analytics/trl-distribution": "/api/v1/analytics/trl-distribution",
-    "csv": "csv",
-    "json": "json"
+    "csv": "Csv",
+    "json": "Json"
   },
   "stats": {
     "categories": {
@@ -2114,11 +1984,10 @@
     "avgConfidence": "Confiança Média IA",
     "highConfidence": "Alta Confiança",
     "highConfidenceDesc": "Score de confiança >= 80%",
-      "institute": "Instituto",
-      "selectInstituteHelper": "Selecione o instituto responsável pelo projeto",
-      "selectInstitutePlaceholder": "Selecione um instituto",
-      "instituteRequired": "Instituto é obrigatório"
-    ,
+    "institute": "Instituto",
+    "selectInstituteHelper": "Selecione o instituto responsável pelo projeto",
+    "selectInstitutePlaceholder": "Selecione um instituto",
+    "instituteRequired": "Instituto é obrigatório",
     "avgTrl": "TRL Médio",
     "completionRate": "Taxa de Conclusão",
     "onTrack": "No Prazo",
@@ -2191,12 +2060,12 @@
     "falsePositiveRate": "Taxa de Falso Positivo",
     "needsReview": "Precisa Revisão",
     "needsReviewDesc": "Baixa confiança, requer validação",
-    "failures": "failures",
-    "files": "files",
-    "matchingScore": "matchingScore",
-    "openFunding": "openFunding",
-    "proposalsInReview": "proposalsInReview",
-    "records": "records"
+    "failures": "Failures",
+    "files": "Files",
+    "matchingScore": "Matchingscore",
+    "openFunding": "Openfunding",
+    "proposalsInReview": "Proposalsinreview",
+    "records": "Records"
   },
   "modules": {
     "funding": "Fontes de Fomento",
@@ -2217,8 +2086,8 @@
     "viewer": "Visualizador",
     "viewerDesc": "Apenas visualização",
     "${role}": "${role}",
-    "note": "note",
-    "title": "title"
+    "note": "Note",
+    "title": "Title"
   },
   "feedback": {
     "title": "Feedback",
@@ -2348,8 +2217,8 @@
     },
     "/api/v1/feedback/statistics": "/api/v1/feedback/statistics",
     "2d": "2d",
-    "canvas": "canvas",
-    "video": "video"
+    "canvas": "Canvas",
+    "video": "Video"
   },
   "calendar": {
     "title": "Calendário",
@@ -2373,20 +2242,12 @@
     "welcomeSubtitle": "Posso ajudar com editais, projetos e matches.",
     "inputPlaceholder": "Digite sua pergunta..."
   },
-  "": {
-    "/locales/${locale}": {
-      "json": "./locales/${locale}.json"
-    }
-  },
   "/api/v1/crm/clients/${id}": "/api/v1/crm/clients/${id}",
   "/api/v1/crm/enrich-cnpj/${cnpj}": "/api/v1/crm/enrich-cnpj/${cnpj}",
-  "/api/v1/feedback/?${params": {
-    "toString()}": "toString()}"
-  },
   "/api/v1/funding/${id}": "/api/v1/funding/${id}",
   "/api/v1/layout/reset": "/api/v1/layout/reset",
-  "/api/v1/matching/explain/${projectId}/${fundingId}": "/api/v1/matching/explain/${projectId}/${fundingId}",
-  "/api/v1/matching/scores/${projectId}/${fundingId}": "/api/v1/matching/scores/${projectId}/${fundingId}",
+  "/api/v1/matching/explain/${projectId}/${fundingId}": "/api/v1/matching/explain/${projectid}/${fundingid}",
+  "/api/v1/matching/scores/${projectId}/${fundingId}": "/api/v1/matching/scores/${projectid}/${fundingid}",
   "/api/v1/opportunities/${id}": "/api/v1/opportunities/${id}",
   "/api/v1/opportunities/stats/pipeline": "/api/v1/opportunities/stats/pipeline",
   "/api/v1/portfolio/projects/${id}": "/api/v1/portfolio/projects/${id}",
@@ -2395,344 +2256,344 @@
   "/api/v1/proposals/${id}/adherence": "/api/v1/proposals/${id}/adherence",
   "/api/v1/proposals/${id}/submit": "/api/v1/proposals/${id}/submit",
   "/api/v1/translations/${editingPath}?${params": {
-    "toString()}": "toString()}"
+    "toString()}": "Tostring()}"
   },
   "/funding?${params": {
-    "toString()}": "toString()}"
+    "toString()}": "Tostring()}"
   },
   "45%": "45%",
   "65%": "65%",
   "80%": "80%",
   "85%": "85%",
-  "DRAFT": "DRAFT",
-  "INTELLIGENCE": "INTELLIGENCE",
-  "PLANNING": "PLANNING",
+  "DRAFT": "Draft",
+  "INTELLIGENCE": "Intelligence",
+  "PLANNING": "Planning",
   "acl": {
-    "createRole": "createRole",
-    "deleteConfirm": "deleteConfirm"
+    "createRole": "Createrole",
+    "deleteConfirm": "Deleteconfirm"
   },
   "actions": {
-    "submitted": "submitted",
-    "updatedGeneric": "updatedGeneric"
+    "submitted": "Submitted",
+    "updatedGeneric": "Updatedgeneric"
   },
   "admin": {
-    "acl": "acl",
-    "aclDesc": "aclDesc",
-    "addResponse": "addResponse",
-    "description": "description",
-    "feedback": "feedback",
-    "feedbackDesc": "feedbackDesc",
-    "layout": "layout",
-    "layoutDesc": "layoutDesc",
-    "llmProvider": "llmProvider",
-    "llmProviderDesc": "llmProviderDesc",
-    "page": "page",
-    "previousResponse": "previousResponse",
-    "priority": "priority",
-    "respondedAt": "respondedAt",
-    "responsePlaceholder": "responsePlaceholder",
-    "screenshot": "screenshot",
-    "sendResponse": "sendResponse",
-    "sending": "sending",
-    "statistics": "statistics",
-    "statisticsDesc": "statisticsDesc",
-    "title": "title",
-    "translations": "translations",
-    "translationsDesc": "translationsDesc",
-    "updateResponse": "updateResponse",
-    "updateStatus": "updateStatus",
-    "userComment": "userComment",
-    "users": "users",
-    "usersDesc": "usersDesc"
+    "acl": "Acl",
+    "aclDesc": "Acldesc",
+    "addResponse": "Addresponse",
+    "description": "Descrição",
+    "feedback": "Feedback",
+    "feedbackDesc": "Feedbackdesc",
+    "layout": "Layout",
+    "layoutDesc": "Layoutdesc",
+    "llmProvider": "Llmprovider",
+    "llmProviderDesc": "Llmproviderdesc",
+    "page": "Page",
+    "previousResponse": "Previousresponse",
+    "priority": "Prioridade",
+    "respondedAt": "Respondedat",
+    "responsePlaceholder": "Responseplaceholder",
+    "screenshot": "Screenshot",
+    "sendResponse": "Sendresponse",
+    "sending": "Sending",
+    "statistics": "Statistics",
+    "statisticsDesc": "Statisticsdesc",
+    "title": "Title",
+    "translations": "Translations",
+    "translationsDesc": "Translationsdesc",
+    "updateResponse": "Updateresponse",
+    "updateStatus": "Updatestatus",
+    "userComment": "Usercomment",
+    "users": "Users",
+    "usersDesc": "Usersdesc"
   },
   "annotate": {
-    "clear": "clear",
+    "clear": "Clear",
     "colors": {
       "${opt": {
-        "key}": "key}"
+        "key}": "Key}"
       }
     },
-    "confirm": "confirm",
-    "description": "description",
-    "extraThick": "extraThick",
-    "medium": "medium",
-    "pen": "pen",
-    "redo": "redo",
-    "thick": "thick",
-    "thickness": "thickness",
-    "thin": "thin",
-    "undo": "undo"
+    "confirm": "Confirm",
+    "description": "Descrição",
+    "extraThick": "Extrathick",
+    "medium": "Medium",
+    "pen": "Pen",
+    "redo": "Redo",
+    "thick": "Thick",
+    "thickness": "Thickness",
+    "thin": "Thin",
+    "undo": "Undo"
   },
   "appearance": {
-    "dark": "dark",
-    "description": "description",
-    "light": "light",
-    "theme": "theme",
-    "title": "title"
+    "dark": "Dark",
+    "description": "Descrição",
+    "light": "Light",
+    "theme": "Theme",
+    "title": "Title"
   },
   "areas": {
-    "agribusiness": "agribusiness",
-    "health": "health",
+    "agribusiness": "Agribusiness",
+    "health": "Health",
     "industry_4_0": "industry 4 0",
-    "sustainability": "sustainability"
+    "sustainability": "Sustainability"
   },
   "button": {
-    "label": "label",
-    "title": "title"
+    "label": "Label",
+    "title": "Title"
   },
   "capture": {
-    "buttonLabel": "buttonLabel",
-    "description": "description",
-    "title": "title"
+    "buttonLabel": "Buttonlabel",
+    "description": "Descrição",
+    "title": "Title"
   },
   "comment": {
-    "back": "back",
-    "charLimitWarning": "charLimitWarning",
-    "commentLabel": "commentLabel",
-    "editAnnotations": "editAnnotations",
-    "placeholder": "placeholder",
-    "typeLabel": "typeLabel"
+    "back": "Back",
+    "charLimitWarning": "Charlimitwarning",
+    "commentLabel": "Commentlabel",
+    "editAnnotations": "Editannotations",
+    "placeholder": "Placeholder",
+    "typeLabel": "Typelabel"
   },
   "confirm": {
-    "deleteLLM": "deleteLLM"
+    "deleteLLM": "Deletellm"
   },
   "entities": {
     "${activity": {
-      "entity}": "entity}"
+      "entity}": "Entity}"
     },
     "${entity}": "${entity}",
-    "client": "client",
-    "funding": "funding",
-    "opportunity": "opportunity",
-    "project": "project",
-    "proposal": "proposal"
+    "client": "Client",
+    "funding": "Funding",
+    "opportunity": "Opportunity",
+    "project": "Project",
+    "proposal": "Proposal"
   },
   "error": {
-    "captureFailed": "captureFailed",
-    "description": "description",
-    "documentBodyNotFound": "documentBodyNotFound",
-    "noComment": "noComment",
-    "retry": "retry",
-    "title": "title"
+    "captureFailed": "Capturefailed",
+    "description": "Descrição",
+    "documentBodyNotFound": "Documentbodynotfound",
+    "noComment": "Nocomment",
+    "retry": "Retry",
+    "title": "Title"
   },
   "errors": {
-    "activate": "activate",
-    "delete": "delete",
-    "save": "save",
-    "unknown": "unknown"
+    "activate": "Activate",
+    "delete": "Delete",
+    "save": "Save",
+    "unknown": "Unknown"
   },
   "export": {
-    "csv": "csv",
-    "json": "json",
-    "title": "title"
+    "csv": "Csv",
+    "json": "Json",
+    "title": "Title"
   },
   "factors": {
     "${key}": "${key}"
   },
   "filter": {
-    "all": "all",
-    "unread": "unread"
+    "all": "All",
+    "unread": "Unread"
   },
   "filters": {
     "${status": {
-      "key}": "key}"
+      "key}": "Key}"
     },
-    "active": "active",
-    "allActions": "allActions",
-    "allAreas": "allAreas",
-    "allEntities": "allEntities",
-    "allMaturity": "allMaturity",
-    "allSegments": "allSegments",
-    "allStages": "allStages",
-    "allStatus": "allStatus",
-    "allStatuses": "allStatuses",
-    "allTypes": "allTypes",
-    "closed": "closed",
-    "completed": "completed",
-    "dateFrom": "dateFrom",
-    "dateTo": "dateTo",
-    "entity": "entity",
-    "fundingSource": "fundingSource",
-    "fundingSourcePlaceholder": "fundingSourcePlaceholder",
-    "open": "open",
-    "opportunity": "opportunity",
-    "opportunityPlaceholder": "opportunityPlaceholder",
-    "planning": "planning",
-    "search": "search",
-    "searchPlaceholder": "searchPlaceholder",
-    "status": "status",
-    "suspended": "suspended",
-    "type": "type",
-    "version": "version"
+    "active": "Active",
+    "allActions": "Allactions",
+    "allAreas": "Allareas",
+    "allEntities": "Allentities",
+    "allMaturity": "Allmaturity",
+    "allSegments": "Allsegments",
+    "allStages": "Allstages",
+    "allStatus": "Allstatus",
+    "allStatuses": "Allstatuses",
+    "allTypes": "Alltypes",
+    "closed": "Closed",
+    "completed": "Completed",
+    "dateFrom": "Datefrom",
+    "dateTo": "Dateto",
+    "entity": "Entity",
+    "fundingSource": "Fundingsource",
+    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
+    "open": "Open",
+    "opportunity": "Opportunity",
+    "opportunityPlaceholder": "Opportunityplaceholder",
+    "planning": "Planning",
+    "search": "Search",
+    "searchPlaceholder": "Searchplaceholder",
+    "status": "Status",
+    "suspended": "Suspended",
+    "type": "Type",
+    "version": "Version"
   },
   "kpis": {
-    "activeOpportunities": "activeOpportunities",
-    "totalClients": "totalClients",
-    "totalProjects": "totalProjects"
+    "activeOpportunities": "Activeopportunities",
+    "totalClients": "Totalclients",
+    "totalProjects": "Totalprojects"
   },
   "language": {
-    "description": "description",
-    "title": "title"
+    "description": "Descrição",
+    "title": "Title"
   },
   "layout": {
     "branding": {
-      "description": "description",
-      "leaveEmptyForDefault": "leaveEmptyForDefault",
-      "siteFaviconUrl": "siteFaviconUrl",
-      "siteLogoUrl": "siteLogoUrl",
-      "siteName": "siteName",
-      "title": "title"
+      "description": "Descrição",
+      "leaveEmptyForDefault": "Leaveemptyfordefault",
+      "siteFaviconUrl": "Sitefaviconurl",
+      "siteLogoUrl": "Sitelogourl",
+      "siteName": "Sitename",
+      "title": "Title"
     },
     "buttons": {
-      "reset": "reset",
-      "saveChanges": "saveChanges"
+      "reset": "Reset",
+      "saveChanges": "Savechanges"
     },
     "dashboardWidgets": {
-      "description": "description",
-      "layoutStyle": "layoutStyle",
-      "title": "title"
+      "description": "Descrição",
+      "layoutStyle": "Layoutstyle",
+      "title": "Title"
     },
-    "description": "description",
+    "description": "Descrição",
     "messages": {
-      "resetConfirm": "resetConfirm"
+      "resetConfirm": "Resetconfirm"
     },
     "navigationItems": {
-      "description": "description",
-      "orderDescription": "orderDescription",
-      "orderTitle": "orderTitle",
-      "resetOrder": "resetOrder",
-      "title": "title"
+      "description": "Descrição",
+      "orderDescription": "Orderdescription",
+      "orderTitle": "Ordertitle",
+      "resetOrder": "Resetorder",
+      "title": "Title"
     },
     "sidebar": {
-      "collapsedByDefault": "collapsedByDefault",
-      "description": "description",
-      "position": "position",
-      "title": "title",
-      "width": "width"
+      "collapsedByDefault": "Collapsedbydefault",
+      "description": "Descrição",
+      "position": "Position",
+      "title": "Title",
+      "width": "Width"
     },
     "themeColors": {
-      "colorMode": "colorMode",
-      "dark": "dark",
-      "description": "description",
-      "light": "light",
-      "primaryColor": "primaryColor",
-      "secondaryColor": "secondaryColor",
-      "title": "title"
+      "colorMode": "Colormode",
+      "dark": "Dark",
+      "description": "Descrição",
+      "light": "Light",
+      "primaryColor": "Primarycolor",
+      "secondaryColor": "Secondarycolor",
+      "title": "Title"
     },
-    "title": "title",
+    "title": "Title",
     "typography": {
-      "description": "description",
-      "fontFamily": "fontFamily",
-      "fontSize": "fontSize",
-      "large": "large",
-      "monospace": "monospace",
-      "normal": "normal",
-      "sansSerif": "sansSerif",
-      "serif": "serif",
-      "small": "small",
-      "title": "title"
+      "description": "Descrição",
+      "fontFamily": "Fontfamily",
+      "fontSize": "Fontsize",
+      "large": "Large",
+      "monospace": "Monospace",
+      "normal": "Normal",
+      "sansSerif": "Sansserif",
+      "serif": "Serif",
+      "small": "Small",
+      "title": "Title"
     },
     "uiPreferences": {
-      "compactMode": "compactMode",
-      "defaultPageSize": "defaultPageSize",
-      "denseTables": "denseTables",
-      "description": "description",
-      "enableAnimations": "enableAnimations",
-      "itemsPerPage": "itemsPerPage",
-      "title": "title"
+      "compactMode": "Compactmode",
+      "defaultPageSize": "Defaultpagesize",
+      "denseTables": "Densetables",
+      "description": "Descrição",
+      "enableAnimations": "Enableanimations",
+      "itemsPerPage": "Itemsperpage",
+      "title": "Title"
     }
   },
   "llm": {
-    "activate": "activate",
-    "apiKey": "apiKey",
-    "apiKeyStored": "apiKeyStored",
-    "baseUrl": "baseUrl",
-    "delete": "delete",
+    "activate": "Activate",
+    "apiKey": "Apikey",
+    "apiKeyStored": "Apikeystored",
+    "baseUrl": "Baseurl",
+    "delete": "Delete",
     "errors": {
-      "apiKeyRequired": "apiKeyRequired",
-      "baseUrlRequired": "baseUrlRequired",
-      "testError": "testError"
+      "apiKeyRequired": "Apikeyrequired",
+      "baseUrlRequired": "Baseurlrequired",
+      "testError": "Testerror"
     },
-    "maxTokens": "maxTokens",
-    "modelLabel": "modelLabel",
-    "noConfigs": "noConfigs",
-    "save": "save",
-    "saveActivate": "saveActivate",
-    "saving": "saving",
-    "selectProvider": "selectProvider",
+    "maxTokens": "Maxtokens",
+    "modelLabel": "Modellabel",
+    "noConfigs": "Noconfigs",
+    "save": "Save",
+    "saveActivate": "Saveactivate",
+    "saving": "Saving",
+    "selectProvider": "Selectprovider",
     "status": {
-      "active": "active",
-      "failed": "failed",
-      "tested": "tested",
-      "untested": "untested"
+      "active": "Active",
+      "failed": "Failed",
+      "tested": "Tested",
+      "untested": "Untested"
     },
-    "subtitle": "subtitle",
-    "temperature": "temperature",
-    "temperatureHint": "temperatureHint",
+    "subtitle": "Subtitle",
+    "temperature": "Temperature",
+    "temperatureHint": "Temperaturehint",
     "testButton": {
-      "label": "label",
-      "testing": "testing"
+      "label": "Label",
+      "testing": "Testing"
     },
-    "title": "title"
+    "title": "Title"
   },
   "maturity": {
     "${client": {
-      "maturityLevel}": "maturityLevel}"
+      "maturityLevel}": "Maturitylevel}"
     },
-    "${displayMaturity}": "${displayMaturity}",
+    "${displayMaturity}": "${displaymaturity}",
     "${level": {
-      "key}": "key}"
+      "key}": "Key}"
     },
-    "growth": "growth",
-    "mature": "mature",
-    "startup": "startup"
+    "growth": "Growth",
+    "mature": "Mature",
+    "startup": "Startup"
   },
   "modal": {
-    "cancel": "cancel",
-    "close": "close",
-    "submit": "submit",
-    "submitting": "submitting",
-    "title": "title"
+    "cancel": "Cancel",
+    "close": "Close",
+    "submit": "Submit",
+    "submitting": "Submitting",
+    "title": "Title"
   },
   "period": {
-    "label": "label",
-    "month": "month",
-    "quarter": "quarter",
-    "week": "week",
-    "year": "year"
+    "label": "Label",
+    "month": "Month",
+    "quarter": "Quarter",
+    "week": "Week",
+    "year": "Year"
   },
   "personalInfo": {
-    "department": "department",
-    "email": "email",
-    "emailNote": "emailNote",
-    "name": "name",
-    "phone": "phone",
-    "title": "title"
+    "department": "Department",
+    "email": "Email",
+    "emailNote": "Emailnote",
+    "name": "Name",
+    "phone": "Phone",
+    "title": "Title"
   },
   "preferences": {
-    "statistics": "statistics",
-    "statisticsDesc": "statisticsDesc",
-    "title": "title"
+    "statistics": "Statistics",
+    "statisticsDesc": "Statisticsdesc",
+    "title": "Title"
   },
   "security": {
-    "changePassword": "changePassword",
-    "confirmPassword": "confirmPassword",
-    "currentPassword": "currentPassword",
-    "description": "description",
-    "lastLogin": "lastLogin",
-    "newPassword": "newPassword",
-    "title": "title",
-    "updatePassword": "updatePassword"
+    "changePassword": "Changepassword",
+    "confirmPassword": "Confirmpassword",
+    "currentPassword": "Currentpassword",
+    "description": "Descrição",
+    "lastLogin": "Lastlogin",
+    "newPassword": "Newpassword",
+    "title": "Title",
+    "updatePassword": "Updatepassword"
   },
   "segments": {
-    "agribusiness": "agribusiness",
-    "manufacturing": "manufacturing",
-    "services": "services",
-    "technology": "technology"
+    "agribusiness": "Agribusiness",
+    "manufacturing": "Manufacturing",
+    "services": "Services",
+    "technology": "Technology"
   },
   "severity": {
     "${feedback": {
-      "severity}": "severity}"
+      "severity}": "Severity}"
     }
   },
   "sourceTypes": {
@@ -2740,135 +2601,123 @@
       "source_type}": "source type}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     }
   },
   "stages": {
     "${opp": {
-      "stage}": "stage}"
+      "stage}": "Stage}"
     },
     "${opportunityData": {
-      "stage}": "stage}"
+      "stage}": "Stage}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     },
     "${stage": {
-      "key}": "key}"
+      "key}": "Key}"
     },
     "${stage}": "${stage}",
-    "approach": "approach",
-    "intelligence": "intelligence",
-    "lost": "lost",
-    "negotiation": "negotiation",
-    "proposal": "proposal",
-    "won": "won"
+    "approach": "Approach",
+    "intelligence": "Intelligence",
+    "lost": "Lost",
+    "negotiation": "Negotiation",
+    "proposal": "Proposal",
+    "won": "Won"
   },
   "statistics": {
-    "reset": "reset",
-    "save": "save",
-    "saving": "saving",
-    "subtitle": "subtitle",
-    "title": "title"
+    "reset": "Reset",
+    "save": "Save",
+    "saving": "Saving",
+    "subtitle": "Subtitle",
+    "title": "Title"
   },
   "status": {
     "${funding": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${job": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${project": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${proposal": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${status": {
-      "key}": "key}"
+      "key}": "Key}"
     },
     "${status}": "${status}",
-    "approved": "approved",
-    "draft": "draft",
+    "approved": "Approved",
+    "draft": "Draft",
     "in_review": "in review",
-    "rejected": "rejected",
-    "submitted": "submitted"
+    "rejected": "Rejected",
+    "submitted": "Submitted"
   },
   "statuses": {
     "${opportunityData": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     },
-    "active": "active",
-    "completed": "completed",
-    "pending": "pending"
+    "active": "Active",
+    "completed": "Completed",
+    "pending": "Pending"
   },
   "success": {
-    "close": "close",
-    "description": "description",
-    "title": "title"
+    "close": "Close",
+    "description": "Descrição",
+    "title": "Title"
   },
-  "token": "token",
+  "token": "Token",
   "translations": {
-    "addNewKey": "addNewKey",
-    "create": "create",
-    "deleteConfirm": "deleteConfirm",
-    "keyPath": "keyPath",
-    "showing": "showing",
-    "translationKeys": "translationKeys"
+    "addNewKey": "Addnewkey",
+    "create": "Create",
+    "deleteConfirm": "Deleteconfirm",
+    "keyPath": "Keypath",
+    "showing": "Showing",
+    "translationKeys": "Translationkeys"
   },
   "trends": {
-    "matches": "matches",
-    "noData": "noData",
-    "score": "score",
-    "title": "title"
+    "matches": "Matches",
+    "noData": "Nodata",
+    "score": "Score",
+    "title": "Title"
   },
   "trl": {
-    "projects": "projects",
-    "title": "title"
+    "projects": "Projects",
+    "title": "Title"
   },
   "types": {
     "${a": {
-      "type}": "type}"
+      "type}": "Type}"
     },
     "${activity": {
-      "type}": "type}"
+      "type}": "Type}"
     },
     "${feedback": {
       "feedback_type}": "feedback type}"
     },
     "${funding": {
-      "instrumentType}": "instrumentType}"
+      "instrumentType}": "Instrumenttype}"
     },
     "${selectedActivity": {
-      "type}": "type}"
+      "type}": "Type}"
     },
-    "create": "create",
-    "credit": "credit",
-    "delete": "delete",
-    "equity": "equity",
-    "grant": "grant",
-    "match": "match",
-    "submit": "submit",
-    "subsidy": "subsidy",
-    "transition": "transition",
-    "update": "update"
+    "create": "Create",
+    "credit": "Credit",
+    "delete": "Delete",
+    "equity": "Equity",
+    "grant": "Grant",
+    "match": "Match",
+    "submit": "Submit",
+    "subsidy": "Subsidy",
+    "transition": "Transition",
+    "update": "Update"
   },
-  "view": "view",
-  "communications": {
-    "title": "Comunicações",
-    "subtitle": "Gerencie comunicações e anúncios da plataforma",
-    "filters": {
-      "search": "Buscar",
-      "searchPlaceholder": "Buscar comunicações..."
-    },
-    "noResults": "Nenhuma comunicação encontrada",
-    "loading": "Carregando...",
-    "new": "Novo",
-    "boardPlaceholder": "Visão em quadro para comunicações"
-  },
+  "view": "Ver",
   "institutes": {
     "title": "Institutos",
     "subtitle": "Gerencie institutos de pesquisa e unidades organizacionais",
@@ -2971,8 +2820,8 @@
     "profiles_hint": "Adicione perfis profissionais do colaborador.",
     "dates_hint": "Registre as datas de vínculo com o instituto.",
     "cancel": "Cancelar",
-    "create": "Criar"
-    ,"active": "Ativo",
+    "create": "Criar",
+    "active": "Ativo",
     "inactive": "Inativo",
     "archived": "Arquivado"
   },
@@ -3035,5 +2884,79 @@
     "noMedia": "Sem mídias",
     "cancel": "Cancelar",
     "create": "Criar"
-  }
+  },
+  "crm.tabContact": "Contato",
+  "crm.tabNotes": "Notas",
+  "crm.contactHint": "Informações de contato principais",
+  "crm.tabBasic": "Informações básicas",
+  "portfolio.lessonsLearnedHint": "Registre aprendizados e boas práticas do projeto",
+  "portfolio.tabs.basic": "Básico",
+  "portfolio.tabs.financial": "Financeiro",
+  "portfolio.tabs.lessons": "Lições",
+  "teams.delete": "Excluir equipe",
+  "teams.confirmDelete": "Tem certeza que deseja excluir a equipe?",
+  "communications.filters.linkedEntityType": "Vinculado a",
+  "communications.filters.all": "Todos",
+  "communications.filters.proposal": "Proposta",
+  "communications.filters.client": "Cliente",
+  "communications.filters.fundingSource": "Fonte de Fomento",
+  "communications.filters.opportunity": "Oportunidade",
+  "communications.newThread": "Nova Conversa",
+  "communications.showUnconfirmedAutoCreated": "Mostrar conversas não confirmadas criadas automaticamente",
+  "communications.cancel": "Cancelar",
+  "communications.create": "Criar",
+  "communications.deleteConfirmation": "Tem certeza que deseja excluir esta conversa?",
+  "communications.subject": "Assunto",
+  "communications.subjectRequired": "Assunto é obrigatório",
+  "communications.subjectPlaceholder": "Digite o assunto da conversa...",
+  "communications.linkedEntity": "Vincular a Entidade",
+  "communications.participants": "participantes",
+  "communications.participantIdPlaceholder": "Digite o ID do usuário...",
+  "communications.add": "Adicionar",
+  "communications.initialMessage": "Mensagem Inicial",
+  "communications.initialMessagePlaceholder": "Inicie a conversa...",
+  "stats.recent7d": "Últimos 7 dias",
+  "communications.threads": "Conversas",
+  "communications.searchThreads": "Buscar conversas...",
+  "communications.noThreads": "Nenhuma conversa encontrada",
+  "communications.refresh": "Atualizar",
+  "communications.selectThread": "Selecione uma conversa",
+  "communications.selectThreadHint": "Escolha uma conversa da lista para ver as mensagens",
+  "proposals.contentHint": "Conteúdo da proposta (pode incluir anexos)",
+  "proposals.metadataAvailableAfterCreate": "Os metadados da proposta estarão disponíveis após a criação",
+  "proposals.tabs.basic": "Básico",
+  "proposals.tabs.content": "Content",
+  "proposals.tabs.metadata": "Metadata",
+  "pipeline.stages.intelligence": "Inteligência",
+  "institutes.confirmDelete": "Confirmdelete",
+  "infrastructure.mediaHint": "Arraste ou cole arquivos de mídia aqui",
+  "infrastructure.mediaType": "Tipo de mídia",
+  "infrastructure.delete": "Excluir",
+  "infrastructure.confirmDelete": "Tem certeza que deseja excluir este item de infraestrutura?",
+  "funding.tabBasic": "Básico",
+  "funding.tabTRL": "TRL",
+  "funding.tabDetails": "Detalhes",
+  "opportunities.scoreFormula": "Score = (Viabilidade Técnica * 0.4) + (Financeira * 0.3) + (Estratégica * 0.3)",
+  "opportunities.tabs.basic": "Básico",
+  "opportunities.tabs.values": "Valores",
+  "opportunities.tabs.priority": "Prioridade",
+  "opportunities.currentScore": "Score atual",
+  "opportunities.editOpportunity": "Editar oportunidade",
+  "reports.namePlaceholder": "Digite o nome do relatório...",
+  "reports.descriptionPlaceholder": "Digite a descrição do relatório...",
+  "reports.noParameters": "Nenhum parâmetro",
+  "reports.addParameterPlaceholder": "Adicionar parâmetro e pressionar Enter",
+  "common.add": "Adicionar",
+  "reports.formatsHelp": "Adicione formatos suportados (html, pdf, xlsx). Pressione Enter.",
+  "reports.addFormatPlaceholder": "html, pdf",
+  "reports.commonFormats": "Formatos comuns",
+  "reports.tabs.basic": "Básico",
+  "reports.tabs.parameters": "Parâmetros",
+  "reports.tabs.formats": "Formatos",
+  "common.createdAt": "Criado em",
+  "common.modules.institutes": "Institutos",
+  "common.modules.teams": "Equipes",
+  "common.modules.infrastructure": "Infraestrutura",
+  "common.modules.communications": "Comunicações",
+  "settings.translations.autoTranslate": "Autotranslate"
 }

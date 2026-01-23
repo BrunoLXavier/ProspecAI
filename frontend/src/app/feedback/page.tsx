@@ -24,6 +24,7 @@ import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar
 import FeedbackModal from '@/components/feedback/FeedbackModal';
 import { useFeedbackStore } from '@/stores/feedbackStore';
 import { ViewMode } from '@/components/ui/ViewToggle';
+import Pagination, { usePagination } from '@/components/ui/Pagination';
 import apiClient from '@/lib/api-client';
 
 // =============================================================================
@@ -227,6 +228,11 @@ export default function AdminFeedbackPage() {
     search?: string;
   }>({});
   
+  // Pagination state
+  const { initialPage, initialPageSize } = usePagination(20, true);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  
   
   // Fetch feedback list
   const { data: feedbackData, isLoading, refetch } = useQuery<FeedbackListResponse>({
@@ -301,6 +307,18 @@ export default function AdminFeedbackPage() {
     );
   }, [feedbackData, filters.search]);
   
+  // Paginated feedbacks
+  const paginatedFeedbacks = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredFeedbacks.slice(start, start + pageSize);
+  }, [filteredFeedbacks, currentPage, pageSize]);
+  
+  // Reset pagination when filters change
+  const handleFilterChange = (key: string, value: string | boolean) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
+  
   // Filter fields for FilterPanel
   const filterFields: FilterField[] = [
     {
@@ -337,11 +355,6 @@ export default function AdminFeedbackPage() {
       })),
     },
   ];
-  
-  // Handler for filter changes
-  const handleFilterChange = (key: string, value: string | boolean) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
   
   return (
     <div className="space-y-6">
@@ -414,6 +427,7 @@ export default function AdminFeedbackPage() {
               <p className="text-gray-500 dark:text-gray-400">Nenhum feedback encontrado</p>
             </div>
           ) : (
+            <>
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-slate-700">
                 <tr>
@@ -426,7 +440,7 @@ export default function AdminFeedbackPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
-                {filteredFeedbacks.map((feedback) => {
+                {paginatedFeedbacks.map((feedback) => {
                   const typeInfo = FEEDBACK_TYPES[feedback.feedback_type] || { label: feedback.feedback_type, emoji: '📝' };
                   const severityInfo = SEVERITY_LABELS[feedback.severity] || SEVERITY_LABELS.medium;
                   const statusInfo = STATUS_LABELS[feedback.status] || STATUS_LABELS.open;
@@ -455,6 +469,15 @@ export default function AdminFeedbackPage() {
                 })}
               </tbody>
             </table>
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredFeedbacks.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+              syncWithUrl={true}
+            />
+            </>
           )}
         </div>
       )}

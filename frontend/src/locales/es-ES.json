@@ -16,7 +16,7 @@
     "activity": "Actividades Recientes",
     "feedbackManagement": "Gestión de Feedbacks",
     "/": "/",
-    "admin": "admin",
+    "admin": "Admin",
     "notifications": "Notificaciones",
     "communications": "Comunicaciones",
     "comunications": "Comunicaciones",
@@ -30,106 +30,15 @@
   },
   "communications": {
     "title": "Comunicaciones",
-    "subtitle": "Gestionar comunicaciones con clientes y propuestas",
-    "threads": "Hilos",
-    "new": "Nuevo",
-    "newThread": "Nuevo Hilo",
-    "editThread": "Editar Hilo",
-    "selectThread": "Seleccione un hilo",
-    "selectThreadHint": "Elija una conversación de la lista para ver los mensajes",
-    "searchThreads": "Buscar hilos...",
-    "loading": "Cargando...",
-    "noResults": "No hay resultados",
-    "noThreads": "No se encontraron hilos",
-    "noMessages": "Aún no hay mensajes",
-    "noMinutes": "Aún no hay actas de reunión",
-    "writeMessage": "Escribe un mensaje...",
-    "attach": "Adjuntar archivo",
-    "chooseFiles": "Seleccionar archivos",
-    "record": "Grabar",
-    "recording": "Grabando...",
-    "startRecording": "Grabar audio",
-    "stopRecording": "Detener grabación",
-    "stop": "Detener",
-    "generateMinutes": "Generar Acta",
-    "generating": "Generando...",
-    "meetingMinutes": "Actas de Reunión",
-    "send": "Enviar",
-    "sendHint": "Presione Enter para enviar, Shift+Enter para nueva línea",
-    "saving": "Guardando...",
-    "draftSaved": "Borrador guardado",
-    "attachments": "Adjuntos",
-    "untitled": "Sin título",
-    "unknown": "Desconocido",
-    "participants": "participantes",
-    "refresh": "Actualizar",
-    "retry": "Reintentar",
-    "confirm": "Confirmar",
-    "reject": "Rechazar",
-    "cancel": "Cancelar",
-    "save": "Guardar",
-    "create": "Crear",
-    "delete": "Eliminar",
-    "add": "Añadir",
-    "subject": "Asunto",
-    "subjectRequired": "El asunto es obligatorio",
-    "subjectPlaceholder": "Ingrese el asunto del hilo...",
-    "linkedEntity": "Vincular a Entidad",
-    "selectType": "Seleccione el tipo...",
-    "entityId": "ID de Entidad",
-    "entityIdPlaceholder": "Ingrese el ID de la entidad o busque...",
-    "entityIdHint": "Ingrese el ID de la entidad relacionada",
-    "participantIdPlaceholder": "Ingrese el ID del usuario...",
-    "initialMessage": "Mensaje Inicial",
-    "initialMessagePlaceholder": "Inicie la conversación...",
-    "autoCreatedNeedsConfirmation": "Creado automáticamente - Necesita confirmación",
-    "autoCreatedConfirmed": "Creado automáticamente (Confirmado)",
-    "autoCreatedPending": "Hilo creado automáticamente - Necesita confirmación",
-    "threadAutoCreated": "Este hilo fue creado automáticamente desde un correo electrónico",
-    "confirmThread": "Confirmar",
-    "rejectThread": "Rechazar",
-    "threadConfirmed": "Hilo confirmado",
-    "unconfirmedMessages": "{count} mensaje(s) necesitan confirmación",
-    "showAutoCreated": "Mostrar creados automáticamente",
-    "showUnconfirmedAutoCreated": "Mostrar hilos no confirmados creados automáticamente",
-    "needsReview": "necesita revisión",
-    "from": "De",
-    "to": "Para",
-    "cc": "CC",
-    "received": "Recibido",
-    "noSubject": "(Sin asunto)",
-    "titleLabel": "Título",
-    "body": "Cuerpo",
-    "metadata": "Metadatos",
+    "subtitle": "Gestionar comunicaciones y anuncios de la plataforma",
     "filters": {
       "search": "Buscar",
-      "searchPlaceholder": "Buscar hilos...",
-      "all": "Todos",
-      "linkedEntityType": "Vinculado a",
-      "proposal": "Propuesta",
-      "client": "Cliente",
-      "fundingSource": "Fuente de Financiación",
-      "opportunity": "Oportunidad"
+      "searchPlaceholder": "Buscar comunicaciones..."
     },
-    "stats": {
-      "totalThreads": "Total de Hilos",
-      "autoCreated": "De Correos",
-      "needsReview": "Necesita Revisión",
-      "confirmed": "Confirmados"
-    },
-    "entityTypes": {
-      "proposal": "Propuestas",
-      "client": "Clientes",
-      "opportunity": "Oportunidades",
-      "other": "Otros"
-    },
-    "linkedTo": {
-      "proposal": "Vinculado a Propuesta",
-      "client": "Vinculado a Cliente",
-      "funding_source": "Vinculado a Fuente de Financiación",
-      "opportunity": "Vinculado a Oportunidad",
-      "project": "Vinculado a Proyecto"
-    }
+    "noResults": "No se encontraron comunicaciones",
+    "loading": "Cargando...",
+    "new": "Nuevo",
+    "boardPlaceholder": "Vista en tablero para comunicaciones"
   },
   "communications.filters.linkedEntityType": "Vinculado a",
   "communications.filters.all": "Todos",
@@ -156,74 +65,74 @@
   "communications.refresh": "Actualizar",
   "communications.selectThread": "Seleccione un hilo",
   "communications.selectThreadHint": "Elija una conversación de la lista para ver los mensajes",
-  "stats.recent7d": "Últimos 7 días",
+  "stats.recent7d": "Reciente (7d)",
   "reports": {
     "title": "Reportes",
     "subtitle": "Reportes generados e historial",
     "institutes": {
-    "title": "Institutos",
-    "subtitle": "Gestione institutos de investigación y unidades organizativas",
-    "selectInstitutes": "Seleccionar Institutos",
-    "searchPlaceholder": "Buscar instituto...",
-    "selectAll": "Seleccionar todos",
-    "clearAll": "Limpiar",
-    "myInstitutes": "Mis institutos",
-    "selected": "seleccionado(s)",
-    "save": "Guardar",
-    "saving": "Guardando...",
-    "saved": "Guardado",
-    "loading": "Cargando...",
-    "noResults": "Ningún instituto encontrado",
-    "noInstitutes": "Ningún instituto disponible",
-    "new": "Nuevo",
-    "filters": {
-      "search": "Buscar",
-      "searchPlaceholder": "Buscar institutos...",
-      "city": "Ciudad",
-      "cityPlaceholder": "Seleccione la ciudad"
+      "title": "Institutos",
+      "subtitle": "Gestione institutos de investigación y unidades organizativas",
+      "selectInstitutes": "Seleccionar Institutos",
+      "searchPlaceholder": "Buscar instituto...",
+      "selectAll": "Seleccionar todos",
+      "clearAll": "Limpiar",
+      "myInstitutes": "Mis institutos",
+      "selected": "seleccionado(s)",
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "saved": "Guardado",
+      "loading": "Cargando...",
+      "noResults": "Ningún instituto encontrado",
+      "noInstitutes": "Ningún instituto disponible",
+      "new": "Nuevo",
+      "filters": {
+        "search": "Buscar",
+        "searchPlaceholder": "Buscar institutos...",
+        "city": "Ciudad",
+        "cityPlaceholder": "Seleccione la ciudad"
+      },
+      "tabs": {
+        "totalThreads": "Total de hilos",
+        "total": "Total de hilos",
+        "recent7d": "Últimos 7 días",
+        "address": "Dirección",
+        "maturity": "Madurez",
+        "accreditation": "Acreditaciones"
+      },
+      "fields": {
+        "nome": "Nombre",
+        "nome_fantasia": "Nombre Comercial",
+        "isi_sigla": "Sigla",
+        "descricao": "Descripción",
+        "status_operacional": "Estado Operativo",
+        "status": "Estado",
+        "logo_url": "Logo",
+        "endereco_rua": "Calle",
+        "endereco_numero": "Número",
+        "endereco_complemento": "Complemento",
+        "endereco_bairro": "Barrio",
+        "endereco_cep": "Código Postal",
+        "endereco_cidade": "Ciudad",
+        "endereco_uf": "Provincia/Estado",
+        "area_predial_m2": "Área del Edificio (m²)",
+        "maturidade_gestao": "Madurez de Gestión",
+        "maturidade_base_tecnologica": "Madurez de la Base Tecnológica",
+        "maturidade_produtos_servicos": "Madurez de Productos/Servicios",
+        "maturidade_cooperacao": "Madurez de Cooperación",
+        "credenciamento_cati": "Acreditación CATI",
+        "credenciamento_ed": "Acreditación ED"
+      },
+      "maturity_hint": "Evalúe la madurez institucional en diferentes dimensiones.",
+      "accreditation_hint": "Marque las acreditaciones aplicables al instituto.",
+      "statsUnavailable": "Estadísticas no disponibles",
+      "cancel": "Cancelar",
+      "create": "Crear",
+      "stats": {
+        "totalArea": "Área Total (m²)",
+        "totalMembers": "Total de Miembros",
+        "totalUnits": "Total de Unidades"
+      }
     },
-    "tabs": {
-      "totalThreads": "Total de hilos",
-      "total": "Total de hilos",
-      "recent7d": "Últimos 7 días",
-      "address": "Dirección",
-      "maturity": "Madurez",
-      "accreditation": "Acreditaciones"
-    },
-    "fields": {
-      "nome": "Nombre",
-      "nome_fantasia": "Nombre Comercial",
-      "isi_sigla": "Sigla",
-      "descricao": "Descripción",
-      "status_operacional": "Estado Operativo",
-      "status": "Estado",
-      "logo_url": "Logo",
-      "endereco_rua": "Calle",
-      "endereco_numero": "Número",
-      "endereco_complemento": "Complemento",
-      "endereco_bairro": "Barrio",
-      "endereco_cep": "Código Postal",
-      "endereco_cidade": "Ciudad",
-      "endereco_uf": "Provincia/Estado",
-      "area_predial_m2": "Área del Edificio (m²)",
-      "maturidade_gestao": "Madurez de Gestión",
-      "maturidade_base_tecnologica": "Madurez de la Base Tecnológica",
-      "maturidade_produtos_servicos": "Madurez de Productos/Servicios",
-      "maturidade_cooperacao": "Madurez de Cooperación",
-      "credenciamento_cati": "Acreditación CATI",
-      "credenciamento_ed": "Acreditación ED"
-    },
-    "maturity_hint": "Evalúe la madurez institucional en diferentes dimensiones.",
-    "accreditation_hint": "Marque las acreditaciones aplicables al instituto.",
-    "statsUnavailable": "Estadísticas no disponibles",
-    "cancel": "Cancelar",
-    "create": "Crear",
-    "stats": {
-      "totalArea": "Área Total (m²)",
-      "totalMembers": "Total de Miembros",
-      "totalUnits": "Total de Unidades"
-    }
-  },
     "name": "Nombre",
     "newTemplate": "Nueva Plantilla",
     "newReport": "Nuevo Reporte",
@@ -263,19 +172,19 @@
     "chatbot": {
       "open": "Abrir asistente"
     },
-    "@/components/analytics-widgets/AnalyticsExport": "@/components/analytics-widgets/AnalyticsExport",
-    "@/components/analytics-widgets/AnalyticsKPIs": "@/components/analytics-widgets/AnalyticsKPIs",
-    "@/components/analytics-widgets/AnalyticsPeriodSelector": "@/components/analytics-widgets/AnalyticsPeriodSelector",
-    "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/AnalyticsPipeline",
-    "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/AnalyticsTRL",
-    "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/AnalyticsTrends",
-    "@/components/dashboard/CalendarWidget": "@/components/dashboard/CalendarWidget",
-    "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/MatchingScoreWidget",
-    "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/OpportunitiesWidget",
-    "inputPlaceholder": "inputPlaceholder",
-    "period": "period",
-    "welcomeSubtitle": "welcomeSubtitle",
-    "welcomeTitle": "welcomeTitle"
+    "@/components/analytics-widgets/AnalyticsExport": "@/components/analytics-widgets/analyticsexport",
+    "@/components/analytics-widgets/AnalyticsKPIs": "@/components/analytics-widgets/analyticskpis",
+    "@/components/analytics-widgets/AnalyticsPeriodSelector": "@/components/analytics-widgets/analyticsperiodselector",
+    "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/analyticspipeline",
+    "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/analyticstrl",
+    "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/analyticstrends",
+    "@/components/dashboard/CalendarWidget": "@/components/dashboard/calendarwidget",
+    "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/matchingscorewidget",
+    "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/opportunitieswidget",
+    "inputPlaceholder": "Inputplaceholder",
+    "period": "Period",
+    "welcomeSubtitle": "Welcomesubtitle",
+    "welcomeTitle": "Welcometitle"
   },
   "pipeline": {
     "title": "Pipeline de Oportunidades",
@@ -286,11 +195,11 @@
       "registration": "Registro",
       "conversion": "Conversión",
       "post_sale": "Postventa",
-      "lost": "lost",
-      "negotiation": "negotiation",
-      "proposal": "proposal",
-      "qualification": "qualification",
-      "won": "won"
+      "lost": "Lost",
+      "negotiation": "Negotiation",
+      "proposal": "Proposal",
+      "qualification": "Qualification",
+      "won": "Won"
     }
   },
   "funding": {
@@ -321,7 +230,7 @@
     "focusAreasPlaceholder": "Ej: Industria 4.0, IA, Sostenibilidad",
     "url": "URL",
     "updateError": "Error al actualizar la convocatoria. Inténtelo de nuevo.",
-    "status": "status",
+    "status": "Status",
     "types": {
       "grant": "Subvención",
       "subsidy": "Subsidio",
@@ -338,7 +247,7 @@
       "suspended": "Suspendido"
     },
     "noInstituteSelectedHint": "Ningún instituto seleccionado — los resultados pueden ser globales. Use el selector de instituto en el encabezado para filtrar.",
-    "view": "view"
+    "view": "Ver"
   },
   "crm": {
     "title": "CRM - Clientes",
@@ -392,11 +301,11 @@
       "allSegments": "Todos los Segmentos",
       "allMaturity": "Todas las Madureces"
     },
-    "address": "address",
-    "email": "email",
+    "address": "Address",
+    "email": "Email",
     "perYear": "/year",
-    "phone": "phone",
-    "view": "view"
+    "phone": "Phone",
+    "view": "Ver"
   },
   "portfolio": {
     "title": "Portafolio de Proyectos",
@@ -443,15 +352,11 @@
       "completed": "Completado",
       "suspended": "Suspendido"
     },
-    "deleteConfirmation": "deleteConfirmation",
-    "description": "description",
-    "editProject": "editProject",
-    "updateError": "updateError",
-    "view": "view",
-    "institute": "Instituto",
-    "selectInstituteHelper": "Seleccione el instituto responsable del proyecto",
-    "selectInstitutePlaceholder": "Seleccione un instituto",
-    "instituteRequired": "El instituto es obligatorio",
+    "deleteConfirmation": "¿Está seguro que desea eliminar este elemento?",
+    "description": "Descripción",
+    "editProject": "Editar proyecto",
+    "updateError": "Error al actualizar. Inténtalo de nuevo.",
+    "view": "Ver",
     "institute": "Instituto",
     "selectInstituteHelper": "Seleccione el instituto responsable del proyecto",
     "selectInstitutePlaceholder": "Seleccione un instituto",
@@ -560,14 +465,14 @@
       "conversionRate": "Tasa de Conversión"
     },
     "T": "T",
-    "deleteConfirmation": "deleteConfirmation",
-    "fundingSource": "Funding Source",
-    "id": "id",
-    "priority": "priority",
-    "author": "Author",
-    "descriptionLabel": "Description / Summary",
-    "linkedOpportunity": "Linked Opportunity",
-    "totalValue": "Total Value"
+    "deleteConfirmation": "¿Está seguro que desea eliminar este elemento?",
+    "fundingSource": "Fuente de Financiación",
+    "id": "ID",
+    "priority": "Prioridad",
+    "author": "Autor",
+    "descriptionLabel": "Descripción / Resumen",
+    "linkedOpportunity": "Oportunidad vinculada",
+    "totalValue": "Valor total"
   },
   "ingestion": {
     "title": "Ingestión de Datos",
@@ -613,8 +518,8 @@
       "piiDetected": "PII Detectados",
       "failures": "Fallos"
     },
-    "search": "search",
-    "view": "view"
+    "search": "Search",
+    "view": "Ver"
   },
   "proposals": {
     "title": "Propuestas",
@@ -671,12 +576,12 @@
     "fundingSource": "Fuente de Financiamiento",
     "author": "Autor",
     "descriptionLabel": "Descripción / Resumen",
-    "description": "description",
-    "fundingSourcePlaceholder": "fundingSourcePlaceholder",
-    "noProposals": "noProposals",
-    "opportunity": "opportunity",
-    "opportunityPlaceholder": "opportunityPlaceholder",
-    "view": "view",
+    "description": "Descripción",
+    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
+    "noProposals": "Noproposals",
+    "opportunity": "Opportunity",
+    "opportunityPlaceholder": "Opportunityplaceholder",
+    "view": "Ver",
     "boardPlaceholder": "Board view for infrastructure",
     "newResource": "Nuevo recurso",
     "createJobPrompt": "Create a new job to get started",
@@ -928,8 +833,8 @@
         "light": "Claro",
         "dark": "Oscuro",
         "primaryColor": "Color Primario",
-        "secondaryColor": "Color Secundario"
-        ,"appearance": "Apariencia",
+        "secondaryColor": "Color Secundario",
+        "appearance": "Apariencia",
         "appearanceOptions": {
           "default": "Predeterminado",
           "highContrast": "Alto Contraste",
@@ -1017,8 +922,8 @@
       "denyAll": "Denegar Todo"
     },
     "/api/v1/translations/export/${locale}": "/api/v1/translations/export/${locale}",
-    "a": "a",
-    "content-type": "content-type"
+    "a": "A",
+    "content-type": "Content-type"
   },
   "users": {
     "title": "Gestión de Usuarios",
@@ -1112,124 +1017,112 @@
       "readed": "Leídas"
     },
     "perYear": "/año",
-    "deadlines": "deadlines",
-    "description": "description",
-    "digest": "digest",
-    "email": "email",
-    "matching": "matching",
-    "push": "push"
+    "deadlines": "Deadlines",
+    "description": "Descripción",
+    "digest": "Digest",
+    "email": "Email",
+    "matching": "Matching",
+    "push": "Push"
   },
-    "communications": {
-      "title": "Comunicaciones",
-      "subtitle": "Gestionar comunicaciones y anuncios de la plataforma",
-      "filters": {
-        "search": "Buscar",
-        "searchPlaceholder": "Buscar comunicaciones..."
-      },
-      "noResults": "No se encontraron comunicaciones",
-      "loading": "Cargando...",
-      "new": "Nuevo",
-      "boardPlaceholder": "Vista en tablero para comunicaciones"
+  "institutes": {
+    "title": "Institutos",
+    "subtitle": "Gestionar institutos de investigación y unidades organizacionales",
+    "selectInstitutes": "Seleccionar Institutos",
+    "searchPlaceholder": "Buscar instituto...",
+    "selectAll": "Seleccionar todos",
+    "clearAll": "Limpiar",
+    "myInstitutes": "Mis institutos",
+    "selected": "seleccionado(s)",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "saved": "Guardado",
+    "loading": "Cargando...",
+    "noResults": "No se encontraron institutos",
+    "noInstitutes": "No hay institutos disponibles",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar institutos..."
     },
-    "institutes": {
-      "title": "Institutos",
-      "subtitle": "Gestionar institutos de investigación y unidades organizacionales",
-      "selectInstitutes": "Seleccionar Institutos",
-      "searchPlaceholder": "Buscar instituto...",
-      "selectAll": "Seleccionar todos",
-      "clearAll": "Limpiar",
-      "myInstitutes": "Mis institutos",
-      "selected": "seleccionado(s)",
-      "save": "Guardar",
-      "saving": "Guardando...",
-      "saved": "Guardado",
-      "loading": "Cargando...",
-      "noResults": "No se encontraron institutos",
-      "noInstitutes": "No hay institutos disponibles",
-      "filters": {
-        "search": "Buscar",
-        "searchPlaceholder": "Buscar institutos..."
-      },
-      "city": "Ciudad",
-      "area": "Área",
-      "members": "Miembros",
-      "delete": "Eliminar",
-      "boardProspects": "Perspectivas",
-      "boardArchived": "Archivados",
-      "new": "Nuevo",
-      "boardPlaceholder": "Vista en tablero para institutos"
+    "city": "Ciudad",
+    "area": "Área",
+    "members": "Miembros",
+    "delete": "Eliminar",
+    "boardProspects": "Perspectivas",
+    "boardArchived": "Archivados",
+    "new": "Nuevo",
+    "boardPlaceholder": "Vista en tablero para institutos"
+  },
+  "teams": {
+    "title": "Equipos",
+    "subtitle": "Gestionar equipos y colaboradores",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar equipos..."
     },
-    "teams": {
-      "title": "Equipos",
-      "subtitle": "Gestionar equipos y colaboradores",
-      "filters": {
-        "search": "Buscar",
-        "searchPlaceholder": "Buscar equipos..."
-      },
-      "noResults": "No se encontraron equipos",
-      "loading": "Cargando...",
-      "new": "Nuevo",
-      "boardPlaceholder": "Vista en tablero para equipos"
+    "noResults": "No se encontraron equipos",
+    "loading": "Cargando...",
+    "new": "Nuevo",
+    "boardPlaceholder": "Vista en tablero para equipos"
+  },
+  "infrastructure": {
+    "title": "Infraestructura",
+    "subtitle": "Gestionar infraestructura compartida e instalaciones",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar infraestructura..."
     },
-    "infrastructure": {
-      "title": "Infraestructura",
-      "subtitle": "Gestionar infraestructura compartida e instalaciones",
-      "filters": {
-        "search": "Buscar",
-        "searchPlaceholder": "Buscar infraestructura..."
-      },
-      "noResults": "No se encontraron resultados",
-      "loading": "Cargando...",
-      "new": "Nuevo",
-      "boardPlaceholder": "Vista en tablero para infraestructura",
-      "basicInfo": "Información Básica",
-      "maturityTab": "Madurez",
-      "areasTab": "Áreas",
-      "mediaTab": "Medios",
+    "noResults": "No se encontraron resultados",
+    "loading": "Cargando...",
+    "new": "Nuevo",
+    "boardPlaceholder": "Vista en tablero para infraestructura",
+    "basicInfo": "Información Básica",
+    "maturityTab": "Madurez",
+    "areasTab": "Áreas",
+    "mediaTab": "Medios",
     "equipmentsTab": "Equipos",
     "equipmentsHint": "Liste y gestione el equipo relacionado con esta infraestructura",
-      "newInfrastructure": "Nueva Infraestructura",
-      "available": "Disponible",
-      "booked": "Reservado",
-      "maintenance": "Mantenimiento",
-      "institute": "Instituto",
-      "selectInstitute": "Seleccione el instituto",
-      "name": "Nombre",
-      "description": "Descripción",
-      "labEmail": "Email del Laboratorio",
-      "responsibleEmail": "Email del Responsable",
-      "areaM2": "Área (m²)",
-      "status": "Estado",
-      "maturityManagement": "Madurez de Gestión",
-      "selectMaturity": "Seleccione madurez",
-      "techBaseMaturity": "Madurez de la Base Tecnológica",
-      "productsMaturity": "Madurez de Productos/Servicios",
-      "cooperationMaturity": "Madurez de Cooperación",
-      "maturityHint": "Evalúe la madurez de esta infraestructura.",
-      "techPlatforms": "Plataformas Tecnológicas",
+    "newInfrastructure": "Nueva Infraestructura",
+    "available": "Disponible",
+    "booked": "Reservado",
+    "maintenance": "Mantenimiento",
+    "institute": "Instituto",
+    "selectInstitute": "Seleccione el instituto",
+    "name": "Nombre",
+    "description": "Descripción",
+    "labEmail": "Email del Laboratorio",
+    "responsibleEmail": "Email del Responsable",
+    "areaM2": "Área (m²)",
+    "status": "Estado",
+    "maturityManagement": "Madurez de Gestión",
+    "selectMaturity": "Seleccione madurez",
+    "techBaseMaturity": "Madurez de la Base Tecnológica",
+    "productsMaturity": "Madurez de Productos/Servicios",
+    "cooperationMaturity": "Madurez de Cooperación",
+    "maturityHint": "Evalúe la madurez de esta infraestructura.",
+    "techPlatforms": "Plataformas Tecnológicas",
     "select": "Seleccionar",
     "equipmentName": "Nombre del equipo",
     "equipmentSerial": "Número de serie",
     "equipmentStatus": "Estado del equipo",
     "equipmentDesc": "Descripción",
     "noEquipments": "No hay equipos registrados",
-      "selectOrType": "Seleccionar o escribir",
-      "customPlatform": "Plataforma personalizada",
-      "knowledgeAreas": "Áreas de Conocimiento",
-      "customArea": "Otra área",
-      "researchMacroareas": "Macroáreas de Investigación",
-      "customMacroarea": "Otra macroárea",
-      "addMedia": "Agregar Medio",
-      "image": "Imagen",
-      "video": "Vídeo",
-      "document": "Documento",
-      "3dModel": "Modelo 3D",
-      "mediaDescription": "Descripción del medio",
-      "add": "Agregar",
-      "noMedia": "Sin medios",
-      "cancel": "Cancelar",
-      "create": "Crear"
-    },
+    "selectOrType": "Seleccionar o escribir",
+    "customPlatform": "Plataforma personalizada",
+    "knowledgeAreas": "Áreas de Conocimiento",
+    "customArea": "Otra área",
+    "researchMacroareas": "Macroáreas de Investigación",
+    "customMacroarea": "Otra macroárea",
+    "addMedia": "Agregar Medio",
+    "image": "Imagen",
+    "video": "Vídeo",
+    "document": "Documento",
+    "3dModel": "Modelo 3D",
+    "mediaDescription": "Descripción del medio",
+    "add": "Agregar",
+    "noMedia": "Sin medios",
+    "cancel": "Cancelar",
+    "create": "Crear"
+  },
   "activity": {
     "title": "Actividad Reciente",
     "subtitle": "Historial de acciones en el sistema",
@@ -1878,20 +1771,12 @@
       "minLength": "Al menos 8 caracteres"
     }
   },
-  "": {
-    "/locales/${locale}": {
-      "json": "./locales/${locale}.json"
-    }
-  },
   "/api/v1/crm/clients/${id}": "/api/v1/crm/clients/${id}",
   "/api/v1/crm/enrich-cnpj/${cnpj}": "/api/v1/crm/enrich-cnpj/${cnpj}",
-  "/api/v1/feedback/?${params": {
-    "toString()}": "toString()}"
-  },
   "/api/v1/funding/${id}": "/api/v1/funding/${id}",
   "/api/v1/layout/reset": "/api/v1/layout/reset",
-  "/api/v1/matching/explain/${projectId}/${fundingId}": "/api/v1/matching/explain/${projectId}/${fundingId}",
-  "/api/v1/matching/scores/${projectId}/${fundingId}": "/api/v1/matching/scores/${projectId}/${fundingId}",
+  "/api/v1/matching/explain/${projectId}/${fundingId}": "/api/v1/matching/explain/${projectid}/${fundingid}",
+  "/api/v1/matching/scores/${projectId}/${fundingId}": "/api/v1/matching/scores/${projectid}/${fundingid}",
   "/api/v1/opportunities/${id}": "/api/v1/opportunities/${id}",
   "/api/v1/opportunities/stats/pipeline": "/api/v1/opportunities/stats/pipeline",
   "/api/v1/portfolio/projects/${id}": "/api/v1/portfolio/projects/${id}",
@@ -1900,63 +1785,63 @@
   "/api/v1/proposals/${id}/adherence": "/api/v1/proposals/${id}/adherence",
   "/api/v1/proposals/${id}/submit": "/api/v1/proposals/${id}/submit",
   "/api/v1/translations/${editingPath}?${params": {
-    "toString()}": "toString()}"
+    "toString()}": "Tostring()}"
   },
   "/funding?${params": {
-    "toString()}": "toString()}"
+    "toString()}": "Tostring()}"
   },
   "45%": "45%",
   "65%": "65%",
   "80%": "80%",
   "85%": "85%",
-  "DRAFT": "DRAFT",
-  "INTELLIGENCE": "INTELLIGENCE",
-  "PLANNING": "PLANNING",
+  "DRAFT": "Draft",
+  "INTELLIGENCE": "Intelligence",
+  "PLANNING": "Planning",
   "acl": {
-    "createRole": "createRole",
-    "deleteConfirm": "deleteConfirm"
+    "createRole": "Createrole",
+    "deleteConfirm": "Deleteconfirm"
   },
   "actions": {
-    "submitted": "submitted",
-    "updatedGeneric": "updatedGeneric"
+    "submitted": "Submitted",
+    "updatedGeneric": "Updatedgeneric"
   },
   "admin": {
-    "acl": "acl",
-    "aclDesc": "aclDesc",
-    "addResponse": "addResponse",
-    "description": "description",
-    "feedback": "feedback",
-    "feedbackDesc": "feedbackDesc",
-    "layout": "layout",
-    "layoutDesc": "layoutDesc",
-    "llmProvider": "llmProvider",
-    "llmProviderDesc": "llmProviderDesc",
-    "page": "page",
-    "previousResponse": "previousResponse",
-    "priority": "priority",
-    "respondedAt": "respondedAt",
-    "responsePlaceholder": "responsePlaceholder",
-    "screenshot": "screenshot",
-    "sendResponse": "sendResponse",
-    "sending": "sending",
-    "statistics": "statistics",
-    "statisticsDesc": "statisticsDesc",
-    "title": "title",
-    "translations": "translations",
-    "translationsDesc": "translationsDesc",
-    "updateResponse": "updateResponse",
-    "updateStatus": "updateStatus",
-    "userComment": "userComment",
-    "users": "users",
-    "usersDesc": "usersDesc"
+    "acl": "Acl",
+    "aclDesc": "Acldesc",
+    "addResponse": "Addresponse",
+    "description": "Descripción",
+    "feedback": "Feedback",
+    "feedbackDesc": "Feedbackdesc",
+    "layout": "Layout",
+    "layoutDesc": "Layoutdesc",
+    "llmProvider": "Llmprovider",
+    "llmProviderDesc": "Llmproviderdesc",
+    "page": "Page",
+    "previousResponse": "Previousresponse",
+    "priority": "Prioridad",
+    "respondedAt": "Respondedat",
+    "responsePlaceholder": "Responseplaceholder",
+    "screenshot": "Screenshot",
+    "sendResponse": "Sendresponse",
+    "sending": "Sending",
+    "statistics": "Statistics",
+    "statisticsDesc": "Statisticsdesc",
+    "title": "Title",
+    "translations": "Translations",
+    "translationsDesc": "Translationsdesc",
+    "updateResponse": "Updateresponse",
+    "updateStatus": "Updatestatus",
+    "userComment": "Usercomment",
+    "users": "Users",
+    "usersDesc": "Usersdesc"
   },
   "analytics": {
     "/api/v1/analytics/matching-trends?days=30": "/api/v1/analytics/matching-trends?days=30",
     "/api/v1/analytics/overview?period=${period}": "/api/v1/analytics/overview?period=${period}",
     "/api/v1/analytics/pipeline": "/api/v1/analytics/pipeline",
     "/api/v1/analytics/trl-distribution": "/api/v1/analytics/trl-distribution",
-    "csv": "csv",
-    "json": "json",
+    "csv": "Csv",
+    "json": "Json",
     "export": {
       "csv": "Export CSV",
       "json": "Export JSON",
@@ -1996,46 +1881,46 @@
     "subtitle": "Performance overview",
     "title": "Analytics",
     "trends": {
-      "matches": "matches",
+      "matches": "Matches",
       "noData": "Insufficient data",
       "score": "Score",
       "title": "Matching Trends"
     },
     "trl": {
-      "projects": "projects",
+      "projects": "Projects",
       "title": "TRL Distribution"
     }
   },
   "annotate": {
-    "clear": "clear",
+    "clear": "Clear",
     "colors": {
       "${opt": {
-        "key}": "key}"
+        "key}": "Key}"
       }
     },
-    "confirm": "confirm",
-    "description": "description",
-    "extraThick": "extraThick",
-    "medium": "medium",
-    "pen": "pen",
-    "redo": "redo",
-    "thick": "thick",
-    "thickness": "thickness",
-    "thin": "thin",
-    "undo": "undo"
+    "confirm": "Confirm",
+    "description": "Descripción",
+    "extraThick": "Extrathick",
+    "medium": "Medium",
+    "pen": "Pen",
+    "redo": "Redo",
+    "thick": "Thick",
+    "thickness": "Thickness",
+    "thin": "Thin",
+    "undo": "Undo"
   },
   "appearance": {
-    "dark": "dark",
-    "description": "description",
-    "light": "light",
-    "theme": "theme",
-    "title": "title"
+    "dark": "Dark",
+    "description": "Descripción",
+    "light": "Light",
+    "theme": "Theme",
+    "title": "Title"
   },
   "areas": {
-    "agribusiness": "agribusiness",
-    "health": "health",
+    "agribusiness": "Agribusiness",
+    "health": "Health",
     "industry_4_0": "industry 4 0",
-    "sustainability": "sustainability"
+    "sustainability": "Sustainability"
   },
   "auth": {
     "contact": {
@@ -2191,8 +2076,8 @@
     }
   },
   "button": {
-    "label": "label",
-    "title": "title"
+    "label": "Label",
+    "title": "Title"
   },
   "calendar": {
     "T": "T",
@@ -2211,21 +2096,21 @@
     "viewAll": "Ver todos os eventos"
   },
   "capture": {
-    "buttonLabel": "buttonLabel",
-    "description": "description",
-    "title": "title"
+    "buttonLabel": "Buttonlabel",
+    "description": "Descripción",
+    "title": "Title"
   },
   "comment": {
-    "back": "back",
-    "charLimitWarning": "charLimitWarning",
-    "commentLabel": "commentLabel",
-    "editAnnotations": "editAnnotations",
-    "placeholder": "placeholder",
-    "typeLabel": "typeLabel"
+    "back": "Back",
+    "charLimitWarning": "Charlimitwarning",
+    "commentLabel": "Commentlabel",
+    "editAnnotations": "Editannotations",
+    "placeholder": "Placeholder",
+    "typeLabel": "Typelabel"
   },
   "common": {
     "activeFilters": "active filters",
-    "chars": "chars",
+    "chars": "Chars",
     "collapseFilters": "Collapse Filters",
     "configureStatistics": "Configure Statistics",
     "configureStatisticsDescription": "Select which statistics you want to view on this page",
@@ -2235,11 +2120,11 @@
     "filters": "Filters",
     "max": "Max",
     "min": "Min",
-    "moveLeft": "moveLeft",
-    "moveRight": "moveRight",
+    "moveLeft": "Moveleft",
+    "moveRight": "Moveright",
     "noStatisticsConfigured": "No statistics configured. Click the gear icon to select visible statistics.",
     "resetFilters": "Reset Filters",
-    "view": "view",
+    "view": "Ver",
     "allowed": "Allowed",
     "cancel": "Cancel",
     "close": "Close",
@@ -2252,7 +2137,7 @@
     "language": "Language",
     "loading": "Loading...",
     "modules": {
-      "chars": "chars",
+      "chars": "Chars",
       "crm": "CRM",
       "funding": "Funding Sources",
       "ingestion": "Data Ingestion",
@@ -2280,9 +2165,9 @@
     "selectLanguage": "Select Language",
     "statistics": {
       "allowAll": "Allow All",
-      "allowed": "allowed",
+      "allowed": "Allowed",
       "denyAll": "Deny All",
-      "required": "required",
+      "required": "Required",
       "reset": "Reset",
       "save": "Save",
       "subtitle": "Select which statistics you want to view on this page",
@@ -2317,37 +2202,37 @@
     }
   },
   "confirm": {
-    "deleteLLM": "deleteLLM"
+    "deleteLLM": "Deletellm"
   },
   "entities": {
     "${activity": {
-      "entity}": "entity}"
+      "entity}": "Entity}"
     },
     "${entity}": "${entity}",
-    "client": "client",
-    "funding": "funding",
-    "opportunity": "opportunity",
-    "project": "project",
-    "proposal": "proposal"
+    "client": "Client",
+    "funding": "Funding",
+    "opportunity": "Opportunity",
+    "project": "Project",
+    "proposal": "Proposal"
   },
   "error": {
-    "captureFailed": "captureFailed",
-    "description": "description",
-    "documentBodyNotFound": "documentBodyNotFound",
-    "noComment": "noComment",
-    "retry": "retry",
-    "title": "title"
+    "captureFailed": "Capturefailed",
+    "description": "Descripción",
+    "documentBodyNotFound": "Documentbodynotfound",
+    "noComment": "Nocomment",
+    "retry": "Retry",
+    "title": "Title"
   },
   "errors": {
-    "activate": "activate",
-    "delete": "delete",
-    "save": "save",
-    "unknown": "unknown"
+    "activate": "Activate",
+    "delete": "Delete",
+    "save": "Save",
+    "unknown": "Unknown"
   },
   "export": {
-    "csv": "csv",
-    "json": "json",
-    "title": "title"
+    "csv": "Csv",
+    "json": "Json",
+    "title": "Title"
   },
   "factors": {
     "${key}": "${key}"
@@ -2355,8 +2240,8 @@
   "feedback": {
     "/api/v1/feedback/statistics": "/api/v1/feedback/statistics",
     "2d": "2d",
-    "canvas": "canvas",
-    "video": "video",
+    "canvas": "Canvas",
+    "video": "Video",
     "admin": {
       "actions": "Actions",
       "addResponse": "Add response",
@@ -2484,194 +2369,194 @@
     }
   },
   "filter": {
-    "all": "all",
-    "unread": "unread"
+    "all": "All",
+    "unread": "Unread"
   },
   "filters": {
     "${status": {
-      "key}": "key}"
+      "key}": "Key}"
     },
-    "active": "active",
-    "allActions": "allActions",
-    "allAreas": "allAreas",
-    "allEntities": "allEntities",
-    "allMaturity": "allMaturity",
-    "allSegments": "allSegments",
-    "allStages": "allStages",
-    "allStatus": "allStatus",
-    "allStatuses": "allStatuses",
-    "allTypes": "allTypes",
-    "closed": "closed",
-    "completed": "completed",
-    "dateFrom": "dateFrom",
-    "dateTo": "dateTo",
-    "entity": "entity",
-    "fundingSource": "fundingSource",
-    "fundingSourcePlaceholder": "fundingSourcePlaceholder",
-    "open": "open",
-    "opportunity": "opportunity",
-    "opportunityPlaceholder": "opportunityPlaceholder",
-    "planning": "planning",
-    "search": "search",
-    "searchPlaceholder": "searchPlaceholder",
-    "status": "status",
-    "suspended": "suspended",
-    "type": "type",
-    "version": "version"
+    "active": "Active",
+    "allActions": "Allactions",
+    "allAreas": "Allareas",
+    "allEntities": "Allentities",
+    "allMaturity": "Allmaturity",
+    "allSegments": "Allsegments",
+    "allStages": "Allstages",
+    "allStatus": "Allstatus",
+    "allStatuses": "Allstatuses",
+    "allTypes": "Alltypes",
+    "closed": "Closed",
+    "completed": "Completed",
+    "dateFrom": "Datefrom",
+    "dateTo": "Dateto",
+    "entity": "Entity",
+    "fundingSource": "Fundingsource",
+    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
+    "open": "Open",
+    "opportunity": "Opportunity",
+    "opportunityPlaceholder": "Opportunityplaceholder",
+    "planning": "Planning",
+    "search": "Search",
+    "searchPlaceholder": "Searchplaceholder",
+    "status": "Status",
+    "suspended": "Suspended",
+    "type": "Type",
+    "version": "Version"
   },
   "kpis": {
-    "activeOpportunities": "activeOpportunities",
-    "totalClients": "totalClients",
-    "totalProjects": "totalProjects"
+    "activeOpportunities": "Activeopportunities",
+    "totalClients": "Totalclients",
+    "totalProjects": "Totalprojects"
   },
   "language": {
-    "description": "description",
-    "title": "title"
+    "description": "Descripción",
+    "title": "Title"
   },
   "layout": {
     "branding": {
-      "description": "description",
-      "leaveEmptyForDefault": "leaveEmptyForDefault",
-      "siteFaviconUrl": "siteFaviconUrl",
-      "siteLogoUrl": "siteLogoUrl",
-      "siteName": "siteName",
-      "title": "title"
+      "description": "Descripción",
+      "leaveEmptyForDefault": "Leaveemptyfordefault",
+      "siteFaviconUrl": "Sitefaviconurl",
+      "siteLogoUrl": "Sitelogourl",
+      "siteName": "Sitename",
+      "title": "Title"
     },
     "buttons": {
-      "reset": "reset",
-      "saveChanges": "saveChanges"
+      "reset": "Reset",
+      "saveChanges": "Savechanges"
     },
     "dashboardWidgets": {
-      "description": "description",
-      "layoutStyle": "layoutStyle",
-      "title": "title"
+      "description": "Descripción",
+      "layoutStyle": "Layoutstyle",
+      "title": "Title"
     },
-    "description": "description",
+    "description": "Descripción",
     "messages": {
-      "resetConfirm": "resetConfirm"
+      "resetConfirm": "Resetconfirm"
     },
     "navigationItems": {
-      "description": "description",
-      "orderDescription": "orderDescription",
-      "orderTitle": "orderTitle",
-      "resetOrder": "resetOrder",
-      "title": "title"
+      "description": "Descripción",
+      "orderDescription": "Orderdescription",
+      "orderTitle": "Ordertitle",
+      "resetOrder": "Resetorder",
+      "title": "Title"
     },
     "sidebar": {
-      "collapsedByDefault": "collapsedByDefault",
-      "description": "description",
-      "position": "position",
-      "title": "title",
-      "width": "width"
+      "collapsedByDefault": "Collapsedbydefault",
+      "description": "Descripción",
+      "position": "Position",
+      "title": "Title",
+      "width": "Width"
     },
     "themeColors": {
-      "colorMode": "colorMode",
-      "dark": "dark",
-      "description": "description",
-      "light": "light",
-      "primaryColor": "primaryColor",
-      "secondaryColor": "secondaryColor",
-      "title": "title"
+      "colorMode": "Colormode",
+      "dark": "Dark",
+      "description": "Descripción",
+      "light": "Light",
+      "primaryColor": "Primarycolor",
+      "secondaryColor": "Secondarycolor",
+      "title": "Title"
     },
-    "title": "title",
+    "title": "Title",
     "typography": {
-      "description": "description",
-      "fontFamily": "fontFamily",
-      "fontSize": "fontSize",
-      "large": "large",
-      "monospace": "monospace",
-      "normal": "normal",
-      "sansSerif": "sansSerif",
-      "serif": "serif",
-      "small": "small",
-      "title": "title"
+      "description": "Descripción",
+      "fontFamily": "Fontfamily",
+      "fontSize": "Fontsize",
+      "large": "Large",
+      "monospace": "Monospace",
+      "normal": "Normal",
+      "sansSerif": "Sansserif",
+      "serif": "Serif",
+      "small": "Small",
+      "title": "Title"
     },
     "uiPreferences": {
-      "compactMode": "compactMode",
-      "defaultPageSize": "defaultPageSize",
-      "denseTables": "denseTables",
-      "description": "description",
-      "enableAnimations": "enableAnimations",
-      "itemsPerPage": "itemsPerPage",
-      "title": "title"
+      "compactMode": "Compactmode",
+      "defaultPageSize": "Defaultpagesize",
+      "denseTables": "Densetables",
+      "description": "Descripción",
+      "enableAnimations": "Enableanimations",
+      "itemsPerPage": "Itemsperpage",
+      "title": "Title"
     }
   },
   "llm": {
-    "activate": "activate",
-    "apiKey": "apiKey",
-    "apiKeyStored": "apiKeyStored",
-    "baseUrl": "baseUrl",
-    "delete": "delete",
+    "activate": "Activate",
+    "apiKey": "Apikey",
+    "apiKeyStored": "Apikeystored",
+    "baseUrl": "Baseurl",
+    "delete": "Delete",
     "errors": {
-      "apiKeyRequired": "apiKeyRequired",
-      "baseUrlRequired": "baseUrlRequired",
-      "testError": "testError"
+      "apiKeyRequired": "Apikeyrequired",
+      "baseUrlRequired": "Baseurlrequired",
+      "testError": "Testerror"
     },
-    "maxTokens": "maxTokens",
-    "modelLabel": "modelLabel",
-    "noConfigs": "noConfigs",
-    "save": "save",
-    "saveActivate": "saveActivate",
-    "saving": "saving",
-    "selectProvider": "selectProvider",
+    "maxTokens": "Maxtokens",
+    "modelLabel": "Modellabel",
+    "noConfigs": "Noconfigs",
+    "save": "Save",
+    "saveActivate": "Saveactivate",
+    "saving": "Saving",
+    "selectProvider": "Selectprovider",
     "status": {
-      "active": "active",
-      "failed": "failed",
-      "tested": "tested",
-      "untested": "untested"
+      "active": "Active",
+      "failed": "Failed",
+      "tested": "Tested",
+      "untested": "Untested"
     },
-    "subtitle": "subtitle",
-    "temperature": "temperature",
-    "temperatureHint": "temperatureHint",
+    "subtitle": "Subtitle",
+    "temperature": "Temperature",
+    "temperatureHint": "Temperaturehint",
     "testButton": {
-      "label": "label",
-      "testing": "testing"
+      "label": "Label",
+      "testing": "Testing"
     },
-    "title": "title"
+    "title": "Title"
   },
   "maturity": {
     "${client": {
-      "maturityLevel}": "maturityLevel}"
+      "maturityLevel}": "Maturitylevel}"
     },
-    "${displayMaturity}": "${displayMaturity}",
+    "${displayMaturity}": "${displaymaturity}",
     "${level": {
-      "key}": "key}"
+      "key}": "Key}"
     },
-    "growth": "growth",
-    "mature": "mature",
-    "startup": "startup"
+    "growth": "Growth",
+    "mature": "Mature",
+    "startup": "Startup"
   },
   "modal": {
-    "cancel": "cancel",
-    "close": "close",
-    "submit": "submit",
-    "submitting": "submitting",
-    "title": "title"
+    "cancel": "Cancel",
+    "close": "Close",
+    "submit": "Submit",
+    "submitting": "Submitting",
+    "title": "Title"
   },
   "period": {
-    "label": "label",
-    "month": "month",
-    "quarter": "quarter",
-    "week": "week",
-    "year": "year"
+    "label": "Label",
+    "month": "Month",
+    "quarter": "Quarter",
+    "week": "Week",
+    "year": "Year"
   },
   "personalInfo": {
-    "department": "department",
-    "email": "email",
-    "emailNote": "emailNote",
-    "name": "name",
-    "phone": "phone",
-    "title": "title"
+    "department": "Department",
+    "email": "Email",
+    "emailNote": "Emailnote",
+    "name": "Name",
+    "phone": "Phone",
+    "title": "Title"
   },
   "preferences": {
-    "statistics": "statistics",
-    "statisticsDesc": "statisticsDesc",
-    "title": "title"
+    "statistics": "Statistics",
+    "statisticsDesc": "Statisticsdesc",
+    "title": "Title"
   },
   "roles": {
     "${role}": "${role}",
-    "note": "note",
-    "title": "title",
+    "note": "Note",
+    "title": "Title",
     "admin": "Administrator",
     "adminDesc": "Full system access",
     "analyst": "Analyst",
@@ -2682,24 +2567,24 @@
     "viewerDesc": "View only"
   },
   "security": {
-    "changePassword": "changePassword",
-    "confirmPassword": "confirmPassword",
-    "currentPassword": "currentPassword",
-    "description": "description",
-    "lastLogin": "lastLogin",
-    "newPassword": "newPassword",
-    "title": "title",
-    "updatePassword": "updatePassword"
+    "changePassword": "Changepassword",
+    "confirmPassword": "Confirmpassword",
+    "currentPassword": "Currentpassword",
+    "description": "Descripción",
+    "lastLogin": "Lastlogin",
+    "newPassword": "Newpassword",
+    "title": "Title",
+    "updatePassword": "Updatepassword"
   },
   "segments": {
-    "agribusiness": "agribusiness",
-    "manufacturing": "manufacturing",
-    "services": "services",
-    "technology": "technology"
+    "agribusiness": "Agribusiness",
+    "manufacturing": "Manufacturing",
+    "services": "Services",
+    "technology": "Technology"
   },
   "severity": {
     "${feedback": {
-      "severity}": "severity}"
+      "severity}": "Severity}"
     }
   },
   "sourceTypes": {
@@ -2707,48 +2592,48 @@
       "source_type}": "source type}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     }
   },
   "stages": {
     "${opp": {
-      "stage}": "stage}"
+      "stage}": "Stage}"
     },
     "${opportunityData": {
-      "stage}": "stage}"
+      "stage}": "Stage}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     },
     "${stage": {
-      "key}": "key}"
+      "key}": "Key}"
     },
     "${stage}": "${stage}",
-    "approach": "approach",
-    "intelligence": "intelligence",
-    "lost": "lost",
-    "negotiation": "negotiation",
-    "proposal": "proposal",
-    "won": "won"
+    "approach": "Approach",
+    "intelligence": "Intelligence",
+    "lost": "Lost",
+    "negotiation": "Negotiation",
+    "proposal": "Proposal",
+    "won": "Won"
   },
   "statistics": {
-    "reset": "reset",
-    "save": "save",
-    "saving": "saving",
-    "subtitle": "subtitle",
-    "title": "title"
+    "reset": "Reset",
+    "save": "Save",
+    "saving": "Saving",
+    "subtitle": "Subtitle",
+    "title": "Title"
   },
   "stats": {
     "activeOpportunities": "Active Opportunities",
     "totalArea": "Área Total (m²)",
     "totalMembers": "Total de Miembros",
-    "failures": "failures",
-    "files": "files",
-    "matchingScore": "matchingScore",
-    "openFunding": "openFunding",
+    "failures": "Failures",
+    "files": "Files",
+    "matchingScore": "Matchingscore",
+    "openFunding": "Openfunding",
     "piiDetected": "PII Detected",
-    "proposalsInReview": "proposalsInReview",
-    "records": "records",
+    "proposalsInReview": "Proposalsinreview",
+    "records": "Records",
     "active": "Active",
     "activeBudget": "Active Budget",
     "address": "Address",
@@ -2862,7 +2747,7 @@
     "totalBudget": "Total Budget",
     "totalRecords": "Total Records",
     "totalRevenue": "Total Revenue",
-    "totalValue": "Total Value",
+    "totalValue": "Valor total",
     "trl13Desc": "Basic and applied research",
     "trl46Desc": "Technology development",
     "trl79Desc": "Demonstration and commercialization",
@@ -2885,90 +2770,90 @@
   },
   "status": {
     "${funding": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${job": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${project": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${proposal": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${status": {
-      "key}": "key}"
+      "key}": "Key}"
     },
     "${status}": "${status}",
-    "approved": "approved",
-    "draft": "draft",
+    "approved": "Approved",
+    "draft": "Draft",
     "in_review": "in review",
-    "rejected": "rejected",
-    "submitted": "submitted"
+    "rejected": "Rejected",
+    "submitted": "Submitted"
   },
   "statuses": {
     "${opportunityData": {
-      "status}": "status}"
+      "status}": "Status}"
     },
     "${opt": {
-      "value}": "value}"
+      "value}": "Value}"
     },
-    "active": "active",
-    "completed": "completed",
-    "pending": "pending"
+    "active": "Active",
+    "completed": "Completed",
+    "pending": "Pending"
   },
   "success": {
-    "close": "close",
-    "description": "description",
-    "title": "title"
+    "close": "Close",
+    "description": "Descripción",
+    "title": "Title"
   },
-  "token": "token",
+  "token": "Token",
   "translations": {
-    "addNewKey": "addNewKey",
-    "create": "create",
-    "deleteConfirm": "deleteConfirm",
-    "keyPath": "keyPath",
-    "showing": "showing",
-    "translationKeys": "translationKeys"
+    "addNewKey": "Addnewkey",
+    "create": "Create",
+    "deleteConfirm": "Deleteconfirm",
+    "keyPath": "Keypath",
+    "showing": "Showing",
+    "translationKeys": "Translationkeys"
   },
   "trends": {
-    "matches": "matches",
-    "noData": "noData",
-    "score": "score",
-    "title": "title"
+    "matches": "Matches",
+    "noData": "Nodata",
+    "score": "Score",
+    "title": "Title"
   },
   "trl": {
-    "projects": "projects",
-    "title": "title"
+    "projects": "Projects",
+    "title": "Title"
   },
   "types": {
     "${a": {
-      "type}": "type}"
+      "type}": "Type}"
     },
     "${activity": {
-      "type}": "type}"
+      "type}": "Type}"
     },
     "${feedback": {
       "feedback_type}": "feedback type}"
     },
     "${funding": {
-      "instrumentType}": "instrumentType}"
+      "instrumentType}": "Instrumenttype}"
     },
     "${selectedActivity": {
-      "type}": "type}"
+      "type}": "Type}"
     },
-    "create": "create",
-    "credit": "credit",
-    "delete": "delete",
-    "equity": "equity",
-    "grant": "grant",
-    "match": "match",
-    "submit": "submit",
-    "subsidy": "subsidy",
-    "transition": "transition",
-    "update": "update"
+    "create": "Create",
+    "credit": "Credit",
+    "delete": "Delete",
+    "equity": "Equity",
+    "grant": "Grant",
+    "match": "Match",
+    "submit": "Submit",
+    "subsidy": "Subsidy",
+    "transition": "Transition",
+    "update": "Update"
   },
-  "view": "view",
+  "view": "Ver",
   "chat": {
     "inputPlaceholder": "Type your question...",
     "title": "ProspecAI Assistant",
@@ -2983,8 +2868,55 @@
     "piiAnalysis": "PII Analysis",
     "portfolio": "Portfolio",
     "proposals": "Proposals"
-  }
-  ,
+  },
   "newResource": "Nuevo Recurso",
-  "noInstituteSelectedHint": "Ningún instituto seleccionado — los resultados pueden ser globales. Use el selector de instituto en el encabezado para filtrar."
+  "noInstituteSelectedHint": "Ningún instituto seleccionado — los resultados pueden ser globales. Use el selector de instituto en el encabezado para filtrar.",
+  "crm.tabContact": "Contacto",
+  "crm.tabNotes": "Notas",
+  "crm.contactHint": "Información de contacto principal",
+  "crm.tabBasic": "Información básica",
+  "portfolio.lessonsLearnedHint": "Registre aprendizajes y buenas prácticas del proyecto",
+  "portfolio.tabs.basic": "Básico",
+  "portfolio.tabs.financial": "Financiero",
+  "portfolio.tabs.lessons": "Lecciones",
+  "teams.delete": "Eliminar",
+  "teams.confirmDelete": "¿Seguro que desea eliminar el equipo?",
+  "communications.deleteConfirmation": "Eliminarconfirmation",
+  "proposals.contentHint": "Contenthint",
+  "proposals.metadataAvailableAfterCreate": "Los metadatos de la propuesta estarán disponibles después de la creación",
+  "proposals.tabs.basic": "Básico",
+  "proposals.tabs.content": "Content",
+  "proposals.tabs.metadata": "Metadata",
+  "institutes.confirmDelete": "¿Seguro que desea eliminar este instituto?",
+  "infrastructure.mediaHint": "Arrastre o pegue archivos multimedia aquí",
+  "infrastructure.mediaType": "Tipo de medio",
+  "infrastructure.delete": "Eliminar",
+  "infrastructure.confirmDelete": "¿Seguro que desea eliminar este elemento de infraestructura?",
+  "funding.tabBasic": "Básico",
+  "funding.tabTRL": "TRL",
+  "funding.tabDetails": "Detalles",
+  "opportunities.scoreFormula": "Score = (Viabilidad Técnica * 0.4) + (Financiera * 0.3) + (Estratégica * 0.3)",
+  "opportunities.tabs.basic": "Básico",
+  "opportunities.tabs.values": "Valores",
+  "opportunities.tabs.priority": "Prioridad",
+  "opportunities.currentScore": "Puntuación actual",
+  "opportunities.editOpportunity": "Editar oportunidad",
+  "reports.namePlaceholder": "Ingrese el nombre del informe...",
+  "reports.descriptionPlaceholder": "Ingrese la descripción del informe...",
+  "reports.noParameters": "Sin parámetros",
+  "reports.addParameterPlaceholder": "Agregar parámetro y presionar Enter",
+  "common.add": "Añadir",
+  "reports.formatsHelp": "Agregue formatos soportados (html, pdf, xlsx). Presione Enter.",
+  "reports.addFormatPlaceholder": "html, pdf",
+  "reports.commonFormats": "Formatos comunes",
+  "reports.tabs.basic": "Básico",
+  "reports.tabs.parameters": "Parámetros",
+  "reports.tabs.formats": "Formatos",
+  "common.createdAt": "Creado el",
+  "common.modules.institutes": "Institutos",
+  "common.modules.teams": "Equipos",
+  "common.modules.infrastructure": "Infraestructura",
+  "common.modules.communications": "Comunicaciones",
+  "settings.translations.autoTranslate": "Traducir automáticamente",
+  "pipeline.stages.intelligence": "Intelligence"
 }
