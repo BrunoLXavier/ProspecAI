@@ -9,7 +9,8 @@ import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_
+from sqlalchemy import and_, text
+from sqlalchemy.exc import ProgrammingError
 
 from adapters.database.models import SystemConfigModel
 from domain.entities.system_config import (
@@ -49,15 +50,25 @@ class SystemConfigRepository:
         for the given tenant (or returns the first/global row) and
         does not attempt to create a global row when `tenant_id` is None.
         """
-        if tenant_id:
-            query = select(SystemConfigModel).where(SystemConfigModel.tenant_id == tenant_id)
-        else:
-            # Global/default config: return first row if present
-            query = select(SystemConfigModel)
+        try:
+            if tenant_id:
+                query = select(SystemConfigModel).where(SystemConfigModel.tenant_id == tenant_id)
+            else:
+                # Global/default config: return first row if present
+                query = select(SystemConfigModel)
 
-        result = await self.session.execute(query)
-        model = result.scalar_one_or_none()
-        return model
+            result = await self.session.execute(query)
+            model = result.scalar_one_or_none()
+            return model
+        except ProgrammingError:
+            # Database doesn't have the newer columns (legacy schema with config_key/config_value).
+            # The current DB transaction becomes aborted after a DB-level error; rollback
+            # the session so subsequent queries in the same session can proceed.
+            try:
+                await self.session.rollback()
+            except Exception:
+                pass
+            return None
     
     async def _get_config(
         self,
@@ -70,22 +81,51 @@ class SystemConfigRepository:
         If no model exists for the tenant, returns None (caller should
         apply defaults).
         """
+        # Try new schema first (separate JSON columns)
         model = await self._get_or_create_config(config_key, tenant_id)
-        if not model:
+        if model:
+            mapping = {
+                self.CONFIG_EMAIL: "email_config",
+                self.CONFIG_SECURITY: "security_config",
+                self.CONFIG_CONTACT_FORM: "contact_form_config",
+                self.CONFIG_EMAIL_TEMPLATES: "email_templates"
+            }
+
+            field = mapping.get(config_key)
+            if not field:
+                return None
+
+            return getattr(model, field, None)
+
+        # Fallback: legacy schema where configs are stored as rows (config_key, config_value)
+        try:
+            if tenant_id is not None:
+                sql = text(
+                    "SELECT config_value FROM system_config WHERE tenant_id = :tenant_id AND config_key = :cfg LIMIT 1"
+                )
+                params = {"tenant_id": str(tenant_id), "cfg": config_key}
+            else:
+                # prefer global (tenant_id IS NULL) row
+                sql = text(
+                    "SELECT config_value FROM system_config WHERE tenant_id IS NULL AND config_key = :cfg LIMIT 1"
+                )
+                params = {"cfg": config_key}
+
+            res = await self.session.execute(sql, params)
+            row = res.scalar_one_or_none()
+            if row is None:
+                return None
+
+            # row is JSON -> return as dict
+            return row
+        except Exception:
+            # If any DB error occurs, ensure session is rolled back to clear aborted transaction
+            try:
+                await self.session.rollback()
+            except Exception:
+                pass
+            logger.exception("Failed to read legacy system_config row")
             return None
-
-        mapping = {
-            self.CONFIG_EMAIL: "email_config",
-            self.CONFIG_SECURITY: "security_config",
-            self.CONFIG_CONTACT_FORM: "contact_form_config",
-            self.CONFIG_EMAIL_TEMPLATES: "email_templates"
-        }
-
-        field = mapping.get(config_key)
-        if not field:
-            return None
-
-        return getattr(model, field, None)
     
     async def _save_config(
         self,

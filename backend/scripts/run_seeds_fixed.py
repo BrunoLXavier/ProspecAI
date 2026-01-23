@@ -17,19 +17,36 @@ def run(tenant_ids, modules=None):
         raise RuntimeError("DATABASE_URL is not set")
 
     eng = create_engine(DATABASE_URL.replace('+asyncpg', '')) if '+asyncpg' in DATABASE_URL else create_engine(DATABASE_URL)
+    # Seeds in order of dependencies (FK relationships)
     modnames = modules or [
+        # Base: admin and users (no FK dependencies)
         'alembic.seeds.admin',
         'alembic.seeds.users',
-        'alembic.seeds.funding',
-        'alembic.seeds.report_templates',
+        # Institutes: depends on tenant only
+        'alembic.seeds.institutes',
+        # Teams and Infrastructures: depend on institutes
+        'alembic.seeds.teams',
+        'alembic.seeds.infrastructures',
+        # Portfolio and Projects: depend on institutes
         'alembic.seeds.portfolio',
         'alembic.seeds.projects',
+        # Portfolio Projects: depend on institutes
+        'alembic.seeds.portfolio_projects',
+        # Funding sources
+        'alembic.seeds.funding',
+        # CRM, Opportunities, Notifications
+        'alembic.seeds.clients_ops_notifications',
+        # Communications: depend on users
+        'alembic.seeds.communications',
+        # Analytics and reporting
+        'alembic.seeds.report_templates',
         'alembic.seeds.ingestion_jobs',
         'alembic.seeds.report_instances',
         'alembic.seeds.statistics_aggregates',
         'alembic.seeds.llm_configs',
         'alembic.seeds.pii_detections',
-        'alembic.seeds.clients_ops_notifications',
+        # Activity and Feedback
+        'alembic.seeds.activity_feedback',
     ]
 
     for mn in modnames:

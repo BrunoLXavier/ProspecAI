@@ -16,6 +16,7 @@ from adapters.repositories.user_repository import UserRepository
 from adapters.repositories.refresh_token_repository import RefreshTokenRepository
 from adapters.repositories.login_attempt_repository import LoginAttemptRepository
 from adapters.repositories.system_config_repository import SystemConfigRepository
+from domain.entities.system_config import SecurityConfig
 from infrastructure.jwt_service import JWTService, get_jwt_service
 from infrastructure.email_service import EmailService, get_email_service
 
@@ -284,8 +285,15 @@ class LoginUser:
             AccountLockedError: If account is locked
             InvalidCredentialsError: If credentials are wrong
         """
-        # Get security config for rate limiting
-        security_config = await self.config_repo.get_security_config(tenant_id)
+        # Get security config for rate limiting. If reading config fails (legacy DB/schema errors),
+        # fall back to defaults to avoid aborting the whole login flow.
+        try:
+            security_config = await self.config_repo.get_security_config(tenant_id)
+            if security_config is None:
+                security_config = SecurityConfig()
+        except Exception:
+            logger.exception("Failed to load security config; using defaults")
+            security_config = SecurityConfig()
         
         # Check rate limiting
         is_locked, attempts, lockout_ends = await self.attempt_repo.get_lockout_status(

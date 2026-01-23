@@ -1,7 +1,88 @@
 # ProspecAI - Implementation History
 
 **Última atualização:** 23 de Janeiro de 2026  
-**Status:** ✅ Production Ready - UI Standardization Complete (All 8 Phases)
+**Status:** ✅ Production Ready - Migration Consolidation & Seeds Complete
+
+---
+
+## 2026-01-23 - Migration Consolidation & Comprehensive Seeds
+
+### Migration Consolidation
+
+Consolidated 18 individual Alembic migrations into a single master script:
+
+1. **Deleted Old Migrations:**
+   - 20260119_baseline_state.py
+   - 20260120_add_feedback_columns.py
+   - 20260121_add_pii_document_id.py
+   - 20260122_add_communications_tables.py
+   - 20260122_add_pii_detection_columns.py
+   - 20260123_add_funding_execution_columns.py
+   - 20260123_add_system_config_columns.py
+   - 20260124_add_feedback_deleted_at.py
+   - 20260125_add_funding_url.py
+   - 20260126_add_projects_research_area.py
+   - 20260127_add_projects_start_end_dates.py
+   - 20260128_add_projects_missing_columns.py
+   - 20260130_create_institutes_and_user_institutes.py
+   - 20260131_add_institute_relations.py
+   - 20260201_add_typed_columns.py
+   - 20260202_institute_management.py
+   - 20260222_add_equipamentos_infrastructures.py
+   - 20260223_fix_communications_rls.py
+
+2. **New Consolidated Migration:**
+   - `20260123_consolidated_schema.py` - Complete schema with 40+ tables
+   - Includes all extensions (pgcrypto, btree_gist)
+   - All RLS policies with correct column mappings
+   - Default roles, tenant, and admin user seeding
+
+### New Seed Files Created
+
+1. **institutes.py** - 5 SENAI ISI/CIS institutes:
+   - ISI SVP (Joinville/SC) - Sistemas Virtuais de Produção
+   - ISI QV (Rio de Janeiro/RJ) - Química Verde
+   - ISI B&F (Rio de Janeiro/RJ) - Biossintéticos e Fibras
+   - ISI II (São Paulo/SP) - Inspeção Inteligente
+   - CIS SO (Curitiba/PR) - Soluções Organizacionais
+
+2. **teams.py** - 8 team members across institutes
+
+3. **infrastructures.py** - 7 laboratories with equipment
+
+4. **portfolio_projects.py** - 7 R&D portfolio projects with company data
+
+5. **communications.py** - 3 threads, 6 messages, 1 meeting minute
+
+6. **activity_feedback.py** - Feedback entries and audit logs
+
+### Seed Runner Update
+
+Updated `run_seeds_fixed.py` with correct dependency order:
+1. admin, users (no FK dependencies)
+2. institutes
+3. teams, infrastructures (depend on institutes)
+4. portfolio, projects
+5. portfolio_projects
+6. funding, clients_ops_notifications
+7. communications
+8. report_templates, ingestion_jobs, report_instances
+9. statistics_aggregates, llm_configs, pii_detections
+10. activity_feedback
+
+### Bug Fixes
+
+1. Fixed RLS policy for `tenants` table (uses `id` not `tenant_id`)
+2. Fixed RLS policy for `refresh_tokens` table (uses `user_id` not `tenant_id`)
+3. Fixed `login_attempts` column name (`timestamp` not `attempted_at`)
+4. Fixed admin password hash (regenerated valid bcrypt hash)
+5. Fixed `portfolio_projects` seed SQL syntax (CAST instead of ::)
+6. Fixed `teams` seed unique constraint violation (unique usuario_id)
+
+### Admin Credentials
+
+- **Email:** admin@prospecai.com
+- **Password:** Admin@123
 
 ---
 
@@ -881,7 +962,7 @@ All consolidated modals were updated to correctly use base component interfaces:
 ### Data Seeding and Test User Script (Session 2026-01-15)
 
 - **Seed templates added:** `alembic/versions/20260115_01_seed_users.py`, `alembic/versions/20260115_02_seed_funding_sources.py` implementing tenant-aware `seed_for_tenant(engine, tenant_id)` helpers (idempotent, pseudonymized values).
-- **Test user creation script:** `backend/scripts/create_test_users.py` — async script that uses application DB session to create/rotate/cleanup test users per tenant, hashes passwords via domain helper, and emits `.env.test` or export lines for CI/E2E.
+- **Unified CLI:** `backend/scripts/prospecai_cli.py` — consolidated CLI with commands: `token`, `check`, `verify-seeds`, `create-users`
 - **Notes:** Seeds use placeholder password hashes for safety. The script generates secure passwords at runtime and should be invoked by CI after migrations. Seeds are non-production pseudonymized data only.
 
 **Seeds and verification (from docs/SEEDS.md):**
@@ -911,7 +992,7 @@ start-docker.bat
 - **Verifying seeded data**
 
 ```powershell
-docker-compose run --rm backend python /app/scripts/verify_seeds.py --tenants 00000000-0000-0000-0000-000000000001
+docker-compose run --rm backend python /app/scripts/prospecai_cli.py verify-seeds --tenants 00000000-0000-0000-0000-000000000001
 ```
 
 This verification helper exits with a non-zero code if required tables or demo rows are missing.
@@ -921,7 +1002,7 @@ This verification helper exits with a non-zero code if required tables or demo r
    1. Build the backend image
    2. Start a Postgres service (or reuse CI Postgres)
    3. Run `run_seeds_fixed.py --tenants ...`
-   4. Run `verify_seeds.py --tenants ...` and fail the job if verification fails
+   4. Run `prospecai_cli.py verify-seeds --tenants ...` and fail the job if verification fails
 
 Notes: Seeds are idempotent and tenant-scoped. Prefer `run_seeds_fixed.py` as the canonical runner. If a seed expects a table/column that is not present in your DB, the verification step will warn or fail depending on the table's importance.
 
