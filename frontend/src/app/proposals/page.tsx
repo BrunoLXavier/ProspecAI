@@ -16,6 +16,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 
 interface ProposalFilters {
   search: string;
@@ -31,9 +33,12 @@ interface ProposalFilters {
 
 export default function ProposalsPage() {
   const t = useTranslations('proposals');
+  const tCommon = useTranslations('common');
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
+  );
   const [selectedProposal, setSelectedProposal] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -127,6 +132,63 @@ export default function ProposalsPage() {
     const start = (currentPage - 1) * pageSize;
     return filteredProposals.slice(start, start + pageSize);
   }, [filteredProposals, currentPage, pageSize]);
+
+  // Transform proposals to timeline items
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return paginatedProposals.map((proposal: any) => ({
+      id: proposal.id,
+      title: proposal.title,
+      description: `${t('opportunity')}: ${proposal.opportunity_title || proposal.opportunity_id || '-'} | ${t('fundingSource')}: ${proposal.funding_source || '-'}`,
+      date: proposal.created_at,
+      onClick: () => handleProposalClick(proposal),
+      status: proposal.status === 'approved' ? 'success' : proposal.status === 'rejected' ? 'error' : proposal.status === 'submitted' ? 'info' : 'default',
+      metadata: { version: proposal.current_version, status: proposal.status },
+    }));
+  }, [paginatedProposals, t]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<any>[] = useMemo(() => [
+    { key: 'title', header: t('title'), accessor: 'title', sortable: true },
+    { 
+      key: 'opportunity', 
+      header: t('opportunity'), 
+      accessor: 'opportunity_title', 
+      sortable: true,
+      render: (value, row) => value || row.opportunity_id || '-',
+    },
+    { 
+      key: 'funding_source', 
+      header: t('fundingSource'), 
+      accessor: 'funding_source', 
+      sortable: true,
+      render: (value) => value || '-',
+    },
+    { 
+      key: 'status', 
+      header: t('statusLabel'), 
+      accessor: 'status', 
+      sortable: true,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(value as string)}`}>
+          {String(t(`status.${String(value)}`) || value || '')}
+        </span>
+      ),
+    },
+    { 
+      key: 'version', 
+      header: t('version'), 
+      accessor: 'current_version', 
+      sortable: true,
+      render: (value) => `v${value || '1.0'}`,
+    },
+    { 
+      key: 'created_at', 
+      header: t('created'), 
+      accessor: 'created_at', 
+      sortable: true,
+      render: (value) => new Date(value as string).toLocaleDateString('pt-BR'),
+    },
+  ], [t]);
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -233,14 +295,63 @@ export default function ProposalsPage() {
       />
 
       {/* Content View */}
-      {viewMode === 'board' ? (
+      {viewMode === 'board' && (
         <ProposalsBoard
           proposals={filteredProposals}
           onItemClick={handleProposalClick}
           onProposalMove={handleProposalMove}
         />
-      ) : (
-        /* List View */
+      )}
+
+      {viewMode === 'timeline' && (
+        <div className="space-y-4">
+          <TimelineView
+            items={timelineItems}
+            showConnectors={true}
+            animated={true}
+          />
+          {filteredProposals.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredProposals.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
+          )}
+        </div>
+      )}
+
+      {viewMode === 'table' && (
+        <TableView<any>
+          data={filteredProposals}
+          columns={tableColumns}
+          getRowKey={(row) => row.id}
+          onRowClick={handleProposalClick}
+          loading={isLoading}
+          emptyMessage={tCommon('noResults')}
+          searchable={false}
+          paginated={true}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          totalItems={filteredProposals.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          striped={true}
+          hoverable={true}
+        />
+      )}
+
+      {viewMode === 'list' && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
             {isLoading ? (
@@ -265,7 +376,7 @@ export default function ProposalsPage() {
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(proposal.status)}`}
                           >
-                            {t(`status.${proposal.status}`)}
+                            {String(t(`status.${String(proposal.status)}`) || proposal.status || '')}
                           </span>
                           {proposal.adherence_score && (
                             <ConfidenceBadge score={proposal.adherence_score} />
@@ -293,11 +404,11 @@ export default function ProposalsPage() {
                           )}
                         </div>
                       </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Pagination */}

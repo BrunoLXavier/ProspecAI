@@ -20,7 +20,9 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
 import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 import Icon from '@/components/ui/Icon';
+import { ViewMode } from '@/components/ui/ViewToggle';
 
 interface Notification {
   id: string;
@@ -36,7 +38,7 @@ export default function NotificationsPage() {
   const t = useTranslations('notifications');
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<{ type: string; read: string }>({ type: 'all', read: 'all' });
-  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   // Pagination state
   const { initialPage, initialPageSize } = usePagination(20, true);
@@ -154,9 +156,102 @@ export default function NotificationsPage() {
           { label: notification.type.toUpperCase(), color: `text-${iconConfig.color}-600 dark:text-${iconConfig.color}-400` },
           !notification.read ? { label: 'UNREAD', color: 'text-primary-600 dark:text-primary-400' } : null,
         ].filter(Boolean) as TimelineItem['tags'],
+        onClick: () => markAsReadMutation.mutate(notification.id),
       };
     });
-  }, [paginatedNotifications]);
+  }, [paginatedNotifications, markAsReadMutation]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<Notification>[] = useMemo(() => [
+    {
+      key: 'title',
+      header: t('table.title') || 'Title',
+      accessor: 'title',
+      sortable: true,
+      render: (_, row) => (
+        <div className="flex items-center gap-2">
+          {!row.read && <span className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0" />}
+          <span className={`font-medium ${!row.read ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+            {row.title}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'type',
+      header: t('table.type') || 'Type',
+      accessor: 'type',
+      sortable: true,
+      render: (_, row) => {
+        const iconConfig = getTypeIconConfig(row.type);
+        return (
+          <div className="flex items-center gap-2">
+            <Icon color={iconConfig.color} size="sm">
+              {iconConfig.icon}
+            </Icon>
+            <span className="capitalize text-sm">{row.type}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'createdAt',
+      header: t('table.date') || 'Date',
+      accessor: 'createdAt',
+      sortable: true,
+      render: (_, row) => (
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {formatTimeAgo(row.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: 'read',
+      header: t('table.status') || 'Status',
+      accessor: 'read',
+      sortable: true,
+      render: (_, row) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.read 
+            ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' 
+            : 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
+        }`}>
+          {row.read ? (t('status.read') || 'Read') : (t('status.unread') || 'Unread')}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: '',
+      accessor: (row) => row.id,
+      render: (_, row) => (
+        <div className="flex items-center gap-2">
+          {!row.read && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                markAsReadMutation.mutate(row.id);
+              }}
+              className="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition"
+              title={t('markAsRead') || 'Mark as read'}
+            >
+              <CheckIcon className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteNotificationMutation.mutate(row.id);
+            }}
+            className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
+            title={t('delete') || 'Delete'}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
+  ], [t, markAsReadMutation, deleteNotificationMutation]);
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -170,18 +265,7 @@ export default function NotificationsPage() {
         subtitle={unreadCount > 0 ? t('unreadCount', { count: unreadCount }) : t('allRead')}
         viewToggle={true}
         viewMode={viewMode}
-        onViewChange={(m) => setViewMode(m)}
-        listLabel="Time Line View"
-        listIcon={
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 12h4" />
-            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6" />
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 12h4" />
-            <circle cx="21" cy="12" r="1.5" fill="currentColor" />
-          </svg>
-        }
+        onViewChange={(m) => setViewMode(m as ViewMode)}
         action={
           unreadCount > 0 ? (
             <button
@@ -221,8 +305,162 @@ export default function NotificationsPage() {
         defaultExpanded={false}
       />
 
-      {/* Notifications List / Board */}
-      {viewMode === 'list' ? (
+      {/* Notifications Views */}
+      {viewMode === 'list' && (
+        <div className="space-y-4">
+          {/* ListView - Card-based layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {isLoading ? (
+              // Loading skeleton
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-soft animate-pulse">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : paginatedNotifications.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+                <InboxIcon className="w-12 h-12 mb-4" />
+                <p>{t('empty')}</p>
+              </div>
+            ) : (
+              paginatedNotifications.map((n) => {
+                const iconConfig = getTypeIconConfig(n.type);
+                return (
+                  <div
+                    key={n.id}
+                    onClick={() => !n.read && markAsReadMutation.mutate(n.id)}
+                    className={`bg-white dark:bg-slate-800 rounded-xl p-4 shadow-soft border-l-4 cursor-pointer hover:shadow-md transition-shadow ${
+                      n.type === 'success' ? 'border-l-green-500' :
+                      n.type === 'warning' ? 'border-l-yellow-500' :
+                      n.type === 'error' ? 'border-l-red-500' :
+                      'border-l-blue-500'
+                    } ${!n.read ? 'ring-2 ring-primary-200 dark:ring-primary-800' : ''}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Icon color={iconConfig.color} size="lg">
+                        {iconConfig.icon}
+                      </Icon>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium truncate ${!n.read ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                              {n.title}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                              {formatTimeAgo(n.createdAt)}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {!n.read && <span className="w-2 h-2 bg-primary-500 rounded-full" />}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteNotificationMutation.mutate(n.id);
+                              }}
+                              className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition opacity-0 group-hover:opacity-100"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{n.message}</p>
+                        <div className="flex items-center gap-2 mt-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${
+                            n.type === 'success' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                            n.type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                            n.type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          }`}>
+                            {n.type}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Pagination */}
+          {notifications.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={notifications.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
+          )}
+        </div>
+      )}
+
+      {viewMode === 'board' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {['success', 'warning', 'info', 'error'].map((type) => {
+            const filteredNotifications = notifications.filter(n => n.type === type);
+            return (
+              <div key={type} className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-soft">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize">{type}</h3>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+                    {filteredNotifications.length}
+                  </span>
+                </div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {filteredNotifications.length === 0 ? (
+                    <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">{t('empty')}</p>
+                  ) : (
+                    filteredNotifications.map(n => {
+                      const iconConfig = getTypeIconConfig(n.type);
+                      return (
+                        <div
+                          key={n.id}
+                          onClick={() => !n.read && markAsReadMutation.mutate(n.id)}
+                          className="p-3 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-100 dark:border-slate-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition"
+                        >
+                          <div className="flex items-start gap-3">
+                            <Icon color={iconConfig.color} size="md">
+                              {iconConfig.icon}
+                            </Icon>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{n.title}</p>
+                                  <p className="text-xs text-gray-400 dark:text-gray-500">{formatTimeAgo(n.createdAt)}</p>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  {!n.read && <span className="inline-block w-2 h-2 bg-primary-500 rounded-full" />}
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{n.message}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {viewMode === 'timeline' && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden p-6">
             <TimelineView
@@ -254,39 +492,41 @@ export default function NotificationsPage() {
             />
           )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {['success', 'warning', 'info', 'error'].map((type) => (
-            <div key={type} className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-soft">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 capitalize">{type}</h3>
-              <div className="space-y-3">
-                {notifications.filter(n => n.type === type).map(n => {
-                  const iconConfig = getTypeIconConfig(n.type);
-                  return (
-                  <div key={n.id} className="p-3 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-100 dark:border-slate-700">
-                    <div className="flex items-start gap-3">
-                      <Icon color={iconConfig.color} size="md">
-                        {iconConfig.icon}
-                      </Icon>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{n.title}</p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500">{formatTimeAgo(n.createdAt)}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {!n.read && <span className="inline-block w-2 h-2 bg-primary-500 rounded-full" />}
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{n.message}</p>
-                      </div>
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
+      )}
+
+      {viewMode === 'table' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
+          <TableView<Notification>
+            data={paginatedNotifications}
+            columns={tableColumns}
+            getRowKey={(row) => row.id}
+            onRowClick={(row) => !row.read && markAsReadMutation.mutate(row.id)}
+            loading={isLoading}
+            emptyMessage={t('empty')}
+            emptyIcon={<InboxIcon className="w-12 h-12" />}
+            striped={true}
+            hoverable={true}
+            paginated={false}
+          />
+          
+          {/* Pagination */}
+          {notifications.length > 0 && (
+            <div className="p-4 border-t border-gray-200 dark:border-slate-700">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={notifications.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+                persistInUrl={true}
+                showTotal={true}
+                showPageSizeSelector={true}
+              />
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

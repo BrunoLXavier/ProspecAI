@@ -1,40 +1,63 @@
 // View Toggle Component
-// Reusable toggle between Board (Kanban) and Table views
+// Reusable toggle between List, Board (Kanban), Timeline, and Table views
 // Used across multiple pages for consistent UX
 'use client';
 
 import { useEffect, ReactNode } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { Squares2X2Icon, ListBulletIcon } from '@heroicons/react/24/outline';
+import { 
+  Squares2X2Icon, 
+  ListBulletIcon, 
+  TableCellsIcon,
+  ClockIcon 
+} from '@heroicons/react/24/outline';
 
-export type ViewMode = 'board' | 'list';
+export type ViewMode = 'list' | 'board' | 'timeline' | 'table';
+
+interface ViewOption {
+  mode: ViewMode;
+  icon: ReactNode;
+  label: string;
+}
 
 interface ViewToggleProps {
   viewMode: ViewMode;
   onViewChange: (mode: ViewMode) => void;
   persistToUrl?: boolean;
-  boardLabel?: string;
-  listLabel?: string;
-  listIcon?: ReactNode;
+  /** Which view modes to show. Defaults to all 4 */
+  availableModes?: ViewMode[];
+  /** Custom labels for each mode */
+  labels?: Partial<Record<ViewMode, string>>;
 }
+
+const DEFAULT_VIEW_OPTIONS: ViewOption[] = [
+  { mode: 'list', icon: <ListBulletIcon className="w-5 h-5" />, label: 'List View' },
+  { mode: 'board', icon: <Squares2X2Icon className="w-5 h-5" />, label: 'Board View' },
+  { mode: 'timeline', icon: <ClockIcon className="w-5 h-5" />, label: 'Timeline View' },
+  { mode: 'table', icon: <TableCellsIcon className="w-5 h-5" />, label: 'Table View' },
+];
+
+const ALL_MODES: ViewMode[] = ['list', 'board', 'timeline', 'table'];
 
 export default function ViewToggle({
   viewMode,
   onViewChange,
   persistToUrl = true,
-  boardLabel = 'Board View',
-  listLabel = 'List View',
-  listIcon,
+  availableModes = ALL_MODES,
+  labels = {},
 }: ViewToggleProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Filter options based on available modes
+  const viewOptions = DEFAULT_VIEW_OPTIONS.filter(opt => availableModes.includes(opt.mode));
+
   // Sync with URL on mount
   useEffect(() => {
     if (persistToUrl) {
       const urlView = searchParams.get('view') as ViewMode | null;
-      if (urlView && (urlView === 'board' || urlView === 'list') && urlView !== viewMode) {
+      if (urlView && availableModes.includes(urlView) && urlView !== viewMode) {
         onViewChange(urlView);
       }
     }
@@ -56,33 +79,27 @@ export default function ViewToggle({
 
   return (
     <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-      <button
-        onClick={() => handleViewChange('board')}
-        className={`${baseButtonClass} ${viewMode === 'board' ? activeClass : inactiveClass}`}
-        title={boardLabel}
-        aria-label={boardLabel}
-        aria-pressed={viewMode === 'board'}
-      >
-        <Squares2X2Icon className="w-5 h-5" />
-      </button>
-      <button
-        onClick={() => handleViewChange('list')}
-        className={`${baseButtonClass} ${viewMode === 'list' ? activeClass : inactiveClass}`}
-        title={listLabel}
-        aria-label={listLabel}
-        aria-pressed={viewMode === 'list'}
-      >
-        {listIcon ? listIcon : <ListBulletIcon className="w-5 h-5" />}
-      </button>
+      {viewOptions.map((option) => (
+        <button
+          key={option.mode}
+          onClick={() => handleViewChange(option.mode)}
+          className={`${baseButtonClass} ${viewMode === option.mode ? activeClass : inactiveClass}`}
+          title={labels[option.mode] || option.label}
+          aria-label={labels[option.mode] || option.label}
+          aria-pressed={viewMode === option.mode}
+        >
+          {option.icon}
+        </button>
+      ))}
     </div>
   );
 }
 
 // Hook to manage view mode state with URL persistence
-export function useViewMode(defaultMode: ViewMode = 'list'): [ViewMode, (mode: ViewMode) => void] {
+export function useViewMode(defaultMode: ViewMode = 'list', availableModes: ViewMode[] = ALL_MODES): [ViewMode, (mode: ViewMode) => void] {
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const initialMode = urlView === 'board' || urlView === 'list' ? urlView : defaultMode;
+  const initialMode = urlView && availableModes.includes(urlView) ? urlView : defaultMode;
   
   const [viewMode, setViewMode] = __useState<ViewMode>(initialMode);
   

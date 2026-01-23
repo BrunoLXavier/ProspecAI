@@ -10,7 +10,9 @@ import PageHeader from '@/components/ui/PageHeader';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import { ViewMode } from '@/components/ui/ViewToggle';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
+import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import TeamModal from '@/components/entities/TeamModal';
 import TeamsBoard from '@/components/teams/TeamsBoard';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
@@ -19,7 +21,9 @@ export default function TeamsPage() {
   const t = useTranslations('teams');
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
+  );
   const [filters, setFilters] = useState({ search: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any | null>(null);
@@ -58,6 +62,57 @@ export default function TeamsPage() {
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
 
+  // Timeline items for TimelineView
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return filtered.map((item: any) => ({
+      id: item.id,
+      title: item.name || 'Team',
+      description: item.description || t('noDescription'),
+      date: item.created_at || item.updated_at || new Date().toISOString(),
+      status: 'info' as const,
+      icon: <UserGroupIcon className="w-4 h-4" />,
+      tags: item.member_ids?.length ? [{ label: `${item.member_ids.length} ${t('members')}`, color: 'blue' }] : [],
+      onClick: () => { setSelectedTeam(item); setModalOpen(true); },
+    }));
+  }, [filtered, t]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<any>[] = useMemo(() => [
+    {
+      key: 'name',
+      header: t('table.name'),
+      accessor: 'name',
+      sortable: true,
+      render: (value: unknown) => (
+        <span className="font-medium text-gray-900 dark:text-white">{String(value || 'Team')}</span>
+      ),
+    },
+    {
+      key: 'description',
+      header: t('table.description'),
+      accessor: 'description',
+      sortable: false,
+      hiddenOnMobile: true,
+      render: (value: unknown) => (
+        <span className="text-gray-500 dark:text-gray-400 truncate max-w-xs block">
+          {String(value || t('noDescription'))}
+        </span>
+      ),
+    },
+    {
+      key: 'members',
+      header: t('table.members'),
+      accessor: (row: any) => row.member_ids?.length || 0,
+      sortable: true,
+      align: 'center' as const,
+      render: (value: unknown, row: any) => (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+          {row.member_ids?.length || 0} {t('members')}
+        </span>
+      ),
+    },
+  ], [t]);
+
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -88,9 +143,45 @@ export default function TeamsPage() {
         onReset={() => setFilters({ search: '' })}
       />
 
-      {viewMode === 'board' ? (
+      {/* Board View */}
+      {viewMode === 'board' && (
         <TeamsBoard items={filtered} onItemClick={(it) => { setSelectedTeam(it); setModalOpen(true); }} />
-      ) : (
+      )}
+
+      {/* Timeline View */}
+      {viewMode === 'timeline' && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-6">
+          {isLoading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('noResults')}</div>
+          ) : (
+            <TimelineView items={timelineItems} size="md" showConnectors animated />
+          )}
+        </div>
+      )}
+
+      {/* Table View */}
+      {viewMode === 'table' && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
+          {isLoading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+          ) : (
+            <TableView
+              data={filtered}
+              columns={tableColumns}
+              getRowKey={(row: any) => row.id}
+              onRowClick={(row: any) => { setSelectedTeam(row); setModalOpen(true); }}
+              paginated
+              pageSize={pageSize}
+              searchable={false}
+            />
+          )}
+        </div>
+      )}
+
+      {/* List View (default) */}
+      {viewMode === 'list' && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
             {isLoading ? (

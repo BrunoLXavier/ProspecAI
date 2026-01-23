@@ -1391,7 +1391,7 @@ export default function LayoutPage() {
                   onClick={() => updateConfig('font_size', sz)}
                   className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border transition-all ${config.font_size === sz ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
                 >
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">{t(`layout.typography.${sz === 'sm' ? 'small' : sz === 'base' ? 'normal' : 'large'}`) || sz}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{String(t(`layout.typography.${sz === 'sm' ? 'small' : sz === 'base' ? 'normal' : 'large'}`) || sz || '')}</span>
                   {config.font_size === sz && <CheckIcon className="w-4 h-4 text-primary-500 ml-1" />}
                 </button>
               ))}

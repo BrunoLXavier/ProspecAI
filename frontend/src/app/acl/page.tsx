@@ -230,14 +230,14 @@ export default function ACLPage() {
 									</div>
 									<div>
 										<h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-											{t(`users.roleTypes.${role.id}`) || t(`acl.roleNames.${role.id}`) || role.name}
+											{String(t(`users.roleTypes.${String(role.id)}`) || t(`acl.roleNames.${String(role.id)}`) || role.name || '')}
 											{role.is_system && (
 												<span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
 													{t('acl.systemBadge') || 'System'}
 												</span>
 											)}
 										</h3>
-										<p className="text-sm text-gray-500 dark:text-gray-400">{t(`acl.roleDescriptions.${role.id}`) || role.description}</p>
+										<p className="text-sm text-gray-500 dark:text-gray-400">{String(t(`acl.roleDescriptions.${String(role.id)}`) || role.description || '')}</p>
 									</div>
 								</div>
                 
@@ -274,7 +274,7 @@ export default function ACLPage() {
 											</th>
 											{permissions.map(perm => (
 												<th key={perm} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-													{t(`acl.permissions.${perm}`) || PERMISSION_LABELS[perm] || perm}
+													{String(t(`acl.permissions.${String(perm)}`) || PERMISSION_LABELS[perm] || perm || '')}
 												</th>
 											))}
 										</tr>

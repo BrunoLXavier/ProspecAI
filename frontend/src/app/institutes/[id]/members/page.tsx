@@ -273,7 +273,7 @@ export default function InstituteMembersPage() {
               >
                 {roleOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
-                    {t(`roles.${opt.value}`) || opt.label}
+                    {String(t(`roles.${String(opt.value)}`) || opt.label || '')}
                   </option>
                 ))}
               </select>
@@ -398,7 +398,7 @@ export default function InstituteMembersPage() {
                     >
                       {roleOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
-                          {t(`roles.${opt.value}`) || opt.label}
+                          {String(t(`roles.${String(opt.value)}`) || opt.label || '')}
                         </option>
                       ))}
                     </select>

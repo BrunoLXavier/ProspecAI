@@ -14,6 +14,8 @@ import {
 	UserCircleIcon,
 	CheckIcon,
 	XMarkIcon,
+	ClockIcon,
+	UserPlusIcon,
 } from '@heroicons/react/24/outline';
 import { apiClient } from '@/lib/api-client';
 import UserModal from '@/components/users/UserModal';
@@ -21,6 +23,8 @@ import Pagination, { usePagination } from '@/components/ui/Pagination';
 import PageHeader from '@/components/ui/PageHeader';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import { ViewMode } from '@/components/ui/ViewToggle';
+import TableView, { TableColumn } from '@/components/ui/TableView';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
 
 interface User {
 	id: string;
@@ -240,14 +244,14 @@ export default function UsersPage() {
 					>
 						<option value="">{t('users.allRoles') || 'All Roles'}</option>
 						{ROLES.map(role => (
-							<option key={role.value} value={role.value}>{t(`users.roleTypes.${role.value}`) || role.value}</option>
+							<option key={role.value} value={role.value}>{String(t(`users.roleTypes.${String(role.value)}`) || role.value || '')}</option>
 						))}
 					</select>
 				</div>
 			</div>
 
 			{/* Users View */}
-			{viewMode === 'board' ? (
+			{viewMode === 'board' && (
 				/* Board View - Grouped by Role */
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 					{ROLES.map(roleConfig => {
@@ -256,7 +260,7 @@ export default function UsersPage() {
 							<div key={roleConfig.value} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
 								<h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-between">
 									<span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
-										{t(`users.roleTypes.${roleConfig.value}`) || roleConfig.value}
+										{String(t(`users.roleTypes.${String(roleConfig.value)}`) || roleConfig.value || '')}
 									</span>
 									<span className="text-xs text-gray-500 dark:text-gray-400">{roleUsers.length}</span>
 								</h3>
@@ -295,123 +299,252 @@ export default function UsersPage() {
 						);
 					})}
 				</div>
-			) : (
-			/* List View - Table */
-			<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
-				{isLoading ? (
-					<div className="p-8 text-center text-gray-500 dark:text-gray-400">
-						{tCommon('loading') || 'Loading...'}
-					</div>
-				) : filteredUsers.length === 0 ? (
-					<div className="p-8 text-center text-gray-500 dark:text-gray-400">
-						{t('users.noUsers') || 'No users found'}
-					</div>
-				) : (
-					<div className="overflow-x-auto">
-						<table className="w-full">
-							<thead className="bg-gray-50 dark:bg-slate-700">
-								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-										{t('users.user') || 'User'}
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-										{t('users.role') || 'Role'}
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-										{t('users.status') || 'Status'}
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-										{t('users.lastLogin') || 'Last Login'}
-									</th>
-									<th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-										{t('users.actions') || 'Actions'}
-									</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-								{paginatedUsers.map((user) => {
-									const roleConfig = getRoleConfig(user.role);
-									return (
-										<tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
-											<td className="px-6 py-4 whitespace-nowrap">
-												<div className="flex items-center">
-													<div className="flex-shrink-0 h-10 w-10">
-														<div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-															<UserCircleIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-														</div>
-													</div>
-													<div className="ml-4">
-														<div className="text-sm font-medium text-gray-900 dark:text-white">
-															{user.name}
-														</div>
-														<div className="text-sm text-gray-500 dark:text-gray-400">
-															{user.email}
-														</div>
-													</div>
+			)}
+
+			{viewMode === 'list' && (
+				/* List View - Card-based layout */
+				<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
+					{isLoading ? (
+						<div className="p-8 text-center text-gray-500 dark:text-gray-400">
+							{tCommon('loading') || 'Loading...'}
+						</div>
+					) : filteredUsers.length === 0 ? (
+						<div className="p-8 text-center text-gray-500 dark:text-gray-400">
+							{t('users.noUsers') || 'No users found'}
+						</div>
+					) : (
+						<ul className="divide-y divide-gray-200 dark:divide-gray-700">
+							{paginatedUsers.map((user) => {
+								const roleConfig = getRoleConfig(user.role);
+								return (
+									<li
+										key={user.id}
+										onClick={() => openEditModal(user)}
+										className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer"
+									>
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-4">
+												<div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+													<UserCircleIcon className="h-7 w-7 text-primary-600 dark:text-primary-400" />
 												</div>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
+												<div>
+													<h3 className="text-base font-semibold text-gray-900 dark:text-white">{user.name}</h3>
+													<p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+												</div>
+											</div>
+											<div className="flex items-center gap-4">
 												<span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
-													{t(`users.roleTypes.${roleConfig.value || roleConfig}`) || roleConfig.value}
+													{String(t(`users.roleTypes.${String(roleConfig.value)}`) || roleConfig.value || '')}
 												</span>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
 												<span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${
 													user.is_active
 														? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
 														: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
 												}`}>
-													{user.is_active ? (
-														<>
-															<CheckIcon className="w-3 h-3" />
-															{t('users.active') || 'Active'}
-														</>
-													) : (
-														<>
-															<XMarkIcon className="w-3 h-3" />
-															{t('users.inactive') || 'Inactive'}
-														</>
-													)}
+													{user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+													{user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
 												</span>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-												{user.last_login 
-													? new Date(user.last_login).toLocaleString('pt-BR')
-													: t('users.never') || 'Never'}
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-												<div className="flex justify-end gap-2">
+												<div className="text-sm text-gray-500 dark:text-gray-400">
+													<ClockIcon className="w-4 h-4 inline mr-1" />
+													{user.last_login 
+														? new Date(user.last_login).toLocaleDateString('pt-BR')
+														: t('users.never') || 'Never'}
+												</div>
+												<div className="flex gap-2">
 													<button
-														onClick={() => openEditModal(user)}
+														onClick={(e) => { e.stopPropagation(); openEditModal(user); }}
 														className="p-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
 														title={tCommon('edit') || 'Edit'}
 													>
 														<PencilIcon className="w-5 h-5" />
 													</button>
 													<button
-														onClick={() => openEditModal(user)}
+														onClick={(e) => { e.stopPropagation(); openEditModal(user); }}
 														className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
 														title={tCommon('delete') || 'Delete'}
 													>
 														<TrashIcon className="w-5 h-5" />
 													</button>
 												</div>
-											</td>
-										</tr>
-									);
-								})}
-							</tbody>
-						</table>
+											</div>
+										</div>
+									</li>
+								);
+							})}
+						</ul>
+					)}
+					{/* Summary */}
+					<div className="px-6 py-3 bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-gray-600">
+						<p className="text-sm text-gray-600 dark:text-gray-400">
+							{t('users.showing') || 'Showing'} {filteredUsers.length} {t('users.of') || 'of'} {users.length} {t('users.users') || 'users'}
+						</p>
 					</div>
-				)}
-        
-				{/* Summary */}
-				<div className="px-6 py-3 bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-gray-600">
-					<p className="text-sm text-gray-600 dark:text-gray-400">
-						{t('users.showing') || 'Showing'} {filteredUsers.length} {t('users.of') || 'of'} {users.length} {t('users.users') || 'users'}
-					</p>
 				</div>
-			</div>
+			)}
+
+			{viewMode === 'table' && (
+				/* Table View - Using TableView component */
+				<TableView<User>
+					data={paginatedUsers}
+					columns={[
+						{
+							key: 'name',
+							header: t('users.user') || 'User',
+							accessor: 'name',
+							sortable: true,
+							render: (_value, user) => (
+								<div className="flex items-center">
+									<div className="flex-shrink-0 h-10 w-10">
+										<div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+											<UserCircleIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+										</div>
+									</div>
+									<div className="ml-4">
+										<div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+										<div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+									</div>
+								</div>
+							),
+						},
+						{
+							key: 'email',
+							header: t('users.email') || 'Email',
+							accessor: 'email',
+							sortable: true,
+							hiddenOnMobile: true,
+						},
+						{
+							key: 'role',
+							header: t('users.role') || 'Role',
+							accessor: 'role',
+							sortable: true,
+							render: (_value, user) => {
+								const roleConfig = getRoleConfig(user.role);
+								return (
+									<span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
+										{String(t(`users.roleTypes.${String(roleConfig.value)}`) || roleConfig.value || '')}
+									</span>
+								);
+							},
+						},
+						{
+							key: 'status',
+							header: t('users.status') || 'Status',
+							accessor: 'is_active',
+							render: (_value, user) => (
+								<span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${
+									user.is_active
+										? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+										: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+								}`}>
+									{user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+									{user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
+								</span>
+							),
+						},
+						{
+							key: 'last_login',
+							header: t('users.lastLogin') || 'Last Login',
+							accessor: 'last_login',
+							sortable: true,
+							render: (_value, user) => (
+								<span className="text-sm text-gray-500 dark:text-gray-400">
+									{user.last_login 
+										? new Date(user.last_login).toLocaleString('pt-BR')
+										: t('users.never') || 'Never'}
+								</span>
+							),
+						},
+						{
+							key: 'actions',
+							header: t('users.actions') || 'Actions',
+							accessor: 'id',
+							align: 'right',
+							render: (_value, user) => (
+								<div className="flex justify-end gap-2">
+									<button
+										onClick={(e) => { e.stopPropagation(); openEditModal(user); }}
+										className="p-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
+										title={tCommon('edit') || 'Edit'}
+									>
+										<PencilIcon className="w-5 h-5" />
+									</button>
+									<button
+										onClick={(e) => { e.stopPropagation(); openEditModal(user); }}
+										className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+										title={tCommon('delete') || 'Delete'}
+									>
+										<TrashIcon className="w-5 h-5" />
+									</button>
+								</div>
+							),
+						},
+					] as TableColumn<User>[]}
+					getRowKey={(user) => user.id}
+					onRowClick={openEditModal}
+					loading={isLoading}
+					emptyMessage={t('users.noUsers') || 'No users found'}
+					hoverable
+					striped
+				/>
+			)}
+
+			{viewMode === 'timeline' && (
+				/* Timeline View - User activity/creation dates */
+				<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+					{isLoading ? (
+						<div className="p-8 text-center text-gray-500 dark:text-gray-400">
+							{tCommon('loading') || 'Loading...'}
+						</div>
+					) : filteredUsers.length === 0 ? (
+						<div className="p-8 text-center text-gray-500 dark:text-gray-400">
+							{t('users.noUsers') || 'No users found'}
+						</div>
+					) : (
+						<TimelineView
+							items={paginatedUsers
+								.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+								.map((user): TimelineItem => {
+									const roleConfig = getRoleConfig(user.role);
+									return {
+										id: user.id,
+										title: user.name,
+										description: (
+											<div className="space-y-1">
+												<p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
+												<div className="flex items-center gap-2">
+													<span className={`px-2 py-0.5 text-xs font-medium rounded-full ${roleConfig.color}`}>
+														{String(t(`users.roleTypes.${String(roleConfig.value)}`) || roleConfig.value || '')}
+													</span>
+													<span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${
+														user.is_active
+															? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+															: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+													}`}>
+														{user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+														{user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
+													</span>
+												</div>
+												{user.last_login && (
+													<p className="text-xs text-gray-500 dark:text-gray-400">
+														{t('users.lastLogin') || 'Last login'}: {new Date(user.last_login).toLocaleString('pt-BR')}
+													</p>
+												)}
+											</div>
+										),
+										date: user.created_at,
+										status: user.is_active ? 'success' : 'error',
+										icon: <UserPlusIcon className="w-4 h-4" />,
+										onClick: () => openEditModal(user),
+									};
+								})}
+							size="md"
+							showConnectors
+							animated
+							emptyMessage={t('users.noUsers') || 'No users found'}
+						/>
+					)}
+				</div>
 			)}
 
 			{/* Pagination */}

@@ -17,6 +17,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 
 interface FundingSource {
   id: string;
@@ -59,7 +61,9 @@ export default function FundingPage() {
   const tCommon = useTranslations('common');
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
+  );
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFunding, setSelectedFunding] = useState<FundingSource | null>(null);
@@ -165,6 +169,63 @@ export default function FundingPage() {
     return fundingSources.slice(start, start + pageSize);
   }, [fundingSources, currentPage, pageSize]);
 
+  // Transform funding sources to timeline items
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return paginatedFundingSources.map((funding) => ({
+      id: funding.id,
+      title: funding.name,
+      description: `${String(t('instrumentType') || 'Instrument')}: ${String(t(`types.${String(funding.instrumentType)}`) || funding.instrumentType || '')} | ${String(t('amount') || 'Amount')}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(funding.totalAmount)}`,
+      date: funding.submissionEnd,
+      status: funding.status === 'open' ? 'success' : funding.status === 'closed' ? 'default' : 'warning',
+      metadata: { trlMin: funding.trlMin, trlMax: funding.trlMax },
+      onClick: () => handleFundingClick(funding),
+    }));
+  }, [paginatedFundingSources, t]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<FundingSource>[] = useMemo(() => [
+    { key: 'name', header: t('sourceName'), accessor: 'name', sortable: true },
+    { key: 'instrumentType', header: t('instrumentType'), accessor: 'instrumentType', sortable: true, render: (value) => String(t(`types.${String(value)}`) || value || '') },
+    { 
+      key: 'status', 
+      header: t('statusLabel'), 
+      accessor: 'status', 
+      sortable: true,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(value as string)}`}>
+          {String(t(`status.${String(value)}`) || value || '')}
+        </span>
+      ),
+    },
+    { 
+      key: 'totalAmount', 
+      header: t('amount'), 
+      accessor: 'totalAmount', 
+      sortable: true,
+      render: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value as number),
+    },
+    { 
+      key: 'trlRange', 
+      header: t('trl'), 
+      accessor: (row) => `TRL ${row.trlMin}-${row.trlMax}`, 
+      sortable: false,
+    },
+    { 
+      key: 'submissionEnd', 
+      header: t('deadline'), 
+      accessor: 'submissionEnd', 
+      sortable: true,
+      render: (value) => {
+        const days = daysUntilDeadline(value as string);
+        return (
+          <span className={days <= 7 ? 'text-red-600 dark:text-red-400 font-semibold' : days <= 30 ? 'text-yellow-600 dark:text-yellow-400' : ''}>
+            {new Date(value as string).toLocaleDateString('pt-BR')} ({days} {t('days')})
+          </span>
+        );
+      },
+    },
+  ], [t]);
+
   // Reset page when filters change
   useMemo(() => {
     setCurrentPage(1);
@@ -248,13 +309,62 @@ export default function FundingPage() {
       />
 
       {/* Content View */}
-      {viewMode === 'board' ? (
+      {viewMode === 'board' && (
         <FundingBoard 
           fundingSources={fundingSources} 
           onItemClick={handleFundingClick}
         />
-      ) : (
-        /* List View */
+      )}
+
+      {viewMode === 'timeline' && (
+        <div className="space-y-4">
+          <TimelineView
+            items={timelineItems}
+            showConnectors={true}
+            animated={true}
+          />
+          {fundingSources.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={fundingSources.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
+          )}
+        </div>
+      )}
+
+      {viewMode === 'table' && (
+        <TableView<FundingSource>
+          data={fundingSources}
+          columns={tableColumns}
+          getRowKey={(row) => row.id}
+          onRowClick={handleFundingClick}
+          loading={isLoading}
+          emptyMessage={tCommon('noResults')}
+          searchable={false}
+          paginated={true}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          totalItems={fundingSources.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          striped={true}
+          hoverable={true}
+        />
+      )}
+
+      {viewMode === 'list' && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
             {isLoading ? (
@@ -282,7 +392,7 @@ export default function FundingPage() {
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(funding.status)}`}
                           >
-                            {t(`status.${funding.status}`)}
+                            {String(t(`status.${String(funding.status)}`) || funding.status || '')}
                           </span>
                           {funding.aiConfidenceScore && (
                             <ConfidenceBadge score={funding.aiConfidenceScore} />
@@ -314,7 +424,7 @@ export default function FundingPage() {
                           <div>
                             <span className="text-gray-500 dark:text-gray-400">{t('deadline')}:</span>
                             <p className="font-medium text-gray-900 dark:text-white">
-                              {daysUntilDeadline(funding.submissionEnd)} dias
+                              {daysUntilDeadline(funding.submissionEnd)} {t('days')}
                             </p>
                           </div>
                         </div>

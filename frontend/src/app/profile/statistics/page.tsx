@@ -49,6 +49,7 @@ const MODULE_INFO: Record<StatisticsModule, { labelKey: string; icon: React.Comp
   'pii-analysis': { labelKey: 'modules.piiAnalysis', icon: ShieldExclamationIcon },
   'reports': { labelKey: 'modules.reports', icon: ChartBarIcon },
   'translations': { labelKey: 'modules.translations', icon: DocumentTextIcon },
+  'users': { labelKey: 'modules.users', icon: UsersIcon },
   'institutes': { labelKey: 'modules.institutes', icon: BuildingOffice2Icon as any },
   'teams': { labelKey: 'modules.teams', icon: UsersIcon },
   'infrastructure': { labelKey: 'modules.infrastructure', icon: BuildingLibraryIcon as any },

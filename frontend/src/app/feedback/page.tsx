@@ -16,6 +16,9 @@ import {
   ChartBarIcon,
   PencilSquareIcon,
   ArrowPathIcon,
+  StarIcon,
+  UserIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
 import PageHeader from '@/components/ui/PageHeader';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
@@ -25,6 +28,8 @@ import FeedbackModal from '@/components/feedback/FeedbackModal';
 import { useFeedbackStore } from '@/stores/feedbackStore';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import TableView, { TableColumn } from '@/components/ui/TableView';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
 import apiClient from '@/lib/api-client';
 
 // =============================================================================
@@ -136,7 +141,7 @@ function FeedbackDetailModal({
       <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-slate-800 rounded-lg shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t(`types.${feedback.feedback_type}`) || feedback.feedback_type}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{String(t(`types.${String(feedback.feedback_type)}`) || feedback.feedback_type || '')}</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(feedback.created_at).toLocaleString()}</p>
           </div>
           <button onClick={onClose} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
@@ -150,7 +155,7 @@ function FeedbackDetailModal({
               <StatusIcon className="h-4 w-4" />
               {statusInfo.label}
             </span>
-            <span className={`px-3 py-1 rounded-full text-sm ${severityInfo.color}`}>{t('admin.priority')}: {t(`severity.${feedback.severity}`)}</span>
+            <span className={`px-3 py-1 rounded-full text-sm ${severityInfo.color}`}>{String(t('admin.priority') || 'Priority')}: {String(t(`severity.${String(feedback.severity)}`) || '')}</span>
           </div>
 
           <div>
@@ -195,7 +200,7 @@ function FeedbackDetailModal({
                 return (
                   <button key={status} onClick={() => onUpdateStatus(status)} disabled={feedback.status === status} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${feedback.status === status ? 'bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}`}>
                     <Icon className="h-4 w-4" />
-                    {t(`status.${status}`) || info.label}
+                    {String(t(`status.${String(status)}`) || info.label || '')}
                   </button>
                 );
               })}
@@ -393,92 +398,272 @@ export default function AdminFeedbackPage() {
         defaultExpanded={false}
       />
       
-      {/* Feedback List / Board */}
-      {viewMode === 'board' ? (
+      {/* Feedback Views - List, Board, Timeline, Table */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-600 border-t-transparent" />
+        </div>
+      ) : filteredFeedbacks.length === 0 ? (
+        <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+          <ChatBubbleBottomCenterTextIcon className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-400">Nenhum feedback encontrado</p>
+        </div>
+      ) : viewMode === 'board' ? (
+        /* Board View - Grouped by status */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Object.entries(STATUS_LABELS).map(([statusKey, statusInfo]) => (
             <div key={statusKey} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">{statusInfo.label}</h3>
-              <div className="space-y-3">
-                {filteredFeedbacks.filter(f => f.status === statusKey).map((fb) => (
-                  <div key={fb.id} className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg cursor-pointer hover:shadow" onClick={() => setSelectedFeedback(fb)}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{FEEDBACK_TYPES[fb.feedback_type]?.label || fb.feedback_type}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{fb.description}</p>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <statusInfo.icon className="h-4 w-4" />
+                {statusInfo.label}
+                <span className="ml-auto text-xs bg-gray-200 dark:bg-slate-600 px-2 py-0.5 rounded-full">
+                  {filteredFeedbacks.filter(f => f.status === statusKey).length}
+                </span>
+              </h3>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {filteredFeedbacks.filter(f => f.status === statusKey).map((fb) => {
+                  const typeInfo = FEEDBACK_TYPES[fb.feedback_type] || { label: fb.feedback_type, emoji: '📝' };
+                  const severityInfo = SEVERITY_LABELS[fb.severity] || SEVERITY_LABELS.medium;
+                  return (
+                    <div 
+                      key={fb.id} 
+                      className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-lg cursor-pointer hover:shadow-md transition-shadow" 
+                      onClick={() => setSelectedFeedback(fb)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-lg">{typeInfo.emoji}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${severityInfo.color}`}>{severityInfo.label}</span>
                       </div>
-                      <div className="text-xs text-gray-400">{new Date(fb.created_at).toLocaleDateString('pt-BR')}</div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{typeInfo.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">{fb.description}</p>
+                      <div className="text-xs text-gray-400 dark:text-gray-500">{new Date(fb.created_at).toLocaleDateString('pt-BR')}</div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
+                {filteredFeedbacks.filter(f => f.status === statusKey).length === 0 && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">Nenhum item</p>
+                )}
               </div>
             </div>
           ))}
         </div>
-      ) : (
+      ) : viewMode === 'timeline' ? (
+        /* Timeline View */
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+          <TimelineView
+            items={paginatedFeedbacks.map((fb): TimelineItem => {
+              const typeInfo = FEEDBACK_TYPES[fb.feedback_type] || { label: fb.feedback_type, emoji: '📝' };
+              const severityInfo = SEVERITY_LABELS[fb.severity] || SEVERITY_LABELS.medium;
+              const statusInfo = STATUS_LABELS[fb.status] || STATUS_LABELS.open;
+              const StatusIcon = statusInfo.icon;
+              
+              // Map feedback status to timeline status
+              const timelineStatus: TimelineItem['status'] = 
+                fb.status === 'resolved' || fb.status === 'closed' ? 'success' :
+                fb.status === 'in_progress' || fb.status === 'in_review' ? 'pending' :
+                fb.severity === 'critical' || fb.severity === 'high' ? 'error' :
+                fb.severity === 'medium' ? 'warning' : 'info';
+
+              return {
+                id: fb.id,
+                title: `${typeInfo.emoji} ${typeInfo.label}`,
+                description: fb.description,
+                date: fb.created_at,
+                status: timelineStatus,
+                icon: <StatusIcon className="h-4 w-4" />,
+                tags: [
+                  { label: severityInfo.label, color: severityInfo.color },
+                  { label: statusInfo.label, color: statusInfo.color },
+                ],
+                onClick: () => setSelectedFeedback(fb),
+                footer: fb.page_url ? (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">📄 {fb.page_url}</p>
+                ) : undefined,
+              };
+            })}
+            size="md"
+            showConnectors={true}
+            animated={true}
+            emptyMessage="Nenhum feedback encontrado"
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredFeedbacks.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+            persistInUrl={true}
+          />
+        </div>
+      ) : viewMode === 'table' ? (
+        /* Table View - Full table with columns */
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-600 border-t-transparent" />
-            </div>
-          ) : filteredFeedbacks.length === 0 ? (
-            <div className="text-center py-12">
-              <ChatBubbleBottomCenterTextIcon className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-gray-400">Nenhum feedback encontrado</p>
-            </div>
-          ) : (
-            <>
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-slate-700">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tipo</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Descrição</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Prioridade</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Data</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
-                {paginatedFeedbacks.map((feedback) => {
-                  const typeInfo = FEEDBACK_TYPES[feedback.feedback_type] || { label: feedback.feedback_type, emoji: '📝' };
-                  const severityInfo = SEVERITY_LABELS[feedback.severity] || SEVERITY_LABELS.medium;
-                  const statusInfo = STATUS_LABELS[feedback.status] || STATUS_LABELS.open;
-                  const StatusIcon = statusInfo.icon;
-                  
+          <TableView<Feedback>
+            data={paginatedFeedbacks}
+            getRowKey={(row) => row.id}
+            onRowClick={(row) => setSelectedFeedback(row)}
+            columns={[
+              {
+                key: 'user_id',
+                header: 'Usuário',
+                accessor: 'user_id',
+                render: (value) => (
+                  <div className="flex items-center gap-2">
+                    <UserIcon className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-[100px]">{String(value).slice(0, 8)}...</span>
+                  </div>
+                ),
+              },
+              {
+                key: 'feedback_type',
+                header: 'Tipo',
+                accessor: 'feedback_type',
+                render: (value, row) => {
+                  const typeInfo = FEEDBACK_TYPES[row.feedback_type] || { label: row.feedback_type, emoji: '📝' };
                   return (
-                    <tr key={feedback.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer" onClick={() => setSelectedFeedback(feedback)}>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{typeInfo.emoji}</span>
-                          <span className="text-sm text-gray-700 dark:text-gray-300">{typeInfo.label}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <p className="text-sm text-gray-900 dark:text-white line-clamp-2">{feedback.description}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{feedback.page_url}</p>
-                      </td>
-                      <td className="px-4 py-4"><span className={`px-2 py-1 rounded-full text-xs ${severityInfo.color}`}>{severityInfo.label}</span></td>
-                      <td className="px-4 py-4"><span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${statusInfo.color}`}><StatusIcon className="h-3 w-3" />{statusInfo.label}</span></td>
-                      <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{new Date(feedback.created_at).toLocaleDateString('pt-BR')}</td>
-                      <td className="px-4 py-4 text-right">
-                        <button onClick={(e) => { e.stopPropagation(); setSelectedFeedback(feedback); }} className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg"><EyeIcon className="h-5 w-5" /></button>
-                      </td>
-                    </tr>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{typeInfo.emoji}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{typeInfo.label}</span>
+                    </div>
                   );
-                })}
-              </tbody>
-            </table>
-            <Pagination
-              currentPage={currentPage}
-              totalItems={filteredFeedbacks.length}
-              pageSize={pageSize}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
-              syncWithUrl={true}
-            />
-            </>
-          )}
+                },
+              },
+              {
+                key: 'severity',
+                header: 'Prioridade',
+                accessor: 'severity',
+                render: (value, row) => {
+                  const severityInfo = SEVERITY_LABELS[row.severity] || SEVERITY_LABELS.medium;
+                  return <span className={`px-2 py-1 rounded-full text-xs ${severityInfo.color}`}>{severityInfo.label}</span>;
+                },
+              },
+              {
+                key: 'description',
+                header: 'Mensagem',
+                accessor: 'description',
+                render: (value) => (
+                  <p className="text-sm text-gray-900 dark:text-white line-clamp-2 max-w-xs">{String(value)}</p>
+                ),
+              },
+              {
+                key: 'created_at',
+                header: 'Data',
+                accessor: 'created_at',
+                render: (value) => (
+                  <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                    <CalendarIcon className="h-4 w-4" />
+                    {new Date(String(value)).toLocaleDateString('pt-BR')}
+                  </div>
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                accessor: 'status',
+                render: (value, row) => {
+                  const statusInfo = STATUS_LABELS[row.status] || STATUS_LABELS.open;
+                  const StatusIcon = statusInfo.icon;
+                  return (
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${statusInfo.color}`}>
+                      <StatusIcon className="h-3 w-3" />
+                      {statusInfo.label}
+                    </span>
+                  );
+                },
+              },
+            ] as TableColumn<Feedback>[]}
+            hoverable={true}
+            striped={true}
+            emptyMessage="Nenhum feedback encontrado"
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredFeedbacks.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+            persistInUrl={true}
+          />
+        </div>
+      ) : (
+        /* List View - Card-based layout (default) */
+        <div className="space-y-4">
+          {paginatedFeedbacks.map((feedback) => {
+            const typeInfo = FEEDBACK_TYPES[feedback.feedback_type] || { label: feedback.feedback_type, emoji: '📝' };
+            const severityInfo = SEVERITY_LABELS[feedback.severity] || SEVERITY_LABELS.medium;
+            const statusInfo = STATUS_LABELS[feedback.status] || STATUS_LABELS.open;
+            const StatusIcon = statusInfo.icon;
+            
+            return (
+              <div 
+                key={feedback.id} 
+                className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedFeedback(feedback)}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                  {/* Icon and type */}
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-2xl">
+                      {typeInfo.emoji}
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                      <h3 className="text-base font-medium text-gray-900 dark:text-white">{typeInfo.label}</h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-2 py-1 rounded-full text-xs ${severityInfo.color}`}>{severityInfo.label}</span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${statusInfo.color}`}>
+                          <StatusIcon className="h-3 w-3" />
+                          {statusInfo.label}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">{feedback.description}</p>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {new Date(feedback.created_at).toLocaleDateString('pt-BR')}
+                      </span>
+                      {feedback.page_url && (
+                        <span className="truncate max-w-[200px]">📄 {feedback.page_url}</span>
+                      )}
+                    </div>
+                    
+                    {feedback.response && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="font-medium text-primary-600 dark:text-primary-400">Resposta:</span> {feedback.response.slice(0, 100)}...
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Action button */}
+                  <div className="flex-shrink-0 self-start">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSelectedFeedback(feedback); }} 
+                      className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredFeedbacks.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+            persistInUrl={true}
+          />
         </div>
       )}
       

@@ -45,7 +45,7 @@ interface Activity {
 export default function ActivityPage() {
   const t = useTranslations('activity');
   const [filters, setFilters] = useState<{ entity: string; type: string }>({ entity: 'all', type: 'all' });
-  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'board' | 'timeline' | 'table'>('timeline');
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   
   // Pagination state
@@ -277,18 +277,9 @@ export default function ActivityPage() {
         subtitle={t('subtitle')}
         viewToggle={true}
         viewMode={viewMode}
-        onViewChange={(m) => setViewMode(m)}
-        listLabel="Time Line View"
-        listIcon={
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 12h4" />
-            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6" />
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 12h4" />
-            <circle cx="21" cy="12" r="1.5" fill="currentColor" />
-          </svg>
-        }
+        onViewChange={(m) => { if (m === 'list' || m === 'board' || m === 'timeline' || m === 'table') setViewMode(m); }}
+        availableModes={['list', 'board', 'timeline', 'table']}
+        viewLabels={{ list: 'List View', board: 'Board View', timeline: 'Timeline View', table: 'Table View' }}
       />
 
       {/* Configurable Statistics Bar */}
@@ -305,7 +296,8 @@ export default function ActivityPage() {
 
       {/* Activity Area */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden p-6">
-        {viewMode === 'list' ? (
+        {/* Timeline View */}
+        {viewMode === 'timeline' && (
           <TimelineView
             items={timelineItems}
             size="md"
@@ -316,27 +308,199 @@ export default function ActivityPage() {
             emptyMessage={t('empty')}
             formatDate={(date) => formatTimeAgo(String(date))}
           />
-            ) : (
-          // Board view: group by entity
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from(new Set(safeActivities.map(a => a.entity))).map((entity) => (
-              <div key={entity} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 capitalize">{t(`entities.${entity}`)}</h3>
-                <div className="space-y-3">
-                  {safeActivities.filter(a => a.entity === entity).map((a) => (
-                    <div key={a.id} onClick={() => setSelectedActivity(a)} className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg cursor-pointer hover:shadow">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getActionColor(a.type)}`}>{getActionIcon(a.type)}{t(`types.${a.type}`)}</span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(a.createdAt)}</span>
-                        </div>
-                      </div>
-                      <p className="mt-2 text-sm text-gray-800 dark:text-gray-200 line-clamp-2">{a.entityName}</p>
-                    </div>
-                  ))}
-                </div>
+        )}
+
+        {/* List View - Card-based layout */}
+        {viewMode === 'list' && (
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="animate-pulse bg-gray-100 dark:bg-slate-700 rounded-lg h-24" />
+                ))}
               </div>
-            ))}
+            ) : paginatedActivities.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('empty')}</p>
+            ) : (
+              paginatedActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  onClick={() => setSelectedActivity(activity)}
+                  className="p-4 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 p-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-600">
+                      {getEntityIcon(activity.entity)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                          {activity.entityName}
+                        </h3>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getActionColor(activity.type)}`}>
+                          {getActionIcon(activity.type)}
+                          {String(t(`types.${String(activity.type)}`) || '')}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                        {getActivityDescription(activity)}
+                      </p>
+                      <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="flex items-center gap-1">
+                          {activity.actor.type === 'system' ? (
+                            <CpuChipIcon className="w-3 h-3" />
+                          ) : (
+                            <UserIcon className="w-3 h-3" />
+                          )}
+                          {activity.actor.name}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <ClockIcon className="w-3 h-3" />
+                          {formatTimeAgo(activity.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Board View - Grouped by action type */}
+        {viewMode === 'board' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(['create', 'update', 'delete', 'transition', 'match', 'submit'] as const).map((actionType) => {
+              const groupedActivities = safeActivities.filter(a => a.type === actionType);
+              if (groupedActivities.length === 0) return null;
+              return (
+                <div key={actionType} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    {getActionIcon(actionType)}
+                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize">
+                      {String(t(`types.${String(actionType)}`) || '')}
+                    </h3>
+                    <span className="ml-auto text-xs bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                      {groupedActivities.length}
+                    </span>
+                  </div>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {groupedActivities.slice(0, 10).map((a) => (
+                      <div
+                        key={a.id}
+                        onClick={() => setSelectedActivity(a)}
+                        className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg cursor-pointer hover:shadow"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          {getEntityIcon(a.entity)}
+                          <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                            {String(t(`entities.${String(a.entity)}`) || '')}
+                          </span>
+                          <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">
+                            {formatTimeAgo(a.createdAt)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2">
+                          {a.entityName}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                          {a.actor.type === 'system' ? <CpuChipIcon className="w-3 h-3" /> : <UserIcon className="w-3 h-3" />}
+                          {a.actor.name}
+                        </p>
+                      </div>
+                    ))}
+                    {groupedActivities.length > 10 && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
+                        +{groupedActivities.length - 10} more
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Table View */}
+        {viewMode === 'table' && (
+          <div className="overflow-x-auto">
+            {isLoading ? (
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="animate-pulse bg-gray-100 dark:bg-slate-700 rounded h-12" />
+                ))}
+              </div>
+            ) : paginatedActivities.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('empty')}</p>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
+                <thead className="bg-gray-50 dark:bg-slate-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t('table.action') || 'Action'}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t('table.user') || 'User'}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t('table.entity') || 'Entity'}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t('table.timestamp') || 'Timestamp'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-600">
+                  {paginatedActivities.map((activity) => (
+                    <tr
+                      key={activity.id}
+                      onClick={() => setSelectedActivity(activity)}
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getActionColor(activity.type)}`}>
+                          {getActionIcon(activity.type)}
+                          {t(`types.${activity.type}`)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {activity.actor.type === 'system' ? (
+                            <CpuChipIcon className="w-4 h-4 text-gray-400" />
+                          ) : (
+                            <UserIcon className="w-4 h-4 text-gray-400" />
+                          )}
+                          <span className="text-sm text-gray-900 dark:text-white">
+                            {activity.actor.name}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {getEntityIcon(activity.entity)}
+                          <div>
+                            <p className="text-sm text-gray-900 dark:text-white truncate max-w-xs">
+                              {activity.entityName}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                              {t(`entities.${activity.entity}`)}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {new Date(activity.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {new Date(activity.createdAt).toLocaleTimeString()}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
       </div>
@@ -348,7 +512,7 @@ export default function ActivityPage() {
         pageSize={pageSize}
         onPageChange={setCurrentPage}
         onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
-        syncWithUrl={true}
+        persistInUrl={true}
       />
 
       {/* Detail Modal */}
@@ -357,7 +521,7 @@ export default function ActivityPage() {
           <div className="w-full max-w-3xl bg-white dark:bg-slate-800 rounded-xl p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t(`types.${selectedActivity.type}`)}</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{String(t(`types.${String(selectedActivity.type)}`) || '')}</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{selectedActivity.entityName}</p>
               </div>
               <button onClick={() => setSelectedActivity(null)} className="text-gray-600 dark:text-gray-300 p-2 rounded-lg">Fechar</button>

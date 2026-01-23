@@ -26,6 +26,9 @@ import {
   EnvelopeIcon,
   PhoneIcon,
   TableCellsIcon,
+  DocumentTextIcon,
+  UserIcon,
+  CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
 import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
@@ -33,6 +36,7 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PIIAnalysisBoard from '@/components/pii/PIIAnalysisBoard';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
 
 // =============================================================================
 // Types
@@ -291,7 +295,10 @@ export default function PIIAnalysisPage() {
   const t = useTranslations('common');
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const validModes: ViewMode[] = ['list', 'board', 'timeline', 'table'];
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView && validModes.includes(urlView) ? urlView : 'list'
+  );
   
   // State
   const [detections, setDetections] = useState<PIIDetection[]>([]);
@@ -586,8 +593,7 @@ export default function PIIAnalysisPage() {
         viewToggle={true}
         viewMode={viewMode}
         onViewChange={setViewMode}
-        listLabel="Table View"
-        listIcon={<TableCellsIcon className="w-5 h-5" />}
+        viewLabels={{ list: 'Table View' }}
       />
       
       {/* Error Banner */}
@@ -620,31 +626,160 @@ export default function PIIAnalysisPage() {
       />
       
       {/* Detections View */}
-      {viewMode === 'board' ? (
-        isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-          </div>
-        ) : (
-          <PIIAnalysisBoard 
-            detections={filteredDetections}
-            onItemClick={(detection) => setReviewModal(detection)}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+      ) : filteredDetections.length === 0 ? (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-12 text-center">
+          <ShieldExclamationIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-400">
+            Nenhuma detecção encontrada
+          </p>
+        </div>
+      ) : viewMode === 'board' ? (
+        /* Board View - Grouped by status */
+        <PIIAnalysisBoard 
+          detections={filteredDetections}
+          onItemClick={(detection) => setReviewModal(detection)}
+        />
+      ) : viewMode === 'list' ? (
+        /* List View - Card-based layout */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paginatedDetections.map((detection) => {
+            const riskColor = RISK_COLORS[detection.risk_level];
+            const statusConfig = STATUS_CONFIG[detection.anonymization_status];
+            
+            return (
+              <div
+                key={detection.id}
+                onClick={() => setReviewModal(detection)}
+                className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-4 cursor-pointer hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
+              >
+                {/* Header with risk badge */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`p-2 rounded-lg ${riskColor.bg}`}>
+                      <ShieldExclamationIcon className={`w-5 h-5 ${riskColor.text}`} />
+                    </div>
+                    <div>
+                      <span className={`px-2 py-0.5 text-xs rounded-full ${riskColor.bg} ${riskColor.text}`}>
+                        {detection.risk_level.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-0.5 text-xs rounded-full bg-${statusConfig.color}-100 dark:bg-${statusConfig.color}-900/30 text-${statusConfig.color}-700 dark:text-${statusConfig.color}-300`}>
+                    {statusConfig.label}
+                  </span>
+                </div>
+
+                {/* Entity badges */}
+                <div className="mb-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    {detection.entities.length} entidades detectadas
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {detection.entities.slice(0, 4).map((entity, i) => (
+                      <span
+                        key={i}
+                        className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
+                      >
+                        {PII_TYPE_LABELS[entity.type] || entity.type}
+                      </span>
+                    ))}
+                    {detection.entities.length > 4 && (
+                      <span className="px-2 py-0.5 text-xs text-gray-500">
+                        +{detection.entities.length - 4}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer with source and date */}
+                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-1">
+                    <DocumentTextIcon className="w-3.5 h-3.5" />
+                    <span>{detection.source_type}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <ClockIcon className="w-3.5 h-3.5" />
+                    <span>{formatDate(detection.created_at)}</span>
+                  </div>
+                </div>
+
+                {/* Selection checkbox */}
+                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <label className="flex items-center gap-2 text-sm" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(detection.id)}
+                      onChange={() => toggleSelection(detection.id)}
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-gray-500 dark:text-gray-400">Selecionar</span>
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : viewMode === 'timeline' ? (
+        /* Timeline View - Detection timeline */
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+          <TimelineView
+            items={paginatedDetections.map((detection): TimelineItem => {
+              const riskColor = RISK_COLORS[detection.risk_level];
+              const statusConfig = STATUS_CONFIG[detection.anonymization_status];
+              const statusToTimelineStatus: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info' | 'pending'> = {
+                pending_review: 'pending',
+                approved: 'info',
+                rejected: 'error',
+                anonymized: 'success',
+                anonymization_failed: 'error',
+              };
+              
+              return {
+                id: detection.id,
+                title: `${detection.entities.length} entidades PII detectadas`,
+                description: (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-1">
+                      {detection.entities.slice(0, 3).map((entity, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
+                        >
+                          {PII_TYPE_LABELS[entity.type] || entity.type}
+                        </span>
+                      ))}
+                      {detection.entities.length > 3 && (
+                        <span className="px-2 py-0.5 text-xs text-gray-500">
+                          +{detection.entities.length - 3}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs">Origem: {detection.source_type}</p>
+                  </div>
+                ),
+                date: detection.created_at,
+                status: statusToTimelineStatus[detection.anonymization_status] || 'default',
+                icon: <ShieldExclamationIcon className="w-4 h-4" />,
+                tags: [
+                  { label: detection.risk_level.toUpperCase(), color: `${riskColor.bg} ${riskColor.text}` },
+                  { label: statusConfig.label, color: `bg-${statusConfig.color}-100 dark:bg-${statusConfig.color}-900/30 text-${statusConfig.color}-700 dark:text-${statusConfig.color}-300` },
+                ],
+                onClick: () => setReviewModal(detection),
+              };
+            })}
+            size="md"
+            showConnectors={true}
+            animated={true}
+            emptyMessage="Nenhuma detecção encontrada"
           />
-        )
+        </div>
       ) : (
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            {/* <ArrowPathIcon className="w-8 h-8 text-gray-400 animate-spin" /> */}
-          </div>
-        ) : filteredDetections.length === 0 ? (
-          <div className="text-center py-12">
-            <ShieldExclamationIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">
-              Nenhuma detecção encontrada
-            </p>
-          </div>
-        ) : (
+        /* Table View - Data table */
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-slate-700">
               <tr>
@@ -737,8 +872,7 @@ export default function PIIAnalysisPage() {
               })}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
       )}
       
       {/* Pagination */}
@@ -748,7 +882,7 @@ export default function PIIAnalysisPage() {
         pageSize={pageSize}
         onPageChange={setCurrentPage}
         onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
-        syncWithUrl={true}
+        persistInUrl={true}
       />
       
       {/* Review Modal */}

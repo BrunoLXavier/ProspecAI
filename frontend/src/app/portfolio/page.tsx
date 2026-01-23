@@ -16,6 +16,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 
 interface Project {
   id: string;
@@ -61,7 +63,9 @@ export default function PortfolioPage() {
   const searchParams = useSearchParams();
   const { selectedInstitutes } = useAuth();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
+  );
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
 
   // Pagination state
@@ -195,6 +199,56 @@ export default function PortfolioPage() {
     return projects.slice(start, start + pageSize);
   }, [projects, currentPage, pageSize]);
 
+  // Transform projects to timeline items
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return paginatedProjects.map((project) => ({
+      id: project.id,
+      title: project.title,
+      description: `${t('area')}: ${project.researchArea} | ${t('budget')}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(project.budget)}`,
+      date: project.startDate,
+      status: project.status === 'completed' ? 'success' : project.status === 'active' ? 'info' : project.status === 'suspended' ? 'warning' : 'default',
+      onClick: () => handleProjectClick(project),
+    }));
+  }, [paginatedProjects, t]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<Project>[] = useMemo(() => [
+    { key: 'title', header: t('projectName'), accessor: 'title', sortable: true },
+    { 
+      key: 'status', 
+      header: t('statusLabel'), 
+      accessor: 'status', 
+      sortable: true,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(value as string)}`}>
+          {String(t(`status.${String(value)}`) || value || '')}
+        </span>
+      ),
+    },
+    { 
+      key: 'trl', 
+      header: t('trl'), 
+      accessor: 'trl', 
+      sortable: true,
+      render: (value) => <span className={`font-bold ${getTRLColor(value as number)}`}>TRL {String(value)}</span>,
+    },
+    { 
+      key: 'budget', 
+      header: t('budget'), 
+      accessor: 'budget', 
+      sortable: true,
+      render: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value as number),
+    },
+    { key: 'researchArea', header: t('area'), accessor: 'researchArea', sortable: true },
+    { 
+      key: 'startDate', 
+      header: t('period'), 
+      accessor: 'startDate', 
+      sortable: true,
+      render: (value, row) => `${new Date(value as string).toLocaleDateString('pt-BR')} - ${new Date(row.endDate).toLocaleDateString('pt-BR')}`,
+    },
+  ], [t]);
+
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -268,78 +322,20 @@ export default function PortfolioPage() {
       />
 
       {/* Content View */}
-      {viewMode === 'board' ? (
+      {viewMode === 'board' && (
         <PortfolioBoard
           projects={projects}
           onItemClick={handleProjectClick}
         />
-      ) : (
-        /* List View */
+      )}
+
+      {viewMode === 'timeline' && (
         <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">  
-            {isLoading ? (
-              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('loading')}</div>
-            ) : projects.length === 0 ? (
-              <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('noResults')}</div>
-            ) : (
-              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                {paginatedProjects.map((project) => (
-                  <li
-                    key={project.id}
-                    className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
-                    onClick={() => handleProjectClick(project)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            {project.title}
-                          </h3>
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}
-                          >
-                            {t(`status.${project.status}`)}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-4 text-sm mt-3">
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400">{t('trl')}:</span>
-                            <p className={`font-bold ${getTRLColor(project.trl)}`}>
-                              TRL {project.trl}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400">{t('budget')}:</span>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {new Intl.NumberFormat('pt-BR', {
-                                style: 'currency',
-                                currency: 'BRL',
-                                notation: 'compact',
-                              }).format(project.budget)}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400">{t('area')}:</span>
-                            <p className="font-medium text-gray-900 dark:text-white">{project.researchArea}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400">{t('period')}:</span>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {new Date(project.startDate).toLocaleDateString('pt-BR')} -{' '}
-                              {new Date(project.endDate).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Pagination */}
+          <TimelineView
+            items={timelineItems}
+            showConnectors={true}
+            animated={true}
+          />
           {projects.length > 0 && (
             <Pagination
               currentPage={currentPage}
@@ -356,6 +352,106 @@ export default function PortfolioPage() {
             />
           )}
         </div>
+      )}
+
+      {viewMode === 'table' && (
+        <TableView<Project>
+          data={projects}
+          columns={tableColumns}
+          getRowKey={(row) => row.id}
+          onRowClick={handleProjectClick}
+          loading={isLoading}
+          emptyMessage={tCommon('noResults')}
+          searchable={false}
+          paginated={true}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          totalItems={projects.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          striped={true}
+          hoverable={true}
+        />
+      )}
+
+      {viewMode === 'list' ? (
+        projects.length === 0 ? (
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">{tCommon('noResults')}</div>
+        ) : (
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+            {paginatedProjects.map((project) => (
+              <li
+                key={project.id}
+                className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                onClick={() => handleProjectClick(project)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {project.title}
+                      </h3>
+                        <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
+                        {String(t(`status.${String(project.status)}`) || project.status || '')}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-4 text-sm mt-3">
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400">{t('trl')}:</span>
+                        <p className={`font-bold ${getTRLColor(project.trl)}`}>
+                          TRL {project.trl}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400">{t('budget')}:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                            notation: 'compact',
+                          }).format(project.budget)}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400">{t('area')}:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">{project.researchArea}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400">{t('period')}:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {new Date(project.startDate).toLocaleDateString('pt-BR')} -{' '}
+                          {new Date(project.endDate).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )
+        ) : null}
+
+      {/* Pagination */}
+      {projects.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalItems={projects.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          persistInUrl={true}
+          showTotal={true}
+          showPageSizeSelector={true}
+        />
       )}
     </div>
   );

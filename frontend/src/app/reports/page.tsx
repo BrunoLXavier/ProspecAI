@@ -6,7 +6,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DocumentTextIcon, PlusIcon, ChartBarIcon, FolderIcon, FunnelIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, PlusIcon, ChartBarIcon, FolderIcon, FunnelIcon, CurrencyDollarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/api-client';
 import PageHeader from '@/components/ui/PageHeader';
@@ -17,6 +17,8 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 // report templates components are used in templates page
 import { ViewMode } from '@/components/ui/ViewToggle';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 
 // =============================================================================
 // Types
@@ -108,6 +110,79 @@ export default function ReportsPage() {
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
 
+  // Timeline items for timeline view
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return filtered.map((r, idx) => ({
+      id: (r as any).id || `report-${idx}`,
+      title: r.template_id || t('untitledReport') || 'Untitled Report',
+      description: `${t('format') || 'Format'}: ${(r.format || '').toUpperCase()}`,
+      date: r.generated_at,
+      status: r.download_url ? 'success' : 'info',
+      icon: <DocumentTextIcon className="w-4 h-4" />,
+      tags: [
+        { label: (r.format || '').toUpperCase(), color: 'blue' },
+      ],
+      onClick: () => {
+        setSelectedReport(r);
+        setIsDetailOpen(true);
+      },
+    }));
+  }, [filtered, t]);
+
+  // Table columns for table view
+  const tableColumns: TableColumn<GeneratedReport>[] = useMemo(() => [
+    {
+      key: 'template_id',
+      header: t('templateLabel') || 'Template',
+      accessor: 'template_id',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center gap-2">
+          <Icon color="secondary" size="sm" withBackground={false}>
+            <DocumentTextIcon />
+          </Icon>
+          <span className="font-medium">{value as string || '—'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'format',
+      header: t('format') || 'Format',
+      accessor: 'format',
+      sortable: true,
+      render: (value) => (
+        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+          {((value as string) || '').toUpperCase()}
+        </span>
+      ),
+    },
+    {
+      key: 'generated_at',
+      header: t('generated') || 'Generated At',
+      accessor: 'generated_at',
+      sortable: true,
+      render: (value) => (
+        <span className="text-gray-600 dark:text-gray-400">
+          {value ? new Date(value as string).toLocaleString() : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: t('statusLabel') || 'Status',
+      accessor: (row) => row.download_url ? t('available') || 'Available' : t('processed') || 'Processed',
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          value === (t('available') || 'Available')
+            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+        }`}>
+          {value as string}
+        </span>
+      ),
+    },
+  ], [t]);
+
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -166,7 +241,8 @@ export default function ReportsPage() {
       </div>
 
       <main>
-        {viewMode === 'board' ? (
+        {/* Board View */}
+        {viewMode === 'board' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {isLoadingReports ? (
               <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">{t('loading')}</div>
@@ -195,7 +271,49 @@ export default function ReportsPage() {
               ))
             )}
           </div>
-        ) : (
+        )}
+
+        {/* Timeline View */}
+        {viewMode === 'timeline' && (
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+            <TimelineView
+              items={timelineItems}
+              loading={isLoadingReports}
+              emptyMessage={t('noReports')}
+              animated={true}
+              showConnectors={true}
+            />
+          </div>
+        )}
+
+        {/* Table View */}
+        {viewMode === 'table' && (
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+            <TableView<GeneratedReport>
+              data={filtered}
+              columns={tableColumns}
+              getRowKey={(row) => (row as any).id || `${row.template_id}-${row.generated_at}`}
+              onRowClick={(row) => {
+                setSelectedReport(row);
+                setIsDetailOpen(true);
+              }}
+              loading={isLoadingReports}
+              emptyMessage={t('noReports')}
+              paginated={true}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              totalItems={filtered.length}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+        )}
+
+        {/* List View (default) */}
+        {viewMode === 'list' && (
           <div className="space-y-4">
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
               {isLoadingReports ? (

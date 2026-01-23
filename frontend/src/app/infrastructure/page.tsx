@@ -15,12 +15,16 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import InfrastructureModal from '@/components/entities/InfrastructureModal';
 import InfrastructureBoard from '@/components/infrastructure/InfrastructureBoard';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 
 export default function InfrastructurePage() {
   const t = useTranslations('infrastructure');
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
+  );
   const [filters, setFilters] = useState({ search: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedResource, setSelectedResource] = useState<any | null>(null);
@@ -59,6 +63,32 @@ export default function InfrastructurePage() {
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
 
+  // Transform items to timeline items
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return paginatedItems.map((r: any) => ({
+      id: r.id,
+      title: r.name || 'Unnamed Resource',
+      description: r.description || r.location || r.type || '',
+      date: r.created_at || r.updated_at || new Date().toISOString(),
+      status: r.status === 'available' ? 'success' : r.status === 'maintenance' ? 'warning' : r.status === 'unavailable' ? 'error' : 'default',
+      tags: r.type ? [{ label: r.type }] : undefined,
+      onClick: () => { setSelectedResource(r); setModalOpen(true); },
+    }));
+  }, [paginatedItems]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<any>[] = useMemo(() => [
+    { key: 'name', header: t('name'), accessor: 'name', sortable: true },
+    { key: 'type', header: t('type'), accessor: 'type', sortable: true },
+    { key: 'location', header: t('location'), accessor: 'location', sortable: true },
+    { 
+      key: 'capacity', 
+      header: t('capacity'), 
+      accessor: (row: any) => row.capacity?.area_m2 ? `${row.capacity.area_m2} m²` : (row.capacity?.units ? `${row.capacity.units} units` : '-'),
+    },
+    { key: 'description', header: t('description'), accessor: 'description', hiddenOnMobile: true },
+  ], [t]);
+
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -94,9 +124,63 @@ export default function InfrastructurePage() {
         onReset={() => setFilters({ search: '' })}
       />
 
-      {viewMode === 'board' ? (
+      {/* Board View */}
+      {viewMode === 'board' && (
         <InfrastructureBoard items={filtered} onItemClick={(r) => { setSelectedResource(r); setModalOpen(true); }} />
-      ) : (
+      )}
+
+      {/* Timeline View */}
+      {viewMode === 'timeline' && (
+        <div className="space-y-4">
+          <TimelineView
+            items={timelineItems}
+            showConnectors={true}
+            animated={true}
+          />
+          {filtered.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Table View */}
+      {viewMode === 'table' && (
+        <TableView<any>
+          data={filtered}
+          columns={tableColumns}
+          getRowKey={(row) => row.id}
+          onRowClick={(row) => { setSelectedResource(row); setModalOpen(true); }}
+          loading={isLoading}
+          emptyMessage={t('noResults')}
+          searchable={false}
+          paginated={true}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          totalItems={filtered.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          striped={true}
+          hoverable={true}
+        />
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
             {isLoading ? (

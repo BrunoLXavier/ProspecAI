@@ -70,6 +70,7 @@ const MODULE_INFO: Record<StatisticsModule, { labelKey: string; icon: React.Comp
 	'funding': { labelKey: 'modules.funding', icon: CurrencyDollarIcon },
 	'portfolio': { labelKey: 'modules.portfolio', icon: FolderOpenIcon },
 	'crm': { labelKey: 'modules.crm', icon: UsersIcon },
+	'users': { labelKey: 'modules.users', icon: UsersIcon },
 	'opportunities': { labelKey: 'modules.opportunities', icon: LightBulbIcon },
 	'proposals': { labelKey: 'modules.proposals', icon: DocumentTextIcon },
 	'ingestion': { labelKey: 'modules.ingestion', icon: CloudArrowUpIcon },

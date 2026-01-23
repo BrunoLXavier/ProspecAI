@@ -13,7 +13,7 @@ describe('CreateProjectModal permission guard', () => {
       useAuth: () => ({ user: { roles: [] }, selectedInstitutes: [] }),
     }));
 
-    const { default: CreateProjectModal } = await import('../createprojectmodal');
+    const { default: CreateProjectModal } = await import('../CreateProjectModal');
 
     render(<CreateProjectModal isOpen={true} onClose={() => {}} />);
 
@@ -25,7 +25,7 @@ describe('CreateProjectModal permission guard', () => {
       useAuth: () => ({ user: { roles: ['admin'] }, selectedInstitutes: [] }),
     }));
 
-    const { default: CreateProjectModal } = await import('../createprojectmodal');
+    const { default: CreateProjectModal } = await import('../CreateProjectModal');
 
     render(<CreateProjectModal isOpen={true} onClose={() => {}} />);
 

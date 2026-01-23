@@ -17,7 +17,8 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import TranslationModal from '@/components/translations/TranslationModal';
 import TableView, { TableColumn } from '@/components/ui/TableView';
-import BoardView from '@/components/ui/BoardView';
+import BoardView, { BoardItem } from '../../components/ui/BoardView';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
 import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import Pagination from '@/components/ui/Pagination';
@@ -89,8 +90,17 @@ export default function TranslationsPage() {
 	// Detail modal
 	const [selectedTranslation, setSelectedTranslation] = useState<TranslationKey | null>(null);
 	const [showDetailModal, setShowDetailModal] = useState(false);
-	// View mode
-	const [viewMode, setViewMode] = useState<ViewMode>('list');
+	// View mode - initialize from URL params if available
+	const [viewMode, setViewMode] = useState<ViewMode>(() => {
+		if (typeof window !== 'undefined') {
+			const params = new URLSearchParams(window.location.search);
+			const mode = params.get('view');
+			if (mode === 'list' || mode === 'board' || mode === 'timeline' || mode === 'table') {
+				return mode;
+			}
+		}
+		return 'table';
+	});
 	// Unified import/export menu visibility
 	const [showImportExportMenu, setShowImportExportMenu] = useState(false);
 
@@ -211,6 +221,32 @@ export default function TranslationsPage() {
 		});
 		return groups;
 	}, [filteredTranslations]);
+
+	// Timeline items for TimelineView
+	const timelineItems = useMemo((): TimelineItem[] => {
+		return filteredTranslations.map((item) => {
+			const hasAllTranslations = locales.every((loc) => !!item.values[loc]);
+			const translationCount = locales.filter((loc) => !!item.values[loc]).length;
+			
+			return {
+				id: item.path,
+				title: item.path,
+				description: locales.map((loc) => 
+					item.values[loc] ? `${LOCALE_FLAGS[loc]} ${item.values[loc].substring(0, 50)}${item.values[loc].length > 50 ? '...' : ''}` : null
+				).filter(Boolean).join(' • '),
+				date: new Date(), // Using current date as translations don't have timestamps
+				status: hasAllTranslations ? 'success' : translationCount > 0 ? 'warning' : 'error',
+				tags: [
+					{ label: item.path.split('.')[0] || 'common', color: 'blue' },
+					{ label: `${translationCount}/${locales.length}`, color: hasAllTranslations ? 'green' : 'yellow' },
+				],
+				onClick: () => {
+					setSelectedTranslation(item);
+					setShowDetailModal(true);
+				},
+			};
+		});
+	}, [filteredTranslations, locales]);
 
 	const filterFields: FilterField[] = [
 		{ key: 'search', label: tCommon('search') || 'Search', type: 'text', placeholder: t('translations.searchPlaceholder') || 'Search keys or values...' },
@@ -372,7 +408,7 @@ export default function TranslationsPage() {
 									: 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
 							}`}
 						>
-							Table
+							List
 						</button>
 						<button
 							onClick={() => setViewMode('board')}
@@ -383,6 +419,26 @@ export default function TranslationsPage() {
 							}`}
 						>
 							Board
+						</button>
+						<button
+							onClick={() => setViewMode('timeline')}
+							className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
+								viewMode === 'timeline'
+									? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm'
+									: 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+							}`}
+						>
+							Timeline
+						</button>
+						<button
+							onClick={() => setViewMode('table')}
+							className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
+								viewMode === 'table'
+									? 'bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm'
+									: 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+							}`}
+						>
+							Table
 						</button>
 					</div>
 					
@@ -491,7 +547,154 @@ export default function TranslationsPage() {
 			/>
 
 			{/* View Modes */}
-			{viewMode === 'list' ? (
+			{viewMode === 'list' && (
+				/* List View - Card-based layout */
+				<div className="space-y-4">
+					{loading ? (
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							{Array.from({ length: 6 }).map((_, i) => (
+								<div key={i} className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4 animate-pulse">
+									<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3" />
+									<div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2" />
+									<div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+								</div>
+							))}
+						</div>
+					) : filteredTranslations.length === 0 ? (
+						<div className="text-center py-12 text-gray-500 dark:text-gray-400">
+							{tCommon('noResults') || 'No translations found'}
+						</div>
+					) : (
+						<>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+								{filteredTranslations.map((item) => {
+									const hasAllTranslations = locales.every((loc) => !!item.values[loc]);
+									const translationCount = locales.filter((loc) => !!item.values[loc]).length;
+									
+									return (
+										<div
+											key={item.path}
+											onClick={() => {
+												setSelectedTranslation(item);
+												setShowDetailModal(true);
+											}}
+											className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4 hover:shadow-lg transition-shadow cursor-pointer"
+										>
+											<div className="flex items-start justify-between mb-2">
+												<h3 className="font-mono text-sm font-medium text-gray-900 dark:text-white truncate flex-1" title={item.path}>
+													{item.path}
+												</h3>
+												<span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
+													hasAllTranslations 
+														? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+														: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+												}`}>
+													{translationCount}/{locales.length}
+												</span>
+											</div>
+											<div className="space-y-1">
+												{locales.map((locale) => (
+													<div key={locale} className="flex items-center gap-2 text-sm">
+														<span className="flex-shrink-0">{LOCALE_FLAGS[locale]}</span>
+														<span className={`truncate ${
+															item.values[locale] 
+																? 'text-gray-700 dark:text-gray-300' 
+																: 'text-red-500 italic'
+														}`}>
+															{item.values[locale] || tCommon('noResults')}
+														</span>
+													</div>
+												))}
+											</div>
+										</div>
+									);
+								})}
+							</div>
+							<Pagination
+								currentPage={page}
+								pageSize={pageSize}
+								onPageChange={setPage}
+								onPageSizeChange={(size) => {
+									setPageSize(size);
+									setPage(1);
+								}}
+								totalItems={total}
+								pageSizeOptions={[10, 20, 25, 50, 100]}
+							/>
+						</>
+					)}
+				</div>
+			)}
+
+			{viewMode === 'board' && (
+				/* Board View - Grouped by namespace */
+				<BoardView
+					columns={Object.keys(groupedByNamespace).map((namespace) => ({
+						id: namespace,
+						title: namespace.charAt(0).toUpperCase() + namespace.slice(1),
+						items: groupedByNamespace[namespace].map((item) => ({
+							id: item.path,
+							title: item.path.split('.').slice(1).join('.') || item.path,
+							description: locales.map((loc) => 
+								item.values[loc] ? `${LOCALE_FLAGS[loc]} ${item.values[loc].substring(0, 30)}${item.values[loc].length > 30 ? '...' : ''}` : null
+							).filter(Boolean).join(' | '),
+							metadata: {
+								namespace,
+								hasAllTranslations: locales.every((loc) => !!item.values[loc]),
+							},
+						})),
+					}))}
+					onItemClick={(item: BoardItem) => {
+						const translation = filteredTranslations.find((t) => t.path === item.id);
+						if (translation) {
+							setSelectedTranslation(translation);
+							setShowDetailModal(true);
+						}
+					}}
+					renderCard={(item: BoardItem) => (
+						<div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow cursor-pointer">
+							<p className="font-mono text-sm text-gray-900 dark:text-white truncate" title={item.title}>
+								{item.title}
+							</p>
+							<p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+								{item.description || 'No translations'}
+							</p>
+							{item.metadata?.hasAllTranslations === false && (
+								<span className="inline-flex items-center mt-2 px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+									Incomplete
+								</span>
+							)}
+						</div>
+					)}
+				/>
+			)}
+
+			{viewMode === 'timeline' && (
+				/* Timeline View */
+				<div className="space-y-4">
+					<TimelineView
+						items={timelineItems}
+						loading={loading}
+						emptyMessage={tCommon('noResults') || 'No translations found'}
+						size="md"
+						showConnectors={true}
+						animated={true}
+					/>
+					<Pagination
+						currentPage={page}
+						pageSize={pageSize}
+						onPageChange={setPage}
+						onPageSizeChange={(size) => {
+							setPageSize(size);
+							setPage(1);
+						}}
+						totalItems={total}
+						pageSizeOptions={[10, 20, 25, 50, 100]}
+					/>
+				</div>
+			)}
+
+			{viewMode === 'table' && (
 				/* Translations Table - Using standardized TableView */
 				<TableView<TranslationKey>
 					data={filteredTranslations}
@@ -516,47 +719,6 @@ export default function TranslationsPage() {
 					pageSizeOptions={[10, 20, 25, 50, 100]}
 					striped={true}
 					hoverable={true}
-				/>
-			) : (
-				/* Board View - Grouped by namespace */
-				<BoardView
-					columns={Object.keys(groupedByNamespace).map((namespace) => ({
-						id: namespace,
-						title: namespace.charAt(0).toUpperCase() + namespace.slice(1),
-						items: groupedByNamespace[namespace].map((item) => ({
-							id: item.path,
-							title: item.path.split('.').slice(1).join('.') || item.path,
-							description: locales.map((loc) => 
-								item.values[loc] ? `${LOCALE_FLAGS[loc]} ${item.values[loc].substring(0, 30)}${item.values[loc].length > 30 ? '...' : ''}` : null
-							).filter(Boolean).join(' | '),
-							metadata: {
-								namespace,
-								hasAllTranslations: locales.every((loc) => !!item.values[loc]),
-							},
-						})),
-					}))}
-					onItemClick={(item) => {
-						const translation = filteredTranslations.find((t) => t.path === item.id);
-						if (translation) {
-							setSelectedTranslation(translation);
-							setShowDetailModal(true);
-						}
-					}}
-					renderCard={(item) => (
-						<div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow cursor-pointer">
-							<p className="font-mono text-sm text-gray-900 dark:text-white truncate" title={item.title}>
-								{item.title}
-							</p>
-							<p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-								{item.description || 'No translations'}
-							</p>
-							{item.metadata?.hasAllTranslations === false && (
-								<span className="inline-flex items-center mt-2 px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-									Incomplete
-								</span>
-							)}
-						</div>
-					)}
 				/>
 			)}
 

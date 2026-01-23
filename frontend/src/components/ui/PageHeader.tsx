@@ -12,8 +12,10 @@ interface PageHeaderProps {
   viewToggle?: boolean;
   viewMode?: ViewMode;
   onViewChange?: (mode: ViewMode) => void;
-  listLabel?: string;
-  listIcon?: React.ReactNode;
+  /** Which view modes to show in the toggle. Defaults to all 4 */
+  availableModes?: ViewMode[];
+  /** Custom labels for view modes */
+  viewLabels?: Partial<Record<ViewMode, string>>;
   action?: ReactNode;
   className?: string;
 }
@@ -24,8 +26,8 @@ export default function PageHeader({
   viewToggle = false,
   viewMode = 'list',
   onViewChange,
-  listLabel,
-  listIcon,
+  availableModes,
+  viewLabels,
   action,
   className = '',
 }: PageHeaderProps) {
@@ -43,8 +45,8 @@ export default function PageHeader({
             viewMode={viewMode}
             onViewChange={onViewChange}
             persistToUrl={true}
-            listLabel={listLabel}
-            listIcon={listIcon}
+            availableModes={availableModes}
+            labels={viewLabels}
           />
         )}
         {action}

@@ -10,6 +10,7 @@ export type StatisticsModule =
   | 'crm'
   | 'opportunities'
   | 'proposals'
+  | 'users'
   | 'ingestion'
   | 'pii-analysis'
   | 'reports'

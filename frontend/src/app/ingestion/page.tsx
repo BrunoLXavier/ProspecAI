@@ -24,6 +24,8 @@ import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import IngestionBoard from '@/components/ingestion/IngestionBoard';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 import IngestionModal from '@/components/ingestion/IngestionModal';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
@@ -151,7 +153,11 @@ export default function IngestionPage() {
   const tCommon = useTranslations('common');
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView === 'board' || urlView === 'list' || urlView === 'timeline' || urlView === 'table'
+      ? urlView
+      : 'list'
+  );
   
   // State
   const [jobs, setJobs] = useState<IngestionJob[]>([]);
@@ -292,6 +298,140 @@ export default function IngestionPage() {
     const totalPII = filteredJobs.reduce((sum, j) => sum + j.pii_detected_count, 0);
     return { total, completed, processing, failed, totalRecords, totalPII };
   }, [filteredJobs]);
+
+  // Timeline items for TimelineView
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    const statusToTimelineStatus = (status: IngestionJob['status']): TimelineItem['status'] => {
+      switch (status) {
+        case 'completed': return 'success';
+        case 'failed': return 'error';
+        case 'cancelled': return 'error';
+        case 'pii_detection': return 'warning';
+        case 'validating':
+        case 'processing': return 'info';
+        case 'pending': return 'pending';
+        default: return 'default';
+      }
+    };
+
+    return paginatedJobs.map((job) => ({
+      id: job.id,
+      title: job.name,
+      description: job.description || `${job.total_files} arquivos, ${job.total_records.toLocaleString()} registros`,
+      date: job.created_at,
+      status: statusToTimelineStatus(job.status),
+      tags: [
+        { label: t(`status.${job.status}`) || job.status, color: STATUS_CONFIG[job.status].color },
+        ...(job.pii_detected_count > 0 ? [{ label: `${job.pii_detected_count} PII`, color: 'yellow' }] : []),
+      ],
+      onClick: () => handleViewJob(job),
+      footer: job.error_message ? (
+        <div className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+          <ExclamationTriangleIcon className="w-4 h-4" />
+          {job.error_message}
+        </div>
+      ) : undefined,
+    }));
+  }, [paginatedJobs, t]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<IngestionJob>[] = useMemo(() => [
+    {
+      key: 'name',
+      header: t('jobName') || 'Nome',
+      accessor: 'name',
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <span className="font-medium text-gray-900 dark:text-white">{value as string}</span>
+          {row.description && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{row.description}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      accessor: 'status',
+      sortable: true,
+      render: (value) => {
+        const statusConfig = STATUS_CONFIG[value as IngestionJob['status']];
+        return (
+          <span className={STATUS_CLASS_MAP[statusConfig.color as string]?.badge || 'px-2.5 py-1 text-xs rounded-full bg-gray-100 text-gray-700'}>
+            {String(t(`status.${String(value)}`) || value || '')}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'source_type',
+      header: t('sourceType') || 'Tipo',
+      accessor: 'source_type',
+      sortable: true,
+      hiddenOnMobile: true,
+    },
+    {
+      key: 'total_files',
+      header: t('stats.files') || 'Arquivos',
+      accessor: 'total_files',
+      sortable: true,
+      align: 'center',
+      hiddenOnMobile: true,
+    },
+    {
+      key: 'total_records',
+      header: t('stats.records') || 'Registros',
+      accessor: (row) => row.total_records.toLocaleString(),
+      sortable: true,
+      align: 'center',
+    },
+    {
+      key: 'pii_detected_count',
+      header: 'PII',
+      accessor: 'pii_detected_count',
+      sortable: true,
+      align: 'center',
+      render: (value) => {
+        const count = value as number;
+        if (count === 0) return <span className="text-gray-400">-</span>;
+        return (
+          <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 flex items-center gap-1 justify-center">
+            <ShieldExclamationIcon className="w-3 h-3" />
+            {count}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'progress_percentage',
+      header: t('progress') || 'Progresso',
+      accessor: 'progress_percentage',
+      sortable: true,
+      align: 'center',
+      hiddenOnMobile: true,
+      render: (value, row) => {
+        const pct = value as number;
+        if (row.status === 'completed') return <CheckCircleIcon className="w-5 h-5 text-green-500 mx-auto" />;
+        if (row.status === 'failed') return <XCircleIcon className="w-5 h-5 text-red-500 mx-auto" />;
+        return (
+          <div className="w-full max-w-[80px] mx-auto">
+            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-full bg-primary-600" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="text-xs text-gray-500">{Math.round(pct)}%</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'created_at',
+      header: t('createdAt') || 'Criado em',
+      accessor: (row) => row.created_at ? formatDate(row.created_at) : '-',
+      sortable: true,
+      hiddenOnMobile: true,
+    },
+  ], [t]);
   
   // Data Loading
   
@@ -568,12 +708,58 @@ export default function IngestionPage() {
       />
       
       {/* Jobs Section */}
-      {viewMode === 'board' ? (
+      {viewMode === 'board' && (
         <IngestionBoard
           jobs={filteredJobs}
           onItemClick={handleViewJob}
         />
-      ) : (
+      )}
+
+      {viewMode === 'timeline' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+            Jobs de Ingestão - Timeline
+          </h2>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <ArrowPathIcon className="w-8 h-8 text-gray-400 animate-spin" />
+            </div>
+          ) : (
+            <TimelineView
+              items={timelineItems}
+              emptyMessage={t('noJobs') || 'Nenhum job de ingestão encontrado'}
+              loading={isLoading}
+            />
+          )}
+        </div>
+      )}
+
+      {viewMode === 'table' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Jobs de Ingestão - Tabela
+            </h2>
+          </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <ArrowPathIcon className="w-8 h-8 text-gray-400 animate-spin" />
+            </div>
+          ) : (
+            <TableView
+              data={paginatedJobs}
+              columns={tableColumns}
+              getRowKey={(row) => (row as any).id}
+              onRowClick={handleViewJob}
+              emptyMessage={t('noJobs') || 'Nenhum job de ingestão encontrado'}
+              striped
+              hoverable
+            />
+          )}
+        </div>
+      )}
+
+      {viewMode === 'list' && (
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
@@ -636,8 +822,8 @@ export default function IngestionPage() {
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <span className={STATUS_CLASS_MAP[statusConfig.color as string]?.badge || 'px-2.5 py-1 text-xs rounded-full bg-gray-100 text-gray-700'}>
-                            {t(`status.${job.status}`) || job.status}
+                            <span className={STATUS_CLASS_MAP[statusConfig.color as string]?.badge || 'px-2.5 py-1 text-xs rounded-full bg-gray-100 text-gray-700'}>
+                            {String(t(`status.${String(job.status)}`) || job.status || '')}
                           </span>
                           
                           {job.pii_detected_count > 0 && (
@@ -702,7 +888,7 @@ export default function IngestionPage() {
         pageSize={pageSize}
         onPageChange={setCurrentPage}
         onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
-        syncWithUrl={true}
+        persistInUrl={true}
       />
       
       {/* Ingestion Modal */}

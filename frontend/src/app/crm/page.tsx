@@ -17,6 +17,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import { ViewMode } from '@/components/ui/ViewToggle';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 
 interface Client {
   id: string;
@@ -56,7 +58,9 @@ export default function CRMClientsPage() {
   const searchParams = useSearchParams();
   const { selectedInstitutes } = useAuth();
   const urlView = searchParams.get('view') as ViewMode | null;
-  const [viewMode, setViewMode] = useState<ViewMode>(urlView === 'board' || urlView === 'list' ? urlView : 'list');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
+  );
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -175,6 +179,55 @@ export default function CRMClientsPage() {
     return clients.slice(start, start + pageSize);
   }, [clients, currentPage, pageSize]);
 
+  // Transform clients to timeline items
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return paginatedClients.map((client) => ({
+      id: client.id,
+      title: client.name,
+      description: `${t('segment')}: ${client.segment} | ${t('revenue')}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(client.annualRevenue)}`,
+      date: new Date().toISOString(),
+      status: client.maturityLevel === 'mature' ? 'success' : client.maturityLevel === 'growth' ? 'info' : 'warning',
+      metadata: { maturityLevel: client.maturityLevel, aiEnriched: client.aiEnrichedData },
+      onClick: () => handleClientClick(client),
+    }));
+  }, [paginatedClients, t]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<Client>[] = useMemo(() => [
+    { key: 'name', header: t('clientName'), accessor: 'name', sortable: true },
+    { key: 'cnpj', header: t('cnpj'), accessor: 'cnpj', sortable: true },
+    { key: 'segment', header: t('segment'), accessor: 'segment', sortable: true },
+    { 
+      key: 'annualRevenue', 
+      header: t('revenue'), 
+      accessor: 'annualRevenue', 
+      sortable: true,
+      render: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value as number),
+    },
+    { 
+      key: 'maturityLevel', 
+      header: t('maturityLabel'), 
+      accessor: 'maturityLevel', 
+      sortable: true,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getMaturityColor(value as string)}`}>
+          {String(t(`maturity.${String(value)}`) || value || '')}
+        </span>
+      ),
+    },
+    { 
+      key: 'aiEnrichedData', 
+      header: t('aiEnriched'), 
+      accessor: 'aiEnrichedData', 
+      sortable: true,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${value ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
+          {value ? tCommon('yes') : tCommon('no')}
+        </span>
+      ),
+    },
+  ], [t, tCommon]);
+
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -246,14 +299,63 @@ export default function CRMClientsPage() {
       />
 
       {/* Content View */}
-      {viewMode === 'board' ? (
+      {viewMode === 'board' && (
         <CRMBoard 
           clients={clients}
           onItemClick={handleClientClick}
           onClientMove={handleClientMove}
         />
-      ) : (
-        /* List View */
+      )}
+
+      {viewMode === 'timeline' && (
+        <div className="space-y-4">
+          <TimelineView
+            items={timelineItems}
+            showConnectors={true}
+            animated={true}
+          />
+          {clients.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={clients.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
+          )}
+        </div>
+      )}
+
+      {viewMode === 'table' && (
+        <TableView<Client>
+          data={clients}
+          columns={tableColumns}
+          getRowKey={(row) => row.id}
+          onRowClick={handleClientClick}
+          loading={isLoading}
+          emptyMessage={tCommon('noResults')}
+          searchable={false}
+          paginated={true}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          totalItems={clients.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          striped={true}
+          hoverable={true}
+        />
+      )}
+
+      {viewMode === 'list' && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
             {isLoading ? (
@@ -277,7 +379,7 @@ export default function CRMClientsPage() {
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full ${getMaturityColor(client.maturityLevel)}`}
                           >
-                            {t(`maturity.${client.maturityLevel}`)}
+                            {String(t(`maturity.${String(client.maturityLevel)}`) || client.maturityLevel || '')}
                           </span>
                           {client.aiEnrichedData && client.aiConfidenceScore && (
                             <ConfidenceBadge score={client.aiConfidenceScore} />

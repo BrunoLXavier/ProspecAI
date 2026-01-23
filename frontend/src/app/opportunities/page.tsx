@@ -9,12 +9,16 @@ import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import OpportunityPipeline from '@/components/dashboard/OpportunityPipeline';
-import { PlusIcon, Squares2X2Icon, ListBulletIcon } from '@heroicons/react/24/outline';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import OpportunityModal from '@/components/opportunities/OpportunityModal';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
+import PageHeader from '@/components/ui/PageHeader';
+import { ViewMode } from '@/components/ui/ViewToggle';
+import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/ui/TableView';
 
 interface Opportunity {
   id: string;
@@ -60,7 +64,10 @@ export default function OpportunitiesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
-  const [viewMode, setViewMode] = useState<'board' | 'list'>('list');
+  const urlView = searchParams.get('view') as ViewMode | null;
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
+  );
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
 
   // Pagination state
@@ -221,6 +228,58 @@ export default function OpportunitiesPage() {
     return opportunities.slice(start, start + pageSize);
   }, [opportunities, currentPage, pageSize]);
 
+  // Transform opportunities to timeline items
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return paginatedOpportunities.map((opp) => ({
+      id: opp.id,
+      title: opp.title,
+      description: `${opp.client_name} | ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(opp.estimated_value)}`,
+      date: opp.deadline,
+      onClick: () => handleOpportunityClick(opp),
+      status: opp.stage === 'won' ? 'success' : opp.stage === 'lost' ? 'error' : opp.stage === 'negotiation' ? 'warning' : 'info',
+      metadata: { stage: opp.stage, probability: opp.probability },
+    }));
+  }, [paginatedOpportunities]);
+
+  // Table columns for TableView
+  const tableColumns: TableColumn<Opportunity>[] = useMemo(() => [
+    { key: 'title', header: t('opportunity'), accessor: 'title', sortable: true },
+    { key: 'client_name', header: t('client'), accessor: 'client_name', sortable: true },
+    { 
+      key: 'stage', 
+      header: t('stage'), 
+      accessor: 'stage', 
+      sortable: true,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStageColor(value as string)}`}>
+          {String(t(`stages.${String(value)}`) || value || '')}
+        </span>
+      ),
+    },
+    { 
+      key: 'estimated_value', 
+      header: t('estimatedValue'), 
+      accessor: 'estimated_value', 
+      sortable: true,
+      render: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value as number),
+    },
+    { 
+      key: 'probability', 
+      header: t('probability'), 
+      accessor: 'probability', 
+      sortable: true,
+      render: (value) => `${value}%`,
+    },
+    { 
+      key: 'deadline', 
+      header: t('deadline'), 
+      accessor: 'deadline', 
+      sortable: true,
+      render: (value) => new Date(value as string).toLocaleDateString('pt-BR'),
+    },
+    { key: 'owner', header: t('owner'), accessor: 'owner', sortable: true },
+  ], [t]);
+
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -257,29 +316,13 @@ export default function OpportunitiesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{t('subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setViewMode('board')}
-              className={`p-2 ${viewMode === 'board' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-600'}`}
-              title="Board View"
-            >
-              <Squares2X2Icon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-600'}`}
-              title="List View"
-            >
-              <ListBulletIcon className="w-5 h-5" />
-            </button>
-          </div>
+      <PageHeader
+        title={t('title')}
+        subtitle={t('subtitle')}
+        viewToggle={true}
+        viewMode={viewMode}
+        onViewChange={setViewMode}
+        action={
           <button 
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
@@ -287,8 +330,8 @@ export default function OpportunitiesPage() {
             <PlusIcon className="w-5 h-5 mr-2" />
             {t('newOpportunity')}
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Create/Edit Opportunity Modal */}
       <OpportunityModal 
@@ -320,11 +363,60 @@ export default function OpportunitiesPage() {
       />
 
       {/* Content View */}
-      {viewMode === 'board' ? (
+      {viewMode === 'board' && (
         /* Pipeline Kanban */
         <OpportunityPipeline />
-      ) : (
-        /* List View */
+      )}
+
+      {viewMode === 'timeline' && (
+        <div className="space-y-4">
+          <TimelineView
+            items={timelineItems}
+            showConnectors={true}
+            animated={true}
+          />
+          {opportunities.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={opportunities.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+              persistInUrl={true}
+              showTotal={true}
+              showPageSizeSelector={true}
+            />
+          )}
+        </div>
+      )}
+
+      {viewMode === 'table' && (
+        <TableView<Opportunity>
+          data={opportunities}
+          columns={tableColumns}
+          getRowKey={(row) => row.id}
+          onRowClick={handleOpportunityClick}
+          loading={isLoading}
+          emptyMessage={tCommon('noResults')}
+          searchable={false}
+          paginated={true}
+          pageSize={pageSize}
+          currentPage={currentPage}
+          totalItems={opportunities.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+          striped={true}
+          hoverable={true}
+        />
+      )}
+
+      {viewMode === 'list' && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
             {isLoading ? (
