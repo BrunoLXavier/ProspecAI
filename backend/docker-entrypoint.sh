@@ -3,7 +3,15 @@ set -e
 
 echo "[entrypoint] Running alembic migrations (if available)..."
 if command -v alembic >/dev/null 2>&1; then
-  alembic upgrade heads || echo "[entrypoint] alembic upgrade failed; continuing"
+  # If DB already reports the same single head as filesystem, skip upgrade to avoid overlap errors.
+  current=$(alembic current 2>/dev/null | awk 'NR==1{print $1}')
+  heads_count=$(alembic heads 2>/dev/null | wc -l | tr -d '[:space:]')
+  headrev=$(alembic heads 2>/dev/null | awk 'NR==1{print $1}')
+  if [ -n "$current" ] && [ "$current" = "$headrev" ] && [ "$heads_count" -eq 1 ]; then
+    echo "[entrypoint] DB already at head ($current); skipping alembic upgrade"
+  else
+    alembic upgrade heads || echo "[entrypoint] alembic upgrade failed; continuing"
+  fi
 fi
 
 if [ "${RUN_SEEDS_ON_START:-}" = "1" ] || [ "${RUN_SEEDS_ON_START:-}" = "true" ]; then

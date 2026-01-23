@@ -21,6 +21,7 @@ if os.getenv("TEST_USE_SQLITE", "true").lower() == "true":
         return String(36)
     INET = String(50)
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import synonym
 from sqlalchemy.sql import func
 
 Base = declarative_base()
@@ -269,7 +270,7 @@ class InstituteModel(BaseModel):
     code = Column(String(100), nullable=True)  # Alias for isi_sigla
     description = Column(Text, nullable=True)  # Alias for descricao
     metadata_ = Column('metadata', JSON, default=dict)
-    meta = metadata_
+    meta = synonym('metadata_')
 
     __table_args__ = (
         Index('idx_institutes_tenant', 'tenant_id'),
@@ -331,7 +332,7 @@ class TeamModel(BaseModel):
     description = Column(Text, nullable=True)
     member_ids = Column(JSON, default=list)
     metadata_ = Column('metadata', JSON, default=dict)
-    meta = metadata_
+    meta = synonym('metadata_')
 
     __table_args__ = (
         Index('idx_teams_institute', 'instituto_id'),
@@ -378,7 +379,7 @@ class InfrastructureModel(BaseModel):
     description = Column(Text, nullable=True)
     capacity = Column(JSON, default=dict)
     metadata_ = Column('metadata', JSON, default=dict)
-    meta = metadata_
+    meta = synonym('metadata_')
 
     __table_args__ = (
         Index('idx_infrastructures_institute', 'instituto_id'),
@@ -964,7 +965,7 @@ class CommunicationThreadModel(BaseModel):
 
     subject = Column(String(500), nullable=True)
     metadata_ = Column('metadata', JSON, default=dict)
-    meta = metadata_
+    meta = synonym('metadata_')
     last_message_preview = Column(Text, nullable=True)
     last_message_at = Column(DateTime(timezone=True), nullable=True)
     

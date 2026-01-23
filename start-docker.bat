@@ -151,10 +151,10 @@ goto :after_migrate
 call :log [*] RUN_MIGRATIONS=1; running database migrations (alembic upgrade heads)...
 rem Use RUN_ENV_ARGS to inject requested env vars into the run invocation (if any)
 if defined RUN_ENV_ARGS (
-  docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend alembic upgrade heads
+  docker compose run --rm %RUN_ENV_ARGS% backend sh -c "current=$(alembic -c /app/alembic.ini current | awk '{print $1}'); head=$(alembic -c /app/alembic.ini heads | head -n1 | awk '{print $1}'); if [ \"$current\" = \"$head\" ]; then echo [start-docker] DB already at head $head; else alembic -c /app/alembic.ini upgrade heads; fi"
 ) else (
   rem no special envs to pass
-  docker compose run --rm --entrypoint "" backend alembic upgrade heads
+  docker compose run --rm backend sh -c "current=$(alembic -c /app/alembic.ini current | awk '{print $1}'); head=$(alembic -c /app/alembic.ini heads | head -n1 | awk '{print $1}'); if [ \"$current\" = \"$head\" ]; then echo [start-docker] DB already at head $head; else alembic -c /app/alembic.ini upgrade heads; fi"
 )
 if %ERRORLEVEL% NEQ 0 goto :migrate_failed
 call :log [*] Migrations completed

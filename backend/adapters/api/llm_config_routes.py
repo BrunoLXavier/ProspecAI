@@ -23,6 +23,7 @@ router = APIRouter(prefix="/api/v1/admin/llm-config", tags=["LLM Configuration"]
 
 class LLMConfigCreateRequest(BaseModel):
     """Request model for creating LLM configuration."""
+    model_config = {"protected_namespaces": ()}
     provider: str = Field(..., description="LLM provider: openai, ollama, azure, google")
     api_key: str = Field(..., description="API key for the provider")
     model_name: str = Field(default="gpt-4-turbo-preview", description="Model name to use")
@@ -33,6 +34,7 @@ class LLMConfigCreateRequest(BaseModel):
 
 class LLMConfigUpdateRequest(BaseModel):
     """Request model for updating LLM configuration."""
+    model_config = {"protected_namespaces": ()}
     provider: Optional[str] = Field(default=None, description="LLM provider")
     api_key: Optional[str] = Field(default=None, description="New API key (leave empty to keep existing)")
     model_name: Optional[str] = Field(default=None, description="Model name")
@@ -43,6 +45,7 @@ class LLMConfigUpdateRequest(BaseModel):
 
 class LLMConfigResponse(BaseModel):
     """Response model for LLM configuration."""
+    model_config = {"protected_namespaces": ()}
     id: str
     provider: str
     model_name: str
@@ -69,6 +72,7 @@ class TestConnectionResponse(BaseModel):
 
 class TestConnectionRequest(BaseModel):
     """Request model for testing connection with inline config."""
+    model_config = {"protected_namespaces": ()}
     provider: str = Field(..., description="LLM provider: openai, ollama, azure, google")
     model_name: str = Field(default="gpt-4-turbo-preview", description="Model name to use")
     api_key: str = Field(..., description="API key for the provider")
