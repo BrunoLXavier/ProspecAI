@@ -201,7 +201,7 @@ export default function ACLRoleModal({
       size="2xl"
       footer={footerContent}
     >
-      <form id="acl-role-form" onSubmit={handleSubmit}>
+      <form id="acl-role-form" onSubmit={handleSubmit} className="space-y-6">
         {/* Delete Confirmation */}
         <DeleteConfirmation
           isVisible={showDeleteConfirm && isEditMode && !isSystemRole}
@@ -211,8 +211,15 @@ export default function ACLRoleModal({
           isDeleting={deleting}
         />
 
-        {/* Basic Info */}
-        <div className="space-y-4 mb-6">
+        {/* Basic Info Section */}
+        <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-1.5 h-5 bg-primary-500 rounded-full" />
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+              {t('acl.basicInfo') || 'Informações Básicas'}
+            </h3>
+          </div>
+          
           <FormInput
             label={t('acl.roleName') || 'Role Name'}
             placeholder={t('acl.exampleRoleName') || 'e.g., Content Manager'}
@@ -232,35 +239,40 @@ export default function ACLRoleModal({
           />
         </div>
 
-        {/* Permissions Matrix */}
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-          <div className="bg-gray-50 dark:bg-slate-700 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t('acl.permissionsMatrix') || 'Permissions Matrix'}
-            </h3>
+        {/* Permissions Matrix Section */}
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-slate-700 dark:to-slate-600 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+            <div className="flex items-center gap-2">
+              <ShieldCheckIcon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                {t('acl.permissionsMatrix') || 'Permissions Matrix'}
+              </h3>
+            </div>
           </div>
           
-          <div className="overflow-x-auto max-h-80 overflow-y-auto">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-slate-700 sticky top-0">
+              <thead className="bg-gray-100 dark:bg-slate-600">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase sticky left-0 bg-gray-50 dark:bg-slate-700">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-100 dark:bg-slate-600 min-w-[140px]">
                     {t('acl.resource') || 'Resource'}
                   </th>
                   {permissions.map(perm => (
-                    <th key={perm} className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                    <th key={perm} className="px-3 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider min-w-[80px]">
                       {t(`acl.permissions.${perm}`) || PERMISSION_LABELS[perm] || perm}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {resources.map(resource => {
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-slate-800">
+                {resources.map((resource, idx) => {
                   const resourcePerms = rolePermissions[resource] || [];
                   return (
-                    <tr key={resource} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                      <td className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 sticky left-0 bg-white dark:bg-slate-800">
-                        {tNav(resource) || RESOURCE_LABELS[resource] || resource}
+                    <tr key={resource} className={`hover:bg-primary-50 dark:hover:bg-slate-700/50 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50/50 dark:bg-slate-750'}`}>
+                      <td className="px-4 py-2.5 font-medium text-gray-700 dark:text-gray-300 sticky left-0 bg-inherit">
+                        <span className="flex items-center gap-2">
+                          {tNav(resource) || RESOURCE_LABELS[resource] || resource}
+                        </span>
                       </td>
                       {permissions.map(perm => (
                         <PermissionCell

@@ -164,7 +164,7 @@ export default function UserModal({
       size="md"
       footer={footerContent}
     >
-      <form id="user-form" onSubmit={handleSubmit} className="space-y-4">
+      <form id="user-form" onSubmit={handleSubmit} className="space-y-5">
         {/* Delete Confirmation */}
         <DeleteConfirmation
           isVisible={showDeleteConfirm && isEditMode}
@@ -176,85 +176,102 @@ export default function UserModal({
 
         {/* Error Message */}
         {error && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
+            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
             <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
           </div>
         )}
 
-        <FormInput
-          label={(t('users.name') || 'Name') + ' *'}
-          value={formData.name}
-          onChange={(e) => updateField('name', e.target.value)}
-          required
-        />
+        {/* Basic Info Section */}
+        <div className="space-y-4">
+          <FormInput
+            label={(t('users.name') || 'Name') + ' *'}
+            value={formData.name}
+            onChange={(e) => updateField('name', e.target.value)}
+            required
+          />
 
-        <FormInput
-          label={(t('users.email') || 'Email') + ' *'}
-          type="email"
-          value={formData.email}
-          onChange={(e) => updateField('email', e.target.value)}
-          required
-        />
-
-        <FormInput
-          label={(t('users.password') || 'Password') + (!isEditMode ? ' *' : '')}
-          type="password"
-          value={formData.password}
-          onChange={(e) => updateField('password', e.target.value)}
-          placeholder={isEditMode ? (t('users.leaveBlank') || 'Leave blank to keep current') : ''}
-          required={!isEditMode}
-        />
-
-        <FormSelect
-          label={t('users.role') || 'Role'}
-          value={formData.role}
-          onChange={(e) => updateField('role', e.target.value)}
-          options={roleOptions}
-        />
-
-        {/* Active Toggle */}
-        <div className="flex items-center gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => updateField('is_active', !formData.is_active)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              formData.is_active ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                formData.is_active ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
-          <span className="text-sm text-gray-700 dark:text-gray-300">
-            {t('users.activeUser') || 'Active user'}
-          </span>
+          <FormInput
+            label={(t('users.email') || 'Email') + ' *'}
+            type="email"
+            value={formData.email}
+            onChange={(e) => updateField('email', e.target.value)}
+            required
+          />
         </div>
 
-        {/* Last Login Info (Edit mode only) */}
-        {isEditMode && user?.last_login && (
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-400">
-                {t('users.lastLogin') || 'Last Login'}
-              </span>
-              <span className="text-gray-700 dark:text-gray-300">
-                {new Date(user.last_login).toLocaleString('pt-BR')}
+        {/* Credentials Section */}
+        <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+          <FormInput
+            label={(t('users.password') || 'Password') + (!isEditMode ? ' *' : '')}
+            type="password"
+            value={formData.password}
+            onChange={(e) => updateField('password', e.target.value)}
+            placeholder={isEditMode ? (t('users.leaveBlank') || 'Leave blank to keep current') : ''}
+            required={!isEditMode}
+          />
+        </div>
+
+        {/* Role & Status Section */}
+        <div className="pt-2 border-t border-gray-100 dark:border-gray-700 space-y-4">
+          <FormSelect
+            label={t('users.role') || 'Role'}
+            value={formData.role}
+            onChange={(e) => updateField('role', e.target.value)}
+            options={roleOptions}
+          />
+
+          {/* Active Toggle */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className={`w-2.5 h-2.5 rounded-full ${formData.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t('users.activeUser') || 'Active user'}
               </span>
             </div>
+            <button
+              type="button"
+              onClick={() => updateField('is_active', !formData.is_active)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 ${
+                formData.is_active ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                  formData.is_active ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
-        )}
+        </div>
 
-        {/* Created At Info (Edit mode only) */}
-        {isEditMode && user?.created_at && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">
-              {tCommon('createdAt') || 'Created At'}
-            </span>
-            <span className="text-gray-700 dark:text-gray-300">
-              {new Date(user.created_at).toLocaleString('pt-BR')}
-            </span>
+        {/* User Info (Edit mode only) */}
+        {isEditMode && (user?.last_login || user?.created_at) && (
+          <div className="pt-4 mt-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {user?.last_login && (
+                <div className="p-2.5 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                  <span className="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                    {t('users.lastLogin') || 'Last Login'}
+                  </span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {new Date(user.last_login).toLocaleString('pt-BR')}
+                  </span>
+                </div>
+              )}
+              {user?.created_at && (
+                <div className="p-2.5 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                  <span className="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                    {tCommon('createdAt') || 'Created At'}
+                  </span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {new Date(user.created_at).toLocaleString('pt-BR')}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </form>

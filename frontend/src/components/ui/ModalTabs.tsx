@@ -139,7 +139,7 @@ export default function ModalTabs({
       </Tab.List>
 
       {/* Tab Panels - vertical scroll only */}
-      <Tab.Panels className="p-6 overflow-y-auto overflow-x-hidden">
+      <Tab.Panels className="overflow-y-auto overflow-x-hidden">
         {tabs.map((tab, index) => (
           <Tab.Panel key={tab.name} className="focus:outline-none">
             {tab.content}

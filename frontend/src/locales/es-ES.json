@@ -852,6 +852,14 @@
       "systemBadge": "Sistema",
       "deleteConfirm": "¿Estás seguro de que deseas eliminar este rol?",
       "createRole": "Crear Rol",
+      "editRole": "Editar Rol",
+      "roleName": "Nombre del Rol",
+      "exampleRoleName": "ej., Gestor de Contenido",
+      "roleDescriptionLabel": "Descripción",
+      "descriptionPlaceholder": "Describe el propósito del rol",
+      "permissionsMatrix": "Matriz de Permisos",
+      "systemRoleWarning": "Los roles del sistema no se pueden modificar ni eliminar.",
+      "basicInfo": "Información Básica",
       "roleDescriptions": {
         "admin": "Acceso total al sistema",
         "manager": "Gestiona equipos y proyectos",
@@ -981,18 +989,21 @@
       "showing": "Mostrando",
       "of": "de",
       "users": "usuarios",
-      "usersDesc": "Gerencie usuarios y sus permisos",
+      "usersDesc": "Gestiona usuarios y sus permisos",
       "feedback": "Feedback",
-      "feedbackDesc": "Gestione comentarios y anotaciones de usuarios",
+      "feedbackDesc": "Gestiona comentarios y anotaciones de usuarios",
       "password": "Contraseña",
       "passwordOptional": "Contraseña (dejar vacío para mantener)",
+      "activeUser": "Usuario activo",
+      "create": "Crear",
+      "leaveBlank": "Dejar vacío para mantener la contraseña actual",
       "roleTypes": {
         "admin": "Administrador",
         "manager": "Gerente",
         "analyst": "Analista",
         "viewer": "Visualizador"
       },
-      "deleteConfirmation": "Excluir este usuário?"
+      "deleteConfirmation": "¿Estás seguro de que deseas eliminar este usuario?"
     },
     "statistics": {
       "title": "Permisos de Estadísticas",
@@ -1852,13 +1863,19 @@
     },
     " ": " ",
     "security": {
-      "changePassword": "Change password",
-      "confirmPassword": "Confirm new password",
-      "currentPassword": "Current password",
-      "lastLogin": "Last login",
-      "newPassword": "New password",
-      "title": "Security",
-      "updatePassword": "Update password"
+      "title": "Seguridad",
+      "changePassword": "Cambiar contraseña",
+      "currentPassword": "Contraseña actual",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña",
+      "updatePassword": "Actualizar contraseña",
+      "lastLogin": "Último acceso",
+      "allFieldsRequired": "Todos los campos son obligatorios",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+      "updateError": "Error al actualizar la contraseña",
+      "passwordRequirements": "Requisitos de contraseña:",
+      "minLength": "Al menos 8 caracteres"
     }
   },
   "": {

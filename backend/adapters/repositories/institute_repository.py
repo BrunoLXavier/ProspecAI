@@ -189,6 +189,7 @@ class InstituteRepository:
                     InstituteModel.deleted_at.is_(None)
                 )
             )
+            .distinct()
             .order_by(InstituteModel.nome)
             .offset(skip)
             .limit(limit)

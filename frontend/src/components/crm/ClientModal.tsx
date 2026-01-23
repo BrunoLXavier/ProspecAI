@@ -197,7 +197,7 @@ export default function ClientModal({
         icon={<BuildingOffice2Icon className="w-6 h-6 text-primary-600 dark:text-primary-400" />}
         size="md"
       >
-        <div className="p-6 text-center">
+        <div className="text-center">
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             {t('noPermissionMessage') || 'Você deve ser administrador ou ter pelo menos um instituto selecionado para criar um cliente.'}
           </p>

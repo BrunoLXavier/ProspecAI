@@ -810,6 +810,14 @@
       "systemBadge": "Sistema",
       "deleteConfirm": "Tem certeza que deseja excluir este papel?",
       "createRole": "Criar Papel",
+      "editRole": "Editar Papel",
+      "roleName": "Nome do Papel",
+      "exampleRoleName": "ex: Gerente de Conteúdo",
+      "roleDescriptionLabel": "Descrição",
+      "descriptionPlaceholder": "Descreva o propósito deste papel",
+      "permissionsMatrix": "Matriz de Permissões",
+      "systemRoleWarning": "Papéis do sistema não podem ser modificados ou excluídos.",
+      "basicInfo": "Informações Básicas",
       "roleDescriptions": {
         "admin": "Acesso total ao sistema",
         "manager": "Gerencia equipes e projetos",
@@ -949,8 +957,11 @@
         "viewer": "Visualizador"
       },
       "feedback": "Feedback",
-      "feedbackDesc": "Manage user feedback and annotations",
-      "usersDesc": "Manage users and permissions"
+      "feedbackDesc": "Gerenciar feedback e anotações de usuários",
+      "usersDesc": "Gerenciar usuários e permissões",
+      "activeUser": "Usuário ativo",
+      "create": "Criar",
+      "leaveBlank": "Deixe em branco para manter a senha atual"
     },
     "statistics": {
       "title": "Permissões de Estatísticas",
@@ -1142,7 +1153,13 @@
       "newPassword": "Nova senha",
       "confirmPassword": "Confirmar nova senha",
       "updatePassword": "Atualizar senha",
-      "lastLogin": "Último acesso"
+      "lastLogin": "Último acesso",
+      "allFieldsRequired": "Todos os campos são obrigatórios",
+      "passwordMismatch": "As senhas não coincidem",
+      "passwordMinLength": "A senha deve ter pelo menos 8 caracteres",
+      "updateError": "Erro ao atualizar senha",
+      "passwordRequirements": "Requisitos da senha:",
+      "minLength": "Pelo menos 8 caracteres"
     },
     " ": " ",
     "analytics": {

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { PasswordChangeModal } from '@/components/profile';
 import {
   UserCircleIcon,
   EnvelopeIcon,
@@ -27,6 +28,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     name: user?.fullName || user?.username || 'Admin User',
@@ -43,6 +45,17 @@ export default function ProfilePage() {
     setIsEditing(false);
     setShowSaved(true);
     setTimeout(() => setShowSaved(false), 2000);
+  };
+
+  const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
+    setPasswordSaving(true);
+    try {
+      // TODO: Implement actual password change API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setShowPasswordModal(false);
+    } finally {
+      setPasswordSaving(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -317,59 +330,13 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      {/* Password Change Modal (placeholder) */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md mx-4 shadow-floating">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              {t('security.changePassword')}
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('security.currentPassword')}
-                </label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('security.newPassword')}
-                </label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('security.confirmPassword')}
-                </label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setShowPasswordModal(false)}
-                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition"
-              >
-                {t('cancel')}
-              </button>
-              <button
-                onClick={() => setShowPasswordModal(false)}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-              >
-                {t('security.updatePassword')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Password Change Modal */}
+      <PasswordChangeModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onSave={handlePasswordChange}
+        saving={passwordSaving}
+      />
     </div>
   );
 }

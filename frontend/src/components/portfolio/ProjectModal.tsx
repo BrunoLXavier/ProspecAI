@@ -326,6 +326,44 @@ export default function ProjectModal({
     </div>
   );
 
+  // Footer content - passed to BaseModal footer prop to stay fixed
+  const footerContent = (
+    <div className="flex items-center justify-between">
+      <div>
+        {isEditMode && (
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+          >
+            {tCommon('delete')}
+          </button>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600"
+        >
+          {tCommon('cancel')}
+        </button>
+        <button
+          type="submit"
+          form="project-form"
+          disabled={isSubmitting || saveMutation.isPending}
+          className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+        >
+          {isSubmitting || saveMutation.isPending
+            ? tCommon('saving')
+            : isEditMode
+            ? tCommon('save')
+            : t('newProject')}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -333,11 +371,12 @@ export default function ProjectModal({
       title={isEditMode ? t('editProject') : t('newProject')}
       icon={<ClipboardDocumentListIcon className="w-6 h-6" />}
       size="lg"
+      footer={canCreate || isEditMode ? footerContent : undefined}
     >
       {!canCreate && !isEditMode ? (
         renderNoPermission()
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
+        <form id="project-form" onSubmit={handleSubmit(onSubmit)}>
           {/* Delete Confirmation */}
           <DeleteConfirmation
             isVisible={showDeleteConfirm && isEditMode}
@@ -355,41 +394,6 @@ export default function ProjectModal({
               {isEditMode ? t('updateError') : t('createError')}
             </p>
           )}
-
-          {/* Footer */}
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div>
-              {isEditMode && (
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-                >
-                  {tCommon('delete')}
-                </button>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600"
-              >
-                {tCommon('cancel')}
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || saveMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-              >
-                {isSubmitting || saveMutation.isPending
-                  ? tCommon('saving')
-                  : isEditMode
-                  ? tCommon('save')
-                  : t('newProject')}
-              </button>
-            </div>
-          </div>
         </form>
       )}
     </BaseModal>

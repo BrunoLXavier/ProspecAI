@@ -88,6 +88,36 @@ export default function TranslationModal({
 
   const locales = localesProp && localesProp.length ? localesProp : Object.keys(values);
 
+  // Footer content - passed to BaseModal footer prop to stay fixed
+  const footerContent = (
+    <div className="flex items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setShowDeleteConfirm(true)}
+        className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+      >
+        {tCommon('delete')}
+      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600"
+        >
+          {tCommon('cancel')}
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+        >
+          {saving ? tCommon('saving') || 'Salvando...' : tCommon('save')}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -95,8 +125,9 @@ export default function TranslationModal({
       title={translation.path}
       icon={<LanguageIcon className="w-6 h-6" />}
       size="lg"
+      footer={footerContent}
     >
-      <div className="flex flex-col h-full">
+      <div>
         {/* Delete Confirmation */}
         <DeleteConfirmation
           isVisible={showDeleteConfirm}
@@ -117,7 +148,7 @@ export default function TranslationModal({
         </div>
 
         {/* Locale Values */}
-        <div className="flex-1 space-y-4 max-h-96 overflow-y-auto pr-2">
+        <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
               {t('translations.values')}
@@ -141,34 +172,6 @@ export default function TranslationModal({
               />
             </div>
           ))}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(true)}
-            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-          >
-            {tCommon('delete')}
-          </button>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600"
-            >
-              {tCommon('cancel')}
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-            >
-              {saving ? tCommon('saving') || 'Salvando...' : tCommon('save')}
-            </button>
-          </div>
         </div>
       </div>
     </BaseModal>

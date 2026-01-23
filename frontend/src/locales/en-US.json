@@ -789,6 +789,14 @@
       "systemBadge": "System",
       "deleteConfirm": "Are you sure you want to delete this role?",
       "createRole": "Create Role",
+      "editRole": "Edit Role",
+      "roleName": "Role Name",
+      "exampleRoleName": "e.g., Content Manager",
+      "roleDescriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe the role's purpose",
+      "permissionsMatrix": "Permissions Matrix",
+      "systemRoleWarning": "System roles cannot be modified or deleted.",
+      "basicInfo": "Basic Information",
       "roleDescriptions": {
         "admin": "Full system access",
         "manager": "Manages teams and projects",
@@ -923,13 +931,16 @@
       "feedbackDesc": "Manage user feedback and annotations",
       "password": "Password",
       "passwordOptional": "Password (leave empty to keep)",
+      "activeUser": "Active user",
+      "create": "Create",
+      "leaveBlank": "Leave blank to keep current password",
       "roleTypes": {
         "admin": "Administrator",
         "manager": "Manager",
         "analyst": "Analyst",
         "viewer": "Viewer"
       },
-      "deleteConfirmation": "Excluir este usuário?"
+      "deleteConfirmation": "Are you sure you want to delete this user?"
     },
     "statistics": {
       "title": "Statistics Permissions",
@@ -1119,7 +1130,13 @@
       "newPassword": "New password",
       "confirmPassword": "Confirm new password",
       "updatePassword": "Update password",
-      "lastLogin": "Last login"
+      "lastLogin": "Last login",
+      "allFieldsRequired": "All fields are required",
+      "passwordMismatch": "Passwords do not match",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "updateError": "Error updating password",
+      "passwordRequirements": "Password requirements:",
+      "minLength": "At least 8 characters"
     },
     " ": " ",
     "analytics": {

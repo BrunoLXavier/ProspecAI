@@ -107,7 +107,7 @@ export default function BaseModal({
                 </div>
 
                 {/* Content - no horizontal scroll, vertical scroll with max height */}
-                <div className="overflow-y-auto overflow-x-hidden max-h-[60vh]">
+                <div className="p-6 overflow-y-auto overflow-x-hidden max-h-[60vh]">
                   {children}
                 </div>
 
