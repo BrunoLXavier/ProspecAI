@@ -73,6 +73,48 @@ export default function MessageBubble({ message, isOwnMessage = false, currentUs
   const t = useTranslations('communications');
   const [showEmailDetails, setShowEmailDetails] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  // Generate download URL for attachments using the proxy endpoint
+  const getDownloadUrl = (attachment: Attachment) => {
+    if (!attachment.id) {
+      // Fallback to direct URL if no ID (shouldn't happen for saved attachments)
+      return attachment.url || '#';
+    }
+    // Use the backend proxy endpoint that handles MinIO internally
+    return `/api/v1/communications/${message.thread_id}/attachments/${attachment.id}/download`;
+  };
+
+  // Handle authenticated download
+  const handleDownload = async (e: React.MouseEvent, attachment: Attachment) => {
+    e.preventDefault();
+    if (!attachment.id || downloadingId) return;
+    
+    setDownloadingId(attachment.id);
+    try {
+      const response = await apiClient.get(
+        `/api/v1/communications/${message.thread_id}/attachments/${attachment.id}/download`,
+        { responseType: 'blob' }
+      );
+      
+      // Create download link
+      const blob = new Blob([response.data], { 
+        type: attachment.content_type || 'application/octet-stream' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = attachment.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -234,7 +276,7 @@ export default function MessageBubble({ message, isOwnMessage = false, currentUs
                   return (
                     <div key={att.id || idx} className="mt-2">
                       <MediaPlayer
-                        src={att.url}
+                        src={getDownloadUrl(att)}
                         type={isVideo ? 'video' : 'audio'}
                         filename={att.filename}
                       />
@@ -247,13 +289,13 @@ export default function MessageBubble({ message, isOwnMessage = false, currentUs
                   return (
                     <a
                       key={att.id || idx}
-                      href={att.url}
+                      href={getDownloadUrl(att)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block"
                     >
                       <img
-                        src={att.url}
+                        src={getDownloadUrl(att)}
                         alt={att.filename}
                         className="max-w-full max-h-64 rounded-lg object-contain"
                       />
@@ -264,16 +306,15 @@ export default function MessageBubble({ message, isOwnMessage = false, currentUs
 
                 // Default file download link
                 return (
-                  <a
+                  <button
                     key={att.id || idx}
-                    href={att.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                    onClick={(e) => handleDownload(e, att)}
+                    disabled={downloadingId === att.id}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${
                       isOwnMessage
                         ? 'bg-blue-500 hover:bg-blue-400'
                         : 'bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500'
-                    }`}
+                    } ${downloadingId === att.id ? 'opacity-50' : ''}`}
                   >
                     {getAttachmentIcon(att.content_type)}
                     <span className="flex-1 text-sm truncate">{att.filename}</span>
@@ -281,7 +322,7 @@ export default function MessageBubble({ message, isOwnMessage = false, currentUs
                       <span className="text-xs opacity-70">{formatFileSize(att.size)}</span>
                     )}
                     <ArrowDownTrayIcon className="w-4 h-4" />
-                  </a>
+                  </button>
                 );
               })}
             </div>

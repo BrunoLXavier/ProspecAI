@@ -110,10 +110,12 @@ export default function TranscriptionReportModal({
   const loadTemplates = async () => {
     setLoadingTemplates(true);
     try {
-      const response = await apiClient.get('/api/v1/communications/report-templates');
-      setTemplates(response.data);
-      if (response.data.length > 0) {
-        setSelectedTemplate(response.data[0]);
+      const templates = await apiClient.get('/api/v1/communications/report-templates');
+      // apiClient.get already returns response.data, so templates is the array directly
+      const templateList = Array.isArray(templates) ? templates : [];
+      setTemplates(templateList);
+      if (templateList.length > 0) {
+        setSelectedTemplate(templateList[0]);
       }
     } catch (err) {
       console.error('Failed to load templates:', err);
@@ -207,7 +209,7 @@ export default function TranscriptionReportModal({
   
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={handleClose}>
+      <Dialog as="div" className="relative z-[150]" onClose={handleClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

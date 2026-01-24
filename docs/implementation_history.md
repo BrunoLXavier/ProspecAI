@@ -5,6 +5,67 @@
 
 ---
 
+## 2026-01-24 - Communications Attachment Download & Transcription Fixes
+
+### Issues Fixed:
+
+1. **Attachment Download Not Working** (Bug: "Não consigo fazer o download do arquivo gerado"):
+   - **Root Cause**: MinIO presigned URLs contained internal Docker hostname `minio:9000` which is not accessible from browser
+   - **Solution**: Modified backend download endpoint to proxy files through FastAPI using `StreamingResponse`
+   - **Files Modified**:
+     - `backend/routers/communications.py`: Changed `/download` endpoint to download from MinIO internally and stream to client
+     - `frontend/src/components/communications/MessageBubble.tsx`: Changed from `<a href>` links to `<button onClick>` with authenticated API call using `responseType: 'blob'`
+
+2. **Attachment Persistence Issue** (Bug: attachments not being saved):
+   - **Root Cause**: Backend code changes were not applied to Docker container (needed restart)
+   - **Solution**: After `docker restart prospecai-backend`, attachments persisted correctly to `communication_attachments` table
+   - Added debug logging to `upload_attachments` function for monitoring
+
+3. **Audio Disappearing When Modal Closes** (Bug: "ao fechar e abrir o modal, o audio desaparece"):
+   - **Investigation Result**: Audio PERSISTS correctly when closing/reopening the transcription modal
+   - **Expected Behavior**: Audio is lost when user explicitly confirms "Fechar Mesmo Assim" in the unsent attachments warning dialog - this is intentional as user chose to discard
+   - **No fix required** - behavior is as designed
+
+### Technical Details:
+
+**Backend Download Endpoint Change** (`backend/routers/communications.py`):
+```python
+@router.get("/{thread_id}/attachments/{attachment_id}/download")
+async def download_attachment(...):
+    # Downloads file from MinIO and streams to client
+    content = await fs.download_file(StorageBucket(attachment.bucket), attachment.object_name)
+    return StreamingResponse(
+        io.BytesIO(content),
+        media_type=attachment.content_type or "application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{attachment.filename}"',
+            "Content-Length": str(attachment.size or len(content)),
+        }
+    )
+```
+
+**Frontend Download Handler** (`frontend/src/components/communications/MessageBubble.tsx`):
+```tsx
+const handleDownload = async (attachment) => {
+    const response = await apiClient.get(downloadUrl, { responseType: 'blob' });
+    const blob = new Blob([response.data], { type: attachment.content_type });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = attachment.filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
+};
+```
+
+### Verification:
+- ✅ Attachment upload working (database persistence verified)
+- ✅ Attachment download working (file downloads through browser)
+- ✅ Transcription modal audio persistence working
+- ✅ Unsent attachments warning dialog working as expected
+
+---
+
 ## 2026-01-24 - Entity Type Change & Highlight Navigation System
 
 ### Feature: Clear Entity ID on Type Change & System-wide Highlight Navigation

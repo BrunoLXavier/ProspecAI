@@ -75,6 +75,10 @@ export default function CommunicationsPage() {
   
   // Selected thread for detail view
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  
+  // Track if there are unsent attachments in the thread composer
+  const [hasUnsentAttachments, setHasUnsentAttachments] = useState(false);
+  const [showUnsentWarning, setShowUnsentWarning] = useState(false);
 
   // Get current user ID from localStorage or API
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
@@ -314,6 +318,22 @@ export default function CommunicationsPage() {
     if (deleteThreadId) {
       deleteMutation.mutate(deleteThreadId);
     }
+  };
+
+  // Handle closing thread panel with unsent attachments warning
+  const handleCloseThreadPanel = useCallback(() => {
+    if (hasUnsentAttachments) {
+      setShowUnsentWarning(true);
+    } else {
+      setActiveThreadId(null);
+      setHasUnsentAttachments(false);
+    }
+  }, [hasUnsentAttachments]);
+
+  const confirmCloseThreadPanel = () => {
+    setShowUnsentWarning(false);
+    setActiveThreadId(null);
+    setHasUnsentAttachments(false);
   };
 
   const handleModalClose = () => {
@@ -567,7 +587,7 @@ export default function CommunicationsPage() {
             {/* Backdrop */}
             <div 
               className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"
-              onClick={() => setActiveThreadId(null)}
+              onClick={handleCloseThreadPanel}
             />
             
             {/* Slide-over panel */}
@@ -584,7 +604,7 @@ export default function CommunicationsPage() {
                     <button
                       type="button"
                       className="p-2 rounded-lg hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
-                      onClick={() => setActiveThreadId(null)}
+                      onClick={handleCloseThreadPanel}
                     >
                       <span className="sr-only">{t('close') || 'Close'}</span>
                       <XMarkIcon className="h-6 w-6" aria-hidden="true" />
@@ -598,8 +618,11 @@ export default function CommunicationsPage() {
                       currentUserId={currentUserId}
                       currentUserName={currentUserName}
                       onThreadUpdate={() => refetch()}
+                      onHasUnsentAttachmentsChange={setHasUnsentAttachments}
                       onEdit={(thread) => {
+                        // When editing, we don't close with warning since the user is intentionally editing
                         setActiveThreadId(null);
+                        setHasUnsentAttachments(false);
                         handleEditThread(thread);
                       }}
                       onDelete={handleDeleteThread}
@@ -611,6 +634,17 @@ export default function CommunicationsPage() {
           </div>
         </div>
       )}
+
+      {/* Unsent Attachments Warning Dialog */}
+      <ConfirmModal
+        isOpen={showUnsentWarning}
+        title={t('unsentAttachments') || 'Unsent Attachments'}
+        description={t('unsentAttachmentsWarning') || 'You have unsent recordings/attachments. Are you sure you want to close?'}
+        confirmLabel={t('closeAnyway') || 'Close Anyway'}
+        cancelLabel={tCommon('cancel') || 'Cancel'}
+        onConfirm={confirmCloseThreadPanel}
+        onCancel={() => setShowUnsentWarning(false)}
+      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmModal

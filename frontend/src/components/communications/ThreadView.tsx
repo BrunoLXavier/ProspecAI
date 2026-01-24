@@ -77,6 +77,8 @@ interface Props {
   onThreadUpdate?: (thread: Thread) => void;
   onEdit?: (thread: Thread) => void;
   onDelete?: (threadId: string) => void;
+  /** Callback when unsent attachments state changes in the composer */
+  onHasUnsentAttachmentsChange?: (hasUnsent: boolean) => void;
 }
 
 // Map entity types to page URLs
@@ -94,7 +96,15 @@ const getEntityUrl = (entityType: string, entityId: string): string => {
   return `${basePath}?highlight=${entityId}`;
 };
 
-export default function ThreadView({ threadId, currentUserId, currentUserName, onThreadUpdate, onEdit, onDelete }: Props) {
+export default function ThreadView({ 
+  threadId, 
+  currentUserId, 
+  currentUserName, 
+  onThreadUpdate, 
+  onEdit, 
+  onDelete,
+  onHasUnsentAttachmentsChange 
+}: Props) {
   const t = useTranslations('communications');
   
   const [thread, setThread] = useState<Thread | null>(null);
@@ -381,6 +391,7 @@ export default function ThreadView({ threadId, currentUserId, currentUserName, o
       <MessageComposer
         threadId={threadId}
         onMessageSent={handleMessageSent}
+        onHasUnsentAttachmentsChange={onHasUnsentAttachmentsChange}
       />
     </div>
   );

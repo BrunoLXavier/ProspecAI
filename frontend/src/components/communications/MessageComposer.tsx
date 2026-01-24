@@ -4,10 +4,11 @@
  * Rich message composer with:
  * - Draft auto-save (backend + localStorage fallback)
  * - Attachment support (files, audio, video)
- * - Audio AND Video recording for meetings
+ * - Multiple recording modes: microphone, camera, screen, system audio
  * - Transcription report generation from recordings
  * - Human-in-the-loop visual indicators
  * - Media preview before sending
+ * - Browser compatibility detection for advanced recording features
  * 
  * Implements RF-08: Communications and collaboration
  * Implements RF-09: Report generation from transcriptions
@@ -30,18 +31,22 @@ import {
   PlayIcon,
   DocumentTextIcon,
   SparklesIcon,
+  ComputerDesktopIcon,
+  SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useMutation } from '@tanstack/react-query';
 import TranscriptionReportModal from './TranscriptionReportModal';
 import RichTextEditor from './RichTextEditor';
-
-type RecordingType = 'audio' | 'video' | null;
+import { RecordingType } from '@/types/communications';
+import { getBrowserCapabilities, getSupportedBrowsers } from '@/utils/browserCompatibility';
 
 interface Props {
   threadId: string;
   onMessageSent: (message: any) => void;
   disabled?: boolean;
+  /** Callback to notify parent about unsent attachments state */
+  onHasUnsentAttachmentsChange?: (hasUnsent: boolean) => void;
 }
 
 interface DraftData {
@@ -60,8 +65,16 @@ interface AttachmentPreview {
 const DRAFT_SAVE_DEBOUNCE_MS = 1500;
 const LOCAL_STORAGE_KEY_PREFIX = 'prospecai_draft_';
 
-export default function MessageComposer({ threadId, onMessageSent, disabled = false }: Props) {
+export default function MessageComposer({ 
+  threadId, 
+  onMessageSent, 
+  disabled = false,
+  onHasUnsentAttachmentsChange 
+}: Props) {
   const t = useTranslations('communications');
+  
+  // Browser capabilities for screen/system audio recording
+  const [browserCapabilities] = useState(() => getBrowserCapabilities());
   
   const [body, setBody] = useState('');
   const [bodyHtml, setBodyHtml] = useState('');
@@ -70,6 +83,8 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
   const [recordingType, setRecordingType] = useState<RecordingType>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
+  // Secondary stream for microphone when doing screen recording
+  const [microphoneStream, setMicrophoneStream] = useState<MediaStream | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [draftStatus, setDraftStatus] = useState<'saved' | 'saving' | 'unsaved' | 'error'>('saved');
   const [showMediaPreview, setShowMediaPreview] = useState<string | null>(null);
@@ -86,12 +101,32 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
   const draftTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
 
   // Load draft on mount
   useEffect(() => {
     loadDraft();
   }, [threadId]);
+
+  // Notify parent about unsent attachments state
+  useEffect(() => {
+    onHasUnsentAttachmentsChange?.(attachments.length > 0);
+  }, [attachments.length, onHasUnsentAttachmentsChange]);
+
+  // Warn user before leaving if there are unsent attachments (including recordings)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (attachments.length > 0) {
+        e.preventDefault();
+        e.returnValue = t('unsentAttachmentsWarning') || 'You have unsent recordings/attachments. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [attachments.length, t]);
 
   // Auto-save draft on body change
   useEffect(() => {
@@ -257,24 +292,118 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
     });
   };
 
+  /**
+   * Merges multiple audio tracks into a single MediaStream using AudioContext
+   */
+  const mergeAudioTracks = (streams: MediaStream[]): MediaStream => {
+    const audioContext = new AudioContext();
+    audioContextRef.current = audioContext;
+    const destination = audioContext.createMediaStreamDestination();
+    
+    streams.forEach(stream => {
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length > 0) {
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(destination);
+      }
+    });
+    
+    return destination.stream;
+  };
+
   const startRecording = async (type: RecordingType) => {
     if (!type) return;
     
     try {
-      const constraints: MediaStreamConstraints = type === 'video'
-        ? { audio: true, video: { facingMode: 'user', width: 1280, height: 720 } }
-        : { audio: true };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      let stream: MediaStream;
+      let micStream: MediaStream | null = null;
+      let mimeType: string;
+      let attachmentType: 'audio' | 'video';
+      
+      switch (type) {
+        case 'microphone':
+          // Simple microphone recording
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mimeType = 'audio/webm';
+          attachmentType = 'audio';
+          break;
+          
+        case 'camera':
+          // Camera with microphone
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: { facingMode: 'user', width: 1280, height: 720 }
+          });
+          mimeType = 'video/webm';
+          attachmentType = 'video';
+          break;
+          
+        case 'screen':
+          // Screen capture with system audio + microphone
+          const displayStream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: true // System audio (only works in Chromium)
+          });
+          
+          // Also capture microphone
+          try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setMicrophoneStream(micStream);
+            
+            // Merge system audio and microphone audio
+            const audioStreams = [displayStream];
+            if (displayStream.getAudioTracks().length > 0 || micStream.getAudioTracks().length > 0) {
+              audioStreams.push(micStream);
+            }
+            const mergedAudio = mergeAudioTracks(audioStreams);
+            
+            // Create combined stream with display video + merged audio
+            stream = new MediaStream([
+              ...displayStream.getVideoTracks(),
+              ...mergedAudio.getAudioTracks()
+            ]);
+          } catch {
+            // If microphone fails, use display stream only
+            stream = displayStream;
+          }
+          
+          mimeType = 'video/webm';
+          attachmentType = 'video';
+          break;
+          
+        case 'systemAudio':
+          // System audio only (requires getDisplayMedia with minimal video as workaround)
+          const systemStream = await navigator.mediaDevices.getDisplayMedia({
+            video: { width: 1, height: 1 }, // Minimal video required by browser API
+            audio: true
+          });
+          
+          // Extract only audio tracks
+          const audioTracks = systemStream.getAudioTracks();
+          if (audioTracks.length === 0) {
+            throw new Error('No system audio track available');
+          }
+          
+          // Stop video tracks immediately - we only need audio
+          systemStream.getVideoTracks().forEach(track => track.stop());
+          
+          stream = new MediaStream(audioTracks);
+          mimeType = 'audio/webm';
+          attachmentType = 'audio';
+          break;
+          
+        default:
+          return;
+      }
+      
       setRecordingStream(stream);
 
-      // Show video preview for video recording
-      if (type === 'video' && videoPreviewRef.current) {
+      // Show video preview for camera and screen recording
+      if ((type === 'camera' || type === 'screen') && videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = stream;
         videoPreviewRef.current.play();
       }
 
-      const mimeType = type === 'video' ? 'video/webm' : 'audio/webm';
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       
       recordingChunksRef.current = [];
@@ -292,19 +421,39 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
         
         setAttachments(prev => [...prev, {
           file,
-          type,
-          previewUrl: type === 'video' ? URL.createObjectURL(blob) : undefined,
+          type: attachmentType,
+          previewUrl: attachmentType === 'video' ? URL.createObjectURL(blob) : undefined,
           originalBlob: blob, // Store for transcription
         }]);
         
-        // Stop tracks
+        // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
+        if (micStream) {
+          micStream.getTracks().forEach(track => track.stop());
+        }
         setRecordingStream(null);
+        setMicrophoneStream(null);
+        
+        // Close AudioContext if used
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
+        }
         
         if (videoPreviewRef.current) {
           videoPreviewRef.current.srcObject = null;
         }
       };
+      
+      // Handle screen share stop by user (clicking "Stop sharing" in browser)
+      if (type === 'screen' || type === 'systemAudio') {
+        stream.getVideoTracks().forEach(track => {
+          track.onended = () => stopRecording();
+        });
+        stream.getAudioTracks().forEach(track => {
+          track.onended = () => stopRecording();
+        });
+      }
       
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start(1000);
@@ -330,6 +479,18 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
       setRecordingStream(null);
     }
     
+    // Also stop microphone stream if used for screen recording
+    if (microphoneStream) {
+      microphoneStream.getTracks().forEach(track => track.stop());
+      setMicrophoneStream(null);
+    }
+    
+    // Close AudioContext if used
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    
     setIsRecording(false);
     setRecordingType(null);
       
@@ -341,7 +502,7 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
     if (videoPreviewRef.current) {
       videoPreviewRef.current.srcObject = null;
     }
-  }, [isRecording, recordingStream]);
+  }, [isRecording, recordingStream, microphoneStream]);
 
   const formatRecordingTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -367,8 +528,8 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
 
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 p-4">
-      {/* Video preview for recording */}
-      {isRecording && recordingType === 'video' && (
+      {/* Video preview for camera and screen recording */}
+      {isRecording && (recordingType === 'camera' || recordingType === 'screen') && (
         <div className="mb-4 relative bg-black rounded-lg overflow-hidden">
           <video
             ref={videoPreviewRef}
@@ -377,7 +538,10 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
           />
           <div className="absolute bottom-2 left-2 flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-full text-sm">
             <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            {t('recordingVideo') || 'Recording video'} - {formatRecordingTime(recordingTime)}
+            {recordingType === 'camera' 
+              ? (t('recordingCamera') || 'Recording camera') 
+              : (t('recordingScreen') || 'Recording screen')
+            } - {formatRecordingTime(recordingTime)}
           </div>
           <button
             onClick={stopRecording}
@@ -388,12 +552,17 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
         </div>
       )}
 
-      {/* Audio recording indicator */}
-      {isRecording && recordingType === 'audio' && (
+      {/* Audio recording indicator (microphone or system audio) */}
+      {isRecording && (recordingType === 'microphone' || recordingType === 'systemAudio') && (
         <div className="mb-3 flex items-center justify-between gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400">
           <div className="flex items-center gap-3">
             <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-            <span className="font-medium">{t('recordingAudio') || 'Recording audio...'}</span>
+            <span className="font-medium">
+              {recordingType === 'microphone' 
+                ? (t('recordingMicrophone') || 'Recording microphone...') 
+                : (t('recordingSystemAudio') || 'Recording system audio...')
+              }
+            </span>
             <span className="font-mono">{formatRecordingTime(recordingTime)}</span>
           </div>
           <button
@@ -525,32 +694,70 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
             <PaperClipIcon className="w-5 h-5" />
           </button>
 
-          {/* Record audio */}
+          {/* Record microphone */}
           <button
-            onClick={() => isRecording && recordingType === 'audio' ? stopRecording() : startRecording('audio')}
-            disabled={disabled || isSending || (isRecording && recordingType === 'video')}
+            onClick={() => isRecording && recordingType === 'microphone' ? stopRecording() : startRecording('microphone')}
+            disabled={disabled || isSending || (isRecording && recordingType !== 'microphone')}
             className={`p-2 rounded-lg disabled:opacity-50 ${
-              isRecording && recordingType === 'audio'
+              isRecording && recordingType === 'microphone'
                 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
             }`}
-            title={t('recordAudio') || 'Record audio'}
+            title={t('recordMicrophone') || 'Record microphone'}
           >
             <MicrophoneIcon className="w-5 h-5" />
           </button>
 
-          {/* Record video */}
+          {/* Record camera */}
           <button
-            onClick={() => isRecording && recordingType === 'video' ? stopRecording() : startRecording('video')}
-            disabled={disabled || isSending || (isRecording && recordingType === 'audio')}
+            onClick={() => isRecording && recordingType === 'camera' ? stopRecording() : startRecording('camera')}
+            disabled={disabled || isSending || (isRecording && recordingType !== 'camera')}
             className={`p-2 rounded-lg disabled:opacity-50 ${
-              isRecording && recordingType === 'video'
+              isRecording && recordingType === 'camera'
                 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
             }`}
-            title={t('recordVideo') || 'Record video'}
+            title={t('recordCamera') || 'Record camera'}
           >
             <VideoCameraIcon className="w-5 h-5" />
+          </button>
+
+          {/* Record screen with audio */}
+          <button
+            onClick={() => isRecording && recordingType === 'screen' ? stopRecording() : startRecording('screen')}
+            disabled={disabled || isSending || (isRecording && recordingType !== 'screen') || !browserCapabilities.supportsScreenCapture}
+            className={`p-2 rounded-lg disabled:opacity-50 ${
+              isRecording && recordingType === 'screen'
+                ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                : !browserCapabilities.supportsScreenCapture
+                  ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+            }`}
+            title={!browserCapabilities.supportsScreenCapture 
+              ? (t('screenRecordingNotSupported') || 'Screen recording not supported in this browser')
+              : (t('recordScreen') || 'Record screen with audio')
+            }
+          >
+            <ComputerDesktopIcon className="w-5 h-5" />
+          </button>
+
+          {/* Record system audio */}
+          <button
+            onClick={() => isRecording && recordingType === 'systemAudio' ? stopRecording() : startRecording('systemAudio')}
+            disabled={disabled || isSending || (isRecording && recordingType !== 'systemAudio') || !browserCapabilities.supportsSystemAudio}
+            className={`p-2 rounded-lg disabled:opacity-50 ${
+              isRecording && recordingType === 'systemAudio'
+                ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                : !browserCapabilities.supportsSystemAudio
+                  ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+            }`}
+            title={!browserCapabilities.supportsSystemAudio 
+              ? (t('systemAudioNotSupported') || 'System audio capture available only in Chrome, Edge and Opera')
+              : (t('recordSystemAudio') || 'Record computer audio')
+            }
+          >
+            <SpeakerWaveIcon className="w-5 h-5" />
           </button>
           </div>
 

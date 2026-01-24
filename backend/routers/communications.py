@@ -12,6 +12,7 @@ from datetime import datetime
 from uuid import uuid4, UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from infrastructure.file_storage import get_file_storage, StorageBucket
 from adapters.database.connection import get_db
@@ -164,6 +165,31 @@ async def list_threads(
         skip=skip,
         limit=limit,
     )
+
+
+# NOTE: Static routes must come BEFORE dynamic /{thread_id} route
+@router.get("/report-templates", response_model=List[dict])
+async def list_report_templates(
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    user_id: UUID = Depends(get_current_user_id),
+):
+    """
+    List available report templates for transcription reports.
+    """
+    from services.report_service import REPORT_TEMPLATES
+    
+    templates = []
+    for template_id, template in REPORT_TEMPLATES.items():
+        templates.append({
+            "id": template.id,
+            "name": template.name,
+            "description": template.description,
+            "type": template.type.value,
+            "sections": template.sections,
+            "default_format": template.default_format.value,
+        })
+    
+    return templates
 
 
 @router.get("/{thread_id}", response_model=ThreadResponse)
@@ -384,7 +410,14 @@ async def list_messages(
     tenant_id: str = Depends(get_current_tenant_id),
     _allowed: bool = Depends(ensure_user_member_or_admin),
 ):
-    """Get messages for a thread."""
+    """Get messages for a thread with fresh attachment URLs."""
+    from adapters.database.models import CommunicationAttachmentModel
+    from adapters.database.connection import set_tenant_context
+    from sqlalchemy import and_
+    
+    # Set tenant context for RLS
+    await set_tenant_context(db, tenant_id)
+    
     repo = CommunicationRepository(db)
     
     messages = await repo.get_messages_by_thread(
@@ -395,6 +428,43 @@ async def list_messages(
         include_auto_unconfirmed=include_auto_unconfirmed,
     )
     
+    # Load attachments from database with fresh presigned URLs
+    fs = get_file_storage()
+    attachments_query = select(CommunicationAttachmentModel).where(
+        and_(
+            CommunicationAttachmentModel.thread_id == UUID(thread_id),
+            CommunicationAttachmentModel.tenant_id == UUID(tenant_id),
+        )
+    )
+    att_result = await db.execute(attachments_query)
+    all_attachments = att_result.scalars().all()
+    
+    # Build a map of message_id -> attachments with fresh URLs
+    attachments_by_message: dict = {}
+    for att in all_attachments:
+        if att.message_id:
+            msg_id_str = str(att.message_id)
+            if msg_id_str not in attachments_by_message:
+                attachments_by_message[msg_id_str] = []
+            
+            # Generate fresh presigned URL
+            try:
+                url = await fs.get_presigned_url(
+                    StorageBucket(att.bucket),
+                    att.object_name,
+                    expires_in=3600,
+                )
+            except Exception:
+                url = None
+            
+            attachments_by_message[msg_id_str].append({
+                "id": str(att.id),
+                "filename": att.filename,
+                "content_type": att.content_type,
+                "size": att.size,
+                "url": url,
+            })
+    
     return [
         MessageResponse(
             id=str(m.id),
@@ -404,7 +474,7 @@ async def list_messages(
             body=m.body,
             message_type=m.message_type if isinstance(m.message_type, str) else m.message_type.value,
             created_at=m.created_at.isoformat() if m.created_at else "",
-            attachments=m.attachments or [],
+            attachments=attachments_by_message.get(str(m.id), m.attachments or []),
             is_auto_created=m.is_auto_created,
             auto_created_confirmed=m.auto_created_confirmed,
             email_metadata=m.email_metadata.model_dump() if m.email_metadata and hasattr(m.email_metadata, 'model_dump') else m.email_metadata,
@@ -540,6 +610,10 @@ async def upload_attachments(
         raise HTTPException(status_code=400, detail="No files provided")
     
     from adapters.database.models import CommunicationAttachmentModel
+    from adapters.database.connection import set_tenant_context
+    
+    # Set tenant context for RLS
+    await set_tenant_context(db, tenant_id)
     
     fs = get_file_storage()
     results = []
@@ -562,8 +636,11 @@ async def upload_attachments(
         except Exception:
             url = None
         
+        attachment_id = uuid4()
+        logger.info(f"Creating attachment {attachment_id} for file {f.filename} in thread {thread_id}, message {message_id}")
+        
         attach = CommunicationAttachmentModel(
-            id=uuid4(),
+            id=attachment_id,
             tenant_id=UUID(tenant_id),
             thread_id=UUID(thread_id),
             message_id=UUID(message_id) if message_id else None,
@@ -577,6 +654,7 @@ async def upload_attachments(
             updated_by=user_id,
         )
         db.add(attach)
+        logger.info(f"Added attachment {attachment_id} to session (tenant={tenant_id}, thread={thread_id})")
         
         results.append({
             "id": str(attach.id),
@@ -588,9 +666,128 @@ async def upload_attachments(
             "url": url,
         })
     
-    await db.commit()
+    try:
+        await db.flush()  # Flush to detect any errors before commit
+        logger.info(f"Flushed {len(results)} attachments to session for thread {thread_id}")
+        await db.commit()
+        logger.info(f"Committed {len(results)} attachments for thread {thread_id}, message {message_id}")
+    except Exception as e:
+        logger.error(f"Error committing attachments for thread {thread_id}: {e}", exc_info=True)
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to save attachments: {str(e)}")
     
     return {"uploaded": results}
+
+
+@router.get("/{thread_id}/attachments/{attachment_id}/download")
+async def download_attachment(
+    thread_id: str,
+    attachment_id: str,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: str = Depends(get_current_tenant_id),
+    _allowed: bool = Depends(ensure_user_member_or_admin),
+):
+    """
+    Download an attachment file.
+    
+    This endpoint downloads the file from storage and streams it to the client,
+    solving the issue of presigned URLs pointing to internal Docker hostnames.
+    """
+    from adapters.database.models import CommunicationAttachmentModel
+    from sqlalchemy import and_
+    from fastapi.responses import StreamingResponse
+    import io
+    
+    # Find the attachment
+    query = select(CommunicationAttachmentModel).where(
+        and_(
+            CommunicationAttachmentModel.id == UUID(attachment_id),
+            CommunicationAttachmentModel.thread_id == UUID(thread_id),
+            CommunicationAttachmentModel.tenant_id == UUID(tenant_id),
+        )
+    )
+    result = await db.execute(query)
+    attachment = result.scalar_one_or_none()
+    
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+    
+    # Download file from storage
+    fs = get_file_storage()
+    try:
+        content = await fs.download_file(
+            StorageBucket(attachment.bucket),
+            attachment.object_name,
+        )
+        if not content:
+            raise HTTPException(status_code=404, detail="File not found in storage")
+    except Exception as e:
+        logger.error(f"Failed to download file: {e}")
+        raise HTTPException(status_code=500, detail="Failed to download file")
+    
+    # Stream the file to the client
+    return StreamingResponse(
+        io.BytesIO(content),
+        media_type=attachment.content_type or "application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{attachment.filename}"',
+            "Content-Length": str(attachment.size or len(content)),
+        }
+    )
+
+
+@router.get("/{thread_id}/attachments")
+async def list_attachments(
+    thread_id: str,
+    message_id: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: str = Depends(get_current_tenant_id),
+    _allowed: bool = Depends(ensure_user_member_or_admin),
+):
+    """
+    List all attachments for a thread with fresh presigned URLs.
+    
+    Optionally filter by message_id.
+    """
+    from adapters.database.models import CommunicationAttachmentModel
+    from sqlalchemy import and_
+    
+    conditions = [
+        CommunicationAttachmentModel.thread_id == UUID(thread_id),
+        CommunicationAttachmentModel.tenant_id == UUID(tenant_id),
+    ]
+    
+    if message_id:
+        conditions.append(CommunicationAttachmentModel.message_id == UUID(message_id))
+    
+    query = select(CommunicationAttachmentModel).where(and_(*conditions))
+    result = await db.execute(query)
+    attachments = result.scalars().all()
+    
+    # Generate fresh presigned URLs for each attachment
+    fs = get_file_storage()
+    results = []
+    
+    for att in attachments:
+        try:
+            url = await fs.get_presigned_url(
+                StorageBucket(att.bucket),
+                att.object_name,
+                expires_in=3600,
+            )
+        except Exception:
+            url = None
+        
+        results.append({
+            "id": str(att.id),
+            "message_id": str(att.message_id) if att.message_id else None,
+            "filename": att.filename,
+            "content_type": att.content_type,
+            "size": att.size,
+            "url": url,
+        })
+    
+    return results
 
 
 # =============================================================================
@@ -1272,30 +1469,6 @@ async def transcribe_audio_video(
     except Exception as e:
         logger.error(f"Transcription failed: {e}")
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
-
-
-@router.get("/report-templates", response_model=List[dict])
-async def list_report_templates(
-    tenant_id: UUID = Depends(get_current_tenant_id),
-    user_id: UUID = Depends(get_current_user_id),
-):
-    """
-    List available report templates for transcription reports.
-    """
-    from services.report_service import REPORT_TEMPLATES
-    
-    templates = []
-    for template_id, template in REPORT_TEMPLATES.items():
-        templates.append({
-            "id": template.id,
-            "name": template.name,
-            "description": template.description,
-            "type": template.type.value,
-            "sections": template.sections,
-            "default_format": template.default_format.value,
-        })
-    
-    return templates
 
 
 @router.post(

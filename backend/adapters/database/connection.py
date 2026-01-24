@@ -1,9 +1,10 @@
 
 # Database Configuration and Session Management
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import NullPool
+from sqlalchemy import text
 import os
 from dotenv import load_dotenv
 
@@ -29,6 +30,17 @@ AsyncSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
+
+async def set_tenant_context(session: AsyncSession, tenant_id: Optional[str]) -> None:
+    """
+    Set the tenant context for Row-Level Security in PostgreSQL.
+    
+    This must be called before any RLS-protected table operations.
+    """
+    if tenant_id:
+        await session.execute(text(f"SET app.current_tenant = '{tenant_id}'"))
+        await session.execute(text(f"SET app.current_tenant_id = '{tenant_id}'"))
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
