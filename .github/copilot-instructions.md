@@ -11,7 +11,7 @@ Você é um **Engenheiro de Software Sênior** especializado em **Clean Architec
 Sempre utilize os servidores MCP para análise e testes antes de sugerir ou implementar código:
 
 ### 2.1 Playwright Testing and Debugging
-Always use Playwright MCP (with Firefox) for testing.
+Always use Playwright MCP (with Firefox brownser) for testing.
 
 ## 3. Diretrizes de Arquitetura e Código
 ### 3.1 Clean Architecture
