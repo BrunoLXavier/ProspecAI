@@ -65,10 +65,11 @@ interface Message {
 interface Props {
   message: Message;
   isOwnMessage?: boolean;
+  currentUserName?: string;
   onConfirm?: (messageId: string, confirmed: boolean) => void;
 }
 
-export default function MessageBubble({ message, isOwnMessage = false, onConfirm }: Props) {
+export default function MessageBubble({ message, isOwnMessage = false, currentUserName, onConfirm }: Props) {
   const t = useTranslations('communications');
   const [showEmailDetails, setShowEmailDetails] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -141,7 +142,9 @@ export default function MessageBubble({ message, isOwnMessage = false, onConfirm
             <UserCircleIcon className="w-5 h-5 text-gray-400" />
           )}
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {message.author_name || message.author || t('unknown')}
+            {isOwnMessage 
+              ? (currentUserName || t('you'))
+              : (message.author_name || (message.author && !message.author.includes('-') ? message.author : t('unknown')))}
           </span>
           {renderMessageTypeIcon()}
           <span className="text-xs text-gray-400">
@@ -153,7 +156,7 @@ export default function MessageBubble({ message, isOwnMessage = false, onConfirm
         <div
           className={`rounded-2xl px-4 py-3 ${
             isOwnMessage
-              ? 'bg-primary-600 text-white rounded-br-md'
+              ? 'bg-gray-700 dark:bg-gray-600 text-white rounded-br-md'
               : 'bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white rounded-bl-md'
           } ${needsConfirmation ? 'border-2 border-amber-400' : ''}`}
         >
@@ -206,11 +209,14 @@ export default function MessageBubble({ message, isOwnMessage = false, onConfirm
 
           {/* Message body - renders HTML for rich text */}
           <div 
-            className="prose prose-sm dark:prose-invert max-w-none break-words
+            className={`prose prose-sm max-w-none break-words
               prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5
-              prose-a:text-inherit prose-a:underline
+              prose-a:underline
               prose-strong:font-bold prose-em:italic
-              prose-code:bg-black/10 dark:prose-code:bg-white/10 prose-code:px-1 prose-code:rounded"
+              prose-code:px-1 prose-code:rounded
+              ${isOwnMessage 
+                ? 'text-white prose-headings:text-white prose-p:text-white prose-li:text-white prose-a:text-blue-200 prose-strong:text-white prose-code:bg-white/20' 
+                : 'dark:prose-invert prose-a:text-inherit prose-code:bg-black/10 dark:prose-code:bg-white/10'}`}
             dangerouslySetInnerHTML={{ __html: message.body }}
           />
 
@@ -265,7 +271,7 @@ export default function MessageBubble({ message, isOwnMessage = false, onConfirm
                     rel="noopener noreferrer"
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
                       isOwnMessage
-                        ? 'bg-primary-500 hover:bg-primary-400'
+                        ? 'bg-blue-500 hover:bg-blue-400'
                         : 'bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500'
                     }`}
                   >

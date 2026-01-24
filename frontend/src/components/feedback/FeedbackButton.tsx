@@ -21,7 +21,7 @@ export default function FeedbackButton() {
       {!isOpen && (
         <button
           onClick={openFeedback}
-          className="feedback-button fixed bottom-6 right-24 w-14 h-14 text-white rounded-full shadow-lg transition-all duration-150 ease-in-out hover:scale-105 hover:shadow-2xl transform-gpu flex items-center justify-center z-50 ring-2 ring-transparent focus:outline-none"
+          className="feedback-button fixed bottom-6 right-24 w-14 h-14 text-white rounded-full shadow-lg transition-all duration-150 ease-in-out hover:scale-105 hover:shadow-2xl transform-gpu flex items-center justify-center z-40 ring-2 ring-transparent focus:outline-none"
           aria-label={t('button.label')}
           title={t('button.title')}
           data-feedback-ignore

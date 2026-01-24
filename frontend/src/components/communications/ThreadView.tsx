@@ -24,6 +24,15 @@ import {
 import apiClient from '@/lib/api-client';
 import MessageBubble from './MessageBubble';
 import MessageComposer from './MessageComposer';
+import MeetingMinutesCard from './MeetingMinutesCard';
+
+// Union type for timeline items (messages + meeting minutes)
+interface TimelineItem {
+  type: 'message' | 'meeting_minutes';
+  id: string;
+  created_at: string;
+  data: Message | MeetingMinutes;
+}
 
 interface Thread {
   id: string;
@@ -62,10 +71,11 @@ interface MeetingMinutes {
 interface Props {
   threadId: string;
   currentUserId?: string;
+  currentUserName?: string;
   onThreadUpdate?: (thread: Thread) => void;
 }
 
-export default function ThreadView({ threadId, currentUserId, onThreadUpdate }: Props) {
+export default function ThreadView({ threadId, currentUserId, currentUserName, onThreadUpdate }: Props) {
   const t = useTranslations('communications');
   
   const [thread, setThread] = useState<Thread | null>(null);
@@ -159,6 +169,36 @@ export default function ThreadView({ threadId, currentUserId, onThreadUpdate }: 
 
   const unconfirmedCount = messages.filter(m => m.is_auto_created && !m.auto_created_confirmed).length;
 
+  // Merge messages and meeting minutes into a single timeline sorted by date
+  const timelineItems: TimelineItem[] = React.useMemo(() => {
+    const items: TimelineItem[] = [];
+    
+    // Add messages
+    messages.forEach(msg => {
+      items.push({
+        type: 'message',
+        id: msg.id,
+        created_at: msg.created_at,
+        data: msg,
+      });
+    });
+    
+    // Add meeting minutes
+    meetingMinutes.forEach(mm => {
+      items.push({
+        type: 'meeting_minutes',
+        id: mm.id,
+        created_at: mm.created_at,
+        data: mm,
+      });
+    });
+    
+    // Sort by created_at
+    items.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    
+    return items;
+  }, [messages, meetingMinutes]);
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -190,9 +230,13 @@ export default function ThreadView({ threadId, currentUserId, onThreadUpdate }: 
               {thread?.subject || t('untitled')}
             </h3>
             {thread?.linked_entity_type && thread?.linked_entity_id && (
-              <p className="text-xs text-gray-500 mt-0.5">
-                {t(`linkedTo.${thread.linked_entity_type}`) || thread.linked_entity_type}: {thread.linked_entity_id}
-              </p>
+              <a 
+                href={`/${thread.linked_entity_type === 'proposal' ? 'proposals' : thread.linked_entity_type === 'client' ? 'crm' : thread.linked_entity_type === 'funding_source' ? 'funding' : thread.linked_entity_type === 'opportunity' ? 'opportunities' : thread.linked_entity_type}/${thread.linked_entity_id}`}
+                className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 mt-0.5 flex items-center gap-1 hover:underline"
+              >
+                {t(`linkedTo.${thread.linked_entity_type}`) || thread.linked_entity_type}
+                <span className="text-gray-400">→</span>
+              </a>
             )}
           </div>
           
@@ -264,60 +308,37 @@ export default function ThreadView({ threadId, currentUserId, onThreadUpdate }: 
         )}
       </div>
 
-      {/* Meeting minutes panel */}
-      {showMinutes && (
-        <div className="border-b border-gray-200 dark:border-gray-700 bg-purple-50 dark:bg-purple-900/20 p-4 max-h-60 overflow-y-auto">
-          <h4 className="font-medium text-purple-900 dark:text-purple-300 mb-2 flex items-center gap-2">
-            <DocumentTextIcon className="w-4 h-4" />
-            {t('meetingMinutes')}
-          </h4>
-          {meetingMinutes.length === 0 ? (
-            <p className="text-sm text-purple-600 dark:text-purple-400">{t('noMinutes') || 'No meeting minutes yet'}</p>
-          ) : (
-            <div className="space-y-3">
-              {meetingMinutes.map(m => (
-                <div key={m.id} className="bg-white dark:bg-slate-800 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-sm">{m.title}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${
-                      m.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      m.status === 'processing' ? 'bg-blue-100 text-blue-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {m.status}
-                    </span>
-                  </div>
-                  {m.content && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                      {m.content}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(m.created_at).toLocaleString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* Messages container */}
+
+      {/* Messages and meeting minutes container */}
       <div ref={containerRef} className="flex-1 overflow-y-auto p-4">
-        {messages.length === 0 ? (
+        {timelineItems.length === 0 ? (
           <div className="h-full flex items-center justify-center text-gray-500">
             {t('noMessages') || 'No messages yet'}
           </div>
         ) : (
           <>
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isOwnMessage={message.author === currentUserId}
-                onConfirm={handleMessageConfirm}
-              />
-            ))}
+            {timelineItems.map((item) => {
+              if (item.type === 'meeting_minutes') {
+                return (
+                  <MeetingMinutesCard
+                    key={`minutes-${item.id}`}
+                    minutes={item.data as MeetingMinutes}
+                  />
+                );
+              }
+              
+              const message = item.data as Message;
+              return (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  isOwnMessage={message.author === currentUserId}
+                  currentUserName={currentUserName}
+                  onConfirm={handleMessageConfirm}
+                />
+              );
+            })}
             <div ref={messagesEndRef} />
           </>
         )}

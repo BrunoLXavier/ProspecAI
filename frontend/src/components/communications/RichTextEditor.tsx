@@ -24,6 +24,7 @@ interface Props {
   className?: string;
   minHeight?: string;
   onKeyDown?: (e: React.KeyboardEvent) => void;
+  editorRef?: React.RefObject<HTMLDivElement>;
 }
 
 // Custom icons for rich text toolbar
@@ -99,9 +100,11 @@ export default function RichTextEditor({
   className = '',
   minHeight = '80px',
   onKeyDown,
+  editorRef: externalEditorRef,
 }: Props) {
   const t = useTranslations('communications');
-  const editorRef = useRef<HTMLDivElement>(null);
+  const internalEditorRef = useRef<HTMLDivElement>(null);
+  const editorRef = externalEditorRef || internalEditorRef;
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
@@ -118,12 +121,17 @@ export default function RichTextEditor({
     setActiveFormats(formats);
   }, []);
 
-  // Set initial value
+  // Sync editor content with value prop (including clearing on reset)
   useEffect(() => {
-    if (editorRef.current && value !== editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = value;
+    if (editorRef.current) {
+      // Clear editor when value is empty (after send)
+      if (!value && editorRef.current.innerHTML !== '') {
+        editorRef.current.innerHTML = '';
+      } else if (value && value !== editorRef.current.innerHTML) {
+        editorRef.current.innerHTML = value;
+      }
     }
-  }, []);
+  }, [value]);
 
   // Handle content change
   const handleInput = useCallback(() => {

@@ -56,6 +56,7 @@ export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const { isCollapsed } = useSidebar();
   const { logout, user } = useAuth();
+  const { config } = useLayout();
 
   const handleLogout = async () => {
     try {
@@ -143,14 +144,16 @@ export default function Header() {
   const unreadCount = (notifications || []).filter((n: any) => n.unread).length;
 
   return (
-    <header className={`
+    <header
+      style={{ left: isCollapsed ? '72px' : `${config.sidebar_width}px` }}
+      className={`
       fixed top-0 right-0 z-30
       h-16 glass-header
       flex items-center justify-between gap-4
       px-4 lg:px-6
       transition-all duration-350
-      ${isCollapsed ? 'left-[72px]' : 'left-[260px]'}
-    `}>
+    `}
+    >
       {/* Left Section: Toggle + Breadcrumbs */}
       <div className="flex items-center gap-4">
         {/* Mobile/Tablet Menu Toggle */}

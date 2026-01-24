@@ -124,7 +124,7 @@ export default function ChatWidget() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="chat-button fixed bottom-6 right-6 w-14 h-14 text-white rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transform-gpu flex items-center justify-center z-50 ring-2 ring-transparent focus:outline-none"
+        className="chat-button fixed bottom-6 right-6 w-14 h-14 text-white rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transform-gpu flex items-center justify-center z-40 ring-2 ring-transparent focus:outline-none"
         aria-label={isOpen ? tCommon('close') : tDashboard('chatbot.open')}
       >
         {isOpen ? (

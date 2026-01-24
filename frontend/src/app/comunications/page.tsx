@@ -77,6 +77,7 @@ export default function CommunicationsPage() {
 
   // Get current user ID from localStorage or API
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
+  const [currentUserName, setCurrentUserName] = useState<string | undefined>(undefined);
   
   useEffect(() => {
     // Try to get user ID from stored auth
@@ -85,6 +86,7 @@ export default function CommunicationsPage() {
       try {
         const user = JSON.parse(storedUser);
         setCurrentUserId(user.id);
+        setCurrentUserName(user.fullName || user.full_name || user.name || user.username || 'Usuário');
       } catch {
         // Ignore parse errors
       }
@@ -541,7 +543,7 @@ export default function CommunicationsPage() {
 
       {/* Thread Detail Slide-over Panel */}
       {activeThreadId && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-[100] overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
             {/* Backdrop */}
             <div 
@@ -575,6 +577,7 @@ export default function CommunicationsPage() {
                     <ThreadView
                       threadId={activeThreadId}
                       currentUserId={currentUserId}
+                      currentUserName={currentUserName}
                       onThreadUpdate={() => refetch()}
                     />
                   </div>

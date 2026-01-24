@@ -5,6 +5,61 @@
 
 ---
 
+## 2026-01-24 - Communications Page UI/UX Fixes
+
+### Feature: Multiple UI/UX Improvements on Communications Page
+
+Fixed several issues reported by the user on the communications/thread view:
+
+1. **Header Positioning Fix** (`frontend/src/components/layout/Header.tsx`):
+   - Changed from hardcoded CSS classes to dynamic inline `style={{ left }}` 
+   - Header now properly aligns with dynamic sidebar width using `useLayout()` context
+   - Resolves the gap issue in the top-left corner when sidebar is collapsed/expanded
+
+2. **Message Field Reset After Send** (`frontend/src/components/communications/RichTextEditor.tsx`):
+   - Added `editorRef` prop to expose editor reference for external control
+   - Added `useEffect` to sync editor innerHTML with value prop changes
+   - Field now properly clears after message is sent
+
+3. **Message Bubble Color Fix** (`frontend/src/components/communications/MessageBubble.tsx`):
+   - Changed from `bg-primary-600` (which was red) to explicit `bg-blue-600`
+   - Own messages now display with blue background instead of confusing red
+
+4. **UUID to User Name Display** (`frontend/src/components/communications/MessageBubble.tsx`):
+   - Added `currentUserName` prop to receive logged user's display name
+   - Updated author display logic: own messages show `currentUserName` or fallback "Você"
+   - Other users' messages show `author_name` or fallback to "Desconhecido"
+   - Prevents UUID from appearing as author for own messages
+
+5. **Related Entity Link** (`frontend/src/components/communications/ThreadView.tsx`):
+   - Added link in thread header when `linked_entity_type` and `linked_entity_id` exist
+   - Link navigates to `/proposals/{id}`, `/crm/{id}`, `/funding/{id}`, etc. based on type
+   - Uses LinkIcon with translation-based text
+
+6. **Meeting Minutes in Message Flow** (`frontend/src/components/communications/MeetingMinutesCard.tsx`):
+   - NEW component created to display meeting minutes inline with messages
+   - Features status badge (approved/pending/etc), title, content, and date
+   - Uses purple theme with DocumentTextIcon
+   - Timeline integration via `timelineItems` array sorted by `created_at`
+
+7. **Translations** (`frontend/src/locales/{pt-BR,en-US,es-ES}.json`):
+   - Added "you" translation: "Você" / "You" / "Tú"
+
+### Files Created:
+- `frontend/src/components/communications/MeetingMinutesCard.tsx` (~65 lines)
+
+### Files Modified:
+- `frontend/src/components/layout/Header.tsx` - Dynamic left positioning
+- `frontend/src/components/communications/RichTextEditor.tsx` - editorRef and value sync
+- `frontend/src/components/communications/MessageBubble.tsx` - Blue color, currentUserName
+- `frontend/src/components/communications/ThreadView.tsx` - Entity link, timeline merge
+- `frontend/src/app/comunications/page.tsx` - z-index increase, currentUserName state
+- `frontend/src/locales/pt-BR.json` - Added "you" translation
+- `frontend/src/locales/en-US.json` - Added "you" translation
+- `frontend/src/locales/es-ES.json` - Added "you" translation
+
+---
+
 ## 2026-01-24 - Whisper Microservice Architecture
 
 ### Feature: Dedicated Whisper Docker Container for Transcription
