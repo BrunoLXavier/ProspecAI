@@ -69,28 +69,43 @@ class Proposal(BaseEntity):
     """
     
     title: str = Field(..., max_length=500)
-    description: str
+    description: Optional[str] = None
     status: ProposalStatus = ProposalStatus.DRAFT
     
     # Related entities
     opportunity_id: Optional[UUID] = None
     funding_source_id: Optional[UUID] = None
-    client_id: Optional[UUID] = None
+    owner_id: Optional[UUID] = None
     
     # Current version
+    current_version: int = Field(default=1, ge=1)
     current_version_id: Optional[UUID] = None
-    version_count: int = Field(default=0, ge=0)
+    head_version_id: Optional[UUID] = None
+    
+    # Content
+    content: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    sections: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    executive_summary: Optional[str] = None
+    technical_content: Optional[str] = None
+    budget_data: Optional[Dict[str, Any]] = Field(default_factory=dict)
     
     # Collaboration
     collaborators: List[UUID] = Field(default_factory=list)
+    locked_by: Optional[UUID] = None
+    locked_at: Optional[datetime] = None
     
-    # AI-assisted adherence check
-    last_adherence_check: Optional[datetime] = None
-    adherence_to_funding: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    # Files and submission
+    attachments: List[str] = Field(default_factory=list)
+    submitted_at: Optional[datetime] = None
     
     # Knowledge management
     tags: List[str] = Field(default_factory=list)
-    lessons_learned: List[Dict[str, str]] = Field(default_factory=list)
+    lessons_learned: List[Dict[str, Any]] = Field(default_factory=list)
+    
+    # AI-assisted adherence check
+    last_adherence_check: Optional[datetime] = None
+    adherence_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    adherence_analysis: Optional[Dict[str, Any]] = None
     
     def add_collaborator(self, user_id: UUID) -> None:
         """Add a collaborator to the proposal."""
@@ -108,7 +123,8 @@ class Proposal(BaseEntity):
         analysis: Dict[str, Any]
     ) -> None:
         """Update AI adherence analysis."""
-        self.adherence_to_funding = score
+        self.adherence_score = score
+        self.adherence_analysis = analysis
         self.last_adherence_check = datetime.utcnow()
     
     def submit(self, user_id: UUID) -> None:
@@ -116,5 +132,6 @@ class Proposal(BaseEntity):
         if self.status != ProposalStatus.APPROVED:
             raise ValueError("Proposal must be approved before submission")
         self.status = ProposalStatus.SUBMITTED
+        self.submitted_at = datetime.utcnow()
         self.updated_by = user_id
         self.updated_at = datetime.utcnow()

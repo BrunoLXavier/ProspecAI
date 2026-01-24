@@ -341,9 +341,6 @@ export function InstituteSelectorDropdown() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                              {getInstituteName(ins)}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
                               {getInstituteCode(ins)}
                             </span>
                           </div>

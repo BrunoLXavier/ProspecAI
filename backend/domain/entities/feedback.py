@@ -14,6 +14,7 @@ class FeedbackType(str, Enum):
     UI_FEEDBACK = "ui_feedback"
     PERFORMANCE = "performance"
     USABILITY = "usability"
+    IMPROVEMENT = "improvement"
     OTHER = "other"
 
 

@@ -454,15 +454,21 @@ class OpportunityModel(BaseModel):
     
     estimated_value = Column(Numeric(20, 2), nullable=True)
     probability = Column(Numeric(3, 2), default=0.5)
+    probability_score = Column(Numeric(3, 2), default=0.5)
     
     expected_close_date = Column(DateTime(timezone=True), nullable=True)
     actual_close_date = Column(DateTime(timezone=True), nullable=True)
+    stage_changed_at = Column(DateTime(timezone=True), nullable=True)
     
     priority_score = Column(Numeric(5, 2), default=0.0)
     score_formula = Column(Text, nullable=True)
     
     stage_history = Column(JSON, default=list)
     assigned_to = Column(PGUUID(as_uuid=True), nullable=True)
+    team_members = Column(JSON, default=list)
+    ai_priority_factors = Column(JSON, default=dict)
+    matching_scores = Column(JSON, default=dict)
+    version = Column(Integer, default=1)
     
     __table_args__ = (
         Index('idx_opportunity_stage_priority', 'stage', 'priority_score'),
@@ -498,23 +504,36 @@ class ProposalModel(BaseModel):
     __tablename__ = "proposals"
     
     title = Column(String(500), nullable=False)
-    description = Column(Text, nullable=False)
-    status = Column(String(50), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    current_status = Column(String(50), nullable=False, default='draft', index=True)
     
     opportunity_id = Column(PGUUID(as_uuid=True), nullable=True)
     funding_source_id = Column(PGUUID(as_uuid=True), nullable=True)
-    client_id = Column(PGUUID(as_uuid=True), nullable=True)
+    owner_id = Column(PGUUID(as_uuid=True), nullable=True)
     
+    current_version = Column(Integer, default=1)
     current_version_id = Column(PGUUID(as_uuid=True), nullable=True)
-    version_count = Column(Integer, default=0)
+    head_version_id = Column(PGUUID(as_uuid=True), nullable=True)
     
-    collaborators = Column(JSON, default=list)
+    content = Column(JSON, nullable=True, default={})
+    sections = Column(JSON, nullable=True, default={})
+    executive_summary = Column(Text, nullable=True)
+    technical_content = Column(Text, nullable=True)
+    budget_data = Column(JSON, nullable=True, default={})
     
+    latest_adherence_score = Column(Numeric(3, 2), nullable=True)
+    adherence_analysis = Column(JSON, nullable=True, default={})
+    
+    collaborators = Column(JSON, nullable=True, default=[])
+    locked_by = Column(PGUUID(as_uuid=True), nullable=True)
+    locked_at = Column(DateTime(timezone=True), nullable=True)
+    
+    attachments = Column(JSON, nullable=True, default=[])
+    submitted_at = Column(DateTime(timezone=True), nullable=True)
+    
+    tags = Column(JSON, nullable=True, default=[])
+    lessons_learned = Column(JSON, nullable=True, default=[])
     last_adherence_check = Column(DateTime(timezone=True), nullable=True)
-    adherence_to_funding = Column(Numeric(3, 2), nullable=True)
-    
-    tags = Column(JSON, default=list)
-    lessons_learned = Column(JSON, default=list)
 
 
 class ProposalVersionModel(BaseModel):

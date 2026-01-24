@@ -21,7 +21,7 @@ from use_cases.manage_proposals import ManageProposalsUseCase
 from services.institute_service import InstituteService
 
 # Re-export get_container for routes that need it
-__all__ = ['get_container', 'get_current_user_id', 'get_current_tenant_id', 'get_di_container', 'get_current_institute_ids', 'ensure_user_member_or_admin', 'get_db_session']
+__all__ = ['get_container', 'get_current_user_id', 'get_current_tenant_id', 'get_di_container', 'get_current_institute_ids', 'ensure_user_member_or_admin', '_check_user_member_or_admin', 'get_db_session']
 
 
 async def get_current_user_id(
@@ -149,17 +149,18 @@ async def get_proposals_use_case(
     return container.get_manage_proposals_use_case()
 
 
-async def ensure_user_member_or_admin(
+async def _check_user_member_or_admin(
     user_id: UUID,
     institute_ids: List[UUID],
-    container: DependencyContainer = Depends(get_di_container),
+    container: DependencyContainer,
 ) -> bool:
     """
-    Ensure the `user_id` is either an admin or a member of at least one of the
-    provided `institute_ids`. Raises HTTPException(403) when not allowed.
+    Internal function to check if user is admin or member of institutes.
+    Raises HTTPException(403) when not allowed.
     """
+    # If no institute_ids provided, allow (some routes may not require institute context)
     if not institute_ids:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No institute selected")
+        return True
 
     # Quick admin check
     try:
@@ -180,3 +181,15 @@ async def ensure_user_member_or_admin(
             continue
 
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is not a member of the selected institute(s)")
+
+
+async def ensure_user_member_or_admin(
+    user_id: UUID = Depends(get_current_user_id),
+    institute_ids: List[UUID] = Depends(get_current_institute_ids),
+    container: DependencyContainer = Depends(get_di_container),
+) -> bool:
+    """
+    Dependency version - use with Depends() in route declarations.
+    Automatically resolves user_id and institute_ids from headers.
+    """
+    return await _check_user_member_or_admin(user_id, institute_ids, container)

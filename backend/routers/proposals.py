@@ -9,7 +9,7 @@ from datetime import datetime, date
 from uuid import UUID
 
 from domain.entities.proposal import Proposal, ProposalVersion, ProposalStatus
-from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id, get_current_institute_ids, ensure_user_member_or_admin
+from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id, get_current_institute_ids, _check_user_member_or_admin
 from infrastructure.di_container import DependencyContainer
 from infrastructure.serializers import to_primitive
 
@@ -226,7 +226,7 @@ async def create_proposal(
 
     selected_institutes: List[UUID] = await get_current_institute_ids()
     # Enforce membership or admin for write operations
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
 
     created = await container.proposal_repository.create(p, tenant_id, current_user)
     # Optionally trigger adherence analysis via use case if analyzer available
@@ -265,7 +265,7 @@ async def update_proposal(
             if hasattr(existing, k):
                 setattr(existing, k, v)
         selected_institutes: List[UUID] = await get_current_institute_ids()
-        await ensure_user_member_or_admin(current_user, selected_institutes, container)
+        await _check_user_member_or_admin(current_user, selected_institutes, container)
 
         existing.updated_by = current_user
         proposal = await container.proposal_repository.update(existing, tenant_id, current_user)
@@ -361,7 +361,7 @@ async def submit_proposal(
     # Submit via repository: set status to submitted if approved
     existing = await container.proposal_repository.get_by_id(tenant_id, proposal_id)
     selected_institutes: List[UUID] = await get_current_institute_ids()
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
     if not existing:
         proposal = None
     else:
@@ -396,7 +396,7 @@ async def upload_attachment(
     # TODO: Implement MinIO integration; attach metadata to proposal record
     # For now, return a stub acknowledging upload
     selected_institutes: List[UUID] = await get_current_institute_ids()
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
 
     return to_primitive({
         "message": "Attachment uploaded (placeholder)",
@@ -418,7 +418,7 @@ async def delete_proposal(
     Implements RF-08.10: Exclusão lógica de proposta
     """
     selected_institutes: List[UUID] = await get_current_institute_ids()
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
 
     success = await container.proposal_repository.delete(tenant_id, proposal_id)
     

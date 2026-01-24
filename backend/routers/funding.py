@@ -16,7 +16,7 @@ from infrastructure.dependencies import (
     get_current_tenant_id,
     get_current_institute_ids,
     get_di_container,
-    ensure_user_member_or_admin,
+    _check_user_member_or_admin,
     get_funding_use_case,
 )
 from infrastructure.di_container import DependencyContainer
@@ -312,7 +312,7 @@ async def create_funding_source(
     Implements RF-02.03: Criação de editais com assistência IA
     """
     # Enforce membership or admin for write operations
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
 
     insert_q = text(
         "INSERT INTO funding_sources (id, tenant_id, name, source_organization, instrument_type, status, total_amount, currency, submission_start, submission_end, trl_min, trl_max, description, requirements, eligibility_criteria, created_by, updated_by, created_at, updated_at) VALUES (gen_random_uuid(), :tenant_id, :name, :institution, :instrument_type, 'draft', :total_amount, 'BRL', :submission_start, :submission_end, :trl_min, :trl_max, :description, :requirements::jsonb, :eligibility_criteria::jsonb, :created_by, :updated_by, now(), now()) RETURNING id, name, source_organization AS institution, instrument_type, status, total_amount, submission_start, submission_end, trl_min, trl_max, ai_confidence_score, created_at, updated_at"
@@ -379,7 +379,7 @@ async def update_funding_source(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
     q = text(f"UPDATE funding_sources SET {', '.join(updates)}, updated_at = now(), updated_by = :updated_by WHERE id = :id AND deleted_at IS NULL RETURNING id, name, source_organization AS institution, instrument_type, status, total_amount, submission_start, submission_end, trl_min, trl_max, ai_confidence_score, created_at, updated_at")
     # Enforce membership or admin for write operations
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
 
     params['updated_by'] = str(current_user)
     res = await session.execute(q, params)
@@ -428,7 +428,7 @@ async def delete_funding_source(
     """
     q = text("UPDATE funding_sources SET deleted_at = now() WHERE id = :id AND deleted_at IS NULL RETURNING id")
     # Enforce membership or admin for write operations
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
 
     res = await session.execute(q, {"id": funding_id})
     await session.commit()

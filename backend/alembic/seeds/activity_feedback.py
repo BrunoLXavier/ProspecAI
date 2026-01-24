@@ -31,7 +31,7 @@ FEEDBACKS = [
     },
     {
         'id': FEEDBACK_IDS['FB_2'],
-        'feedback_type': 'bug',
+        'feedback_type': 'bug_report',
         'severity': 'high',
         'description': 'O gráfico de distribuição de TRL não está atualizando corretamente após filtrar por instituto.',
         'page_url': '/dashboard',
@@ -40,7 +40,7 @@ FEEDBACKS = [
     },
     {
         'id': FEEDBACK_IDS['FB_3'],
-        'feedback_type': 'improvement',
+        'feedback_type': 'ui_feedback',
         'severity': 'low',
         'description': 'Sugestão de melhoria: adicionar exportação para Excel na listagem de oportunidades.',
         'page_url': '/opportunities',

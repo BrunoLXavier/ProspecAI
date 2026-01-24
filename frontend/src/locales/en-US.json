@@ -1,65 +1,513 @@
 {
-  "navigation": {
-    "dashboard": "Dashboard",
-    "funding": "Funding Sources",
-    "portfolio": "Portfolio",
-    "crm": "CRM",
-    "opportunities": "Opportunities",
-    "proposals": "Proposals",
-    "settings": "Settings",
-    "ingestion": "Data Ingestion",
-    "piiAnalysis": "PII Analysis",
-    "pii-analysis": "PII Analysis",
-    "reports": "Reports",
-    "reportTemplates": "Report Templates",
-    "report-templates": "Report Templates",
-    "activity": "Recent Activity",
-    "feedbackManagement": "Feedback Management",
-    "/": "/",
-    "admin": "Admin",
-    "notifications": "Notifications",
-    "communications": "Communications",
-    "comunications": "Communications",
-    "institutes": "Institutes",
-    "teams": "Teams",
-    "infrastructure": "Infrastructure",
-    "layout": "Layout",
-    "statistics": "Statistics",
-    "feedback": "Feedback",
-    "llm-provider": "LLM Provider"
+  "/api/v1/crm/clients/${id}": "/api/v1/crm/clients/${id}",
+  "/api/v1/crm/enrich-cnpj/${cnpj}": "/api/v1/crm/enrich-cnpj/${cnpj}",
+  "/api/v1/funding/${id}": "/api/v1/funding/${id}",
+  "/api/v1/layout/reset": "/api/v1/layout/reset",
+  "/api/v1/matching/explain/${projectId}/${fundingId}": "/api/v1/matching/explain/${projectid}/${fundingid}",
+  "/api/v1/matching/scores/${projectId}/${fundingId}": "/api/v1/matching/scores/${projectid}/${fundingid}",
+  "/api/v1/opportunities/${id}": "/api/v1/opportunities/${id}",
+  "/api/v1/opportunities/stats/pipeline": "/api/v1/opportunities/stats/pipeline",
+  "/api/v1/portfolio/projects/${id}": "/api/v1/portfolio/projects/${id}",
+  "/api/v1/portfolio/stats": "/api/v1/portfolio/stats",
+  "/api/v1/proposals/${id}": "/api/v1/proposals/${id}",
+  "/api/v1/proposals/${id}/adherence": "/api/v1/proposals/${id}/adherence",
+  "/api/v1/proposals/${id}/submit": "/api/v1/proposals/${id}/submit",
+  "/api/v1/translations/${editingPath}?${params": {
+    "toString()}": "Tostring()}"
   },
-  "communications.filters.linkedEntityType": "Linked To",
-  "communications.filters.all": "All",
-  "communications.filters.proposal": "Proposal",
-  "communications.filters.client": "Client",
-  "communications.filters.fundingSource": "Funding Source",
-  "communications.filters.opportunity": "Opportunity",
-  "communications.newThread": "New Thread",
-  "communications.showUnconfirmedAutoCreated": "Show unconfirmed auto-created threads",
-  "communications.subject": "Subject",
-  "communications.subjectRequired": "Subject is required",
-  "communications.subjectPlaceholder": "Enter thread subject...",
-  "communications.linkedEntity": "Link to Entity",
-  "communications.participants": "participants",
-  "communications.participantIdPlaceholder": "Enter user ID...",
-  "communications.add": "Add",
-  "communications.initialMessage": "Initial Message",
-  "communications.initialMessagePlaceholder": "Start the conversation...",
-  "communications.cancel": "Cancel",
-  "communications.create": "Create",
-  "communications.threads": "Threads",
-  "communications.searchThreads": "Search threads...",
-  "communications.noThreads": "No threads found",
-  "communications.refresh": "Refresh",
-  "communications.selectThread": "Select a thread",
-  "communications.selectThreadHint": "Choose a conversation from the list to view messages",
-  "stats.recent7d": "Recent (7d)",
+  "/funding?${params": {
+    "toString()}": "Tostring()}"
+  },
+  "45%": "45%",
+  "65%": "65%",
+  "80%": "80%",
+  "85%": "85%",
+  "DRAFT": "Draft",
+  "INTELLIGENCE": "Intelligence",
+  "PLANNING": "Planning",
+  "acl": {
+    "createRole": "Createrole",
+    "deleteConfirm": "Deleteconfirm"
+  },
+  "actions": {
+    "submitted": "Submitted",
+    "updatedGeneric": "Updatedgeneric"
+  },
+  "activity": {
+    "title": "Recent Activity",
+    "subtitle": "History of actions in the system",
+    "loading": "Loading activities...",
+    "empty": "No activities found",
+    "filters": {
+      "allEntities": "All Entities",
+      "allActions": "All Actions"
+    },
+    "entities": {
+      "funding": "Funding",
+      "project": "Project",
+      "client": "Client",
+      "opportunity": "Opportunity",
+      "proposal": "Proposal"
+    },
+    "types": {
+      "create": "Creation",
+      "update": "Update",
+      "delete": "Deletion",
+      "transition": "Transition",
+      "match": "Matching",
+      "submit": "Submission"
+    },
+    "actions": {
+      "created": "{entity} created",
+      "updated": "Field {field} changed from {oldValue} to {newValue}",
+      "updatedGeneric": "Record updated",
+      "deleted": "{entity} deleted",
+      "transitioned": "Moved from {from} to {to}",
+      "matched": "{score}% matching with {funding}",
+      "submitted": "Proposal submitted"
+    }
+  },
+  "admin": {
+    "acl": "Acl",
+    "aclDesc": "Acldesc",
+    "addResponse": "Addresponse",
+    "description": "Description",
+    "feedback": "Feedback",
+    "feedbackDesc": "Feedbackdesc",
+    "layout": "Layout",
+    "layoutDesc": "Layoutdesc",
+    "llmProvider": "Llmprovider",
+    "llmProviderDesc": "Llmproviderdesc",
+    "page": "Page",
+    "previousResponse": "Previousresponse",
+    "priority": "Priority",
+    "respondedAt": "Respondedat",
+    "responsePlaceholder": "Responseplaceholder",
+    "screenshot": "Screenshot",
+    "sendResponse": "Sendresponse",
+    "sending": "Sending",
+    "statistics": "Statistics",
+    "statisticsDesc": "Statisticsdesc",
+    "title": "Title",
+    "translations": "Translations",
+    "translationsDesc": "Translationsdesc",
+    "updateResponse": "Updateresponse",
+    "updateStatus": "Updatestatus",
+    "userComment": "Usercomment",
+    "users": "Users",
+    "usersDesc": "Usersdesc"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Performance overview",
+    "header": "Analytics",
+    "overview": "Performance overview",
+    "refresh": "Refresh",
+    "period": {
+      "label": "Period",
+      "week": "Last week",
+      "month": "Last month",
+      "quarter": "Last quarter",
+      "year": "Last year"
+    },
+    "kpis": {
+      "totalClients": "Total Clients",
+      "totalProjects": "Total Projects",
+      "activeOpportunities": "Active Opportunities",
+      "activeFunding": "Active Funding",
+      "conversionRate": "Conversion Rate",
+      "proposalsSubmitted": "Proposals Submitted",
+      "avgMatchScore": "Average Match Score",
+      "previous": "Previous"
+    },
+    "pipeline": {
+      "title": "Opportunity Pipeline",
+      "stages": {
+        "intelligence": "Intelligence",
+        "qualification": "Qualification",
+        "proposal": "Proposal",
+        "negotiation": "Negotiation",
+        "won": "Won",
+        "lost": "Lost"
+      }
+    },
+    "trl": {
+      "title": "TRL Distribution",
+      "projects": "Projects"
+    },
+    "trends": {
+      "title": "Matching Trends",
+      "noData": "Insufficient data",
+      "matches": "Matches",
+      "score": "Score"
+    },
+    "export": {
+      "title": "Export Data",
+      "json": "Export JSON",
+      "csv": "Export CSV"
+    },
+    "/api/v1/analytics/matching-trends?days=30": "/api/v1/analytics/matching-trends?days=30",
+    "/api/v1/analytics/overview?period=${period}": "/api/v1/analytics/overview?period=${period}",
+    "/api/v1/analytics/pipeline": "/api/v1/analytics/pipeline",
+    "/api/v1/analytics/trl-distribution": "/api/v1/analytics/trl-distribution",
+    "csv": "Csv",
+    "json": "Json"
+  },
+  "annotate": {
+    "clear": "Clear",
+    "colors": {
+      "${opt": {
+        "key}": "Key}"
+      }
+    },
+    "confirm": "Confirm",
+    "description": "Description",
+    "extraThick": "Extrathick",
+    "medium": "Medium",
+    "pen": "Pen",
+    "redo": "Redo",
+    "thick": "Thick",
+    "thickness": "Thickness",
+    "thin": "Thin",
+    "undo": "Undo"
+  },
+  "appearance": {
+    "dark": "Dark",
+    "description": "Description",
+    "light": "Light",
+    "theme": "Theme",
+    "title": "Title"
+  },
+  "areas": {
+    "agribusiness": "Agribusiness",
+    "health": "Health",
+    "industry_4_0": "industry 4 0",
+    "sustainability": "Sustainability"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Welcome back to ProspecAI",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "Your password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "rememberMe": "Remember me",
+      "submit": "Sign In",
+      "submitting": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "requestAccess": "Request access",
+      "errors": {
+        "invalidCredentials": "Invalid email or password",
+        "accountLocked": "Account locked. Try again later.",
+        "networkError": "Connection error. Check your internet.",
+        "generic": "Login failed. Please try again."
+      }
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join ProspecAI",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "username": "Username",
+      "usernamePlaceholder": "Choose a username",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your full name",
+      "password": "Password",
+      "passwordPlaceholder": "Create a strong password",
+      "confirmPassword": "Confirm password",
+      "confirmPasswordPlaceholder": "Repeat the password",
+      "submit": "Create account",
+      "submitting": "Creating...",
+      "haveAccount": "Already have an account?",
+      "login": "Sign in",
+      "success": "Account created! Check your email.",
+      "errors": {
+        "emailTaken": "This email is already in use",
+        "usernameTaken": "This username is already taken",
+        "passwordMismatch": "Passwords don't match",
+        "passwordWeak": "Password doesn't meet requirements",
+        "generic": "Error creating account. Please try again."
+      },
+      "passwordRequirements": {
+        "title": "Password must have:",
+        "minLength": "At least 8 characters",
+        "uppercase": "One uppercase letter",
+        "lowercase": "One lowercase letter",
+        "number": "One number",
+        "special": "One special character"
+      }
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your email to receive the recovery link",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "submit": "Send link",
+      "submitting": "Sending...",
+      "success": "If the email exists, you'll receive the recovery link.",
+      "backToLogin": "Back to login",
+      "errors": {
+        "generic": "Error sending. Please try again."
+      }
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Create a new password for your account",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPassword": "Confirm new password",
+      "confirmPasswordPlaceholder": "Repeat new password",
+      "submit": "Reset password",
+      "submitting": "Resetting...",
+      "success": "Password reset successful!",
+      "backToLogin": "Go to login",
+      "errors": {
+        "tokenExpired": "Link expired. Request a new one.",
+        "tokenInvalid": "Invalid link.",
+        "passwordMismatch": "Passwords don't match",
+        "passwordWeak": "Password doesn't meet requirements",
+        "generic": "Error resetting. Please try again."
+      }
+    },
+    "verifyEmail": {
+      "title": "Verify Email",
+      "verifying": "Verifying your email...",
+      "pleaseWait": "Please wait a moment.",
+      "success": "Email verified successfully!",
+      "successMessage": "Your account has been activated. You can now log in.",
+      "goToLogin": "Go to login",
+      "backToLogin": "Back to login",
+      "requestNewLink": "Request new link",
+      "error": "Verification failed",
+      "noToken": "Incomplete link",
+      "noTokenMessage": "The verification link is incomplete. Please use the full link sent to your email.",
+      "errors": {
+        "tokenExpired": "This link has expired. Please request a new one.",
+        "tokenInvalid": "This link is invalid.",
+        "alreadyVerified": "This email has already been verified.",
+        "generic": "Verification error. Please try again."
+      }
+    },
+    "verifyEmailPrompt": {
+      "title": "Verify Your Email",
+      "subtitle": "We need to confirm your email address to activate your account.",
+      "emailSentTo": "Verification email sent to:",
+      "instruction1": "Check your inbox and spam folder",
+      "instruction2": "Click the verification link in the email",
+      "instruction3": "Return here to log in",
+      "resendButton": "Resend verification email",
+      "resending": "Resending...",
+      "resendSuccess": "Verification email resent successfully!",
+      "resendCooldown": "Wait {seconds}s to resend",
+      "continueAnyway": "Continue anyway",
+      "continueWarning": "Without verification, some actions will be blocked.",
+      "wrongAccount": "Not your account?",
+      "logout": "Sign out",
+      "errors": {
+        "tooManyRequests": "Too many attempts. Please wait a few minutes.",
+        "alreadyVerified": "This email has already been verified!",
+        "generic": "Error resending. Please try again."
+      }
+    },
+    "contact": {
+      "title": "Request Access",
+      "subtitle": "Fill out the form below to request access to the system",
+      "selectOption": "Select an option...",
+      "submit": "Submit request",
+      "submitting": "Submitting...",
+      "success": "Request Submitted!",
+      "successMessage": "We've received your request and will be in touch soon.",
+      "referenceId": "Reference number:",
+      "backToLogin": "Back to login",
+      "formDisabled": "Form Unavailable",
+      "formDisabledMessage": "The contact form is temporarily disabled. Please contact the administrator.",
+      "rateLimitMessage": "Limit reached. Try again after {time}.",
+      "errors": {
+        "loadFailed": "Error loading form. Please try again.",
+        "requiredField": "The {field} field is required.",
+        "invalidEmail": "Please enter a valid email.",
+        "invalidFormat": "The {field} field has an invalid format.",
+        "tooManyRequests": "Too many requests from this email. Please wait.",
+        "serviceUnavailable": "Service temporarily unavailable.",
+        "generic": "Error submitting. Please try again."
+      }
+    }
+  },
+  "button": {
+    "label": "Label",
+    "title": "Title"
+  },
+  "calendar": {
+    "T": "T",
+    "deadline": "Prazo",
+    "error": "Erro ao carregar eventos",
+    "high": "Alta prioridade",
+    "loading": "Carregando eventos...",
+    "low": "Baixa prioridade",
+    "medium": "Prioridade média",
+    "meeting": "Reunião",
+    "milestone": "Marco",
+    "noEvents": "Nenhum evento para este mês.",
+    "reminder": "Lembrete",
+    "title": "Calendário",
+    "upcomingDeadlines": "Próximos prazos",
+    "viewAll": "Ver todos os eventos"
+  },
+  "capture": {
+    "buttonLabel": "Buttonlabel",
+    "description": "Description",
+    "title": "Title"
+  },
+  "chat": {
+    "title": "ProspecAI Assistant",
+    "welcomeTitle": "Hi! I'm IA.Go, your R&D prospecting assistant.",
+    "welcomeSubtitle": "I can help with funding calls, projects and matches.",
+    "inputPlaceholder": "Type your question..."
+  },
+  "comment": {
+    "back": "Back",
+    "charLimitWarning": "Charlimitwarning",
+    "commentLabel": "Commentlabel",
+    "editAnnotations": "Editannotations",
+    "placeholder": "Placeholder",
+    "typeLabel": "Typelabel"
+  },
+  "common": {
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "search": "Search",
+    "filters": "Filters",
+    "expandFilters": "Expand Filters",
+    "collapseFilters": "Collapse Filters",
+    "resetFilters": "Reset Filters",
+    "activeFilters": "active filters",
+    "min": "Min",
+    "max": "Max",
+    "dateFormat": "mm/dd/yyyy",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "save": "Save",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "confirmDelete": "Yes, delete",
+    "done": "Done",
+    "close": "Close",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "resetDefaults": "Reset to Defaults",
+    "configureStatistics": "Configure Statistics",
+    "configureStatisticsDescription": "Select which statistics you want to view on this page",
+    "enableReorder": "Enable reorder",
+    "noStatisticsConfigured": "No statistics configured. Click the gear icon to select visible statistics.",
+    "statisticsPreferences": "Statistics Preferences",
+    "statisticsPermissions": "Statistics Permissions",
+    "userRole": "User Role",
+    "allowed": "Allowed",
+    "required": "Required",
+    "edit": "Edit",
+    "delete": "Delete",
+    "statistics": {
+      "title": "Configure Statistics",
+      "subtitle": "Select which statistics you want to view on this page",
+      "allowed": "Allowed",
+      "required": "Required",
+      "allowAll": "Allow All",
+      "denyAll": "Deny All",
+      "reset": "Reset",
+      "save": "Save"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "adminDesc": "Full system access",
+      "manager": "Manager",
+      "managerDesc": "Manages teams and projects",
+      "analyst": "Analyst",
+      "analystDesc": "Analysis and reporting",
+      "viewer": "Viewer",
+      "viewerDesc": "View only"
+    },
+    "modules": {
+      "funding": "Funding Sources",
+      "portfolio": "Portfolio",
+      "crm": "CRM",
+      "opportunities": "Opportunities",
+      "proposals": "Proposals",
+      "ingestion": "Data Ingestion",
+      "piiAnalysis": "PII Analysis",
+      "chars": "Chars",
+      "communications": "Communications",
+      "infrastructure": "Infrastructure",
+      "institutes": "Institutes",
+      "teams": "Teams"
+    },
+    "chars": "Chars",
+    "moveLeft": "Moveleft",
+    "moveRight": "Moveright",
+    "view": "View",
+    "add": "Add",
+    "createdAt": "Created at",
+    "pagination": {
+      "showing": "Showing",
+      "to": "To",
+      "of": "Of",
+      "items": "Items",
+      "perPage": "Per page",
+      "first": "First page",
+      "last": "Last page",
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "Page"
+    },
+    "table": {
+      "search": "Search...",
+      "empty": "No data available",
+      "noResults": "No results found",
+      "sortAsc": "Sort ascending",
+      "sortDesc": "Sort descending",
+      "selectAll": "Select all",
+      "selected": "Selected"
+    },
+    "timeline": {
+      "empty": "No activity to display"
+    }
+  },
   "communications": {
     "title": "Communications",
     "subtitle": "Manage platform communications and announcements",
     "filters": {
       "search": "Search",
-      "searchPlaceholder": "Search communications..."
+      "searchPlaceholder": "Search communications...",
+      "all": "All",
+      "client": "Client",
+      "fundingSource": "Funding Source",
+      "linkedEntityType": "Linked To",
+      "opportunity": "Opportunity",
+      "proposal": "Proposal"
+    },
+    "columns": {
+      "subject": "Subject",
+      "type": "Type",
+      "date": "Date",
+      "status": "Status",
+      "linkedTo": "Linked To",
+      "participants": "Participants"
+    },
+    "entityTypes": {
+      "proposal": "Proposal",
+      "project": "Project",
+      "client": "Client",
+      "opportunity": "Opportunity",
+      "fundingSource": "Funding Source"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "closed": "Closed",
+      "archived": "Archived"
     },
     "noResults": "No communications found",
     "loading": "Loading...",
@@ -70,151 +518,29 @@
     "metadata": "Metadata",
     "create": "Create",
     "save": "Save",
-    "delete": "Delete"
-  },
-  "reports": {
-    "title": "Reports",
-    "subtitle": "Generated reports and history",
-    "filters": {
-      "search": "Search",
-      "searchPlaceholder": "Search reports..."
-    },
-    "noReports": "No generated reports.",
-    "loading": "Loading...",
-    "view": "View",
     "delete": "Delete",
-    "generated": "Generated",
-    "templateLabel": "Template",
-    "statusLabel": "Status",
-    "available": "Available",
-    "processed": "Processed",
-    "templatesTitle": "Report Templates",
-    "templatesSubtitle": "Manage report templates and quick exports",
-    "createTemplate": "Create template",
-    "deleteConfirmation": "Are you sure you want to delete this template?",
-    "description": "Description",
-    "details": "Details",
-    "editTemplate": "Edit template",
-    "formats": "Formats",
-    "loadingTemplates": "Loading templates...",
-    "name": "Name",
-    "newTemplate": "New Template",
-    "newReport": "New Report",
-    "noTemplates": "No templates registered.",
-    "none": "None",
-    "outputFormats": "Output formats",
-    "outputFormatsHelp": "Add supported formats (html, pdf, xlsx). Press Enter.",
-    "outputFormatsPlaceholder": "html, pdf",
-    "paramPlaceholder": "Type and press Enter",
-    "parameters": "Parameters",
-    "parametersHelp": "Add a parameter and press Enter.",
-    "saveChanges": "Save changes",
-    "select": "Select",
-    "/api/v1/reports": "/api/v1/reports",
-    "/api/v1/reports/templates": "/api/v1/reports/templates",
-    "Erro ao gerar relatório": "Error generating report"
+    "add": "Add",
+    "cancel": "Cancel",
+    "newThread": "New Thread",
+    "deleteConfirmation": "Are you sure you want to delete this item?",
+    "initialMessage": "Initial Message",
+    "initialMessagePlaceholder": "Start the conversation...",
+    "linkedEntity": "Link to Entity",
+    "noThreads": "No threads found",
+    "participantIdPlaceholder": "Enter user ID...",
+    "participants": "participants",
+    "refresh": "Refresh",
+    "searchThreads": "Search threads...",
+    "selectThread": "Select a thread",
+    "selectThreadHint": "Choose a conversation from the list to view messages",
+    "showUnconfirmedAutoCreated": "Show unconfirmed auto-created threads",
+    "subject": "Subject",
+    "subjectPlaceholder": "Enter thread subject...",
+    "subjectRequired": "Subject is required",
+    "threads": "Threads"
   },
-  "reports.title": "Reports",
-  "reports.subtitle": "Generated reports and history",
-  "reports.newReport": "New Report",
-  "reports.templatesTitle": "Report Templates",
-  "reports.templatesSubtitle": "Manage report templates and quick exports",
-  "reports.filters.search": "Search",
-  "reports.filters.searchPlaceholder": "Search reports...",
-  "reports.noReports": "No generated reports.",
-  "dashboard": {
-    "view": "View",
-    "institute": "Institute",
-    "selectInstituteHelper": "Select the institute responsible for the project",
-    "selectInstitutePlaceholder": "Select an institute",
-    "instituteRequired": "Institute is required",
-    "lastUpdate": "Last update",
-    "recentActivity": "Recent Activity",
-    "stats": {
-      "openFunding": "Open Funding",
-      "activeOpportunities": "Active Opportunities",
-      "matchingScore": "Average Matching Score",
-      "proposalsInReview": "Proposals in Review"
-    },
-    "chatbot": {
-      "open": "Open assistant"
-    },
-    "@/components/analytics-widgets/AnalyticsExport": "@/components/analytics-widgets/analyticsexport",
-    "@/components/analytics-widgets/AnalyticsKPIs": "@/components/analytics-widgets/analyticskpis",
-    "@/components/analytics-widgets/AnalyticsPeriodSelector": "@/components/analytics-widgets/analyticsperiodselector",
-    "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/analyticspipeline",
-    "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/analyticstrl",
-    "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/analyticstrends",
-    "@/components/dashboard/CalendarWidget": "@/components/dashboard/calendarwidget",
-    "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/matchingscorewidget",
-    "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/opportunitieswidget",
-    "inputPlaceholder": "",
-    "period": "",
-    "welcomeSubtitle": "",
-    "welcomeTitle": ""
-  },
-  "pipeline": {
-    "title": "Opportunity Pipeline",
-    "stages": {
-      "intelligence": "Intelligence",
-      "validation": "Validation",
-      "approach": "Approach",
-      "registration": "Registration",
-      "conversion": "Conversion",
-      "post_sale": "Post-Sale",
-      "lost": "Lost",
-      "negotiation": "Negotiation",
-      "proposal": "Proposal",
-      "qualification": "Qualification",
-      "won": "Won"
-    }
-  },
-  "funding": {
-    "title": "Funding Sources",
-    "subtitle": "Manage funding opportunities and grants",
-    "newFunding": "New Funding",
-    "loading": "Loading...",
-    "processing": "Processing...",
-    "noResults": "No results found",
-    "noFunding": "No funding",
-    "daysLeft": "days left",
-    "type": "Type",
-    "amount": "Amount",
-    "trl": "TRL",
-    "deadline": "Deadline",
-    "searchPlaceholder": "Search by name or description...",
-    "editFunding": "Edit Funding",
-    "deleteConfirmation": "Are you sure you want to delete this funding?",
-    "sourceName": "Source Name",
-    "category": "Category",
-    "totalAmount": "Total Amount",
-    "trlMin": "TRL Min",
-    "trlMax": "TRL Max",
-    "focusAreas": "Focus Areas",
-    "description": "Description",
-    "descriptionPlaceholder": "Describe the funding source...",
-    "sourcePlaceholder": "",
-    "focusAreasPlaceholder": "",
-    "url": "URL",
-    "updateError": "Error updating funding source. Please try again.",
-    "status": "Status",
-    "types": {
-      "grant": "Grant",
-      "subsidy": "Subsidy",
-      "credit": "Credit",
-      "equity": "Equity",
-      "loan": "Loan",
-      "tax_incentive": "Tax Incentive"
-    },
-    "filters": {
-      "allStatus": "All Status",
-      "allTypes": "All Types",
-      "open": "Open",
-      "closed": "Closed",
-      "suspended": "Suspended"
-    },
-    "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter.",
-    "view": "View"
+"confirm": {
+    "deleteLLM": "Deletellm"
   },
   "crm": {
     "title": "CRM - Clients",
@@ -272,62 +598,681 @@
     "address": "Address",
     "email": "Email",
     "phone": "Phone",
-    "view": "View"
+    "view": "View",
+    "tabBasic": "Basic",
+    "tabContact": "Contact",
+    "tabNotes": "Notes",
+    "contactHint": "Contact information"
   },
-  "portfolio": {
-    "title": "Project Portfolio",
-    "subtitle": "Manage R&D and innovation projects",
+  "dashboard": {
+    "view": "View",
     "institute": "Institute",
-    "selectInstituteHelper": "Select the institute responsible for this project",
+    "selectInstituteHelper": "Select the institute responsible for the project",
     "selectInstitutePlaceholder": "Select an institute",
     "instituteRequired": "Institute is required",
-    "newProject": "New Project",
-    "loading": "Loading...",
-    "noResults": "No projects found",
-    "noProjects": "No projects",
-    "searchPlaceholder": "Search by title or description...",
-    "statusLabel": "Status",
-    "trl": "TRL",
-    "budget": "Budget",
-    "area": "Research Area",
-    "period": "Period",
-    "projectTitle": "Project Title",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "descriptionPlaceholder": "Describe the project...",
-    "projectTitlePlaceholder": "Descriptive project name",
-    "areaPlaceholder": "",
-    "keywords": "Keywords",
-    "keywordsPlaceholder": "Add keywords",
-    "lessonsLearned": "Lessons Learned",
-    "lessonsLearnedPlaceholder": "Document learnings and best practices...",
-    "createError": "Error creating project. Please try again.",
-    "objectives": "Objectives",
-    "status": {
-      "planning": "Planning",
-      "active": "Active",
-      "completed": "Completed",
-      "suspended": "Suspended"
+    "lastUpdate": "Last update",
+    "recentActivity": "Recent Activity",
+    "stats": {
+      "openFunding": "Open Funding",
+      "activeOpportunities": "Active Opportunities",
+      "matchingScore": "Average Matching Score",
+      "proposalsInReview": "Proposals in Review"
     },
-    "areas": {
-      "industry_4_0": "Industry 4.0",
-      "sustainability": "Sustainability",
-      "health": "Health",
-      "agribusiness": "Agribusiness"
+    "chatbot": {
+      "open": "Open assistant"
+    },
+    "@/components/analytics-widgets/AnalyticsExport": "@/components/analytics-widgets/analyticsexport",
+    "@/components/analytics-widgets/AnalyticsKPIs": "@/components/analytics-widgets/analyticskpis",
+    "@/components/analytics-widgets/AnalyticsPeriodSelector": "@/components/analytics-widgets/analyticsperiodselector",
+    "@/components/analytics-widgets/AnalyticsPipeline": "@/components/analytics-widgets/analyticspipeline",
+    "@/components/analytics-widgets/AnalyticsTRL": "@/components/analytics-widgets/analyticstrl",
+    "@/components/analytics-widgets/AnalyticsTrends": "@/components/analytics-widgets/analyticstrends",
+    "@/components/dashboard/CalendarWidget": "@/components/dashboard/calendarwidget",
+    "@/components/dashboard/MatchingScoreWidget": "@/components/dashboard/matchingscorewidget",
+    "@/components/dashboard/OpportunitiesWidget": "@/components/dashboard/opportunitieswidget",
+    "inputPlaceholder": "",
+    "period": "",
+    "welcomeSubtitle": "",
+    "welcomeTitle": ""
+  },
+  "entities": {
+    "${activity": {
+      "entity}": "Entity}"
+    },
+    "${entity}": "${entity}",
+    "client": "Client",
+    "funding": "Funding",
+    "opportunity": "Opportunity",
+    "project": "Project",
+    "proposal": "Proposal"
+  },
+  "error": {
+    "captureFailed": "Capturefailed",
+    "description": "Description",
+    "documentBodyNotFound": "Documentbodynotfound",
+    "noComment": "Nocomment",
+    "retry": "Retry",
+    "title": "Title"
+  },
+  "errors": {
+    "activate": "Activate",
+    "delete": "Delete",
+    "save": "Save",
+    "unknown": "Unknown"
+  },
+  "export": {
+    "csv": "Csv",
+    "json": "Json",
+    "title": "Title"
+  },
+  "factors": {
+    "${key}": "${key}"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Send suggestions and report issues",
+    "button": {
+      "label": "Send feedback",
+      "title": "Send feedback about this page"
+    },
+    "modal": {
+      "title": "Send Feedback",
+      "close": "Close",
+      "cancel": "Cancel",
+      "submit": "Submit feedback",
+      "submitting": "Submitting...",
+      "processing": "Processing..."
+    },
+    "steps": {
+      "capture": "Capture",
+      "annotate": "Annotate",
+      "comment": "Comment"
+    },
+    "capture": {
+      "title": "Capturing screen...",
+      "description": "The feedback window will be hidden from the capture",
+      "buttonLabel": "Capturar tela"
+    },
+    "annotate": {
+      "title": "Make annotations on the image",
+      "description": "Draw on the image to highlight important areas. Use a marker to make annotations.",
+      "pen": "Marker",
+      "selectColor": "Select color {color}",
+      "colors": {
+        "yellow": "Yellow",
+        "red": "Red",
+        "blue": "Blue"
+      },
+      "thickness": "Thickness",
+      "thin": "Thin",
+      "medium": "Medium",
+      "thick": "Thick",
+      "extraThick": "Extra thick",
+      "undo": "Undo",
+      "redo": "Redo",
+      "clear": "Clear all",
+      "confirm": "Confirm annotations"
+    },
+    "comment": {
+      "typeLabel": "Feedback type",
+      "priorityLabel": "Priority",
+      "commentLabel": "Comment",
+      "placeholder": "Describe the problem or suggestion...",
+      "charCount": "{count}/500 characters",
+      "charLimitWarning": "Limit almost reached",
+      "back": "Back",
+      "editAnnotations": "Edit annotations"
+    },
+    "types": {
+      "bug_report": "Bug / Error",
+      "feature_request": "Suggestion",
+      "ui_feedback": "Interface",
+      "usability": "Usability",
+      "performance": "Performance",
+      "other": "Other"
+    },
+    "severity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "status": {
+      "open": "Open",
+      "in_review": "In Review",
+      "acknowledged": "Acknowledged",
+      "in_progress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "wont_fix": "Won't Fix"
+    },
+    "success": {
+      "title": "Feedback sent!",
+      "description": "Thank you for sharing your opinion. Your contribution is very important to help us improve the system.",
+      "close": "Close"
+    },
+    "error": {
+      "title": "Error sending",
+      "description": "An error occurred while sending the feedback. Please try again.",
+      "retry": "Try again",
+      "noComment": "Please add a comment.",
+      "captureFailed": "Failed to capture screen. Please try again.",
+      "documentBodyNotFound": "Document body not found"
+    },
+    "admin": {
+      "title": "User Feedback",
+      "subtitle": "Review and respond to feedback submitted by users",
+      "noFeedback": "No feedback found",
+      "search": "Search feedback...",
+      "filters": "Filters",
+      "refresh": "Refresh",
+      "page": "Page",
+      "date": "Date",
+      "actions": "Actions",
+      "view": "View",
+      "respond": "Respond",
+      "updateStatus": "Update status",
+      "previousResponse": "Previous response",
+      "respondedAt": "Responded at",
+      "addResponse": "Add response",
+      "updateResponse": "Update response",
+      "responsePlaceholder": "Type your response to the feedback...",
+      "priority": "Priority",
+      "sendResponse": "Send response",
+      "sending": "Sending...",
+      "screenshot": "Screenshot with annotations",
+      "userComment": "User comment",
+      "stats": {
+        "total": "Total",
+        "open": "Open",
+        "inProgress": "In Progress",
+        "resolved": "Resolved"
+      }
+    },
+    "/api/v1/feedback/statistics": "/api/v1/feedback/statistics",
+    "2d": "2d",
+    "canvas": "Canvas",
+    "video": "Video",
+    "createJob": "Criar Job",
+    "createJobPrompt": "Crie um novo job para começar",
+    "creating": "Criando...",
+    "start": "Iniciar",
+    "startProcessingTitle": "Iniciar processamento"
+  },
+  "filter": {
+    "all": "All",
+    "unread": "Unread"
+  },
+  "filters": {
+    "${status": {
+      "key}": "Key}"
+    },
+    "active": "Active",
+    "allActions": "Allactions",
+    "allAreas": "Allareas",
+    "allEntities": "Allentities",
+    "allMaturity": "Allmaturity",
+    "allSegments": "Allsegments",
+    "allStages": "Allstages",
+    "allStatus": "Allstatus",
+    "allStatuses": "Allstatuses",
+    "allTypes": "Alltypes",
+    "closed": "Closed",
+    "completed": "Completed",
+    "dateFrom": "Datefrom",
+    "dateTo": "Dateto",
+    "entity": "Entity",
+    "fundingSource": "Fundingsource",
+    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
+    "open": "Open",
+    "opportunity": "Opportunity",
+    "opportunityPlaceholder": "Opportunityplaceholder",
+    "planning": "Planning",
+    "search": "Search",
+    "searchPlaceholder": "Searchplaceholder",
+    "status": "Status",
+    "suspended": "Suspended",
+    "type": "Type",
+    "version": "Version"
+  },
+  "funding": {
+    "title": "Funding Sources",
+    "subtitle": "Manage funding opportunities and grants",
+    "newFunding": "New Funding",
+    "loading": "Loading...",
+    "processing": "Processing...",
+    "noResults": "No results found",
+    "noFunding": "No funding",
+    "daysLeft": "days left",
+    "type": "Type",
+    "amount": "Amount",
+    "trl": "TRL",
+    "deadline": "Deadline",
+    "searchPlaceholder": "Search by name or description...",
+    "editFunding": "Edit Funding",
+    "deleteConfirmation": "Are you sure you want to delete this funding?",
+    "sourceName": "Source Name",
+    "category": "Category",
+    "totalAmount": "Total Amount",
+    "trlMin": "TRL Min",
+    "trlMax": "TRL Max",
+    "focusAreas": "Focus Areas",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe the funding source...",
+    "sourcePlaceholder": "",
+    "focusAreasPlaceholder": "",
+    "url": "URL",
+    "updateError": "Error updating funding source. Please try again.",
+    "status": "Status",
+    "types": {
+      "grant": "Grant",
+      "subsidy": "Subsidy",
+      "credit": "Credit",
+      "equity": "Equity",
+      "loan": "Loan",
+      "tax_incentive": "Tax Incentive"
     },
     "filters": {
       "allStatus": "All Status",
-      "allAreas": "All Areas",
-      "planning": "In Planning",
-      "active": "Active",
-      "completed": "Completed",
+      "allTypes": "All Types",
+      "open": "Open",
+      "closed": "Closed",
       "suspended": "Suspended"
     },
-    "deleteConfirmation": "Are you sure you want to delete this?",
+    "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter.",
+    "view": "View",
+    "instrumentType": "Instrument Type",
+    "tabBasic": "Basic",
+    "tabTRL": "TRL",
+    "tabDetails": "Details"
+  },
+  "infrastructure": {
+    "title": "Infrastructure",
+    "subtitle": "Manage shared infrastructure and facilities",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search infrastructure..."
+    },
+    "noResults": "No results found",
+    "loading": "Loading...",
+    "new": "New",
+    "boardPlaceholder": "Board view for infrastructure",
+    "newResource": "New Resource",
+    "basicInfo": "Basic Info",
+    "maturityTab": "Maturity",
+    "areasTab": "Areas",
+    "mediaTab": "Media",
+    "equipmentsTab": "Equipments",
+    "equipmentsHint": "List and manage equipment related to this infrastructure",
+    "available": "Available",
+    "booked": "Booked",
+    "maintenance": "Maintenance",
+    "newInfrastructure": "New Infrastructure",
+    "institute": "Institute",
+    "selectInstitute": "Select institute",
+    "name": "Name",
     "description": "Description",
-    "editProject": "Edit project",
-    "updateError": "Error updating. Please try again.",
-    "view": "View"
+    "labEmail": "Lab Email",
+    "responsibleEmail": "Responsible Email",
+    "areaM2": "Area (m²)",
+    "status": "Status",
+    "maturityManagement": "Management Maturity",
+    "selectMaturity": "Select maturity",
+    "techBaseMaturity": "Technological Base Maturity",
+    "productsMaturity": "Products/Services Maturity",
+    "cooperationMaturity": "Cooperation Maturity",
+    "maturityHint": "Assess the maturity of this infrastructure.",
+    "techPlatforms": "Tech Platforms",
+    "select": "Select",
+    "equipmentName": "Equipment Name",
+    "equipmentSerial": "Serial Number",
+    "equipmentStatus": "Equipment Status",
+    "equipmentDesc": "Description",
+    "noEquipments": "No equipments registered",
+    "selectOrType": "Select or type",
+    "customPlatform": "Custom platform",
+    "knowledgeAreas": "Knowledge Areas",
+    "customArea": "Custom area",
+    "researchMacroareas": "Research Macroareas",
+    "customMacroarea": "Custom macroarea",
+    "addMedia": "Add Media",
+    "image": "Image",
+    "video": "Video",
+    "document": "Document",
+    "3dModel": "3D Model",
+    "mediaDescription": "Media description",
+    "add": "Add",
+    "noMedia": "No media",
+    "cancel": "Cancel",
+    "create": "Create"
+  },
+  "ingestion": {
+    "title": "Data Ingestion",
+    "titleEdit": "Edit Ingestion Job",
+    "deleteConfirmation": "Are you sure you want to delete this ingestion job?",
+    "updateError": "Error updating job. Please try again.",
+    "name": "Job Name",
+    "sourceType": "Source Type",
+    "description": "Description",
+    "processing": "Processing...",
+    "noJobs": "No ingestion jobs found",
+    "createJobPrompt": "Create a new job to get started",
+    "startProcessingTitle": "Start processing",
+    "creating": "Creating...",
+    "createJob": "Create Job",
+    "start": "Start",
+    "piiDetected": "PII detected",
+    "piiAnonymized": "anonymized",
+    "error": "Error",
+    "createdAt": "Created At",
+    "startedAt": "Started At",
+    "completedAt": "Completed At",
+    "duration": "Duration",
+    "status": {
+      "pending": "Pending",
+      "validating": "Validating",
+      "processing": "Processing",
+      "pii_detection": "PII Detection",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "sourceTypes": {
+      "csv": "CSV",
+      "xlsx": "Excel (XLSX)",
+      "json": "JSON",
+      "xml": "XML",
+      "file": "File"
+    },
+    "stats": {
+      "files": "Files",
+      "records": "Records",
+      "piiDetected": "PII Detected",
+      "failures": "Failures"
+    },
+    "search": "Search",
+    "view": "View",
+    "jobName": "Job Name",
+    "progress": "Progress"
+  },
+  "institutes": {
+    "title": "Institutes",
+    "subtitle": "Manage research institutes and organizational units",
+    "selectInstitutes": "Select Institutes",
+    "searchPlaceholder": "Search institute...",
+    "selectAll": "Select all",
+    "clearAll": "Clear",
+    "myInstitutes": "My institutes",
+    "selected": "Selected",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "loading": "Loading...",
+    "noResults": "No institutes found",
+    "noInstitutes": "No institutes available",
+    "new": "New",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search institutes...",
+      "city": "City",
+      "cityPlaceholder": "Select city"
+    },
+    "city": "City",
+    "area": "Area",
+    "members": "Members",
+    "delete": "Delete",
+    "boardProspects": "Prospects",
+    "boardArchived": "Archived",
+    "tabs": {
+      "basic": "Basic",
+      "address": "Address",
+      "maturity": "Maturity",
+      "accreditation": "Accreditations"
+    },
+    "fields": {
+      "nome": "Name",
+      "nome_fantasia": "Display Name",
+      "isi_sigla": "Acronym",
+      "descricao": "Description",
+      "status_operacional": "Operational Status",
+      "status": "Status",
+      "logo_url": "Logo",
+      "endereco_rua": "Street",
+      "endereco_numero": "Number",
+      "endereco_complemento": "Complement",
+      "endereco_bairro": "Neighborhood",
+      "endereco_cep": "ZIP Code",
+      "endereco_cidade": "City",
+      "endereco_uf": "State",
+      "area_predial_m2": "Building Area (m²)",
+      "maturidade_gestao": "Management Maturity",
+      "maturidade_base_tecnologica": "Technological Base Maturity",
+      "maturidade_produtos_servicos": "Products/Services Maturity",
+      "maturidade_cooperacao": "Cooperation Maturity",
+      "credenciamento_cati": "CATI Accreditation",
+      "credenciamento_ed": "ED Accreditation"
+    },
+    "maturity_hint": "Assess institutional maturity across different dimensions.",
+    "accreditation_hint": "Mark accreditations applicable to the institute.",
+    "statsUnavailable": "Statistics unavailable",
+    "cancel": "Cancel",
+    "create": "Create",
+    "stats": {
+      "totalArea": "Total Area (m²)",
+      "totalMembers": "Total Members",
+      "totalUnits": "Total Units"
+    },
+    "columns": {
+      "name": "Name",
+      "city": "City",
+      "state": "State",
+      "type": "Type",
+      "createdAt": "Created at"
+    },
+    "confirmDelete": "Are you sure you want to delete this institute?"
+  },
+  "kpis": {
+    "activeOpportunities": "Activeopportunities",
+    "totalClients": "Totalclients",
+    "totalProjects": "Totalprojects"
+  },
+  "language": {
+    "description": "Description",
+    "title": "Title"
+  },
+  "layout": {
+    "branding": {
+      "description": "Description",
+      "leaveEmptyForDefault": "Leaveemptyfordefault",
+      "siteFaviconUrl": "Sitefaviconurl",
+      "siteLogoUrl": "Sitelogourl",
+      "siteName": "Sitename",
+      "title": "Title"
+    },
+    "buttons": {
+      "reset": "Reset",
+      "saveChanges": "Savechanges"
+    },
+    "dashboardWidgets": {
+      "description": "Description",
+      "layoutStyle": "Layoutstyle",
+      "title": "Title"
+    },
+    "description": "Description",
+    "messages": {
+      "resetConfirm": "Resetconfirm"
+    },
+    "navigationItems": {
+      "description": "Description",
+      "orderDescription": "Orderdescription",
+      "orderTitle": "Ordertitle",
+      "resetOrder": "Resetorder",
+      "title": "Title"
+    },
+    "sidebar": {
+      "collapsedByDefault": "Collapsedbydefault",
+      "description": "Description",
+      "position": "Position",
+      "title": "Title",
+      "width": "Width"
+    },
+    "themeColors": {
+      "colorMode": "Colormode",
+      "dark": "Dark",
+      "description": "Description",
+      "light": "Light",
+      "primaryColor": "Primarycolor",
+      "secondaryColor": "Secondarycolor",
+      "title": "Title"
+    },
+    "title": "Title",
+    "typography": {
+      "description": "Description",
+      "fontFamily": "Fontfamily",
+      "fontSize": "Fontsize",
+      "large": "Large",
+      "monospace": "Monospace",
+      "normal": "Normal",
+      "sansSerif": "Sansserif",
+      "serif": "Serif",
+      "small": "Small",
+      "title": "Title"
+    },
+    "uiPreferences": {
+      "compactMode": "Compactmode",
+      "defaultPageSize": "Defaultpagesize",
+      "denseTables": "Densetables",
+      "description": "Description",
+      "enableAnimations": "Enableanimations",
+      "itemsPerPage": "Itemsperpage",
+      "title": "Title"
+    }
+  },
+  "llm": {
+    "activate": "Activate",
+    "apiKey": "Apikey",
+    "apiKeyStored": "Apikeystored",
+    "baseUrl": "Baseurl",
+    "delete": "Delete",
+    "errors": {
+      "apiKeyRequired": "Apikeyrequired",
+      "baseUrlRequired": "Baseurlrequired",
+      "testError": "Testerror"
+    },
+    "maxTokens": "Maxtokens",
+    "modelLabel": "Modellabel",
+    "noConfigs": "Noconfigs",
+    "save": "Save",
+    "saveActivate": "Saveactivate",
+    "saving": "Saving",
+    "selectProvider": "Selectprovider",
+    "status": {
+      "active": "Active",
+      "failed": "Failed",
+      "tested": "Tested",
+      "untested": "Untested"
+    },
+    "subtitle": "Subtitle",
+    "temperature": "Temperature",
+    "temperatureHint": "Temperaturehint",
+    "testButton": {
+      "label": "Label",
+      "testing": "Testing"
+    },
+    "title": "Title"
+  },
+  "maturity": {
+    "${client": {
+      "maturityLevel}": "Maturitylevel}"
+    },
+    "${displayMaturity}": "${displaymaturity}",
+    "${level": {
+      "key}": "Key}"
+    },
+    "growth": "Growth",
+    "mature": "Mature",
+    "startup": "Startup"
+  },
+  "modal": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "submit": "Submit",
+    "submitting": "Submitting",
+    "title": "Title"
+  },
+  "modules": {
+    "funding": "Funding Sources",
+    "portfolio": "Portfolio",
+    "crm": "CRM",
+    "opportunities": "Opportunities",
+    "proposals": "Proposals",
+    "ingestion": "Data Ingestion",
+    "piiAnalysis": "PII Analysis"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "funding": "Funding Sources",
+    "portfolio": "Portfolio",
+    "crm": "CRM",
+    "opportunities": "Opportunities",
+    "proposals": "Proposals",
+    "settings": "Settings",
+    "ingestion": "Data Ingestion",
+    "piiAnalysis": "PII Analysis",
+    "pii-analysis": "PII Analysis",
+    "reports": "Reports",
+    "reportTemplates": "Report Templates",
+    "report-templates": "Report Templates",
+    "activity": "Recent Activity",
+    "feedbackManagement": "Feedback Management",
+    "/": "/",
+    "admin": "Admin",
+    "notifications": "Notifications",
+    "communications": "Communications",
+    "comunications": "Communications",
+    "institutes": "Institutes",
+    "teams": "Teams",
+    "infrastructure": "Infrastructure",
+    "layout": "Layout",
+    "statistics": "Statistics",
+    "feedback": "Feedback",
+    "llm-provider": "LLM Provider"
+  },
+  "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter.",
+  "notifications": {
+    "title": "Notifications",
+    "unreadCount": "{count} unread",
+    "allRead": "All read",
+    "markAllRead": "Mark all as read",
+    "markRead": "Mark as read",
+    "delete": "Delete",
+    "viewDetails": "View details",
+    "loading": "Loading notifications...",
+    "empty": "No notifications",
+    "filter": {
+      "all": "All",
+      "unread": "Unread",
+      "type": "Type",
+      "info": "Info",
+      "success": "Success",
+      "warning": "Warning",
+      "error": "Error",
+      "read": "Read",
+      "readed": "Read"
+    },
+    "deadlines": "Deadlines",
+    "description": "Description",
+    "digest": "Digest",
+    "email": "Email",
+    "matching": "Matching",
+    "push": "Push",
+    "perYear": "/año",
+    "table": {
+      "title": "Title",
+      "type": "Type",
+      "date": "Date",
+      "status": "Status"
+    }
   },
   "opportunities": {
     "title": "Opportunities",
@@ -416,593 +1361,114 @@
     "T": "T",
     "deleteConfirmation": "Are you sure you want to delete this?",
     "id": "ID",
-    "priority": "Priority"
+    "priority": "Priority",
+    "opportunity": "Opportunity",
+    "scoreFormula": "Score Formula = (Technical Viability × 0.4) + (Financial × 0.3) + (Strategic × 0.3)",
+    "currentScore": "Current Score",
+    "editOpportunity": "Edit Opportunity",
+    "tabs": {
+      "basic": "Basic",
+      "priority": "Priority",
+      "values": "Values"
+    }
   },
-  "ingestion": {
-    "title": "Data Ingestion",
-    "titleEdit": "Edit Ingestion Job",
-    "deleteConfirmation": "Are you sure you want to delete this ingestion job?",
-    "updateError": "Error updating job. Please try again.",
-    "name": "Job Name",
-    "sourceType": "Source Type",
-    "description": "Description",
-    "processing": "Processing...",
-    "noJobs": "No ingestion jobs found",
-    "createJobPrompt": "Create a new job to get started",
-    "startProcessingTitle": "Start processing",
-    "creating": "Creating...",
-    "createJob": "Create Job",
-    "start": "Start",
-    "piiDetected": "PII detected",
-    "piiAnonymized": "anonymized",
-    "error": "Error",
-    "createdAt": "Created At",
-    "startedAt": "Started At",
-    "completedAt": "Completed At",
-    "duration": "Duration",
-    "status": {
-      "pending": "Pending",
-      "validating": "Validating",
-      "processing": "Processing",
-      "pii_detection": "PII Detection",
-      "completed": "Completed",
-      "failed": "Failed",
-      "cancelled": "Cancelled"
-    },
-    "sourceTypes": {
-      "csv": "CSV",
-      "xlsx": "Excel (XLSX)",
-      "json": "JSON",
-      "xml": "XML",
-      "file": "File"
-    },
-    "stats": {
-      "files": "Files",
-      "records": "Records",
-      "piiDetected": "PII Detected",
-      "failures": "Failures"
-    },
-    "search": "Search",
-    "view": "View"
+  "period": {
+    "label": "Label",
+    "month": "Month",
+    "quarter": "Quarter",
+    "week": "Week",
+    "year": "Year"
   },
-  "proposals": {
-    "title": "Proposals",
-    "deleteConfirmation": "Are you sure you want to delete this proposal?",
-    "subtitle": "Manage proposals and versions",
-    "newProposal": "New Proposal",
-    "loading": "Loading...",
-    "noResults": "No proposals found",
-    "version": "Version",
-    "created": "Created",
-    "view": "View",
+  "personalInfo": {
+    "department": "Department",
+    "email": "Email",
+    "emailNote": "Emailnote",
+    "name": "Name",
+    "phone": "Phone",
+    "title": "Title"
+  },
+  "pipeline": {
+    "title": "Opportunity Pipeline",
+    "stages": {
+      "intelligence": "Intelligence",
+      "validation": "Validation",
+      "approach": "Approach",
+      "registration": "Registration",
+      "conversion": "Conversion",
+      "post_sale": "Post-Sale",
+      "lost": "Lost",
+      "negotiation": "Negotiation",
+      "proposal": "Proposal",
+      "qualification": "Qualification",
+      "won": "Won"
+    }
+  },
+  "portfolio": {
+    "title": "Project Portfolio",
+    "subtitle": "Manage R&D and innovation projects",
     "institute": "Institute",
-    "selectInstituteHelper": "Select the institute responsible for the project",
+    "selectInstituteHelper": "Select the institute responsible for this project",
     "selectInstitutePlaceholder": "Select an institute",
     "instituteRequired": "Institute is required",
-    "createJobPrompt": "Create a new job to get started",
-    "startProcessingTitle": "Start processing",
-    "creating": "Creating...",
-    "createJob": "Create Job",
-    "start": "Start",
-    "attachments": "Attachments",
-    "attachmentsFor": "Attachments for {id}",
-    "selectProposalFirst": "Select a proposal first",
-    "selectProposalHint": "Select a proposal from the list above to view and manage its attachments.",
-    "noFilesAttached": "No files attached",
-    "remove": "Remove",
-    "fileTypeInfo": "Accepted types: PDF, Word, Excel • Maximum size: 50MB per file",
+    "newProject": "New Project",
+    "loading": "Loading...",
+    "noResults": "No projects found",
+    "noProjects": "No projects",
+    "searchPlaceholder": "Search by title or description...",
+    "statusLabel": "Status",
+    "trl": "TRL",
+    "budget": "Budget",
+    "area": "Research Area",
+    "period": "Period",
+    "projectTitle": "Project Title",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "descriptionPlaceholder": "Describe the project...",
+    "projectTitlePlaceholder": "Descriptive project name",
+    "areaPlaceholder": "",
+    "keywords": "Keywords",
+    "keywordsPlaceholder": "Add keywords",
+    "lessonsLearned": "Lessons Learned",
+    "lessonsLearnedPlaceholder": "Document learnings and best practices...",
+    "createError": "Error creating project. Please try again.",
+    "objectives": "Objectives",
     "status": {
-      "draft": "Draft",
-      "in_review": "In Review",
-      "submitted": "Submitted",
-      "approved": "Approved",
-      "rejected": "Rejected"
-    },
-    "filters": {
-      "allStatus": "All Status",
-      "draft": "Drafts",
-      "inReview": "In Review",
-      "submitted": "Submitted",
-      "approved": "Approved",
-      "search": "Search",
-      "searchPlaceholder": "Search by title or content...",
-      "status": "Status",
-      "opportunity": "Opportunity",
-      "opportunityPlaceholder": "Search opportunity...",
-      "fundingSource": "Funding Source",
-      "fundingSourcePlaceholder": "Search funding source...",
-      "version": "Version",
-      "dateFrom": "Start Date",
-      "dateTo": "End Date"
-    },
-    "titleLabel": "Title",
-    "titlePlaceholder": "Descriptive proposal name",
-    "statusLabel": "Initial Status",
-    "contentLabel": "Proposal Content",
-    "contentPlaceholder": "Write the proposal content here. You can edit collaboratively after creation...",
-    "tip": "Tip:",
-    "postCreateTip": "After creating the proposal you can invite collaborators for real-time editing and track previous versions.",
-    "createError": "Error creating proposal. Please try again.",
-    "updateError": "Error updating proposal. Please try again.",
-    "author": "Autor",
-    "description": "Description",
-    "descriptionLabel": "Descripción / Resumen",
-    "fundingSource": "Fuente de Financiamiento",
-    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
-    "linkedOpportunity": "Oportunidad Vinculada",
-    "noProposals": "Noproposals",
-    "opportunity": "Opportunity",
-    "opportunityPlaceholder": "Opportunityplaceholder",
-    "submitted": "Enviado",
-    "totalValue": "Valor Total"
-  },
-  "settings": {
-    "title": "Settings",
-    "subtitle": "Customize your ProspecAI experience",
-    "appearance": {
-      "title": "Appearance",
-      "description": "Customize the system's look and feel",
-      "theme": "Theme",
-      "light": "Light",
-      "dark": "Dark"
-    },
-    "language": {
-      "title": "Language",
-      "description": "Choose the system language"
-    },
-    "notifications": {
-      "title": "Notifications",
-      "description": "Configure your notification preferences",
-      "email": "Email notifications",
-      "push": "Push notifications",
-      "matching": "Matching alerts",
-      "deadlines": "Deadline reminders",
-      "digest": "Weekly digest"
-    },
-    "security": {
-      "title": "Security",
-      "description": "Manage your password and sessions",
-      "changePassword": "Change password"
-    },
-    "admin": {
-      "title": "Administration",
-      "description": "Advanced system settings",
-      "statistics": "Statistics",
-      "statisticsDesc": "View and analyze system statistics",
-      "translations": "Translations",
-      "translationsDesc": "Manage system texts and translations",
-      "acl": "Access Control",
-      "aclDesc": "Manage user permissions and roles",
-      "layout": "Layout",
-      "layoutDesc": "Customize the visual structure of the system",
-      "llmProvider": "AI Provider",
-      "llmProviderDesc": "Configure the language model for the assistant",
-      "users": "Users",
-      "usersDesc": "Manage users and their permissions",
-      "feedback": "Feedback",
-      "feedbackDesc": "Manage user feedback and annotations",
-      "email": "Email Configuration",
-      "emailDesc": "Configure SMTP server and email templates"
-    },
-    "email": {
-      "title": "Email Configuration",
-      "subtitle": "Configure SMTP server settings for system emails",
-      "saveSuccess": "Email configuration saved successfully",
-      "testSuccess": "Test email sent successfully! Check your inbox.",
-      "smtp": {
-        "title": "SMTP Server",
-        "description": "Configure the primary email server settings",
-        "host": "SMTP Host",
-        "port": "SMTP Port",
-        "username": "Username",
-        "password": "Password",
-        "passwordHint": "Password will be encrypted before storage",
-        "useTls": "Use TLS/SSL",
-        "useTlsHint": "Recommended for secure email transmission",
-        "showFallback": "Configure fallback server",
-        "hideFallback": "Hide fallback server",
-        "fallbackHost": "Fallback Host",
-        "fallbackPort": "Fallback Port",
-        "fallbackUsername": "Fallback Username",
-        "fallbackPassword": "Fallback Password"
-      },
-      "sender": {
-        "title": "Sender Information",
-        "description": "Configure the sender details for outgoing emails",
-        "fromEmail": "From Email",
-        "fromName": "From Name",
-        "appName": "Application Name",
-        "appUrl": "Application URL",
-        "supportEmail": "Support Email",
-        "supportEmailHint": "This email will be shown in email footers for support"
-      },
-      "test": {
-        "title": "Test Configuration",
-        "description": "Send a test email to verify your SMTP configuration",
-        "placeholder": "Enter email address for test",
-        "send": "Send Test Email",
-        "sending": "Sending..."
-      },
-      "errors": {
-        "loadFailed": "Failed to load email configuration",
-        "saveFailed": "Failed to save email configuration",
-        "testFailed": "Failed to send test email",
-        "testEmailRequired": "Please enter an email address"
-      }
-    },
-    "llm": {
-      "title": "LLM Provider Settings",
-      "subtitle": "Configure the AI provider for the assistant and matching features",
-      "selectProvider": "Select Provider",
-      "configure": "Configure {name}",
-      "modelLabel": "Model",
-      "apiKey": "API Key",
-      "apiKeyStored": "The key will be stored encrypted",
-      "baseUrl": "Base URL",
-      "temperature": "Temperature",
-      "temperatureHint": "Lower = more precise, Higher = more creative",
-      "maxTokens": "Max Tokens",
-      "testButton": {
-        "testing": "Testing...",
-        "label": "Test Connection"
-      },
-      "save": "Save",
-      "saveActivate": "Save & Activate",
-      "saving": "Saving...",
-      "noConfigs": "No LLM configurations found. Add one above.",
-      "status": {
-        "active": "Active",
-        "tested": "✓ Tested",
-        "failed": "✗ Failed",
-        "untested": "? Untested"
-      },
-      "activate": "Activate",
-      "delete": "Delete",
-      "errors": {
-        "apiKeyRequired": "API Key is required",
-        "baseUrlRequired": "Base URL is required",
-        "testError": "Error testing connection"
-      }
-    },
-    "errors": {
-      "save": "Error saving configuration",
-      "unknown": "Unknown error",
-      "activate": "Error activating configuration",
-      "delete": "Error deleting configuration"
-    },
-    "confirm": {
-      "deleteLLM": "Are you sure you want to delete this configuration?"
-    },
-    "saveChanges": "Save changes",
-    "saving": "Saving...",
-    "saved": "Saved successfully!",
-    "common": {
-      "confirm": "Confirm",
-      "cancel": "Cancel"
-    },
-    "translations": {
-      "title": "Translations",
-      "keyPath": "Key Path",
-      "importExport": "Import/Export",
-      "filtersTitle": "Filters",
-      "of": "Of",
-      "addNewKey": "Add New Translation Key",
-      "create": "Create",
-      "searchPlaceholder": "Search translation keys...",
-      "namespace": "Namespace",
-      "description": "Manage system translations",
-      "deleteConfirm": "Are you sure you want to delete",
-      "actions": "Actions",
-      "showing": "Showing",
-      "translationKeys": "translation keys"
-    },
-    "acl": {
-      "title": "Access Control",
-      "aclDesc": "Manage user roles and permissions",
-      "loading": "Loading...",
-      "systemBadge": "System",
-      "deleteConfirm": "Are you sure you want to delete this role?",
-      "createRole": "Create Role",
-      "editRole": "Edit Role",
-      "roleName": "Role Name",
-      "exampleRoleName": "e.g., Content Manager",
-      "roleDescriptionLabel": "Description",
-      "descriptionPlaceholder": "Describe the role's purpose",
-      "permissionsMatrix": "Permissions Matrix",
-      "systemRoleWarning": "System roles cannot be modified or deleted.",
-      "basicInfo": "Basic Information",
-      "roleDescriptions": {
-        "admin": "Full system access",
-        "manager": "Manages teams and projects",
-        "analyst": "Performs analysis and reports",
-        "viewer": "Read-only access"
-      },
-      "resource": "Resource",
-      "permissions": {
-        "create": "Create",
-        "read": "Read",
-        "update": "Update",
-        "delete": "Delete",
-        "export": "Export",
-        "approve": "Approve",
-        "assign": "Assign"
-      }
-    },
-    "layout": {
-      "title": "Layout Configuration",
-      "subtitle": "Adjust the app appearance and organization for your team",
-      "description": "Customize the visual structure and layout of the system",
-      "sidebar": {
-        "title": "Sidebar",
-        "description": "Configure sidebar position and behavior",
-        "position": "Position",
-        "width": "Width",
-        "collapsedByDefault": "Collapsed by default"
-      },
-      "navigationItems": {
-        "title": "Navigation Items",
-        "description": "Choose which menu items are visible"
-      },
-      "dashboardWidgets": {
-        "title": "Dashboard Widgets",
-        "description": "Configure which widgets appear on the dashboard",
-        "layoutStyle": "Layout Style"
-      },
-      "uiPreferences": {
-        "title": "UI Preferences",
-        "description": "General user interface settings",
-        "defaultPageSize": "Default Page Size",
-        "itemsPerPage": "items per page",
-        "denseTables": "Dense Tables",
-        "enableAnimations": "Enable Animations",
-        "compactMode": "Compact Mode"
-      },
-      "theme": {
-        "lightTitle": "Light Theme",
-        "primary": "Primary Color",
-        "secondary": "Secondary Color",
-        "modalTitle": "Modal Settings (Light)",
-        "modalBgLight": "Modal Background (Light)",
-        "modalTextLight": "Modal Text (Light)",
-        "modalBorderLight": "Modal Border (Light)",
-        "darkTitle": "Dark Theme",
-        "modalBgDark": "Modal Background (Dark)",
-        "modalTextDark": "Modal Text (Dark)",
-        "modalBorderDark": "Modal Border (Dark)",
-        "modalOverlay": "Modal Overlay",
-        "modalElevation": "Modal Elevation"
-      },
-      "themeColors": {
-        "title": "Theme & Colors",
-        "description": "Configure color scheme and appearance",
-        "colorMode": "Color Mode",
-        "light": "Light",
-        "dark": "Dark",
-        "primaryColor": "Primary Color",
-        "secondaryColor": "Secondary Color",
-        "appearance": "Appearance",
-        "appearanceOptions": {
-          "default": "Default",
-          "highContrast": "High Contrast",
-          "system": "System"
-        }
-      },
-      "branding": {
-        "title": "Branding",
-        "description": "Configure site name, logo, and favicon",
-        "siteName": "Site Name",
-        "siteLogoUrl": "Site Logo URL",
-        "siteFaviconUrl": "Site Favicon URL",
-        "leaveEmptyForDefault": "Leave empty to use default",
-        "uploadHelp": "Drag & drop an image or click to select",
-        "uploadFaviconHelp": "Upload a favicon (.ico or .png) 16x16/32x32",
-        "remove": "Remove",
-        "restoreDefault": "Restore default"
-      },
-      "typography": {
-        "title": "Typography",
-        "description": "Configure font sizes and styles",
-        "fontSize": "Font Size",
-        "fontFamily": "Font Family",
-        "small": "Small",
-        "normal": "Normal",
-        "large": "Large",
-        "sansSerif": "Sans-serif",
-        "serif": "Serif",
-        "monospace": "Monospace"
-      },
-      "buttons": {
-        "reset": "Reset",
-        "saveChanges": "Save Changes"
-      },
-      "messages": {
-        "resetConfirm": "Are you sure you want to reset the layout to defaults?"
-      }
-    },
-    "users": {
-      "title": "User Management",
-      "subtitle": "Manage users and their permissions in the system",
-      "newUser": "New User",
-      "editUser": "Edit User",
-      "user": "User",
-      "searchPlaceholder": "Search by name or email...",
-      "allRoles": "All Roles",
-      "noUsers": "No users found",
-      "email": "Email",
-      "name": "Name",
-      "role": "Role",
-      "status": "Status",
+      "planning": "Planning",
       "active": "Active",
-      "inactive": "Inactive",
-      "lastLogin": "Last Login",
-      "never": "Never",
-      "actions": "Actions",
-      "showing": "Showing",
-      "of": "Of",
-      "users": "Users",
-      "usersDesc": "Manage users and permissions",
-      "feedback": "Feedback",
-      "feedbackDesc": "Manage user feedback and annotations",
-      "password": "Password",
-      "passwordOptional": "Password (leave empty to keep)",
-      "activeUser": "Active user",
-      "create": "Create",
-      "leaveBlank": "Leave blank to keep current password",
-      "roleTypes": {
-        "admin": "Administrator",
-        "manager": "Manager",
-        "analyst": "Analyst",
-        "viewer": "Viewer"
-      },
-      "deleteConfirmation": "Are you sure you want to delete this user?"
+      "completed": "Completed",
+      "suspended": "Suspended"
     },
-    "statistics": {
-      "title": "Statistics Permissions",
-      "subtitle": "Configure which statistics are available for each user profile",
-      "reset": "Reset Defaults",
-      "save": "Save Changes",
-      "saving": "Saving...",
-      "allowed": "Allowed",
-      "required": "Required",
-      "allowAll": "Allow All",
-      "denyAll": "Deny All"
+    "areas": {
+      "industry_4_0": "Industry 4.0",
+      "sustainability": "Sustainability",
+      "health": "Health",
+      "agribusiness": "Agribusiness"
     },
-    "/api/v1/translations/export/${locale}": "/api/v1/translations/export/${locale}",
-    "a": "A",
-    "content-type": "Content-type"
-  },
-  "users": {
-    "title": "User Management",
-    "subtitle": "Manage users and their permissions in the system",
-    "newUser": "New User",
-    "editUser": "Edit User",
-    "createUser": "Create User",
-    "deleteUser": "Delete User",
-    "deleteConfirm": "Are you sure you want to delete this user?",
-    "searchPlaceholder": "Search by name or email...",
-    "loading": "Loading users...",
-    "noResults": "No users found",
-    "email": "Email",
-    "name": "Name",
-    "username": "Username",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "role": "Role",
-    "roles": "Roles",
-    "status": "Status",
-    "active": "Active",
-    "inactive": "Inactive",
-    "lastLogin": "Last Login",
-    "createdAt": "Created At",
-    "actions": "Actions",
     "filters": {
-      "allRoles": "All Roles",
       "allStatus": "All Status",
-      "activeOnly": "Active Only",
-      "inactiveOnly": "Inactive Only"
+      "allAreas": "All Areas",
+      "planning": "In Planning",
+      "active": "Active",
+      "completed": "Completed",
+      "suspended": "Suspended"
     },
-    "roleTypes": {
-      "admin": "Administrator",
-      "manager": "Manager",
-      "analyst": "Analyst",
-      "viewer": "Viewer",
-      "editor": "Editor"
-    },
-    "form": {
-      "basicInfo": "Basic Information",
-      "credentials": "Credentials",
-      "permissions": "Permissions",
-      "emailRequired": "Email is required",
-      "emailInvalid": "Invalid email",
-      "nameRequired": "Name is required",
-      "passwordRequired": "Password is required",
-      "passwordMismatch": "Passwords do not match",
-      "passwordMinLength": "Password must be at least 8 characters",
-      "roleRequired": "Select at least one role"
-    },
-    "messages": {
-      "createSuccess": "User created successfully!",
-      "updateSuccess": "User updated successfully!",
-      "deleteSuccess": "User deleted successfully!",
-      "createError": "Error creating user",
-      "updateError": "Error updating user",
-      "deleteError": "Error deleting user",
-      "emailExists": "This email is already in use"
-    },
-    "activeUser": "Active user",
-    "allRoles": "Allroles",
-    "create": "Create",
     "deleteConfirmation": "Are you sure you want to delete this?",
-    "leaveBlank": "Leave blank",
-    "never": "Never",
-    "noUsers": "Nousers",
-    "of": "Of",
-    "showing": "Showing",
-    "user": "User",
-    "users": "Users"
-  },
-  "notifications": {
-    "title": "Notifications",
-    "unreadCount": "{count} unread",
-    "allRead": "All read",
-    "markAllRead": "Mark all as read",
-    "markRead": "Mark as read",
-    "delete": "Delete",
-    "viewDetails": "View details",
-    "loading": "Loading notifications...",
-    "empty": "No notifications",
-    "filter": {
-      "all": "All",
-      "unread": "Unread",
-      "type": "Type",
-      "info": "Info",
-      "success": "Success",
-      "warning": "Warning",
-      "error": "Error",
-      "read": "Read",
-      "readed": "Read"
-    },
-    "deadlines": "Deadlines",
     "description": "Description",
-    "digest": "Digest",
-    "email": "Email",
-    "matching": "Matching",
-    "push": "Push",
-    "perYear": "/año"
-  },
-  "activity": {
-    "title": "Recent Activity",
-    "subtitle": "History of actions in the system",
-    "loading": "Loading activities...",
-    "empty": "No activities found",
-    "filters": {
-      "allEntities": "All Entities",
-      "allActions": "All Actions"
-    },
-    "entities": {
-      "funding": "Funding",
-      "project": "Project",
-      "client": "Client",
-      "opportunity": "Opportunity",
-      "proposal": "Proposal"
-    },
-    "types": {
-      "create": "Creation",
-      "update": "Update",
-      "delete": "Deletion",
-      "transition": "Transition",
-      "match": "Matching",
-      "submit": "Submission"
-    },
-    "actions": {
-      "created": "{entity} created",
-      "updated": "Field {field} changed from {oldValue} to {newValue}",
-      "updatedGeneric": "Record updated",
-      "deleted": "{entity} deleted",
-      "transitioned": "Moved from {from} to {to}",
-      "matched": "{score}% matching with {funding}",
-      "submitted": "Proposal submitted"
+    "editProject": "Edit project",
+    "updateError": "Error updating. Please try again.",
+    "view": "View",
+    "projectName": "Project Name",
+    "lessonsLearnedHint": "Lessons learned during project execution",
+    "tabs": {
+      "basic": "Basic",
+      "financial": "Financial",
+      "lessons": "Lessons Learned"
     }
+  },
+  "preferences": {
+    "statistics": "Statistics",
+    "statisticsDesc": "Statisticsdesc",
+    "title": "Title"
   },
   "profile": {
     "title": "My Profile",
@@ -1597,307 +2063,551 @@
       "xml": "XML"
     }
   },
-  "common": {
-    "language": "Language",
-    "selectLanguage": "Select Language",
-    "search": "Search",
-    "filters": "Filters",
-    "expandFilters": "Expand Filters",
-    "collapseFilters": "Collapse Filters",
-    "resetFilters": "Reset Filters",
-    "activeFilters": "active filters",
-    "min": "Min",
-    "max": "Max",
-    "dateFormat": "mm/dd/yyyy",
+  "proposals": {
+    "title": "Proposals",
+    "deleteConfirmation": "Are you sure you want to delete this proposal?",
+    "subtitle": "Manage proposals and versions",
+    "newProposal": "New Proposal",
     "loading": "Loading...",
-    "noResults": "No results found",
-    "save": "Save",
-    "cancel": "Cancel",
-    "deleting": "Deleting...",
-    "confirmDelete": "Yes, delete",
-    "done": "Done",
-    "close": "Close",
-    "selectAll": "Select All",
-    "deselectAll": "Deselect All",
-    "resetDefaults": "Reset to Defaults",
-    "configureStatistics": "Configure Statistics",
-    "configureStatisticsDescription": "Select which statistics you want to view on this page",
-    "enableReorder": "Enable reorder",
-    "noStatisticsConfigured": "No statistics configured. Click the gear icon to select visible statistics.",
-    "statisticsPreferences": "Statistics Preferences",
-    "statisticsPermissions": "Statistics Permissions",
-    "userRole": "User Role",
-    "allowed": "Allowed",
-    "required": "Required",
-    "edit": "Edit",
+    "noResults": "No proposals found",
+    "version": "Version",
+    "created": "Created",
+    "view": "View",
+    "institute": "Institute",
+    "selectInstituteHelper": "Select the institute responsible for the project",
+    "selectInstitutePlaceholder": "Select an institute",
+    "instituteRequired": "Institute is required",
+    "createJobPrompt": "Create a new job to get started",
+    "startProcessingTitle": "Start processing",
+    "creating": "Creating...",
+    "createJob": "Create Job",
+    "start": "Start",
+    "attachments": "Attachments",
+    "attachmentsFor": "Attachments for {id}",
+    "selectProposalFirst": "Select a proposal first",
+    "selectProposalHint": "Select a proposal from the list above to view and manage its attachments.",
+    "noFilesAttached": "No files attached",
+    "remove": "Remove",
+    "fileTypeInfo": "Accepted types: PDF, Word, Excel • Maximum size: 50MB per file",
+    "status": {
+      "draft": "Draft",
+      "in_review": "In Review",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "filters": {
+      "allStatus": "All Status",
+      "draft": "Drafts",
+      "inReview": "In Review",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "search": "Search",
+      "searchPlaceholder": "Search by title or content...",
+      "status": "Status",
+      "opportunity": "Opportunity",
+      "opportunityPlaceholder": "Search opportunity...",
+      "fundingSource": "Funding Source",
+      "fundingSourcePlaceholder": "Search funding source...",
+      "version": "Version",
+      "dateFrom": "Start Date",
+      "dateTo": "End Date"
+    },
+    "titleLabel": "Title",
+    "titlePlaceholder": "Descriptive proposal name",
+    "statusLabel": "Initial Status",
+    "contentLabel": "Proposal Content",
+    "contentPlaceholder": "Write the proposal content here. You can edit collaboratively after creation...",
+    "tip": "Tip:",
+    "postCreateTip": "After creating the proposal you can invite collaborators for real-time editing and track previous versions.",
+    "createError": "Error creating proposal. Please try again.",
+    "updateError": "Error updating proposal. Please try again.",
+    "author": "Autor",
+    "description": "Description",
+    "descriptionLabel": "Descripción / Resumen",
+    "fundingSource": "Fuente de Financiamiento",
+    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
+    "linkedOpportunity": "Oportunidad Vinculada",
+    "noProposals": "Noproposals",
+    "opportunity": "Opportunity",
+    "opportunityPlaceholder": "Opportunityplaceholder",
+    "submitted": "Enviado",
+    "totalValue": "Valor Total",
+    "contentHint": "Proposal content (may include attachments)",
+    "metadataAvailableAfterCreate": "Proposal metadata will be available after creation",
+    "noPermissionMessage": "You do not have permission to access proposals at this time.",
+    "noPermissionTitle": "Access Restricted",
+    "tabs": {
+      "basic": "Basic",
+      "content": "Content",
+      "metadata": "Metadata"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Generated reports and history",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search reports..."
+    },
+    "noReports": "No generated reports.",
+    "loading": "Loading...",
+    "view": "View",
     "delete": "Delete",
+    "generated": "Generated",
+    "templateLabel": "Template",
+    "statusLabel": "Status",
+    "available": "Available",
+    "processed": "Processed",
+    "templatesTitle": "Report Templates",
+    "templatesSubtitle": "Manage report templates and quick exports",
+    "createTemplate": "Create template",
+    "deleteConfirmation": "Are you sure you want to delete this template?",
+    "description": "Description",
+    "details": "Details",
+    "editTemplate": "Edit template",
+    "formats": "Formats",
+    "loadingTemplates": "Loading templates...",
+    "name": "Name",
+    "newTemplate": "New Template",
+    "newReport": "New Report",
+    "noTemplates": "No templates registered.",
+    "none": "None",
+    "outputFormats": "Output formats",
+    "outputFormatsHelp": "Add supported formats (html, pdf, xlsx). Press Enter.",
+    "outputFormatsPlaceholder": "html, pdf",
+    "paramPlaceholder": "Type and press Enter",
+    "parameters": "Parameters",
+    "parametersHelp": "Add a parameter and press Enter.",
+    "saveChanges": "Save changes",
+    "select": "Select",
+    "/api/v1/reports": "/api/v1/reports",
+    "/api/v1/reports/templates": "/api/v1/reports/templates",
+    "Erro ao gerar relatório": "Error generating report",
+    "format": "Format",
+    "templateName": "Template Name",
+    "type": "Type",
+    "updatedAt": "Updated at",
+    "status": "Status",
+    "namePlaceholder": "Report name",
+    "descriptionPlaceholder": "Description",
+    "noParameters": "No parameters",
+    "addParameterPlaceholder": "Add parameter",
+    "formatsHelp": "Supported formats: PDF, Excel, HTML",
+    "addFormatPlaceholder": "Add format",
+    "commonFormats": "Common formats",
+    "tabs": {
+      "basic": "Basic",
+      "parameters": "Parameters",
+      "formats": "Formats"
+    }
+  },
+  "roles": {
+    "admin": "Administrator",
+    "adminDesc": "Full system access",
+    "manager": "Manager",
+    "managerDesc": "Manages teams and projects",
+    "analyst": "Analyst",
+    "analystDesc": "Analysis and reporting",
+    "viewer": "Viewer",
+    "viewerDesc": "View only",
+    "${role}": "${role}",
+    "note": "Note",
+    "title": "Title"
+  },
+  "security": {
+    "changePassword": "Changepassword",
+    "confirmPassword": "Confirmpassword",
+    "currentPassword": "Currentpassword",
+    "description": "Description",
+    "lastLogin": "Lastlogin",
+    "newPassword": "Newpassword",
+    "title": "Title",
+    "updatePassword": "Updatepassword"
+  },
+  "segments": {
+    "agribusiness": "Agribusiness",
+    "manufacturing": "Manufacturing",
+    "services": "Services",
+    "technology": "Technology"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Customize your ProspecAI experience",
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize the system's look and feel",
+      "theme": "Theme",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "language": {
+      "title": "Language",
+      "description": "Choose the system language"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Configure your notification preferences",
+      "email": "Email notifications",
+      "push": "Push notifications",
+      "matching": "Matching alerts",
+      "deadlines": "Deadline reminders",
+      "digest": "Weekly digest"
+    },
+    "security": {
+      "title": "Security",
+      "description": "Manage your password and sessions",
+      "changePassword": "Change password"
+    },
+    "admin": {
+      "title": "Administration",
+      "description": "Advanced system settings",
+      "statistics": "Statistics",
+      "statisticsDesc": "View and analyze system statistics",
+      "translations": "Translations",
+      "translationsDesc": "Manage system texts and translations",
+      "acl": "Access Control",
+      "aclDesc": "Manage user permissions and roles",
+      "layout": "Layout",
+      "layoutDesc": "Customize the visual structure of the system",
+      "llmProvider": "AI Provider",
+      "llmProviderDesc": "Configure the language model for the assistant",
+      "users": "Users",
+      "usersDesc": "Manage users and their permissions",
+      "feedback": "Feedback",
+      "feedbackDesc": "Manage user feedback and annotations",
+      "email": "Email Configuration",
+      "emailDesc": "Configure SMTP server and email templates"
+    },
+    "email": {
+      "title": "Email Configuration",
+      "subtitle": "Configure SMTP server settings for system emails",
+      "saveSuccess": "Email configuration saved successfully",
+      "testSuccess": "Test email sent successfully! Check your inbox.",
+      "smtp": {
+        "title": "SMTP Server",
+        "description": "Configure the primary email server settings",
+        "host": "SMTP Host",
+        "port": "SMTP Port",
+        "username": "Username",
+        "password": "Password",
+        "passwordHint": "Password will be encrypted before storage",
+        "useTls": "Use TLS/SSL",
+        "useTlsHint": "Recommended for secure email transmission",
+        "showFallback": "Configure fallback server",
+        "hideFallback": "Hide fallback server",
+        "fallbackHost": "Fallback Host",
+        "fallbackPort": "Fallback Port",
+        "fallbackUsername": "Fallback Username",
+        "fallbackPassword": "Fallback Password"
+      },
+      "sender": {
+        "title": "Sender Information",
+        "description": "Configure the sender details for outgoing emails",
+        "fromEmail": "From Email",
+        "fromName": "From Name",
+        "appName": "Application Name",
+        "appUrl": "Application URL",
+        "supportEmail": "Support Email",
+        "supportEmailHint": "This email will be shown in email footers for support"
+      },
+      "test": {
+        "title": "Test Configuration",
+        "description": "Send a test email to verify your SMTP configuration",
+        "placeholder": "Enter email address for test",
+        "send": "Send Test Email",
+        "sending": "Sending..."
+      },
+      "errors": {
+        "loadFailed": "Failed to load email configuration",
+        "saveFailed": "Failed to save email configuration",
+        "testFailed": "Failed to send test email",
+        "testEmailRequired": "Please enter an email address"
+      }
+    },
+    "llm": {
+      "title": "LLM Provider Settings",
+      "subtitle": "Configure the AI provider for the assistant and matching features",
+      "selectProvider": "Select Provider",
+      "configure": "Configure {name}",
+      "modelLabel": "Model",
+      "apiKey": "API Key",
+      "apiKeyStored": "The key will be stored encrypted",
+      "baseUrl": "Base URL",
+      "temperature": "Temperature",
+      "temperatureHint": "Lower = more precise, Higher = more creative",
+      "maxTokens": "Max Tokens",
+      "testButton": {
+        "testing": "Testing...",
+        "label": "Test Connection"
+      },
+      "save": "Save",
+      "saveActivate": "Save & Activate",
+      "saving": "Saving...",
+      "noConfigs": "No LLM configurations found. Add one above.",
+      "status": {
+        "active": "Active",
+        "tested": "✓ Tested",
+        "failed": "✗ Failed",
+        "untested": "? Untested"
+      },
+      "activate": "Activate",
+      "delete": "Delete",
+      "errors": {
+        "apiKeyRequired": "API Key is required",
+        "baseUrlRequired": "Base URL is required",
+        "testError": "Error testing connection"
+      }
+    },
+    "errors": {
+      "save": "Error saving configuration",
+      "unknown": "Unknown error",
+      "activate": "Error activating configuration",
+      "delete": "Error deleting configuration"
+    },
+    "confirm": {
+      "deleteLLM": "Are you sure you want to delete this configuration?"
+    },
+    "saveChanges": "Save changes",
+    "saving": "Saving...",
+    "saved": "Saved successfully!",
+    "common": {
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "translations": {
+      "title": "Translations",
+      "keyPath": "Key Path",
+      "importExport": "Import/Export",
+      "filtersTitle": "Filters",
+      "of": "Of",
+      "addNewKey": "Add New Translation Key",
+      "create": "Create",
+      "searchPlaceholder": "Search translation keys...",
+      "namespace": "Namespace",
+      "description": "Manage system translations",
+      "deleteConfirm": "Are you sure you want to delete",
+      "actions": "Actions",
+      "showing": "Showing",
+      "translationKeys": "translation keys"
+    },
+    "acl": {
+      "title": "Access Control",
+      "aclDesc": "Manage user roles and permissions",
+      "loading": "Loading...",
+      "systemBadge": "System",
+      "deleteConfirm": "Are you sure you want to delete this role?",
+      "createRole": "Create Role",
+      "editRole": "Edit Role",
+      "roleName": "Role Name",
+      "exampleRoleName": "e.g., Content Manager",
+      "roleDescriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe the role's purpose",
+      "permissionsMatrix": "Permissions Matrix",
+      "systemRoleWarning": "System roles cannot be modified or deleted.",
+      "basicInfo": "Basic Information",
+      "roleDescriptions": {
+        "admin": "Full system access",
+        "manager": "Manages teams and projects",
+        "analyst": "Performs analysis and reports",
+        "viewer": "Read-only access"
+      },
+      "resource": "Resource",
+      "permissions": {
+        "create": "Create",
+        "read": "Read",
+        "update": "Update",
+        "delete": "Delete",
+        "export": "Export",
+        "approve": "Approve",
+        "assign": "Assign"
+      }
+    },
+    "layout": {
+      "title": "Layout Configuration",
+      "subtitle": "Adjust the app appearance and organization for your team",
+      "description": "Customize the visual structure and layout of the system",
+      "sidebar": {
+        "title": "Sidebar",
+        "description": "Configure sidebar position and behavior",
+        "position": "Position",
+        "width": "Width",
+        "collapsedByDefault": "Collapsed by default"
+      },
+      "navigationItems": {
+        "title": "Navigation Items",
+        "description": "Choose which menu items are visible"
+      },
+      "dashboardWidgets": {
+        "title": "Dashboard Widgets",
+        "description": "Configure which widgets appear on the dashboard",
+        "layoutStyle": "Layout Style"
+      },
+      "uiPreferences": {
+        "title": "UI Preferences",
+        "description": "General user interface settings",
+        "defaultPageSize": "Default Page Size",
+        "itemsPerPage": "items per page",
+        "denseTables": "Dense Tables",
+        "enableAnimations": "Enable Animations",
+        "compactMode": "Compact Mode"
+      },
+      "theme": {
+        "lightTitle": "Light Theme",
+        "primary": "Primary Color",
+        "secondary": "Secondary Color",
+        "modalTitle": "Modal Settings (Light)",
+        "modalBgLight": "Modal Background (Light)",
+        "modalTextLight": "Modal Text (Light)",
+        "modalBorderLight": "Modal Border (Light)",
+        "darkTitle": "Dark Theme",
+        "modalBgDark": "Modal Background (Dark)",
+        "modalTextDark": "Modal Text (Dark)",
+        "modalBorderDark": "Modal Border (Dark)",
+        "modalOverlay": "Modal Overlay",
+        "modalElevation": "Modal Elevation"
+      },
+      "themeColors": {
+        "title": "Theme & Colors",
+        "description": "Configure color scheme and appearance",
+        "colorMode": "Color Mode",
+        "light": "Light",
+        "dark": "Dark",
+        "primaryColor": "Primary Color",
+        "secondaryColor": "Secondary Color",
+        "appearance": "Appearance",
+        "appearanceOptions": {
+          "default": "Default",
+          "highContrast": "High Contrast",
+          "system": "System"
+        }
+      },
+      "branding": {
+        "title": "Branding",
+        "description": "Configure site name, logo, and favicon",
+        "siteName": "Site Name",
+        "siteLogoUrl": "Site Logo URL",
+        "siteFaviconUrl": "Site Favicon URL",
+        "leaveEmptyForDefault": "Leave empty to use default",
+        "uploadHelp": "Drag & drop an image or click to select",
+        "uploadFaviconHelp": "Upload a favicon (.ico or .png) 16x16/32x32",
+        "remove": "Remove",
+        "restoreDefault": "Restore default"
+      },
+      "typography": {
+        "title": "Typography",
+        "description": "Configure font sizes and styles",
+        "fontSize": "Font Size",
+        "fontFamily": "Font Family",
+        "small": "Small",
+        "normal": "Normal",
+        "large": "Large",
+        "sansSerif": "Sans-serif",
+        "serif": "Serif",
+        "monospace": "Monospace"
+      },
+      "buttons": {
+        "reset": "Reset",
+        "saveChanges": "Save Changes"
+      },
+      "messages": {
+        "resetConfirm": "Are you sure you want to reset the layout to defaults?"
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage users and their permissions in the system",
+      "newUser": "New User",
+      "editUser": "Edit User",
+      "user": "User",
+      "searchPlaceholder": "Search by name or email...",
+      "allRoles": "All Roles",
+      "noUsers": "No users found",
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "lastLogin": "Last Login",
+      "never": "Never",
+      "actions": "Actions",
+      "showing": "Showing",
+      "of": "Of",
+      "users": "Users",
+      "usersDesc": "Manage users and permissions",
+      "feedback": "Feedback",
+      "feedbackDesc": "Manage user feedback and annotations",
+      "password": "Password",
+      "passwordOptional": "Password (leave empty to keep)",
+      "activeUser": "Active user",
+      "create": "Create",
+      "leaveBlank": "Leave blank to keep current password",
+      "roleTypes": {
+        "admin": "Administrator",
+        "manager": "Manager",
+        "analyst": "Analyst",
+        "viewer": "Viewer"
+      },
+      "deleteConfirmation": "Are you sure you want to delete this user?"
+    },
     "statistics": {
-      "title": "Configure Statistics",
-      "subtitle": "Select which statistics you want to view on this page",
+      "title": "Statistics Permissions",
+      "subtitle": "Configure which statistics are available for each user profile",
+      "reset": "Reset Defaults",
+      "save": "Save Changes",
+      "saving": "Saving...",
       "allowed": "Allowed",
       "required": "Required",
       "allowAll": "Allow All",
-      "denyAll": "Deny All",
-      "reset": "Reset",
-      "save": "Save"
+      "denyAll": "Deny All"
     },
-    "roles": {
-      "admin": "Administrator",
-      "adminDesc": "Full system access",
-      "manager": "Manager",
-      "managerDesc": "Manages teams and projects",
-      "analyst": "Analyst",
-      "analystDesc": "Analysis and reporting",
-      "viewer": "Viewer",
-      "viewerDesc": "View only"
-    },
-    "modules": {
-      "funding": "Funding Sources",
-      "portfolio": "Portfolio",
-      "crm": "CRM",
-      "opportunities": "Opportunities",
-      "proposals": "Proposals",
-      "ingestion": "Data Ingestion",
-      "piiAnalysis": "PII Analysis",
-      "chars": "Chars"
-    },
-    "chars": "Chars",
-    "moveLeft": "Moveleft",
-    "moveRight": "Moveright",
-    "view": "View",
-    "pagination": {
-      "showing": "Showing",
-      "to": "To",
-      "of": "Of",
-      "items": "Items",
-      "perPage": "Per page",
-      "first": "First page",
-      "last": "Last page",
-      "previous": "Previous page",
-      "next": "Next page",
-      "page": "Page"
-    },
-    "table": {
-      "search": "Search...",
-      "empty": "No data available",
-      "noResults": "No results found",
-      "sortAsc": "Sort ascending",
-      "sortDesc": "Sort descending",
-      "selectAll": "Select all",
-      "selected": "Selected"
-    },
-    "timeline": {
-      "empty": "No activity to display"
+    "/api/v1/translations/export/${locale}": "/api/v1/translations/export/${locale}",
+    "a": "A",
+    "content-type": "Content-type"
+  },
+  "settings.layout.messages.contrastWarningTitle": "Contrast Warning",
+  "settings.translations.autoTranslate": "Auto Translate",
+  "severity": {
+    "${feedback": {
+      "severity}": "Severity}"
     }
   },
-  "auth": {
-    "login": {
-      "title": "Sign In",
-      "subtitle": "Welcome back to ProspecAI",
-      "email": "Email",
-      "emailPlaceholder": "your@email.com",
-      "password": "Password",
-      "passwordPlaceholder": "Your password",
-      "showPassword": "Show password",
-      "hidePassword": "Hide password",
-      "rememberMe": "Remember me",
-      "submit": "Sign In",
-      "submitting": "Signing in...",
-      "forgotPassword": "Forgot password?",
-      "noAccount": "Don't have an account?",
-      "requestAccess": "Request access",
-      "errors": {
-        "invalidCredentials": "Invalid email or password",
-        "accountLocked": "Account locked. Try again later.",
-        "networkError": "Connection error. Check your internet.",
-        "generic": "Login failed. Please try again."
-      }
+  "sourceTypes": {
+    "${job": {
+      "source_type}": "source type}"
     },
-    "register": {
-      "title": "Create Account",
-      "subtitle": "Join ProspecAI",
-      "email": "Email",
-      "emailPlaceholder": "your@email.com",
-      "username": "Username",
-      "usernamePlaceholder": "Choose a username",
-      "fullName": "Full name",
-      "fullNamePlaceholder": "Your full name",
-      "password": "Password",
-      "passwordPlaceholder": "Create a strong password",
-      "confirmPassword": "Confirm password",
-      "confirmPasswordPlaceholder": "Repeat the password",
-      "submit": "Create account",
-      "submitting": "Creating...",
-      "haveAccount": "Already have an account?",
-      "login": "Sign in",
-      "success": "Account created! Check your email.",
-      "errors": {
-        "emailTaken": "This email is already in use",
-        "usernameTaken": "This username is already taken",
-        "passwordMismatch": "Passwords don't match",
-        "passwordWeak": "Password doesn't meet requirements",
-        "generic": "Error creating account. Please try again."
-      },
-      "passwordRequirements": {
-        "title": "Password must have:",
-        "minLength": "At least 8 characters",
-        "uppercase": "One uppercase letter",
-        "lowercase": "One lowercase letter",
-        "number": "One number",
-        "special": "One special character"
-      }
-    },
-    "forgotPassword": {
-      "title": "Forgot Password",
-      "subtitle": "Enter your email to receive the recovery link",
-      "email": "Email",
-      "emailPlaceholder": "your@email.com",
-      "submit": "Send link",
-      "submitting": "Sending...",
-      "success": "If the email exists, you'll receive the recovery link.",
-      "backToLogin": "Back to login",
-      "errors": {
-        "generic": "Error sending. Please try again."
-      }
-    },
-    "resetPassword": {
-      "title": "Reset Password",
-      "subtitle": "Create a new password for your account",
-      "newPassword": "New password",
-      "newPasswordPlaceholder": "Enter new password",
-      "confirmPassword": "Confirm new password",
-      "confirmPasswordPlaceholder": "Repeat new password",
-      "submit": "Reset password",
-      "submitting": "Resetting...",
-      "success": "Password reset successful!",
-      "backToLogin": "Go to login",
-      "errors": {
-        "tokenExpired": "Link expired. Request a new one.",
-        "tokenInvalid": "Invalid link.",
-        "passwordMismatch": "Passwords don't match",
-        "passwordWeak": "Password doesn't meet requirements",
-        "generic": "Error resetting. Please try again."
-      }
-    },
-    "verifyEmail": {
-      "title": "Verify Email",
-      "verifying": "Verifying your email...",
-      "pleaseWait": "Please wait a moment.",
-      "success": "Email verified successfully!",
-      "successMessage": "Your account has been activated. You can now log in.",
-      "goToLogin": "Go to login",
-      "backToLogin": "Back to login",
-      "requestNewLink": "Request new link",
-      "error": "Verification failed",
-      "noToken": "Incomplete link",
-      "noTokenMessage": "The verification link is incomplete. Please use the full link sent to your email.",
-      "errors": {
-        "tokenExpired": "This link has expired. Please request a new one.",
-        "tokenInvalid": "This link is invalid.",
-        "alreadyVerified": "This email has already been verified.",
-        "generic": "Verification error. Please try again."
-      }
-    },
-    "verifyEmailPrompt": {
-      "title": "Verify Your Email",
-      "subtitle": "We need to confirm your email address to activate your account.",
-      "emailSentTo": "Verification email sent to:",
-      "instruction1": "Check your inbox and spam folder",
-      "instruction2": "Click the verification link in the email",
-      "instruction3": "Return here to log in",
-      "resendButton": "Resend verification email",
-      "resending": "Resending...",
-      "resendSuccess": "Verification email resent successfully!",
-      "resendCooldown": "Wait {seconds}s to resend",
-      "continueAnyway": "Continue anyway",
-      "continueWarning": "Without verification, some actions will be blocked.",
-      "wrongAccount": "Not your account?",
-      "logout": "Sign out",
-      "errors": {
-        "tooManyRequests": "Too many attempts. Please wait a few minutes.",
-        "alreadyVerified": "This email has already been verified!",
-        "generic": "Error resending. Please try again."
-      }
-    },
-    "contact": {
-      "title": "Request Access",
-      "subtitle": "Fill out the form below to request access to the system",
-      "selectOption": "Select an option...",
-      "submit": "Submit request",
-      "submitting": "Submitting...",
-      "success": "Request Submitted!",
-      "successMessage": "We've received your request and will be in touch soon.",
-      "referenceId": "Reference number:",
-      "backToLogin": "Back to login",
-      "formDisabled": "Form Unavailable",
-      "formDisabledMessage": "The contact form is temporarily disabled. Please contact the administrator.",
-      "rateLimitMessage": "Limit reached. Try again after {time}.",
-      "errors": {
-        "loadFailed": "Error loading form. Please try again.",
-        "requiredField": "The {field} field is required.",
-        "invalidEmail": "Please enter a valid email.",
-        "invalidFormat": "The {field} field has an invalid format.",
-        "tooManyRequests": "Too many requests from this email. Please wait.",
-        "serviceUnavailable": "Service temporarily unavailable.",
-        "generic": "Error submitting. Please try again."
-      }
+    "${opt": {
+      "value}": "Value}"
     }
   },
-  "analytics": {
-    "title": "Analytics",
-    "subtitle": "Performance overview",
-    "header": "Analytics",
-    "overview": "Performance overview",
-    "refresh": "Refresh",
-    "period": {
-      "label": "Period",
-      "week": "Last week",
-      "month": "Last month",
-      "quarter": "Last quarter",
-      "year": "Last year"
+  "stages": {
+    "${opp": {
+      "stage}": "Stage}"
     },
-    "kpis": {
-      "totalClients": "Total Clients",
-      "totalProjects": "Total Projects",
-      "activeOpportunities": "Active Opportunities",
-      "activeFunding": "Active Funding",
-      "conversionRate": "Conversion Rate",
-      "proposalsSubmitted": "Proposals Submitted",
-      "avgMatchScore": "Average Match Score",
-      "previous": "Previous"
+    "${opportunityData": {
+      "stage}": "Stage}"
     },
-    "pipeline": {
-      "title": "Opportunity Pipeline",
-      "stages": {
-        "intelligence": "Intelligence",
-        "qualification": "Qualification",
-        "proposal": "Proposal",
-        "negotiation": "Negotiation",
-        "won": "Won",
-        "lost": "Lost"
-      }
+    "${opt": {
+      "value}": "Value}"
     },
-    "trl": {
-      "title": "TRL Distribution",
-      "projects": "Projects"
+    "${stage": {
+      "key}": "Key}"
     },
-    "trends": {
-      "title": "Matching Trends",
-      "noData": "Insufficient data",
-      "matches": "Matches",
-      "score": "Score"
-    },
-    "export": {
-      "title": "Export Data",
-      "json": "Export JSON",
-      "csv": "Export CSV"
-    },
-    "/api/v1/analytics/matching-trends?days=30": "/api/v1/analytics/matching-trends?days=30",
-    "/api/v1/analytics/overview?period=${period}": "/api/v1/analytics/overview?period=${period}",
-    "/api/v1/analytics/pipeline": "/api/v1/analytics/pipeline",
-    "/api/v1/analytics/trl-distribution": "/api/v1/analytics/trl-distribution",
-    "csv": "Csv",
-    "json": "Json"
+    "${stage}": "${stage}",
+    "approach": "Approach",
+    "intelligence": "Intelligence",
+    "lost": "Lost",
+    "negotiation": "Negotiation",
+    "proposal": "Proposal",
+    "won": "Won"
+  },
+  "statistics": {
+    "reset": "Reset",
+    "save": "Save",
+    "saving": "Saving",
+    "subtitle": "Subtitle",
+    "title": "Title"
   },
   "stats": {
     "categories": {
@@ -2040,572 +2750,8 @@
     "matchingScore": "Matchingscore",
     "openFunding": "Openfunding",
     "proposalsInReview": "Proposalsinreview",
-    "records": "Records"
-  },
-  "modules": {
-    "funding": "Funding Sources",
-    "portfolio": "Portfolio",
-    "crm": "CRM",
-    "opportunities": "Opportunities",
-    "proposals": "Proposals",
-    "ingestion": "Data Ingestion",
-    "piiAnalysis": "PII Analysis"
-  },
-  "roles": {
-    "admin": "Administrator",
-    "adminDesc": "Full system access",
-    "manager": "Manager",
-    "managerDesc": "Manages teams and projects",
-    "analyst": "Analyst",
-    "analystDesc": "Analysis and reporting",
-    "viewer": "Viewer",
-    "viewerDesc": "View only",
-    "${role}": "${role}",
-    "note": "Note",
-    "title": "Title"
-  },
-  "feedback": {
-    "title": "Feedback",
-    "subtitle": "Send suggestions and report issues",
-    "button": {
-      "label": "Send feedback",
-      "title": "Send feedback about this page"
-    },
-    "modal": {
-      "title": "Send Feedback",
-      "close": "Close",
-      "cancel": "Cancel",
-      "submit": "Submit feedback",
-      "submitting": "Submitting...",
-      "processing": "Processing..."
-    },
-    "steps": {
-      "capture": "Capture",
-      "annotate": "Annotate",
-      "comment": "Comment"
-    },
-    "capture": {
-      "title": "Capturing screen...",
-      "description": "The feedback window will be hidden from the capture",
-      "buttonLabel": "Capturar tela"
-    },
-    "annotate": {
-      "title": "Make annotations on the image",
-      "description": "Draw on the image to highlight important areas. Use a marker to make annotations.",
-      "pen": "Marker",
-      "selectColor": "Select color {color}",
-      "colors": {
-        "yellow": "Yellow",
-        "red": "Red",
-        "blue": "Blue"
-      },
-      "thickness": "Thickness",
-      "thin": "Thin",
-      "medium": "Medium",
-      "thick": "Thick",
-      "extraThick": "Extra thick",
-      "undo": "Undo",
-      "redo": "Redo",
-      "clear": "Clear all",
-      "confirm": "Confirm annotations"
-    },
-    "comment": {
-      "typeLabel": "Feedback type",
-      "priorityLabel": "Priority",
-      "commentLabel": "Comment",
-      "placeholder": "Describe the problem or suggestion...",
-      "charCount": "{count}/500 characters",
-      "charLimitWarning": "Limit almost reached",
-      "back": "Back",
-      "editAnnotations": "Edit annotations"
-    },
-    "types": {
-      "bug_report": "Bug / Error",
-      "feature_request": "Suggestion",
-      "ui_feedback": "Interface",
-      "usability": "Usability",
-      "performance": "Performance",
-      "other": "Other"
-    },
-    "severity": {
-      "low": "Low",
-      "medium": "Medium",
-      "high": "High",
-      "critical": "Critical"
-    },
-    "status": {
-      "open": "Open",
-      "in_review": "In Review",
-      "acknowledged": "Acknowledged",
-      "in_progress": "In Progress",
-      "resolved": "Resolved",
-      "closed": "Closed",
-      "wont_fix": "Won't Fix"
-    },
-    "success": {
-      "title": "Feedback sent!",
-      "description": "Thank you for sharing your opinion. Your contribution is very important to help us improve the system.",
-      "close": "Close"
-    },
-    "error": {
-      "title": "Error sending",
-      "description": "An error occurred while sending the feedback. Please try again.",
-      "retry": "Try again",
-      "noComment": "Please add a comment.",
-      "captureFailed": "Failed to capture screen. Please try again.",
-      "documentBodyNotFound": "Document body not found"
-    },
-    "admin": {
-      "title": "User Feedback",
-      "subtitle": "Review and respond to feedback submitted by users",
-      "noFeedback": "No feedback found",
-      "search": "Search feedback...",
-      "filters": "Filters",
-      "refresh": "Refresh",
-      "page": "Page",
-      "date": "Date",
-      "actions": "Actions",
-      "view": "View",
-      "respond": "Respond",
-      "updateStatus": "Update status",
-      "previousResponse": "Previous response",
-      "respondedAt": "Responded at",
-      "addResponse": "Add response",
-      "updateResponse": "Update response",
-      "responsePlaceholder": "Type your response to the feedback...",
-      "priority": "Priority",
-      "sendResponse": "Send response",
-      "sending": "Sending...",
-      "screenshot": "Screenshot with annotations",
-      "userComment": "User comment",
-      "stats": {
-        "total": "Total",
-        "open": "Open",
-        "inProgress": "In Progress",
-        "resolved": "Resolved"
-      }
-    },
-    "/api/v1/feedback/statistics": "/api/v1/feedback/statistics",
-    "2d": "2d",
-    "canvas": "Canvas",
-    "video": "Video",
-    "createJob": "Criar Job",
-    "createJobPrompt": "Crie um novo job para começar",
-    "creating": "Criando...",
-    "start": "Iniciar",
-    "startProcessingTitle": "Iniciar processamento"
-  },
-  "chat": {
-    "title": "ProspecAI Assistant",
-    "welcomeTitle": "Hi! I'm IA.Go, your R&D prospecting assistant.",
-    "welcomeSubtitle": "I can help with funding calls, projects and matches.",
-    "inputPlaceholder": "Type your question..."
-  },
-  "/api/v1/crm/clients/${id}": "/api/v1/crm/clients/${id}",
-  "/api/v1/crm/enrich-cnpj/${cnpj}": "/api/v1/crm/enrich-cnpj/${cnpj}",
-  "/api/v1/funding/${id}": "/api/v1/funding/${id}",
-  "/api/v1/layout/reset": "/api/v1/layout/reset",
-  "/api/v1/matching/explain/${projectId}/${fundingId}": "/api/v1/matching/explain/${projectid}/${fundingid}",
-  "/api/v1/matching/scores/${projectId}/${fundingId}": "/api/v1/matching/scores/${projectid}/${fundingid}",
-  "/api/v1/opportunities/${id}": "/api/v1/opportunities/${id}",
-  "/api/v1/opportunities/stats/pipeline": "/api/v1/opportunities/stats/pipeline",
-  "/api/v1/portfolio/projects/${id}": "/api/v1/portfolio/projects/${id}",
-  "/api/v1/portfolio/stats": "/api/v1/portfolio/stats",
-  "/api/v1/proposals/${id}": "/api/v1/proposals/${id}",
-  "/api/v1/proposals/${id}/adherence": "/api/v1/proposals/${id}/adherence",
-  "/api/v1/proposals/${id}/submit": "/api/v1/proposals/${id}/submit",
-  "/api/v1/translations/${editingPath}?${params": {
-    "toString()}": "Tostring()}"
-  },
-  "/funding?${params": {
-    "toString()}": "Tostring()}"
-  },
-  "45%": "45%",
-  "65%": "65%",
-  "80%": "80%",
-  "85%": "85%",
-  "DRAFT": "Draft",
-  "INTELLIGENCE": "Intelligence",
-  "PLANNING": "Planning",
-  "acl": {
-    "createRole": "Createrole",
-    "deleteConfirm": "Deleteconfirm"
-  },
-  "actions": {
-    "submitted": "Submitted",
-    "updatedGeneric": "Updatedgeneric"
-  },
-  "admin": {
-    "acl": "Acl",
-    "aclDesc": "Acldesc",
-    "addResponse": "Addresponse",
-    "description": "Description",
-    "feedback": "Feedback",
-    "feedbackDesc": "Feedbackdesc",
-    "layout": "Layout",
-    "layoutDesc": "Layoutdesc",
-    "llmProvider": "Llmprovider",
-    "llmProviderDesc": "Llmproviderdesc",
-    "page": "Page",
-    "previousResponse": "Previousresponse",
-    "priority": "Priority",
-    "respondedAt": "Respondedat",
-    "responsePlaceholder": "Responseplaceholder",
-    "screenshot": "Screenshot",
-    "sendResponse": "Sendresponse",
-    "sending": "Sending",
-    "statistics": "Statistics",
-    "statisticsDesc": "Statisticsdesc",
-    "title": "Title",
-    "translations": "Translations",
-    "translationsDesc": "Translationsdesc",
-    "updateResponse": "Updateresponse",
-    "updateStatus": "Updatestatus",
-    "userComment": "Usercomment",
-    "users": "Users",
-    "usersDesc": "Usersdesc"
-  },
-  "annotate": {
-    "clear": "Clear",
-    "colors": {
-      "${opt": {
-        "key}": "Key}"
-      }
-    },
-    "confirm": "Confirm",
-    "description": "Description",
-    "extraThick": "Extrathick",
-    "medium": "Medium",
-    "pen": "Pen",
-    "redo": "Redo",
-    "thick": "Thick",
-    "thickness": "Thickness",
-    "thin": "Thin",
-    "undo": "Undo"
-  },
-  "appearance": {
-    "dark": "Dark",
-    "description": "Description",
-    "light": "Light",
-    "theme": "Theme",
-    "title": "Title"
-  },
-  "areas": {
-    "agribusiness": "Agribusiness",
-    "health": "Health",
-    "industry_4_0": "industry 4 0",
-    "sustainability": "Sustainability"
-  },
-  "button": {
-    "label": "Label",
-    "title": "Title"
-  },
-  "calendar": {
-    "T": "T",
-    "deadline": "Prazo",
-    "error": "Erro ao carregar eventos",
-    "high": "Alta prioridade",
-    "loading": "Carregando eventos...",
-    "low": "Baixa prioridade",
-    "medium": "Prioridade média",
-    "meeting": "Reunião",
-    "milestone": "Marco",
-    "noEvents": "Nenhum evento para este mês.",
-    "reminder": "Lembrete",
-    "title": "Calendário",
-    "upcomingDeadlines": "Próximos prazos",
-    "viewAll": "Ver todos os eventos"
-  },
-  "capture": {
-    "buttonLabel": "Buttonlabel",
-    "description": "Description",
-    "title": "Title"
-  },
-  "comment": {
-    "back": "Back",
-    "charLimitWarning": "Charlimitwarning",
-    "commentLabel": "Commentlabel",
-    "editAnnotations": "Editannotations",
-    "placeholder": "Placeholder",
-    "typeLabel": "Typelabel"
-  },
-  "confirm": {
-    "deleteLLM": "Deletellm"
-  },
-  "entities": {
-    "${activity": {
-      "entity}": "Entity}"
-    },
-    "${entity}": "${entity}",
-    "client": "Client",
-    "funding": "Funding",
-    "opportunity": "Opportunity",
-    "project": "Project",
-    "proposal": "Proposal"
-  },
-  "error": {
-    "captureFailed": "Capturefailed",
-    "description": "Description",
-    "documentBodyNotFound": "Documentbodynotfound",
-    "noComment": "Nocomment",
-    "retry": "Retry",
-    "title": "Title"
-  },
-  "errors": {
-    "activate": "Activate",
-    "delete": "Delete",
-    "save": "Save",
-    "unknown": "Unknown"
-  },
-  "export": {
-    "csv": "Csv",
-    "json": "Json",
-    "title": "Title"
-  },
-  "factors": {
-    "${key}": "${key}"
-  },
-  "filter": {
-    "all": "All",
-    "unread": "Unread"
-  },
-  "filters": {
-    "${status": {
-      "key}": "Key}"
-    },
-    "active": "Active",
-    "allActions": "Allactions",
-    "allAreas": "Allareas",
-    "allEntities": "Allentities",
-    "allMaturity": "Allmaturity",
-    "allSegments": "Allsegments",
-    "allStages": "Allstages",
-    "allStatus": "Allstatus",
-    "allStatuses": "Allstatuses",
-    "allTypes": "Alltypes",
-    "closed": "Closed",
-    "completed": "Completed",
-    "dateFrom": "Datefrom",
-    "dateTo": "Dateto",
-    "entity": "Entity",
-    "fundingSource": "Fundingsource",
-    "fundingSourcePlaceholder": "Fundingsourceplaceholder",
-    "open": "Open",
-    "opportunity": "Opportunity",
-    "opportunityPlaceholder": "Opportunityplaceholder",
-    "planning": "Planning",
-    "search": "Search",
-    "searchPlaceholder": "Searchplaceholder",
-    "status": "Status",
-    "suspended": "Suspended",
-    "type": "Type",
-    "version": "Version"
-  },
-  "kpis": {
-    "activeOpportunities": "Activeopportunities",
-    "totalClients": "Totalclients",
-    "totalProjects": "Totalprojects"
-  },
-  "language": {
-    "description": "Description",
-    "title": "Title"
-  },
-  "layout": {
-    "branding": {
-      "description": "Description",
-      "leaveEmptyForDefault": "Leaveemptyfordefault",
-      "siteFaviconUrl": "Sitefaviconurl",
-      "siteLogoUrl": "Sitelogourl",
-      "siteName": "Sitename",
-      "title": "Title"
-    },
-    "buttons": {
-      "reset": "Reset",
-      "saveChanges": "Savechanges"
-    },
-    "dashboardWidgets": {
-      "description": "Description",
-      "layoutStyle": "Layoutstyle",
-      "title": "Title"
-    },
-    "description": "Description",
-    "messages": {
-      "resetConfirm": "Resetconfirm"
-    },
-    "navigationItems": {
-      "description": "Description",
-      "orderDescription": "Orderdescription",
-      "orderTitle": "Ordertitle",
-      "resetOrder": "Resetorder",
-      "title": "Title"
-    },
-    "sidebar": {
-      "collapsedByDefault": "Collapsedbydefault",
-      "description": "Description",
-      "position": "Position",
-      "title": "Title",
-      "width": "Width"
-    },
-    "themeColors": {
-      "colorMode": "Colormode",
-      "dark": "Dark",
-      "description": "Description",
-      "light": "Light",
-      "primaryColor": "Primarycolor",
-      "secondaryColor": "Secondarycolor",
-      "title": "Title"
-    },
-    "title": "Title",
-    "typography": {
-      "description": "Description",
-      "fontFamily": "Fontfamily",
-      "fontSize": "Fontsize",
-      "large": "Large",
-      "monospace": "Monospace",
-      "normal": "Normal",
-      "sansSerif": "Sansserif",
-      "serif": "Serif",
-      "small": "Small",
-      "title": "Title"
-    },
-    "uiPreferences": {
-      "compactMode": "Compactmode",
-      "defaultPageSize": "Defaultpagesize",
-      "denseTables": "Densetables",
-      "description": "Description",
-      "enableAnimations": "Enableanimations",
-      "itemsPerPage": "Itemsperpage",
-      "title": "Title"
-    }
-  },
-  "llm": {
-    "activate": "Activate",
-    "apiKey": "Apikey",
-    "apiKeyStored": "Apikeystored",
-    "baseUrl": "Baseurl",
-    "delete": "Delete",
-    "errors": {
-      "apiKeyRequired": "Apikeyrequired",
-      "baseUrlRequired": "Baseurlrequired",
-      "testError": "Testerror"
-    },
-    "maxTokens": "Maxtokens",
-    "modelLabel": "Modellabel",
-    "noConfigs": "Noconfigs",
-    "save": "Save",
-    "saveActivate": "Saveactivate",
-    "saving": "Saving",
-    "selectProvider": "Selectprovider",
-    "status": {
-      "active": "Active",
-      "failed": "Failed",
-      "tested": "Tested",
-      "untested": "Untested"
-    },
-    "subtitle": "Subtitle",
-    "temperature": "Temperature",
-    "temperatureHint": "Temperaturehint",
-    "testButton": {
-      "label": "Label",
-      "testing": "Testing"
-    },
-    "title": "Title"
-  },
-  "maturity": {
-    "${client": {
-      "maturityLevel}": "Maturitylevel}"
-    },
-    "${displayMaturity}": "${displaymaturity}",
-    "${level": {
-      "key}": "Key}"
-    },
-    "growth": "Growth",
-    "mature": "Mature",
-    "startup": "Startup"
-  },
-  "modal": {
-    "cancel": "Cancel",
-    "close": "Close",
-    "submit": "Submit",
-    "submitting": "Submitting",
-    "title": "Title"
-  },
-  "period": {
-    "label": "Label",
-    "month": "Month",
-    "quarter": "Quarter",
-    "week": "Week",
-    "year": "Year"
-  },
-  "personalInfo": {
-    "department": "Department",
-    "email": "Email",
-    "emailNote": "Emailnote",
-    "name": "Name",
-    "phone": "Phone",
-    "title": "Title"
-  },
-  "preferences": {
-    "statistics": "Statistics",
-    "statisticsDesc": "Statisticsdesc",
-    "title": "Title"
-  },
-  "security": {
-    "changePassword": "Changepassword",
-    "confirmPassword": "Confirmpassword",
-    "currentPassword": "Currentpassword",
-    "description": "Description",
-    "lastLogin": "Lastlogin",
-    "newPassword": "Newpassword",
-    "title": "Title",
-    "updatePassword": "Updatepassword"
-  },
-  "segments": {
-    "agribusiness": "Agribusiness",
-    "manufacturing": "Manufacturing",
-    "services": "Services",
-    "technology": "Technology"
-  },
-  "severity": {
-    "${feedback": {
-      "severity}": "Severity}"
-    }
-  },
-  "sourceTypes": {
-    "${job": {
-      "source_type}": "source type}"
-    },
-    "${opt": {
-      "value}": "Value}"
-    }
-  },
-  "stages": {
-    "${opp": {
-      "stage}": "Stage}"
-    },
-    "${opportunityData": {
-      "stage}": "Stage}"
-    },
-    "${opt": {
-      "value}": "Value}"
-    },
-    "${stage": {
-      "key}": "Key}"
-    },
-    "${stage}": "${stage}",
-    "approach": "Approach",
-    "intelligence": "Intelligence",
-    "lost": "Lost",
-    "negotiation": "Negotiation",
-    "proposal": "Proposal",
-    "won": "Won"
-  },
-  "statistics": {
-    "reset": "Reset",
-    "save": "Save",
-    "saving": "Saving",
-    "subtitle": "Subtitle",
-    "title": "Title"
+    "records": "Records",
+    "recent7d": "Recent (7d)"
   },
   "status": {
     "${funding": {
@@ -2645,6 +2791,52 @@
     "close": "Close",
     "description": "Description",
     "title": "Title"
+  },
+  "teams": {
+    "title": "Teams",
+    "subtitle": "Manage teams and collaborators",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search teams..."
+    },
+    "active": "Active",
+    "inactive": "Inactive",
+    "archived": "Archived",
+    "noResults": "No teams found",
+    "loading": "Loading...",
+    "new": "New",
+    "boardPlaceholder": "Board view for teams",
+    "tabs": {
+      "basic": "Basic",
+      "profiles": "Profiles",
+      "dates": "Dates"
+    },
+    "fields": {
+      "usuario": "User",
+      "instituto": "Institute",
+      "cargo": "Position",
+      "funcao_principal": "Main Role",
+      "email_profissional": "Work Email",
+      "telefone_celular": "Mobile Phone",
+      "vinculo_principal": "Primary Affiliation",
+      "vinculo_principal_hint": "Mark if this is the primary affiliation",
+      "foto_perfil_url": "Profile Photo",
+      "data_vinculo_inicio": "Start Date",
+      "data_vinculo_fim": "End Date",
+      "data_vinculo_fim_hint": "Leave empty if current",
+      "email": "Email"
+    },
+    "profiles_hint": "Add the collaborator's professional profiles.",
+    "dates_hint": "Record affiliation start/end dates.",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this team?",
+    "table": {
+      "name": "Name",
+      "description": "Description",
+      "members": "Members"
+    }
   },
   "token": "Token",
   "translations": {
@@ -2692,260 +2884,75 @@
     "transition": "Transition",
     "update": "Update"
   },
-  "view": "View",
-  "institutes": {
-    "title": "Institutes",
-    "subtitle": "Manage research institutes and organizational units",
-    "selectInstitutes": "Select Institutes",
-    "searchPlaceholder": "Search institute...",
-    "selectAll": "Select all",
-    "clearAll": "Clear",
-    "myInstitutes": "My institutes",
-    "selected": "Selected",
-    "save": "Save",
-    "saving": "Saving...",
-    "saved": "Saved",
-    "loading": "Loading...",
-    "noResults": "No institutes found",
-    "noInstitutes": "No institutes available",
-    "new": "New",
-    "filters": {
-      "search": "Search",
-      "searchPlaceholder": "Search institutes...",
-      "city": "City",
-      "cityPlaceholder": "Select city"
-    },
-    "city": "City",
-    "area": "Area",
-    "members": "Members",
-    "delete": "Delete",
-    "boardProspects": "Prospects",
-    "boardArchived": "Archived",
-    "tabs": {
-      "basic": "Basic",
-      "address": "Address",
-      "maturity": "Maturity",
-      "accreditation": "Accreditations"
-    },
-    "fields": {
-      "nome": "Name",
-      "nome_fantasia": "Display Name",
-      "isi_sigla": "Acronym",
-      "descricao": "Description",
-      "status_operacional": "Operational Status",
-      "status": "Status",
-      "logo_url": "Logo",
-      "endereco_rua": "Street",
-      "endereco_numero": "Number",
-      "endereco_complemento": "Complement",
-      "endereco_bairro": "Neighborhood",
-      "endereco_cep": "ZIP Code",
-      "endereco_cidade": "City",
-      "endereco_uf": "State",
-      "area_predial_m2": "Building Area (m²)",
-      "maturidade_gestao": "Management Maturity",
-      "maturidade_base_tecnologica": "Technological Base Maturity",
-      "maturidade_produtos_servicos": "Products/Services Maturity",
-      "maturidade_cooperacao": "Cooperation Maturity",
-      "credenciamento_cati": "CATI Accreditation",
-      "credenciamento_ed": "ED Accreditation"
-    },
-    "maturity_hint": "Assess institutional maturity across different dimensions.",
-    "accreditation_hint": "Mark accreditations applicable to the institute.",
-    "statsUnavailable": "Statistics unavailable",
-    "cancel": "Cancel",
-    "create": "Create",
-    "stats": {
-      "totalArea": "Total Area (m²)",
-      "totalMembers": "Total Members",
-      "totalUnits": "Total Units"
-    }
-  },
-  "teams": {
-    "title": "Teams",
-    "subtitle": "Manage teams and collaborators",
-    "filters": {
-      "search": "Search",
-      "searchPlaceholder": "Search teams..."
-    },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Manage users and their permissions in the system",
+    "newUser": "New User",
+    "editUser": "Edit User",
+    "createUser": "Create User",
+    "deleteUser": "Delete User",
+    "deleteConfirm": "Are you sure you want to delete this user?",
+    "searchPlaceholder": "Search by name or email...",
+    "loading": "Loading users...",
+    "noResults": "No users found",
+    "email": "Email",
+    "name": "Name",
+    "username": "Username",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "role": "Role",
+    "roles": "Roles",
+    "status": "Status",
     "active": "Active",
     "inactive": "Inactive",
-    "archived": "Archived",
-    "noResults": "No teams found",
-    "loading": "Loading...",
-    "new": "New",
-    "boardPlaceholder": "Board view for teams",
-    "tabs": {
-      "basic": "Basic",
-      "profiles": "Profiles",
-      "dates": "Dates"
-    },
-    "fields": {
-      "usuario": "User",
-      "instituto": "Institute",
-      "cargo": "Position",
-      "funcao_principal": "Main Role",
-      "email_profissional": "Work Email",
-      "telefone_celular": "Mobile Phone",
-      "vinculo_principal": "Primary Affiliation",
-      "vinculo_principal_hint": "Mark if this is the primary affiliation",
-      "foto_perfil_url": "Profile Photo",
-      "data_vinculo_inicio": "Start Date",
-      "data_vinculo_fim": "End Date",
-      "data_vinculo_fim_hint": "Leave empty if current",
-      "email": "Email"
-    },
-    "profiles_hint": "Add the collaborator's professional profiles.",
-    "dates_hint": "Record affiliation start/end dates.",
-    "cancel": "Cancel",
-    "create": "Create"
-  },
-  "infrastructure": {
-    "title": "Infrastructure",
-    "subtitle": "Manage shared infrastructure and facilities",
+    "lastLogin": "Last Login",
+    "createdAt": "Created At",
+    "actions": "Actions",
     "filters": {
-      "search": "Search",
-      "searchPlaceholder": "Search infrastructure..."
+      "allRoles": "All Roles",
+      "allStatus": "All Status",
+      "activeOnly": "Active Only",
+      "inactiveOnly": "Inactive Only"
     },
-    "noResults": "No results found",
-    "loading": "Loading...",
-    "new": "New",
-    "boardPlaceholder": "Board view for infrastructure",
-    "newResource": "New Resource",
-    "basicInfo": "Basic Info",
-    "maturityTab": "Maturity",
-    "areasTab": "Areas",
-    "mediaTab": "Media",
-    "equipmentsTab": "Equipments",
-    "equipmentsHint": "List and manage equipment related to this infrastructure",
-    "available": "Available",
-    "booked": "Booked",
-    "maintenance": "Maintenance",
-    "newInfrastructure": "New Infrastructure",
-    "institute": "Institute",
-    "selectInstitute": "Select institute",
-    "name": "Name",
-    "description": "Description",
-    "labEmail": "Lab Email",
-    "responsibleEmail": "Responsible Email",
-    "areaM2": "Area (m²)",
-    "status": "Status",
-    "maturityManagement": "Management Maturity",
-    "selectMaturity": "Select maturity",
-    "techBaseMaturity": "Technological Base Maturity",
-    "productsMaturity": "Products/Services Maturity",
-    "cooperationMaturity": "Cooperation Maturity",
-    "maturityHint": "Assess the maturity of this infrastructure.",
-    "techPlatforms": "Tech Platforms",
-    "select": "Select",
-    "equipmentName": "Equipment Name",
-    "equipmentSerial": "Serial Number",
-    "equipmentStatus": "Equipment Status",
-    "equipmentDesc": "Description",
-    "noEquipments": "No equipments registered",
-    "selectOrType": "Select or type",
-    "customPlatform": "Custom platform",
-    "knowledgeAreas": "Knowledge Areas",
-    "customArea": "Custom area",
-    "researchMacroareas": "Research Macroareas",
-    "customMacroarea": "Custom macroarea",
-    "addMedia": "Add Media",
-    "image": "Image",
-    "video": "Video",
-    "document": "Document",
-    "3dModel": "3D Model",
-    "mediaDescription": "Media description",
-    "add": "Add",
-    "noMedia": "No media",
-    "cancel": "Cancel",
-    "create": "Create"
+    "roleTypes": {
+      "admin": "Administrator",
+      "manager": "Manager",
+      "analyst": "Analyst",
+      "viewer": "Viewer",
+      "editor": "Editor"
+    },
+    "form": {
+      "basicInfo": "Basic Information",
+      "credentials": "Credentials",
+      "permissions": "Permissions",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email",
+      "nameRequired": "Name is required",
+      "passwordRequired": "Password is required",
+      "passwordMismatch": "Passwords do not match",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "roleRequired": "Select at least one role"
+    },
+    "messages": {
+      "createSuccess": "User created successfully!",
+      "updateSuccess": "User updated successfully!",
+      "deleteSuccess": "User deleted successfully!",
+      "createError": "Error creating user",
+      "updateError": "Error updating user",
+      "deleteError": "Error deleting user",
+      "emailExists": "This email is already in use"
+    },
+    "activeUser": "Active user",
+    "allRoles": "Allroles",
+    "create": "Create",
+    "deleteConfirmation": "Are you sure you want to delete this?",
+    "leaveBlank": "Leave blank",
+    "never": "Never",
+    "noUsers": "Nousers",
+    "of": "Of",
+    "showing": "Showing",
+    "user": "User",
+    "users": "Users"
   },
-  "noInstituteSelectedHint": "No institute selected — results may be global. Use the institute selector in the header to filter.",
-  "crm.tabContact": "Contact",
-  "crm.tabNotes": "Notes",
-  "crm.contactHint": "Primary contact information",
-  "crm.tabBasic": "Basic information",
-  "portfolio.lessonsLearnedHint": "Lessonslearnedhint",
-  "portfolio.tabs.basic": "Basic",
-  "portfolio.tabs.financial": "Financial",
-  "portfolio.tabs.lessons": "Lessons",
-  "teams.delete": "Delete",
-  "teams.confirmDelete": "Are you sure you want to delete this team?",
-  "communications.deleteConfirmation": "Are you sure you want to delete this thread?",
-  "proposals.contentHint": "Proposal content (may include attachments)",
-  "proposals.metadataAvailableAfterCreate": "Proposal metadata will be available after creation",
-  "proposals.tabs.basic": "Basic",
-  "proposals.tabs.content": "Content",
-  "proposals.tabs.metadata": "Metadata",
-  "institutes.confirmDelete": "Confirmdelete",
-  "infrastructure.mediaHint": "Drag or paste media files here",
-  "infrastructure.mediaType": "Media type",
-  "infrastructure.delete": "Delete",
-  "infrastructure.confirmDelete": "Are you sure you want to delete this infrastructure item?",
-  "funding.tabBasic": "Basic",
-  "funding.tabTRL": "TRL",
-  "funding.tabDetails": "Details",
-  "opportunities.scoreFormula": "Scoreformula",
-  "opportunities.tabs.basic": "Basic",
-  "opportunities.tabs.values": "Values",
-  "opportunities.tabs.priority": "Priority",
-  "opportunities.currentScore": "Currentscore",
-  "opportunities.editOpportunity": "Editopportunity",
-  "reports.namePlaceholder": "Nameplaceholder",
-  "reports.descriptionPlaceholder": "Descriptionplaceholder",
-  "reports.noParameters": "Noparameters",
-  "reports.addParameterPlaceholder": "Addparameterplaceholder",
-  "common.add": "Add",
-  "reports.formatsHelp": "Formatshelp",
-  "reports.addFormatPlaceholder": "Addformatplaceholder",
-  "reports.commonFormats": "Commonformats",
-  "reports.tabs.basic": "Basic",
-  "reports.tabs.parameters": "Parameters",
-  "reports.tabs.formats": "Formats",
-  "common.createdAt": "Created at",
-  "common.modules.institutes": "Institutes",
-  "common.modules.teams": "Teams",
-  "common.modules.infrastructure": "Infrastructure",
-  "common.modules.communications": "Communications",
-  "settings.translations.autoTranslate": "Auto Translate",
-  "settings.layout.messages.contrastWarningTitle": "Contrast Warning",
-  "pipeline.stages.intelligence": "Intelligence",
-  "pipeline.stages.approach": "Approach",
-  "pipeline.stages.registration": "Registration",
-  "pipeline.stages.conversion": "Conversion",
-  "pipeline.stages.post_sale": "Post Sale",
-  "notifications.table.title": "Title",
-  "notifications.table.type": "Type",
-  "notifications.table.date": "Date",
-  "notifications.table.status": "Status",
-  "institutes.columns.name": "Name",
-  "institutes.columns.city": "City",
-  "institutes.columns.state": "State",
-  "institutes.columns.type": "Type",
-  "institutes.columns.createdAt": "Created at",
-  "infrastructure.type": "Type",
-  "infrastructure.location": "Location",
-  "infrastructure.capacity": "Capacity",
-  "teams.table.name": "Name",
-  "teams.table.description": "Description",
-  "teams.table.members": "Members",
-  "portfolio.projectName": "Project Name",
-  "funding.instrumentType": "Instrument Type",
-  "opportunities.opportunity": "Opportunity",
-  "crm.tabContact": "Contact",
-  "communications.columns.subject": "Subject",
-  "communications.columns.type": "Type",
-  "communications.columns.date": "Date",
-  "communications.columns.status": "Status",
-  "communications.columns.linkedTo": "Linked To",
-  "communications.columns.participants": "Participants",
-  "proposals.contentHint": "Proposal content (may include attachments)",
-  "proposals.metadataAvailableAfterCreate": "Proposal metadata will be available after creation",
-  "reports.format": "Format",
-  "reports.templateName": "Template Name",
-  "reports.type": "Type",
-  "reports.updatedAt": "Updated at",
-  "reports.status": "Status",
-  "ingestion.jobName": "Job Name",
-  "ingestion.progress": "Progress"
+  "view": "View"
 }

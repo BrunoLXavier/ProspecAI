@@ -1,7 +1,104 @@
 # ProspecAI - Implementation History
 
-**Última atualização:** 23 de Janeiro de 2026  
-**Status:** ✅ Production Ready - Migration Consolidation & Seeds Complete
+**Última atualização:** 24 de Janeiro de 2026  
+**Status:** ✅ Production Ready - All Issues Resolved
+
+---
+
+## 2026-01-24 - Communications & Feedback Fixes
+
+### API Dependency Fix
+
+Fixed `ensure_user_member_or_admin` dependency that was causing 422 Unprocessable Entity errors:
+
+1. **Root Cause:** The dependency was receiving `user_id` and `institute_ids` as direct parameters instead of `Depends()`, causing FastAPI to interpret them as required query parameters.
+
+2. **Solution:**
+   - Created `_check_user_member_or_admin()` internal function for direct calls
+   - Updated `ensure_user_member_or_admin()` to use `Depends()` for automatic injection
+   - Updated routers (opportunities.py, funding.py, proposals.py) to use the internal function
+
+3. **Files Modified:**
+   - `backend/infrastructure/dependencies.py` - Split into two functions
+   - `backend/routers/opportunities.py` - Use `_check_user_member_or_admin`
+   - `backend/routers/funding.py` - Use `_check_user_member_or_admin`
+   - `backend/routers/proposals.py` - Use `_check_user_member_or_admin`
+
+### Communication Translations
+
+Added missing translation keys for communications page:
+
+1. **Keys Added:**
+   - `communications.entityTypes.proposal/project/client/opportunity/fundingSource`
+   - `communications.status.active/pending/closed/archived`
+
+2. **Files Modified:**
+   - `frontend/src/locales/pt-BR.json`
+   - `frontend/src/locales/en-US.json`
+   - `frontend/src/locales/es-ES.json`
+
+### Feedback Type Fix
+
+Fixed invalid `feedback_type` values in database:
+
+1. **Root Cause:** Seed data used 'bug' and 'improvement' but enum expected 'bug_report' and 'ui_feedback'
+
+2. **Solution:**
+   - Created `scripts/fix_feedback_types.py` to update existing data
+   - Fixed `alembic/seeds/activity_feedback.py` to use correct enum values
+   - Added 'improvement' to FeedbackType enum for backward compatibility
+
+3. **Files Modified:**
+   - `backend/domain/entities/feedback.py` - Added IMPROVEMENT enum value
+   - `backend/alembic/seeds/activity_feedback.py` - Fixed feedback_type values
+   - `backend/scripts/fix_feedback_types.py` - Created fix script
+
+### Verification Results
+
+✅ Communications page loading with data (3 threads)
+✅ Feedback page loading with data (3 feedbacks)
+✅ No console errors on any tested pages
+✅ Dashboard fully functional
+
+---
+
+## 2026-01-24 - Translation Fixes & Database Schema Alignment
+
+### Translation Structure Fix
+
+Fixed all translation files to use nested object structure required by next-intl:
+
+1. **Root Cause:** Translation keys were added as flat dot-notation (`"funding.instrumentType"`) but next-intl requires nested objects (`"funding": { "instrumentType": "..." }`)
+
+2. **Files Fixed:**
+   - `frontend/src/locales/pt-BR.json` - ~100 flat keys restructured
+   - `frontend/src/locales/en-US.json` - ~100 flat keys restructured
+   - `frontend/src/locales/es-ES.json` - ~100 flat keys restructured
+
+3. **Namespaces Fixed:**
+   - funding, portfolio, crm, opportunities, proposals
+   - communications, stats, institutes, teams, infrastructure
+   - ingestion, reports, common, notifications, pipeline
+
+### Database Schema Migrations
+
+Created 2 new migrations to align database schema with models:
+
+1. **20260133_clients_missing_cols.py** - Added to clients table:
+   - size_category, cnpj_encrypted, email_encrypted, phone_encrypted
+   - address_data, cnpj_data_source, auto_fill_confidence, auto_filled_at
+   - detected_demands, interaction_patterns, engagement_score, deleted_at
+
+2. **20260134_projects_missing_cols.py** - Added to projects table:
+   - trl_history (JSON) - TRL progression tracking
+   - lessons_learned (JSON) - Knowledge management
+
+### Verification Results
+
+✅ All MISSING_MESSAGE translation errors resolved
+✅ All 500 API errors resolved (/clients, /portfolio/projects)
+✅ Dashboard fully functional with all widgets
+✅ All main pages verified: Funding, Portfolio, CRM, Opportunities
 
 ---
 

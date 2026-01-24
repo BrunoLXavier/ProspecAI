@@ -193,6 +193,7 @@ from routers.admin_settings_router import router as admin_settings_routes
 from adapters.api.teams_routes import router as teams_routes
 from adapters.api.infrastructures_routes import router as infrastructures_routes
 from routers.notifications import router as notifications_routes
+from routers.communications import router as communications_routes
 
 # Register API routers
 app.include_router(auth_routes)
@@ -227,6 +228,7 @@ app.include_router(feedback_routes)
 app.include_router(websocket_routes)
 app.include_router(compatibility_routes)
 app.include_router(notifications_routes)
+app.include_router(communications_routes)
 
 
 @app.get("/api/v1")

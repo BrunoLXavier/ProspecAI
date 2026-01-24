@@ -14,7 +14,7 @@ import json
 from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime
 from uuid import UUID, uuid4
-from sqlalchemy import select, and_, or_, func, desc
+from sqlalchemy import select, and_, or_, func, desc, text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from difflib import unified_diff, SequenceMatcher
@@ -45,21 +45,26 @@ class ProposalRepository(BaseRepository[Proposal, ProposalModel]):
             title=model.title,
             opportunity_id=model.opportunity_id,
             funding_source_id=model.funding_source_id,
-            client_id=getattr(model, 'client_id', None),
+            owner_id=model.owner_id,
             status=ProposalStatus(model.current_status) if model.current_status else ProposalStatus.DRAFT,
             current_version=model.current_version or 1,
-            content=getattr(model, 'content', {}) or {},
-            sections=getattr(model, 'sections', {}) or {},
-            executive_summary=getattr(model, 'executive_summary', None),
-            technical_content=getattr(model, 'technical_content', None),
-            budget_data=getattr(model, 'budget_data', {}) or {},
+            current_version_id=model.current_version_id,
+            head_version_id=model.head_version_id,
+            content=model.content or {},
+            sections=model.sections or {},
+            executive_summary=model.executive_summary,
+            technical_content=model.technical_content,
+            budget_data=model.budget_data or {},
             adherence_score=float(model.latest_adherence_score) if model.latest_adherence_score else None,
             adherence_analysis=model.adherence_analysis or {},
             collaborators=model.collaborators or [],
-            locked_by=getattr(model, 'locked_by', None),
-            locked_at=getattr(model, 'locked_at', None),
-            attachments=getattr(model, 'attachments', []) or [],
-            submitted_at=getattr(model, 'submitted_at', None),
+            locked_by=model.locked_by,
+            locked_at=model.locked_at,
+            attachments=model.attachments or [],
+            submitted_at=model.submitted_at,
+            tags=model.tags or [],
+            lessons_learned=model.lessons_learned or [],
+            last_adherence_check=model.last_adherence_check,
             created_at=model.created_at,
             updated_at=model.updated_at,
             created_by=model.created_by,
@@ -77,12 +82,26 @@ class ProposalRepository(BaseRepository[Proposal, ProposalModel]):
         model.title = entity.title
         model.opportunity_id = entity.opportunity_id
         model.funding_source_id = entity.funding_source_id
+        model.owner_id = entity.owner_id or entity.created_by
         model.current_status = entity.status.value if entity.status else ProposalStatus.DRAFT.value
         model.current_version = entity.current_version
+        model.current_version_id = entity.current_version_id
+        model.head_version_id = entity.head_version_id
+        model.content = entity.content
+        model.sections = entity.sections
+        model.executive_summary = entity.executive_summary
+        model.technical_content = entity.technical_content
+        model.budget_data = entity.budget_data
         model.latest_adherence_score = entity.adherence_score
         model.adherence_analysis = entity.adherence_analysis
         model.collaborators = entity.collaborators
-        model.owner_id = entity.created_by  # Map owner to created_by
+        model.locked_by = entity.locked_by
+        model.locked_at = entity.locked_at
+        model.attachments = entity.attachments
+        model.submitted_at = entity.submitted_at
+        model.tags = entity.tags
+        model.lessons_learned = entity.lessons_learned
+        model.last_adherence_check = entity.last_adherence_check
         
         return model
     
@@ -260,7 +279,7 @@ class ProposalRepository(BaseRepository[Proposal, ProposalModel]):
                 if 'tenant_id' not in criteria:
                     raise ValueError("tenant_id is required in criteria when using institute filters")
                 params['tenant_id'] = criteria['tenant_id']
-                res = await self.session.execute(sa.text(sql), params)
+                res = await self.session.execute(sa_text(sql), params)
                 rows = res.fetchall()
                 proposal_ids = [r[0] for r in rows]
                 if not proposal_ids:

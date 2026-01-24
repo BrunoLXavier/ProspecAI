@@ -9,7 +9,7 @@ from datetime import datetime, date
 from uuid import UUID
 
 from domain.entities.opportunity import Opportunity, OpportunityStage, OpportunityPriority
-from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id, get_current_institute_ids, ensure_user_member_or_admin
+from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id, get_current_institute_ids, _check_user_member_or_admin
 from infrastructure.serializers import to_primitive
 from infrastructure.di_container import DependencyContainer
 
@@ -243,7 +243,7 @@ async def create_opportunity(
     )
 
     # Enforce membership or admin for write operations
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
 
     created = await container.opportunity_repository.create(opp_entity, tenant_id, current_user)
     return to_primitive(created)
@@ -273,7 +273,7 @@ async def update_opportunity(
             if hasattr(existing, k):
                 setattr(existing, k, v)
         # Enforce membership or admin for write operations
-        await ensure_user_member_or_admin(current_user, selected_institutes, container)
+        await _check_user_member_or_admin(current_user, selected_institutes, container)
 
         existing.updated_by = current_user
         opportunity = await container.opportunity_repository.update(existing, tenant_id, current_user)
@@ -358,7 +358,7 @@ async def delete_opportunity(
     """
     selected_institutes: List[UUID] = await get_current_institute_ids()
     # Enforce membership or admin for write operations
-    await ensure_user_member_or_admin(current_user, selected_institutes, container)
+    await _check_user_member_or_admin(current_user, selected_institutes, container)
 
     success = await container.opportunity_repository.delete(tenant_id, opportunity_id)
     
