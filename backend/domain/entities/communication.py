@@ -204,6 +204,14 @@ class CreateThreadRequest(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
+class UpdateThreadRequest(BaseModel):
+    """Request to update an existing communication thread."""
+    
+    subject: Optional[str] = Field(None, min_length=1, max_length=500)
+    linked_entity_type: Optional[str] = None
+    linked_entity_id: Optional[str] = None
+
+
 class CreateMessageRequest(BaseModel):
     """Request to create a new message in a thread."""
     

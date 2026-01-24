@@ -28,6 +28,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/api-client';
 import { BaseModal, DeleteConfirmation } from '@/components/ui';
+import EntitySearchInput from '@/components/ui/EntitySearchInput';
 
 interface Thread {
   id?: string;
@@ -77,7 +78,7 @@ export default function CommunicationModal({
   const [participants, setParticipants] = useState<string[]>([]);
   const [newParticipant, setNewParticipant] = useState('');
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       subject: '',
       initialMessage: '',
@@ -225,6 +226,7 @@ export default function CommunicationModal({
       icon={<ChatBubbleLeftRightIcon className="w-6 h-6" />}
       size="xl"
       footer={footerContent}
+      noContentScroll={isEditing}
     >
       <div>
         {/* Delete Confirmation */}
@@ -326,13 +328,14 @@ export default function CommunicationModal({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {tr('entityId', 'Entity ID')}
               </label>
-              <input
-                {...register('linkedEntityId')}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white"
-                placeholder={tr('entityIdPlaceholder', 'Enter entity ID or search...')}
+              <EntitySearchInput
+                entityType={selectedEntityType}
+                value={watch('linkedEntityId')}
+                onChange={(id) => setValue('linkedEntityId', id)}
+                placeholder={tr('entitySearchPlaceholder', 'Search and select an entity...')}
               />
               <p className="mt-1 text-xs text-gray-500">
-                {tr('entityIdHint', 'Enter the ID of the related entity')}
+                {tr('entityIdHint', 'Select the related entity from the list')}
               </p>
             </div>
           )}

@@ -506,7 +506,8 @@
       "project": "Projeto",
       "client": "Cliente",
       "opportunity": "Oportunidade",
-      "fundingSource": "Fonte de Fomento"
+      "fundingSource": "Fonte de Fomento",
+      "funding_source": "Fonte de Fomento"
     },
     "status": {
       "active": "Ativo",
@@ -523,6 +524,12 @@
     "deleteConfirmation": "Tem certeza que deseja deletar este thread?",
     "add": "Adicionar",
     "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "entityId": "ID da Entidade",
+    "entityIdDescription": "Digite o ID da entidade relacionada",
+    "entitySearchPlaceholder": "Buscar e selecionar uma entidade...",
+    "entityIdHint": "Selecione a entidade relacionada na lista",
     "create": "Criar",
     "createError": "Erro ao criar conversa. Tente novamente.",
     "initialMessage": "Mensagem Inicial",
@@ -589,6 +596,9 @@
     "noSubject": "Sem assunto",
     "unknown": "Desconhecido",
     "you": "Você",
+    "editThread": "Editar conversa",
+    "deleteThread": "Excluir conversa",
+    "deleteThreadConfirmMessage": "Tem certeza que deseja excluir esta conversa? Esta ação não pode ser desfeita.",
     "meetingMinutes": "Ata de Reunião",
     "generateMinutes": "Gerar Ata",
     "optional": "opcional",

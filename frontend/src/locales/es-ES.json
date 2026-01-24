@@ -501,7 +501,8 @@
       "project": "Proyecto",
       "client": "Cliente",
       "opportunity": "Oportunidad",
-      "fundingSource": "Fuente de Financiamiento"
+      "fundingSource": "Fuente de Financiamiento",
+      "funding_source": "Fuente de Financiamiento"
     },
     "status": {
       "active": "Activo",
@@ -515,6 +516,12 @@
     "boardPlaceholder": "Vista en tablero para comunicaciones",
     "add": "Agregar",
     "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "entityId": "ID de Entidad",
+    "entityIdDescription": "Ingrese el ID de la entidad relacionada",
+    "entitySearchPlaceholder": "Buscar y seleccionar una entidad...",
+    "entityIdHint": "Seleccione la entidad relacionada de la lista",
     "create": "Crear",
     "createError": "Error al crear el hilo. Inténtelo de nuevo.",
     "deleteConfirmation": "¿Está seguro de que desea eliminar este hilo?",
@@ -584,6 +591,9 @@
     "noSubject": "Sin asunto",
     "unknown": "Desconocido",
     "you": "Tú",
+    "editThread": "Editar conversación",
+    "deleteThread": "Eliminar conversación",
+    "deleteThreadConfirmMessage": "¿Estás seguro de que deseas eliminar esta conversación? Esta acción no se puede deshacer.",
     "meetingMinutes": "Acta de Reunión",
     "generateMinutes": "Generar Acta",
     "optional": "opcional",

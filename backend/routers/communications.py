@@ -32,6 +32,7 @@ from domain.entities.communication import (
     ParticipantRole,
     MeetingMinutesStatus,
     CreateThreadRequest,
+    UpdateThreadRequest,
     CreateMessageRequest,
     UpdateDraftRequest,
     ConfirmAutoCreatedRequest,
@@ -262,6 +263,58 @@ async def create_thread(
         auto_created_confirmed=created.auto_created_confirmed,
         created_at=created.created_at.isoformat() if created.created_at else None,
         participant_count=1 + len(request.participant_ids),
+    )
+
+
+@router.patch("/{thread_id}", response_model=ThreadResponse)
+async def update_thread(
+    thread_id: str,
+    request: UpdateThreadRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
+    _allowed: bool = Depends(ensure_user_member_or_admin),
+):
+    """Update a communication thread's metadata."""
+    repo = CommunicationRepository(db)
+    
+    # Get existing thread
+    thread = await repo.get_thread_by_id(UUID(tenant_id), UUID(thread_id))
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    # Apply updates to the domain entity
+    if request.subject is not None:
+        thread.subject = request.subject
+    if request.linked_entity_type is not None:
+        thread.linked_entity_type = request.linked_entity_type if request.linked_entity_type else None
+    if request.linked_entity_id is not None:
+        thread.linked_entity_id = UUID(request.linked_entity_id) if request.linked_entity_id else None
+    
+    # Use repository update method
+    updated_thread = await repo.update_thread(UUID(tenant_id), thread, user_id)
+    if not updated_thread:
+        raise HTTPException(status_code=500, detail="Failed to update thread")
+    
+    await db.commit()
+    
+    # Get participant count
+    participants = await repo.get_thread_participants(UUID(tenant_id), UUID(thread_id))
+    participant_count = len(participants) if participants else 0
+    
+    logger.info(f"Updated thread {thread_id} by user {user_id}")
+    
+    return ThreadResponse(
+        id=str(updated_thread.id),
+        subject=updated_thread.subject,
+        preview=updated_thread.last_message_preview,
+        last_message_at=updated_thread.last_message_at.isoformat() if updated_thread.last_message_at else None,
+        linked_entity_type=updated_thread.linked_entity_type,
+        linked_entity_id=str(updated_thread.linked_entity_id) if updated_thread.linked_entity_id else None,
+        is_auto_created=updated_thread.is_auto_created,
+        auto_created_confirmed=updated_thread.auto_created_confirmed,
+        created_at=updated_thread.created_at.isoformat() if updated_thread.created_at else None,
+        participant_count=participant_count,
     )
 
 

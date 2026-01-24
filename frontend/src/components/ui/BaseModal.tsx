@@ -22,6 +22,8 @@ interface BaseModalProps {
   footer?: ReactNode;
   showCloseButton?: boolean;
   className?: string;
+  /** When true, content area won't have max-height constraint */
+  noContentScroll?: boolean;
 }
 
 const sizeClasses: Record<ModalSize, string> = {
@@ -45,6 +47,7 @@ export default function BaseModal({
   footer,
   showCloseButton = true,
   className = '',
+  noContentScroll = false,
 }: BaseModalProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -107,7 +110,7 @@ export default function BaseModal({
                 </div>
 
                 {/* Content - no horizontal scroll, vertical scroll with max height */}
-                <div className="p-6 overflow-y-auto overflow-x-hidden max-h-[60vh]">
+                <div className={`p-6 overflow-x-hidden ${noContentScroll ? '' : 'overflow-y-auto max-h-[60vh]'}`}>
                   {children}
                 </div>
 

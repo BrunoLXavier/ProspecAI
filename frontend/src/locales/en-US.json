@@ -501,7 +501,8 @@
       "project": "Project",
       "client": "Client",
       "opportunity": "Opportunity",
-      "fundingSource": "Funding Source"
+      "fundingSource": "Funding Source",
+      "funding_source": "Funding Source"
     },
     "status": {
       "active": "Active",
@@ -520,6 +521,10 @@
     "createError": "Failed to create thread. Please try again.",
     "save": "Save",
     "delete": "Delete",
+    "entityId": "Entity ID",
+    "entityIdDescription": "Enter the ID of the related entity",
+    "entitySearchPlaceholder": "Search and select an entity...",
+    "entityIdHint": "Select the related entity from the list",
     "add": "Add",
     "cancel": "Cancel",
     "newThread": "New Thread",
@@ -589,6 +594,9 @@
     "noSubject": "No subject",
     "unknown": "Unknown",
     "you": "You",
+    "editThread": "Edit conversation",
+    "deleteThread": "Delete conversation",
+    "deleteThreadConfirmMessage": "Are you sure you want to delete this conversation? This action cannot be undone.",
     "meetingMinutes": "Meeting Minutes",
     "generateMinutes": "Generate Minutes",
     "optional": "optional",

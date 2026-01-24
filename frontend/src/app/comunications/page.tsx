@@ -13,10 +13,10 @@
  */
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/ui/PageHeader';
 import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
@@ -28,6 +28,7 @@ import { PlusIcon, ExclamationTriangleIcon, ChatBubbleLeftRightIcon, EnvelopeIco
 import CommunicationModal from '@/components/entities/CommunicationModal';
 import CommunicationsList from '@/components/communications/CommunicationsList';
 import ThreadView from '@/components/communications/ThreadView';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import apiClient from '@/lib/api-client';
 
 interface Thread {
@@ -282,6 +283,32 @@ export default function CommunicationsPage() {
 
   const handleSelectThread = (id: string) => {
     setActiveThreadId(id);
+  };
+
+  // Delete state and handlers
+  const [deleteThreadId, setDeleteThreadId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (threadId: string) => apiClient.delete(`/api/v1/communications/${threadId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['communications'] });
+      setActiveThreadId(null);
+      setShowDeleteConfirm(false);
+      setDeleteThreadId(null);
+    },
+  });
+
+  const handleDeleteThread = useCallback((threadId: string) => {
+    setDeleteThreadId(threadId);
+    setShowDeleteConfirm(true);
+  }, []);
+
+  const confirmDelete = () => {
+    if (deleteThreadId) {
+      deleteMutation.mutate(deleteThreadId);
+    }
   };
 
   const handleModalClose = () => {
@@ -579,6 +606,11 @@ export default function CommunicationsPage() {
                       currentUserId={currentUserId}
                       currentUserName={currentUserName}
                       onThreadUpdate={() => refetch()}
+                      onEdit={(thread) => {
+                        setActiveThreadId(null);
+                        handleEditThread(thread);
+                      }}
+                      onDelete={handleDeleteThread}
                     />
                   </div>
                 </div>
@@ -587,6 +619,20 @@ export default function CommunicationsPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title={t('deleteThread') || 'Delete Thread'}
+        description={t('deleteThreadConfirmMessage') || 'Are you sure you want to delete this conversation? This action cannot be undone.'}
+        confirmLabel={tCommon('delete') || 'Delete'}
+        cancelLabel={tCommon('cancel') || 'Cancel'}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+          setDeleteThreadId(null);
+        }}
+      />
     </div>
   );
 }

@@ -20,6 +20,8 @@ import {
   CheckBadgeIcon,
   ArrowPathIcon,
   ClipboardDocumentListIcon,
+  PencilSquareIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import MessageBubble from './MessageBubble';
@@ -73,9 +75,11 @@ interface Props {
   currentUserId?: string;
   currentUserName?: string;
   onThreadUpdate?: (thread: Thread) => void;
+  onEdit?: (thread: Thread) => void;
+  onDelete?: (threadId: string) => void;
 }
 
-export default function ThreadView({ threadId, currentUserId, currentUserName, onThreadUpdate }: Props) {
+export default function ThreadView({ threadId, currentUserId, currentUserName, onThreadUpdate, onEdit, onDelete }: Props) {
   const t = useTranslations('communications');
   
   const [thread, setThread] = useState<Thread | null>(null);
@@ -83,7 +87,6 @@ export default function ThreadView({ threadId, currentUserId, currentUserName, o
   const [meetingMinutes, setMeetingMinutes] = useState<MeetingMinutes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showMinutes, setShowMinutes] = useState(false);
   const [generatingMinutes, setGeneratingMinutes] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -159,7 +162,7 @@ export default function ThreadView({ threadId, currentUserId, currentUserName, o
         title: `${t('meetingMinutes')} - ${new Date().toLocaleDateString()}`,
       });
       setMeetingMinutes(prev => [...prev, result]);
-      setShowMinutes(true);
+      // Minutes now appear inline in the timeline, no need to show separate panel
     } catch (e) {
       console.error('Failed to generate minutes:', e);
     } finally {
@@ -232,10 +235,11 @@ export default function ThreadView({ threadId, currentUserId, currentUserName, o
             {thread?.linked_entity_type && thread?.linked_entity_id && (
               <a 
                 href={`/${thread.linked_entity_type === 'proposal' ? 'proposals' : thread.linked_entity_type === 'client' ? 'crm' : thread.linked_entity_type === 'funding_source' ? 'funding' : thread.linked_entity_type === 'opportunity' ? 'opportunities' : thread.linked_entity_type}/${thread.linked_entity_id}`}
-                className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 mt-0.5 flex items-center gap-1 hover:underline"
+                className="inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50 rounded-full transition-colors"
               >
-                {t(`linkedTo.${thread.linked_entity_type}`) || thread.linked_entity_type}
-                <span className="text-gray-400">→</span>
+                <span>📎</span>
+                {t(`entityTypes.${thread.linked_entity_type}`) || thread.linked_entity_type}
+                <span>→</span>
               </a>
             )}
           </div>
@@ -248,13 +252,27 @@ export default function ThreadView({ threadId, currentUserId, currentUserName, o
               </div>
             )}
             
-            <button
-              onClick={() => setShowMinutes(!showMinutes)}
-              className={`p-1.5 rounded ${showMinutes ? 'bg-primary-100 text-primary-600' : 'text-gray-500 hover:bg-gray-100'}`}
-              title={t('meetingMinutes')}
-            >
-              <ClipboardDocumentListIcon className="w-5 h-5" />
-            </button>
+            {/* Edit button */}
+            {onEdit && thread && (
+              <button
+                onClick={() => onEdit(thread)}
+                className="p-1.5 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition"
+                title={t('editThread') || 'Edit thread'}
+              >
+                <PencilSquareIcon className="w-4 h-4" />
+              </button>
+            )}
+            
+            {/* Delete button */}
+            {onDelete && (
+              <button
+                onClick={() => onDelete(threadId)}
+                className="p-1.5 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition"
+                title={t('deleteThread') || 'Delete thread'}
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            )}
             
             <button
               onClick={handleGenerateMinutes}
