@@ -5,7 +5,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -61,12 +61,14 @@ export default function PortfolioPage() {
   const tCommon = useTranslations('common');
   const tInstitutes = useTranslations('institutes');
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { selectedInstitutes } = useAuth();
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(
     urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
   );
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
+  const [highlightProcessed, setHighlightProcessed] = useState(false);
 
   // Pagination state
   const { initialPage, initialPageSize } = usePagination(20, true);
@@ -198,6 +200,20 @@ export default function PortfolioPage() {
     const start = (currentPage - 1) * pageSize;
     return projects.slice(start, start + pageSize);
   }, [projects, currentPage, pageSize]);
+
+  // Handle highlight param to auto-open project modal
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (highlightId && projects.length > 0 && !highlightProcessed) {
+      const projectToHighlight = projects.find((p: any) => p.id === highlightId);
+      if (projectToHighlight) {
+        setSelectedProject(projectToHighlight);
+        setIsViewModalOpen(true);
+        setHighlightProcessed(true);
+        router.replace('/portfolio', { scroll: false });
+      }
+    }
+  }, [searchParams, projects, highlightProcessed, router]);
 
   // Transform projects to timeline items
   const timelineItems: TimelineItem[] = useMemo(() => {

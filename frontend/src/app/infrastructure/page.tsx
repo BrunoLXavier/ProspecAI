@@ -206,7 +206,7 @@ export default function InfrastructurePage() {
                         (user?.roles || []).includes('admin') ||
                         selectedInstitutes.includes(String(r.institute_id))
                       ) && (
-                        <a href={`/infrastructure/${r.id}/booking`} className="text-sm text-primary-600 hover:underline">Book</a>
+                        <button onClick={() => { setSelectedResource(r); setModalOpen(true); }} className="text-sm text-primary-600 hover:underline">Book</button>
                       )}
                       <button onClick={() => { setSelectedResource(r); setModalOpen(true); }} className="ml-auto text-sm text-gray-500">Details</button>
                     </div>

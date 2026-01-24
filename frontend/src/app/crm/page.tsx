@@ -5,7 +5,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,6 +56,7 @@ export default function CRMClientsPage() {
   const tCommon = useTranslations('common');
   const tInstitutes = useTranslations('institutes');
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { selectedInstitutes } = useAuth();
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(
@@ -65,6 +66,7 @@ export default function CRMClientsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [highlightProcessed, setHighlightProcessed] = useState(false);
 
   // Pagination state
   const { initialPage, initialPageSize } = usePagination(20, true);
@@ -172,6 +174,21 @@ export default function CRMClientsPage() {
       return Array.isArray(res) ? res : (res.items ?? []);
     }
   });
+
+  // Handle highlight param to auto-open client modal
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (highlightId && clients.length > 0 && !highlightProcessed) {
+      const clientToHighlight = clients.find(c => c.id === highlightId);
+      if (clientToHighlight) {
+        setSelectedClient(clientToHighlight);
+        setIsViewModalOpen(true);
+        setHighlightProcessed(true);
+        // Clear the highlight param from URL
+        router.replace('/crm', { scroll: false });
+      }
+    }
+  }, [searchParams, clients, highlightProcessed, router]);
 
   // Paginate clients for list view
   const paginatedClients = useMemo(() => {

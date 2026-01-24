@@ -4,6 +4,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -56,6 +57,8 @@ export default function UsersPage() {
 	const t = useTranslations('settings');
 	const tCommon = useTranslations('common');
 	const queryClient = useQueryClient();
+	const searchParams = useSearchParams();
+	const router = useRouter();
   
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedRole, setSelectedRole] = useState<string>('');
@@ -63,6 +66,7 @@ export default function UsersPage() {
 	const [editingUser, setEditingUser] = useState<User | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
 	const [viewMode, setViewMode] = useState<ViewMode>('list');
+	const [highlightProcessed, setHighlightProcessed] = useState(false);
 
 	// Pagination state
 	const { initialPage, initialPageSize } = usePagination(20, true);
@@ -87,6 +91,21 @@ export default function UsersPage() {
 			}
 		},
 	});
+
+	// Handle highlight param to auto-open user modal
+	useEffect(() => {
+		const highlightId = searchParams.get('highlight');
+		if (highlightId && users.length > 0 && !highlightProcessed) {
+			const userToHighlight = users.find(u => u.id === highlightId);
+			if (userToHighlight) {
+				setEditingUser(userToHighlight);
+				setShowModal(true);
+				setHighlightProcessed(true);
+				// Clear the highlight param from URL
+				router.replace('/users', { scroll: false });
+			}
+		}
+	}, [searchParams, users, highlightProcessed, router]);
 
 	// Create user mutation
 	const createMutation = useMutation({

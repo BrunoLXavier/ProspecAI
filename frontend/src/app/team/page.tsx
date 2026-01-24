@@ -99,9 +99,9 @@ export default function TeamPage() {
                       (user?.roles || []).includes('admin') ||
                       (u.institutes || []).some((iid: any) => selectedInstitutes.includes(String(iid)))
                     ) && (
-                      <a href={`/users/${u.id}/manage`} className="text-sm text-primary-600 hover:underline">Manage</a>
+                      <a href={`/users?highlight=${u.id}`} className="text-sm text-primary-600 hover:underline">Manage</a>
                     )}
-                    <a href={`/users/${u.id}`} className="ml-auto text-sm text-gray-500">Details</a>
+                    <a href={`/users?highlight=${u.id}`} className="ml-auto text-sm text-gray-500">Details</a>
                   </div>
                 </li>
               ))}

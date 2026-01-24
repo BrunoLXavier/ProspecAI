@@ -269,6 +269,11 @@ export default function CommunicationsPage() {
         { value: 'opportunity', label: t('filters.opportunity') || 'Opportunity' },
       ],
     },
+    {
+      key: 'showAutoCreated',
+      label: t('showUnconfirmedAutoCreated') || 'Show unconfirmed auto-created threads',
+      type: 'checkbox',
+    },
   ];
 
   const handleCreateThread = () => {
@@ -347,19 +352,6 @@ export default function CommunicationsPage() {
         onChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value }))}
         onReset={() => setFilters({ search: '', linkedEntityType: '', showAutoCreated: true })}
       />
-
-      {/* Show auto-created toggle */}
-      <div className="flex items-center gap-2 px-1">
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={filters.showAutoCreated}
-            onChange={(e) => setFilters(prev => ({ ...prev, showAutoCreated: e.target.checked }))}
-            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-          />
-          {t('showUnconfirmedAutoCreated') || 'Show unconfirmed auto-created threads'}
-        </label>
-      </div>
 
       {/* Main Content */}
       <div className="flex-1 min-h-0">

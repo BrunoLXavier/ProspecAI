@@ -5,7 +5,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 import { PlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
@@ -35,6 +35,7 @@ export default function ProposalsPage() {
   const t = useTranslations('proposals');
   const tCommon = useTranslations('common');
   const searchParams = useSearchParams();
+  const router = useRouter();
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(
     urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
@@ -42,6 +43,7 @@ export default function ProposalsPage() {
   const [selectedProposal, setSelectedProposal] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [highlightProcessed, setHighlightProcessed] = useState(false);
   const [filters, setFilters] = useState<ProposalFilters>({
     search: '',
     status: '',
@@ -132,6 +134,20 @@ export default function ProposalsPage() {
     const start = (currentPage - 1) * pageSize;
     return filteredProposals.slice(start, start + pageSize);
   }, [filteredProposals, currentPage, pageSize]);
+
+  // Handle highlight param to auto-open proposal modal
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (highlightId && proposals.length > 0 && !highlightProcessed) {
+      const proposalToHighlight = proposals.find((p: any) => p.id === highlightId);
+      if (proposalToHighlight) {
+        setSelectedProposal(proposalToHighlight);
+        setIsDetailModalOpen(true);
+        setHighlightProcessed(true);
+        router.replace('/proposals', { scroll: false });
+      }
+    }
+  }, [searchParams, proposals, highlightProcessed, router]);
 
   // Transform proposals to timeline items
   const timelineItems: TimelineItem[] = useMemo(() => {

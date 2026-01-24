@@ -95,16 +95,20 @@ export default function OpportunitiesPage() {
     return institutes.filter((ins: any) => selectedInstitutes.includes(ins.id));
   }, [institutes, selectedInstitutes]);
 
-  // Handle ?id= query param to open detail modal
-  const opportunityIdParam = searchParams.get('id');
+  // Handle ?id= or ?highlight= query param to open detail modal
+  const opportunityIdParam = searchParams.get('id') || searchParams.get('highlight');
 
   useEffect(() => {
     if (opportunityIdParam) {
       // Create a minimal opportunity object with the ID to open the modal
       setSelectedOpportunity({ id: opportunityIdParam } as Opportunity);
       setIsDetailModalOpen(true);
+      // Clear the param from URL if it was highlight
+      if (searchParams.get('highlight')) {
+        router.replace('/opportunities', { scroll: false });
+      }
     }
-  }, [opportunityIdParam]);
+  }, [opportunityIdParam, searchParams, router]);
 
   const handleOpportunityClick = (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);

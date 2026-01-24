@@ -5,6 +5,49 @@
 
 ---
 
+## 2026-01-24 - Entity Type Change & Highlight Navigation System
+
+### Feature: Clear Entity ID on Type Change & System-wide Highlight Navigation
+
+1. **Clear Entity ID When Entity Type Changes** (`frontend/src/components/entities/CommunicationModal.tsx`):
+   - Added logic to clear `linkedEntityId` when `selectedEntityType` changes
+   - Prevents stale entity references when user switches entity types
+
+2. **System-wide Highlight Navigation Pattern**:
+   - Removed dependency on `/[id]` dynamic routes that caused 404 errors
+   - Implemented `?highlight=` parameter pattern across all entity pages
+   - Pages auto-open the corresponding modal when highlight param is present
+   - URL is cleaned after opening the modal
+
+3. **Pages with Highlight Support Added**:
+   - `frontend/src/app/users/page.tsx` - Opens UserModal for highlighted user
+   - `frontend/src/app/crm/page.tsx` - Opens ClientViewModal for highlighted client
+   - `frontend/src/app/proposals/page.tsx` - Opens ProposalDetailModal for highlighted proposal
+   - `frontend/src/app/funding/page.tsx` - Opens FundingViewModal for highlighted funding source
+   - `frontend/src/app/portfolio/page.tsx` - Opens ProjectViewModal for highlighted project
+   - `frontend/src/app/opportunities/page.tsx` - Already had `?id=` support, added `?highlight=` alias
+
+4. **Broken Links Fixed**:
+   - `frontend/src/app/team/page.tsx`:
+     - Changed `/users/${id}/manage` → `/users?highlight=${id}`
+     - Changed `/users/${id}` → `/users?highlight=${id}`
+   - `frontend/src/app/infrastructure/page.tsx`:
+     - Changed `<a href="/infrastructure/${id}/booking">` → `<button onClick={openModal}>`
+     - Now opens modal directly instead of navigating to non-existent page
+
+### Files Modified:
+- `frontend/src/components/entities/CommunicationModal.tsx` - Clear entity ID on type change
+- `frontend/src/app/users/page.tsx` - Add highlight support
+- `frontend/src/app/crm/page.tsx` - Add highlight support
+- `frontend/src/app/proposals/page.tsx` - Add highlight support
+- `frontend/src/app/funding/page.tsx` - Add highlight support
+- `frontend/src/app/portfolio/page.tsx` - Add highlight support
+- `frontend/src/app/opportunities/page.tsx` - Add highlight alias
+- `frontend/src/app/team/page.tsx` - Fix broken user links
+- `frontend/src/app/infrastructure/page.tsx` - Fix broken booking link
+
+---
+
 ## 2026-01-24 - Communications Modal & Entity Link Fixes
 
 ### Feature: Entity Search Dropdown & Navigation Improvements

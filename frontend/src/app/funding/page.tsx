@@ -2,10 +2,10 @@
 // Implements RF-02: Gestão de Fontes de Fomento
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -60,6 +60,7 @@ export default function FundingPage() {
   const t = useTranslations('funding');
   const tCommon = useTranslations('common');
   const searchParams = useSearchParams();
+  const router = useRouter();
   const urlView = searchParams.get('view') as ViewMode | null;
   const [viewMode, setViewMode] = useState<ViewMode>(
     urlView && ['list', 'board', 'timeline', 'table'].includes(urlView) ? urlView : 'list'
@@ -67,6 +68,7 @@ export default function FundingPage() {
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFunding, setSelectedFunding] = useState<FundingSource | null>(null);
+  const [highlightProcessed, setHighlightProcessed] = useState(false);
   
   // Pagination state
   const { initialPage, initialPageSize } = usePagination(20, true);
@@ -168,6 +170,20 @@ export default function FundingPage() {
     const start = (currentPage - 1) * pageSize;
     return fundingSources.slice(start, start + pageSize);
   }, [fundingSources, currentPage, pageSize]);
+
+  // Handle highlight param to auto-open funding modal
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (highlightId && fundingSources.length > 0 && !highlightProcessed) {
+      const fundingToHighlight = fundingSources.find((f: any) => f.id === highlightId);
+      if (fundingToHighlight) {
+        setSelectedFunding(fundingToHighlight);
+        setIsViewModalOpen(true);
+        setHighlightProcessed(true);
+        router.replace('/funding', { scroll: false });
+      }
+    }
+  }, [searchParams, fundingSources, highlightProcessed, router]);
 
   // Transform funding sources to timeline items
   const timelineItems: TimelineItem[] = useMemo(() => {
