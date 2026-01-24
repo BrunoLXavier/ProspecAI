@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from domain.entities.funding_source import FundingSource, InstrumentType
-from adapters.database.models_new import FundingSourceModel
+from adapters.database.models import FundingSourceModel
 from adapters.repositories.base_repository import BaseRepository
 
 logger = logging.getLogger(__name__)

@@ -465,12 +465,12 @@ class BaseRepository(Generic[T, M], ABC):
                         conditions.append(or_(*search_conditions))
                 else:
                     # Direct equality match
-                        if hasattr(self.model_class, key):
-                            # Support list/tuple values by using IN()
-                            if isinstance(value, (list, tuple, set)):
-                                conditions.append(getattr(self.model_class, key).in_(tuple(value)))
-                            else:
-                                conditions.append(getattr(self.model_class, key) == value)
+                    if hasattr(self.model_class, key):
+                        # Support list/tuple values by using IN()
+                        if isinstance(value, (list, tuple, set)):
+                            conditions.append(getattr(self.model_class, key).in_(tuple(value)))
+                        else:
+                            conditions.append(getattr(self.model_class, key) == value)
             
             if conditions:
                 query = query.where(and_(*conditions))
