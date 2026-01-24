@@ -5,7 +5,8 @@
  * - Thread list with search and filtering
  * - Thread preview with auto-created badges
  * - Selected thread detail view
- * - Create new thread functionality
+ * - Create new thread functionality with modal
+ * - Email ingestion configuration
  * 
  * Implements RF-08: Communications forum
  */
@@ -20,9 +21,12 @@ import {
   ChatBubbleLeftRightIcon,
   FunnelIcon,
   ArrowPathIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import ThreadView from './ThreadView';
+import CreateThreadModal from './CreateThreadModal';
+import EmailIngestionConfig from './EmailIngestionConfig';
 
 interface Thread {
   id: string;
@@ -37,6 +41,12 @@ interface Thread {
   created_at?: string;
 }
 
+interface Participant {
+  id: string;
+  name: string;
+  email?: string;
+}
+
 interface Props {
   items?: Thread[];
   selectedId?: string | null;
@@ -45,6 +55,7 @@ interface Props {
   linkedEntityId?: string;
   onCreateThread?: () => void;
   currentUserId?: string;
+  availableParticipants?: Participant[];
 }
 
 export default function CommunicationsList({
@@ -55,6 +66,7 @@ export default function CommunicationsList({
   linkedEntityId,
   onCreateThread,
   currentUserId,
+  availableParticipants = [],
 }: Props) {
   const t = useTranslations('communications');
   
@@ -64,6 +76,10 @@ export default function CommunicationsList({
   const [showAutoCreated, setShowAutoCreated] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEmailConfig, setShowEmailConfig] = useState(false);
 
   // Fetch threads
   const loadThreads = async () => {
@@ -114,6 +130,20 @@ export default function CommunicationsList({
 
   const handleThreadUpdate = (thread: Thread) => {
     setItems(prev => prev?.map(t => t.id === thread.id ? { ...t, ...thread } : t) || null);
+  };
+
+  const handleCreateThread = () => {
+    if (onCreateThread) {
+      onCreateThread();
+    } else {
+      setShowCreateModal(true);
+    }
+  };
+
+  const handleThreadCreated = (thread: Thread) => {
+    setItems(prev => prev ? [thread, ...prev] : [thread]);
+    setSelectedId(thread.id);
+    setShowCreateModal(false);
   };
 
   // Filter items locally if propItems provided
@@ -189,15 +219,15 @@ export default function CommunicationsList({
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
               {t('threads') || 'Threads'}
             </h2>
-            {onCreateThread && (
+            <div className="flex items-center gap-1">
               <button
-                onClick={onCreateThread}
+                onClick={handleCreateThread}
                 className="p-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 title={t('newThread') || 'New Thread'}
               >
                 <PlusIcon className="w-5 h-5" />
               </button>
-            )}
+            </div>
           </div>
           
           {/* Search */}
@@ -302,13 +332,34 @@ export default function CommunicationsList({
       </div>
 
       {/* Thread detail view */}
-      <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="flex-1 flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         {activeId ? (
-          <ThreadView
-            threadId={activeId}
-            currentUserId={currentUserId}
-            onThreadUpdate={handleThreadUpdate}
-          />
+          <>
+            <ThreadView
+              threadId={activeId}
+              currentUserId={currentUserId}
+              onThreadUpdate={handleThreadUpdate}
+            />
+            
+            {/* Email ingestion config panel (collapsible) */}
+            {showEmailConfig && (
+              <div className="border-t border-gray-200 dark:border-gray-700">
+                <EmailIngestionConfig threadId={activeId} />
+              </div>
+            )}
+            
+            {/* Toggle email config button */}
+            <div className="p-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900/50">
+              <button
+                onClick={() => setShowEmailConfig(!showEmailConfig)}
+                className="w-full flex items-center justify-center gap-2 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg"
+              >
+                <EnvelopeIcon className="w-4 h-4" />
+                {showEmailConfig ? t('hideEmailConfig') || 'Hide Email Settings' : t('emailIngestion') || 'Email Ingestion'}
+                <Cog6ToothIcon className="w-4 h-4" />
+              </button>
+            </div>
+          </>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-gray-50 dark:bg-slate-900">
             <ChatBubbleLeftRightIcon className="w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" />
@@ -317,6 +368,18 @@ export default function CommunicationsList({
           </div>
         )}
       </div>
+
+      {/* Create Thread Modal */}
+      <CreateThreadModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={handleThreadCreated}
+        linkedEntity={linkedEntityType && linkedEntityId ? {
+          type: linkedEntityType as any,
+          id: linkedEntityId,
+        } : undefined}
+        availableParticipants={availableParticipants}
+      />
     </div>
   );
 }

@@ -24,9 +24,10 @@ import { ViewMode } from '@/components/ui/ViewToggle';
 import Pagination, { usePagination } from '@/components/ui/Pagination';
 import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
 import TableView, { TableColumn } from '@/components/ui/TableView';
-import { PlusIcon, ExclamationTriangleIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, PhoneIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ExclamationTriangleIcon, ChatBubbleLeftRightIcon, EnvelopeIcon, PhoneIcon, VideoCameraIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import CommunicationModal from '@/components/entities/CommunicationModal';
 import CommunicationsList from '@/components/communications/CommunicationsList';
+import ThreadView from '@/components/communications/ThreadView';
 import apiClient from '@/lib/api-client';
 
 interface Thread {
@@ -537,6 +538,52 @@ export default function CommunicationsPage() {
         onClose={handleModalClose}
         comm={selectedThread}
       />
+
+      {/* Thread Detail Slide-over Panel */}
+      {activeThreadId && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"
+              onClick={() => setActiveThreadId(null)}
+            />
+            
+            {/* Slide-over panel */}
+            <div className="fixed inset-y-0 right-0 max-w-full flex">
+              <div className="relative w-screen max-w-3xl">
+                {/* Panel content */}
+                <div className="h-full flex flex-col bg-white dark:bg-slate-800 shadow-2xl overflow-hidden">
+                  {/* Header with close button */}
+                  <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+                    <div className="flex items-center gap-3">
+                      <ChatBubbleLeftRightIcon className="w-6 h-6" />
+                      <span className="font-semibold text-lg">{t('threads') || 'Conversation'}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="p-2 rounded-lg hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                      onClick={() => setActiveThreadId(null)}
+                    >
+                      <span className="sr-only">{t('close') || 'Close'}</span>
+                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                    </button>
+                  </div>
+                  
+                  {/* Thread view content */}
+                  <div className="flex-1 overflow-hidden">
+                    <ThreadView
+                      threadId={activeThreadId}
+                      currentUserId={currentUserId}
+                      onThreadUpdate={() => refetch()}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

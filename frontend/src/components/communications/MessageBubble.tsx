@@ -4,7 +4,7 @@
  * Displays a single message with:
  * - Author info and timestamp
  * - Message body with proper formatting
- * - Attachments preview
+ * - Attachments preview with media player for audio/video
  * - Human-in-the-loop confirmation badge for auto-created messages
  * - Email metadata display for ingested emails
  * 
@@ -28,6 +28,7 @@ import {
   ChevronUpIcon,
 } from '@heroicons/react/24/outline';
 import { CheckBadgeIcon } from '@heroicons/react/24/solid';
+import MediaPlayer from './MediaPlayer';
 import apiClient from '@/lib/api-client';
 
 interface Attachment {
@@ -203,34 +204,80 @@ export default function MessageBubble({ message, isOwnMessage = false, onConfirm
             </div>
           )}
 
-          {/* Message body */}
-          <div className="whitespace-pre-wrap break-words">
-            {message.body}
-          </div>
+          {/* Message body - renders HTML for rich text */}
+          <div 
+            className="prose prose-sm dark:prose-invert max-w-none break-words
+              prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5
+              prose-a:text-inherit prose-a:underline
+              prose-strong:font-bold prose-em:italic
+              prose-code:bg-black/10 dark:prose-code:bg-white/10 prose-code:px-1 prose-code:rounded"
+            dangerouslySetInnerHTML={{ __html: message.body }}
+          />
 
           {/* Attachments */}
           {message.attachments && message.attachments.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-200/20 space-y-2">
-              {message.attachments.map((att, idx) => (
-                <a
-                  key={att.id || idx}
-                  href={att.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                    isOwnMessage
-                      ? 'bg-primary-500 hover:bg-primary-400'
-                      : 'bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500'
-                  }`}
-                >
-                  {getAttachmentIcon(att.content_type)}
-                  <span className="flex-1 text-sm truncate">{att.filename}</span>
-                  {att.size && (
-                    <span className="text-xs opacity-70">{formatFileSize(att.size)}</span>
-                  )}
-                  <ArrowDownTrayIcon className="w-4 h-4" />
-                </a>
-              ))}
+              {message.attachments.map((att, idx) => {
+                const contentType = att.content_type || '';
+                const isAudio = contentType.startsWith('audio/');
+                const isVideo = contentType.startsWith('video/');
+                const isImage = contentType.startsWith('image/');
+
+                // Render media player for audio/video
+                if ((isAudio || isVideo) && att.url) {
+                  return (
+                    <div key={att.id || idx} className="mt-2">
+                      <MediaPlayer
+                        src={att.url}
+                        type={isVideo ? 'video' : 'audio'}
+                        filename={att.filename}
+                      />
+                    </div>
+                  );
+                }
+
+                // Render image preview
+                if (isImage && att.url) {
+                  return (
+                    <a
+                      key={att.id || idx}
+                      href={att.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      <img
+                        src={att.url}
+                        alt={att.filename}
+                        className="max-w-full max-h-64 rounded-lg object-contain"
+                      />
+                      <span className="text-xs opacity-70 mt-1 block">{att.filename}</span>
+                    </a>
+                  );
+                }
+
+                // Default file download link
+                return (
+                  <a
+                    key={att.id || idx}
+                    href={att.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                      isOwnMessage
+                        ? 'bg-primary-500 hover:bg-primary-400'
+                        : 'bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500'
+                    }`}
+                  >
+                    {getAttachmentIcon(att.content_type)}
+                    <span className="flex-1 text-sm truncate">{att.filename}</span>
+                    {att.size && (
+                      <span className="text-xs opacity-70">{formatFileSize(att.size)}</span>
+                    )}
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                  </a>
+                );
+              })}
             </div>
           )}
         </div>

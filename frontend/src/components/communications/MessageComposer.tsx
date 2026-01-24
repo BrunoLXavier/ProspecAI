@@ -4,10 +4,13 @@
  * Rich message composer with:
  * - Draft auto-save (backend + localStorage fallback)
  * - Attachment support (files, audio, video)
- * - Audio recording for meetings
+ * - Audio AND Video recording for meetings
+ * - Transcription report generation from recordings
  * - Human-in-the-loop visual indicators
+ * - Media preview before sending
  * 
  * Implements RF-08: Communications and collaboration
+ * Implements RF-09: Report generation from transcriptions
  */
 'use client';
 
@@ -15,7 +18,8 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   PaperClipIcon, 
-  MicrophoneIcon, 
+  MicrophoneIcon,
+  VideoCameraIcon,
   StopIcon,
   PaperAirplaneIcon,
   XMarkIcon,
@@ -23,9 +27,16 @@ import {
   PhotoIcon,
   FilmIcon,
   MusicalNoteIcon,
+  PlayIcon,
+  DocumentTextIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useMutation } from '@tanstack/react-query';
+import TranscriptionReportModal from './TranscriptionReportModal';
+import RichTextEditor from './RichTextEditor';
+
+type RecordingType = 'audio' | 'video' | null;
 
 interface Props {
   threadId: string;
@@ -39,6 +50,13 @@ interface DraftData {
   lastUpdated: string;
 }
 
+interface AttachmentPreview {
+  file: File;
+  previewUrl?: string;
+  type: 'document' | 'image' | 'audio' | 'video';
+  originalBlob?: Blob; // Store original blob for transcription
+}
+
 const DRAFT_SAVE_DEBOUNCE_MS = 1500;
 const LOCAL_STORAGE_KEY_PREFIX = 'prospecai_draft_';
 
@@ -46,18 +64,29 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
   const t = useTranslations('communications');
   
   const [body, setBody] = useState('');
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const [bodyHtml, setBodyHtml] = useState('');
+  const [attachments, setAttachments] = useState<AttachmentPreview[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingType, setRecordingType] = useState<RecordingType>(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [draftStatus, setDraftStatus] = useState<'saved' | 'saving' | 'unsaved' | 'error'>('saved');
+  const [showMediaPreview, setShowMediaPreview] = useState<string | null>(null);
+  
+  // Transcription report modal
+  const [showTranscriptionModal, setShowTranscriptionModal] = useState(false);
+  const [transcriptionBlob, setTranscriptionBlob] = useState<Blob | null>(null);
+  const [transcriptionMediaType, setTranscriptionMediaType] = useState<'audio' | 'video'>('audio');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingChunksRef = useRef<Blob[]>([]);
   const draftTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const videoPreviewRef = useRef<HTMLVideoElement>(null);
+
 
   // Load draft on mount
   useEffect(() => {
@@ -123,7 +152,7 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
     
     const draftData: DraftData = {
       body,
-      attachments: attachments.map(f => ({ name: f.name, type: f.type, size: f.size })),
+      attachments: attachments.map(a => ({ name: a.file.name, type: a.file.type, size: a.file.size })),
       lastUpdated: new Date().toISOString(),
     };
     
@@ -158,16 +187,16 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
     setIsSending(true);
     
     try {
-      // Send message
+      // Send message with HTML content
       const message = await apiClient.post(`/api/v1/communications/${threadId}/messages`, {
-        body: body.trim(),
+        body: bodyHtml || body.trim(),
         message_type: 'text',
       });
       
       // Upload attachments if any
       if (attachments.length > 0) {
         const formData = new FormData();
-        attachments.forEach(f => formData.append('files', f));
+        attachments.forEach(a => formData.append('files', a.file));
         
         try {
           const uploadRes = await apiClient.post(
@@ -181,8 +210,12 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
         }
       }
       
-      // Clear state
+      // Clear state and revoke preview URLs
+      attachments.forEach(a => {
+        if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+      });
       setBody('');
+      setBodyHtml('');
       setAttachments([]);
       await clearDraft();
       
@@ -194,42 +227,89 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
     }
   };
 
+  const getFileType = (file: File): AttachmentPreview['type'] => {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    if (file.type.startsWith('audio/')) return 'audio';
+    return 'document';
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
-    setAttachments(prev => [...prev, ...files]);
+    const newAttachments: AttachmentPreview[] = files.map(file => {
+      const type = getFileType(file);
+      return {
+        file,
+        previewUrl: type === 'image' || type === 'video' ? URL.createObjectURL(file) : undefined,
+        type,
+      };
+    });
+    setAttachments(prev => [...prev, ...newAttachments]);
     e.target.value = '';
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setAttachments(prev => {
+      const attachment = prev[index];
+      if (attachment.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
-  const startRecording = async () => {
+  const startRecording = async (type: RecordingType) => {
+    if (!type) return;
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      const constraints: MediaStreamConstraints = type === 'video'
+        ? { audio: true, video: { facingMode: 'user', width: 1280, height: 720 } }
+        : { audio: true };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      setRecordingStream(stream);
+
+      // Show video preview for video recording
+      if (type === 'video' && videoPreviewRef.current) {
+        videoPreviewRef.current.srcObject = stream;
+        videoPreviewRef.current.play();
+      }
+
+      const mimeType = type === 'video' ? 'video/webm' : 'audio/webm';
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       
-      audioChunksRef.current = [];
+      recordingChunksRef.current = [];
       
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
-          audioChunksRef.current.push(e.data);
+          recordingChunksRef.current.push(e.data);
         }
       };
       
       mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const file = new File([blob], `recording-${Date.now()}.webm`, { type: 'audio/webm' });
-        setAttachments(prev => [...prev, file]);
+        const blob = new Blob(recordingChunksRef.current, { type: mimeType });
+        const fileName = `${type}-recording-${Date.now()}.webm`;
+        const file = new File([blob], fileName, { type: mimeType });
+        
+        setAttachments(prev => [...prev, {
+          file,
+          type,
+          previewUrl: type === 'video' ? URL.createObjectURL(blob) : undefined,
+          originalBlob: blob, // Store for transcription
+        }]);
         
         // Stop tracks
         stream.getTracks().forEach(track => track.stop());
+        setRecordingStream(null);
+        
+        if (videoPreviewRef.current) {
+          videoPreviewRef.current.srcObject = null;
+        }
       };
       
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start(1000);
       setIsRecording(true);
+      setRecordingType(type);
       setRecordingTime(0);
       
       recordingIntervalRef.current = setInterval(() => {
@@ -240,17 +320,28 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-        recordingIntervalRef.current = null;
-      }
     }
-  };
+    
+    if (recordingStream) {
+      recordingStream.getTracks().forEach(track => track.stop());
+      setRecordingStream(null);
+    }
+    
+    setIsRecording(false);
+    setRecordingType(null);
+      
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+    
+    if (videoPreviewRef.current) {
+      videoPreviewRef.current.srcObject = null;
+    }
+  }, [isRecording, recordingStream]);
 
   const formatRecordingTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -258,12 +349,13 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getFileIcon = (file: File) => {
-    const type = file.type;
-    if (type.startsWith('image/')) return <PhotoIcon className="w-4 h-4" />;
-    if (type.startsWith('video/')) return <FilmIcon className="w-4 h-4" />;
-    if (type.startsWith('audio/')) return <MusicalNoteIcon className="w-4 h-4" />;
-    return <DocumentIcon className="w-4 h-4" />;
+  const getAttachmentIcon = (type: AttachmentPreview['type']) => {
+    switch (type) {
+      case 'image': return <PhotoIcon className="w-5 h-5" />;
+      case 'video': return <FilmIcon className="w-5 h-5" />;
+      case 'audio': return <MusicalNoteIcon className="w-5 h-5" />;
+      default: return <DocumentIcon className="w-5 h-5" />;
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -275,107 +367,228 @@ export default function MessageComposer({ threadId, onMessageSent, disabled = fa
 
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 p-4">
+      {/* Video preview for recording */}
+      {isRecording && recordingType === 'video' && (
+        <div className="mb-4 relative bg-black rounded-lg overflow-hidden">
+          <video
+            ref={videoPreviewRef}
+            muted
+            className="w-full max-h-48 object-contain"
+          />
+          <div className="absolute bottom-2 left-2 flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-full text-sm">
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            {t('recordingVideo') || 'Recording video'} - {formatRecordingTime(recordingTime)}
+          </div>
+          <button
+            onClick={stopRecording}
+            className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+          >
+            <StopIcon className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {/* Audio recording indicator */}
+      {isRecording && recordingType === 'audio' && (
+        <div className="mb-3 flex items-center justify-between gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400">
+          <div className="flex items-center gap-3">
+            <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+            <span className="font-medium">{t('recordingAudio') || 'Recording audio...'}</span>
+            <span className="font-mono">{formatRecordingTime(recordingTime)}</span>
+          </div>
+          <button
+            onClick={stopRecording}
+            className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            <StopIcon className="w-4 h-4" />
+            {t('stop') || 'Stop'}
+          </button>
+        </div>
+      )}
+
       {/* Attachments preview */}
       {attachments.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {attachments.map((file, idx) => (
+        <div className="mb-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {attachments.map((attachment, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-slate-700 rounded-lg text-sm"
+              className="relative group bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden"
             >
-              {getFileIcon(file)}
-              <span className="max-w-[150px] truncate">{file.name}</span>
+              {/* Media preview */}
+              {attachment.previewUrl && attachment.type === 'image' && (
+                <img
+                  src={attachment.previewUrl}
+                  alt={attachment.file.name}
+                  className="w-full h-20 object-cover"
+                />
+              )}
+              {attachment.previewUrl && attachment.type === 'video' && (
+                <div className="relative h-20">
+                  <video
+                    src={attachment.previewUrl}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <PlayIcon className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+              )}
+              {!attachment.previewUrl && (
+                <div className="h-20 flex items-center justify-center">
+                  {getAttachmentIcon(attachment.type)}
+                </div>
+              )}
+              
+              {/* Info overlay */}
+              <div className="p-2">
+                <p className="text-xs text-gray-700 dark:text-gray-300 truncate">
+                  {attachment.file.name}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {(attachment.file.size / 1024).toFixed(1)} KB
+                </p>
+              </div>
+              
+              {/* Remove button */}
               <button
                 onClick={() => removeAttachment(idx)}
-                className="p-0.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded"
+                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition"
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
+              
+              {/* Generate report button for audio/video */}
+              {(attachment.type === 'audio' || attachment.type === 'video') && attachment.originalBlob && (
+                <button
+                  onClick={() => {
+                    setTranscriptionBlob(attachment.originalBlob!);
+                    setTranscriptionMediaType(attachment.type as 'audio' | 'video');
+                    setShowTranscriptionModal(true);
+                  }}
+                  className="absolute bottom-12 left-1 right-1 p-1.5 bg-purple-600 text-white text-xs rounded flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition"
+                  title={t('transcription.generateReport')}
+                >
+                  <SparklesIcon className="w-3 h-3" />
+                  {t('transcription.report')}
+                </button>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Recording indicator */}
-      {isRecording && (
-        <div className="mb-3 flex items-center gap-3 px-3 py-2 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400">
-          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-          <span className="text-sm font-medium">{t('recording') || 'Recording...'}</span>
-          <span className="text-sm">{formatRecordingTime(recordingTime)}</span>
-        </div>
-      )}
-
-      <div className="flex items-end gap-2">
-        {/* Text input */}
-        <div className="flex-1 relative">
-          <textarea
-            ref={textareaRef}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            onKeyDown={handleKeyDown}
+      <div className="flex flex-col gap-3">
+        {/* Rich Text Editor */}
+        <div className="relative">
+          <RichTextEditor
+            value={bodyHtml}
+            onChange={(html, plainText) => {
+              setBodyHtml(html);
+              setBody(plainText);
+            }}
             placeholder={t('writeMessage') || 'Write a message...'}
-            disabled={disabled || isSending}
-            rows={1}
-            className="w-full px-4 py-2.5 pr-24 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50"
+            disabled={disabled || isSending || isRecording}
+            minHeight="80px"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
           />
           
           {/* Draft status indicator */}
-          <div className="absolute right-3 bottom-2.5 text-xs text-gray-400">
+          <div className="absolute right-3 top-1.5 text-xs text-gray-400 z-10">
             {draftStatus === 'saving' && (t('saving') || 'Saving...')}
             {draftStatus === 'saved' && body.trim() && (t('draftSaved') || 'Draft saved')}
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-1">
-          {/* Attach file */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+        {/* Action buttons row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            {/* Attach file */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={disabled || isSending}
-            className="p-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg disabled:opacity-50"
-            title={t('attach') || 'Attach file'}
+            disabled={disabled || isSending || isRecording}
+            className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg disabled:opacity-50"
+            title={t('attachFile')}
           >
             <PaperClipIcon className="w-5 h-5" />
           </button>
 
           {/* Record audio */}
           <button
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={disabled || isSending}
-            className={`p-2.5 rounded-lg disabled:opacity-50 ${
-              isRecording
+            onClick={() => isRecording && recordingType === 'audio' ? stopRecording() : startRecording('audio')}
+            disabled={disabled || isSending || (isRecording && recordingType === 'video')}
+            className={`p-2 rounded-lg disabled:opacity-50 ${
+              isRecording && recordingType === 'audio'
                 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
             }`}
-            title={isRecording ? (t('stopRecording') || 'Stop recording') : (t('startRecording') || 'Record audio')}
+            title={t('recordAudio') || 'Record audio'}
           >
-            {isRecording ? <StopIcon className="w-5 h-5" /> : <MicrophoneIcon className="w-5 h-5" />}
+            <MicrophoneIcon className="w-5 h-5" />
           </button>
+
+          {/* Record video */}
+          <button
+            onClick={() => isRecording && recordingType === 'video' ? stopRecording() : startRecording('video')}
+            disabled={disabled || isSending || (isRecording && recordingType === 'audio')}
+            className={`p-2 rounded-lg disabled:opacity-50 ${
+              isRecording && recordingType === 'video'
+                ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+            }`}
+            title={t('recordVideo') || 'Record video'}
+          >
+            <VideoCameraIcon className="w-5 h-5" />
+          </button>
+          </div>
 
           {/* Send button */}
           <button
             onClick={handleSend}
-            disabled={disabled || isSending || (!body.trim() && attachments.length === 0)}
-            className="p-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={disabled || isSending || isRecording || (!body.trim() && attachments.length === 0)}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             title={t('send') || 'Send message'}
           >
             <PaperAirplaneIcon className="w-5 h-5" />
+            <span className="hidden sm:inline">{t('send') || 'Send'}</span>
           </button>
         </div>
       </div>
 
       {/* Keyboard shortcut hint */}
-      <div className="mt-2 text-xs text-gray-400">
-        {t('sendHint') || 'Press Enter to send, Shift+Enter for new line'}
+      <div className="text-xs text-gray-400 text-center">
+        {t('sendHint') || 'Ctrl+Enter to send'}
       </div>
+      
+      {/* Transcription Report Modal */}
+      {showTranscriptionModal && transcriptionBlob && (
+        <TranscriptionReportModal
+          isOpen={showTranscriptionModal}
+          onClose={() => {
+            setShowTranscriptionModal(false);
+            setTranscriptionBlob(null);
+          }}
+          threadId={threadId}
+          mediaBlob={transcriptionBlob}
+          mediaType={transcriptionMediaType}
+          onReportGenerated={(reportUrl, messageId) => {
+            // Refresh thread to show new message
+            onMessageSent({ id: messageId, type: 'report' });
+          }}
+        />
+      )}
     </div>
   );
 }

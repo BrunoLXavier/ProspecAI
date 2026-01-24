@@ -177,6 +177,31 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
 
+  # Whisper Transcription Service
+  whisper:
+    build:
+      context: ./docker/whisper
+      dockerfile: Dockerfile
+    container_name: prospecai-whisper
+    mem_limit: 4g
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+    environment:
+      WHISPER_MODEL_SIZE: base
+      WHISPER_MODEL_CACHE: /app/models
+    ports:
+      - "8001:8001"
+    volumes:
+      - whisper_models:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
   # Backend API
   backend:
     build:
@@ -198,6 +223,8 @@ services:
       neo4j:
         condition: service_healthy
       mailhog:
+        condition: service_started
+      whisper:
         condition: service_started
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:changeme@postgres:5432/prospecai
@@ -233,6 +260,8 @@ services:
       # BERTimbau specific
       BERTIMBAU_MODEL: neuralmind/bert-base-portuguese-cased
       BERTIMBAU_NER_MODEL: neuralmind/bert-base-portuguese-cased-ner
+      # Whisper Transcription Service
+      WHISPER_SERVICE_URL: http://whisper:8001
       # Translations directory (must be writable by backend)
       TRANSLATIONS_DIR: /app/translations
       # Reduce Uvicorn worker count to lower memory usage in low-RAM dev machines
@@ -297,3 +326,4 @@ volumes:
   ai_models:
   model_cache:
   translations_data:
+  whisper_models:

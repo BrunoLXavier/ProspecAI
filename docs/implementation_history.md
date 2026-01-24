@@ -5,6 +5,112 @@
 
 ---
 
+## 2026-01-24 - Whisper Microservice Architecture
+
+### Feature: Dedicated Whisper Docker Container for Transcription
+
+Refactored the transcription architecture to use a dedicated Docker container for Whisper, providing better resource isolation and scalability:
+
+1. **Whisper Docker Service** (`docker/whisper/`):
+   - `Dockerfile`: Python 3.11-slim base with ffmpeg, uvicorn, openai-whisper, PyTorch
+   - `main.py`: FastAPI service (~220 lines) with:
+     - `/health` endpoint for container health checks
+     - `/transcribe` POST endpoint for audio/video transcription
+     - `/models` GET endpoint to list available Whisper models
+     - Model pre-loading on startup for faster first transcription
+   - `requirements.txt`: Dependencies (fastapi, uvicorn, openai-whisper, torch, etc.)
+
+2. **Docker Compose Integration** (`docker-compose.yml`):
+   - Added `whisper` service on port 8001
+   - 4GB memory limit for ML workload
+   - `whisper_models` volume for model persistence across restarts
+   - Health check via `/health` endpoint
+   - Backend `depends_on: whisper: condition: service_healthy`
+
+3. **Backend Integration** (`backend/services/ai/transcription_service.py`):
+   - New `TranscriptionProvider.DOCKER_WHISPER` enum value
+   - Updated factory function to default to DOCKER_WHISPER when URL is set
+   - Added `_transcribe_docker()` method using httpx async HTTP client
+   - Added `check_whisper_health()` method for service verification
+   - Environment variable: `WHISPER_SERVICE_URL=http://whisper:8001`
+
+4. **Architecture Benefits**:
+   - **Resource Isolation**: Heavy ML workload separated from API server
+   - **Scalability**: Whisper container can be scaled independently
+   - **Memory Management**: Dedicated 4GB memory for Whisper model
+   - **Model Persistence**: Volume mount preserves downloaded models
+   - **Health Monitoring**: Docker health checks ensure service availability
+
+### Files Created:
+- `docker/whisper/Dockerfile` (~25 lines)
+- `docker/whisper/main.py` (~220 lines)
+- `docker/whisper/requirements.txt` (~10 lines)
+
+### Files Modified:
+- `docker-compose.yml` - Added whisper service configuration
+- `backend/services/ai/transcription_service.py` - Updated for external Whisper API
+
+### Verified:
+- ✅ Whisper container builds and starts successfully
+- ✅ Model pre-loading works (base model - 139MB)
+- ✅ Health check endpoint responds correctly
+- ✅ Backend-to-Whisper communication via Docker network
+- ✅ All other services (backend, frontend, postgres, neo4j, etc.) healthy
+
+---
+
+## 2026-01-23 - Transcription Report Generation
+
+### Feature: Generate Reports from Audio/Video Transcriptions (RF-09)
+
+Implemented the ability to generate structured reports from audio/video recordings:
+
+1. **Backend Transcription Service** (`backend/services/ai/transcription_service.py`):
+   - `TranscriptionService` class with Whisper integration (local + OpenAI API)
+   - `TranscriptionReportGenerator` class for LLM-based report generation
+   - Support for multiple languages (pt, en, es, auto-detect)
+   - Fallback extraction when LLM is unavailable
+
+2. **API Endpoints** (`backend/routers/communications.py`):
+   - `POST /transcribe` - Transcribe audio/video file
+   - `GET /report-templates` - List available report templates
+   - `POST /{thread_id}/transcription-report` - Generate report from transcription text
+   - `POST /transcribe-and-report/{thread_id}` - Combined transcription + report generation
+
+3. **Frontend Modal** (`frontend/src/components/communications/TranscriptionReportModal.tsx`):
+   - Multi-step wizard (transcribe → select template → generate)
+   - Language selection for transcription
+   - Template selection with section preview
+   - Additional context input
+   - Progress indicators and error handling
+
+4. **MessageComposer Integration** (`frontend/src/components/communications/MessageComposer.tsx`):
+   - Added "Generate Report" button on audio/video attachments
+   - Stores original blob for transcription
+   - Opens TranscriptionReportModal on click
+
+5. **CreateThreadModal Enhancement** (`frontend/src/components/communications/CreateThreadModal.tsx`):
+   - Added report generation capability indicator
+   - Shows hint about post-creation report generation
+
+6. **Internationalization**:
+   - Added 25+ new translation keys in pt-BR, en-US, es-ES
+   - Covers transcription UI, report generation, and error messages
+
+### Files Created:
+- `backend/services/ai/transcription_service.py` (~370 lines)
+- `frontend/src/components/communications/TranscriptionReportModal.tsx` (~550 lines)
+
+### Files Modified:
+- `backend/routers/communications.py` - Added ~280 lines for transcription endpoints
+- `frontend/src/components/communications/MessageComposer.tsx` - Added transcription modal integration
+- `frontend/src/components/communications/CreateThreadModal.tsx` - Added report hints
+- `frontend/src/locales/pt-BR.json` - Added transcription translations
+- `frontend/src/locales/en-US.json` - Added transcription translations
+- `frontend/src/locales/es-ES.json` - Added transcription translations
+
+---
+
 ## 2026-01-24 - Communications & Feedback Fixes
 
 ### API Dependency Fix

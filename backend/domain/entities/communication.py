@@ -41,6 +41,7 @@ class MeetingMinutesStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     CONFIRMED = "confirmed"
+    APPROVED = "approved"
 
 
 class CommunicationAttachment(BaseModel):
