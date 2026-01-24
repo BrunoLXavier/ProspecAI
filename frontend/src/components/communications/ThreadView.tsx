@@ -79,6 +79,21 @@ interface Props {
   onDelete?: (threadId: string) => void;
 }
 
+// Map entity types to page URLs
+// Since individual detail pages don't exist, link to list page with highlight param
+const getEntityUrl = (entityType: string, entityId: string): string => {
+  const typeToPath: Record<string, string> = {
+    proposal: '/proposals',
+    client: '/crm',
+    funding_source: '/funding',
+    opportunity: '/opportunities',
+    project: '/portfolio',
+  };
+  const basePath = typeToPath[entityType] || `/${entityType}`;
+  // Add highlight parameter so the list page can show/highlight the entity
+  return `${basePath}?highlight=${entityId}`;
+};
+
 export default function ThreadView({ threadId, currentUserId, currentUserName, onThreadUpdate, onEdit, onDelete }: Props) {
   const t = useTranslations('communications');
   
@@ -234,7 +249,7 @@ export default function ThreadView({ threadId, currentUserId, currentUserName, o
             </h3>
             {thread?.linked_entity_type && thread?.linked_entity_id && (
               <a 
-                href={`/${thread.linked_entity_type === 'proposal' ? 'proposals' : thread.linked_entity_type === 'client' ? 'crm' : thread.linked_entity_type === 'funding_source' ? 'funding' : thread.linked_entity_type === 'opportunity' ? 'opportunities' : thread.linked_entity_type}/${thread.linked_entity_id}`}
+                href={getEntityUrl(thread.linked_entity_type, thread.linked_entity_id)}
                 className="inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50 rounded-full transition-colors"
               >
                 <span>📎</span>

@@ -123,9 +123,11 @@ export default function CommunicationModal({
     }
   }, [isOpen, comm, reset, preselectedEntityType, preselectedEntityId]);
 
-  // Update form when entity type changes
+  // Update form when entity type changes - clear entity ID when type changes
   useEffect(() => {
     setValue('linkedEntityType', selectedEntityType);
+    // Clear the entity ID when entity type changes (unless it's the initial load)
+    setValue('linkedEntityId', '');
   }, [selectedEntityType, setValue]);
 
   const saveMutation = useMutation({
@@ -278,14 +280,14 @@ export default function CommunicationModal({
           </div>
 
           {/* Linked Entity Type */}
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               <LinkIcon className="w-4 h-4 inline mr-1" />
               {tr('linkedEntity', 'Link to Entity')}
             </label>
             <Listbox value={selectedEntityType} onChange={setSelectedEntityType}>
               <div className="relative">
-                <Listbox.Button className="relative w-full px-4 py-2 text-left border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white">
+                <Listbox.Button className="relative w-full px-4 py-2 text-left border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                   <span>
                     {ENTITY_TYPES.find(e => e.value === selectedEntityType)?.label || tr('selectType', 'Select type...')}
                   </span>
@@ -297,7 +299,7 @@ export default function CommunicationModal({
                   leaveFrom="opacity-100"
                   leaveTo="opacity-0"
                 >
-                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
+                  <Listbox.Options className="absolute z-[9999] mt-1 w-full bg-white dark:bg-slate-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-60 overflow-auto">
                     {ENTITY_TYPES.map((type) => (
                       <Listbox.Option
                         key={type.value}

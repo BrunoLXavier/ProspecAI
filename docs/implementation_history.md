@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-01-24 - Communications Modal & Entity Link Fixes
+
+### Feature: Entity Search Dropdown & Navigation Improvements
+
+Fixed several UI/UX issues in the communications modal:
+
+1. **Multiple Scrollbars Issue** (`frontend/src/components/ui/BaseModal.tsx`):
+   - Removed `overflow-hidden` from Dialog.Panel className
+   - Changed content div to use `overflow-visible` when `noContentScroll={true}`
+   - Allows dropdown overlays to render properly outside modal bounds
+
+2. **Z-Index Fix for Dropdowns**:
+   - `frontend/src/components/ui/EntitySearchInput.tsx`: Changed z-index from z-20 to z-[9999]
+   - `frontend/src/components/entities/CommunicationModal.tsx`: Changed Listbox z-index to z-[9999]
+   - Ensures dropdowns appear above modal backdrop
+
+3. **Pre-load 5 Most Recent Entities** (`frontend/src/components/ui/EntitySearchInput.tsx`):
+   - Changed `filteredEntities` to show only 5 most recent when no query entered
+   - Added `hasMoreEntities` computed property to detect when more records exist
+   - Shows hint: "💡 Digite para buscar entre todos os {n} registros"
+
+4. **Empty State Message** (`frontend/src/components/ui/EntitySearchInput.tsx`):
+   - Added `ExclamationCircleIcon` from Heroicons
+   - Shows centered icon with message: "Nenhum registro encontrado"
+   - Subtitle: "Não existem registros deste tipo cadastrados"
+
+5. **Entity Link 404 Fix** (`frontend/src/components/communications/ThreadView.tsx`):
+   - Added `getEntityUrl()` helper function with entity type to path mapping
+   - Changed from `/entityType/{id}` to `/entityType?highlight={id}` pattern
+   - Prevents 404 errors by navigating to list page with highlight parameter
+   - Supports: proposal → /proposals, client → /crm, funding_source → /funding, 
+     opportunity → /opportunities, project → /portfolio
+
+### Backend CRUD Verification (All Complete ✅):
+- `funding.py`: GET (list/single), POST, PATCH, DELETE
+- `proposals.py`: GET (list/single), POST, PATCH, DELETE
+- `opportunities.py`: GET (list/single), POST, PATCH, DELETE
+- `portfolio_projects_router.py`: GET (list/single), POST, PUT, DELETE
+- `crm.py`: GET (list/single), POST, PATCH, DELETE
+
+### Files Modified:
+- `frontend/src/components/ui/EntitySearchInput.tsx` - Pre-load, empty state, z-index
+- `frontend/src/components/ui/BaseModal.tsx` - overflow-visible for noContentScroll
+- `frontend/src/components/entities/CommunicationModal.tsx` - z-index 9999
+- `frontend/src/components/communications/ThreadView.tsx` - getEntityUrl() helper
+
+---
+
 ## 2026-01-24 - Communications Page UI/UX Fixes
 
 ### Feature: Multiple UI/UX Improvements on Communications Page

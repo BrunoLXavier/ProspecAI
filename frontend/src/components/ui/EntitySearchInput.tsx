@@ -3,6 +3,7 @@
  * 
  * Fetches entities from API based on type and allows filtering
  * Used in CommunicationModal to link threads to entities
+ * Pre-loads 5 most recent entities when opening
  * 
  * Implements RF-08: Communications and collaboration
  */
@@ -10,9 +11,10 @@
 
 import { Fragment, useState, useEffect, useMemo } from 'react';
 import { Combobox, Transition } from '@headlessui/react';
-import { CheckIcon, ChevronUpDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ChevronUpDownIcon, MagnifyingGlassIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
+import { createPortal } from 'react-dom';
 
 interface Entity {
   id: string;
@@ -105,8 +107,13 @@ export default function EntitySearchInput({
   }, [value, entities]);
 
   // Filter entities based on query
+  // When no query: show first 5 most recent
+  // When typing: search all entities
   const filteredEntities = useMemo(() => {
-    if (!query) return entities;
+    if (!query) {
+      // Show only 5 most recent entities when no search query
+      return entities.slice(0, 5);
+    }
     const lowerQuery = query.toLowerCase();
     return entities.filter(
       entity =>
@@ -115,6 +122,9 @@ export default function EntitySearchInput({
         entity.description?.toLowerCase().includes(lowerQuery)
     );
   }, [entities, query]);
+
+  // Check if there are more entities than shown
+  const hasMoreEntities = !query && entities.length > 5;
 
   const handleSelect = (entity: Entity | null) => {
     setSelectedEntity(entity);
@@ -146,14 +156,24 @@ export default function EntitySearchInput({
           leaveTo="opacity-0"
           afterLeave={() => setQuery('')}
         >
-          <Combobox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-slate-700 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <Combobox.Options 
+            className="absolute z-[9999] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-slate-700 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+            style={{ position: 'absolute' }}
+          >
             {isLoading ? (
               <div className="relative cursor-default select-none py-3 px-4 text-gray-500 dark:text-gray-400 text-center">
-                <span className="animate-pulse">Loading entities...</span>
+                <span className="animate-pulse">Carregando entidades...</span>
+              </div>
+            ) : entities.length === 0 ? (
+              <div className="relative cursor-default select-none py-4 px-4 text-gray-500 dark:text-gray-400 text-center">
+                <ExclamationCircleIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p className="font-medium">Nenhum registro encontrado</p>
+                <p className="text-xs mt-1">Não existem registros deste tipo cadastrados</p>
               </div>
             ) : filteredEntities.length === 0 ? (
               <div className="relative cursor-default select-none py-3 px-4 text-gray-500 dark:text-gray-400 text-center">
-                {query ? 'No results found' : 'No entities available'}
+                <p>Nenhum resultado para "{query}"</p>
+                <p className="text-xs mt-1">Tente outro termo de busca</p>
               </div>
             ) : (
               <>
@@ -207,6 +227,13 @@ export default function EntitySearchInput({
                     )}
                   </Combobox.Option>
                 ))}
+                
+                {/* Hint about more entities */}
+                {hasMoreEntities && (
+                  <div className="py-2 px-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-600/50 border-t border-gray-100 dark:border-gray-600">
+                    💡 Digite para buscar entre todos os {entities.length} registros
+                  </div>
+                )}
               </>
             )}
           </Combobox.Options>

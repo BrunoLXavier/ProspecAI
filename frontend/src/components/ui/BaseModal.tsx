@@ -78,7 +78,7 @@ export default function BaseModal({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel
-                className={`w-full ${sizeClasses[size]} transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-xl transition-all ${className}`}
+                className={`w-full ${sizeClasses[size]} transform rounded-2xl bg-white dark:bg-slate-800 shadow-xl transition-all ${className}`}
               >
                 {/* Header */}
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-start justify-between">
@@ -109,8 +109,8 @@ export default function BaseModal({
                   )}
                 </div>
 
-                {/* Content - no horizontal scroll, vertical scroll with max height */}
-                <div className={`p-6 overflow-x-hidden ${noContentScroll ? '' : 'overflow-y-auto max-h-[60vh]'}`}>
+                {/* Content - allow dropdown overflow when noContentScroll is true */}
+                <div className={`p-6 ${noContentScroll ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden max-h-[60vh]'}`}>
                   {children}
                 </div>
 
