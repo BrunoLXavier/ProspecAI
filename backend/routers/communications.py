@@ -1499,7 +1499,7 @@ async def generate_transcription_report(
     
     # Verify thread exists and user has access
     repo = CommunicationRepository(db)
-    thread = await repo.get_thread(tenant_id, thread_id)
+    thread = await repo.get_thread_by_id(tenant_id, thread_id)
     
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
@@ -1544,12 +1544,16 @@ async def generate_transcription_report(
             fs = get_file_storage()
             report_filename = f"report_{template.id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html"
             
+            logger.info(f"Uploading report to MinIO: {report_filename}")
+            
             upload = await fs.upload_bytes(
                 tenant_id=str(tenant_id),
                 bucket=StorageBucket.ATTACHMENTS,
                 filename=report_filename,
                 content=report["content"].encode("utf-8"),
             )
+            
+            logger.info(f"Upload result: success={upload.success}, error={upload.error}")
             
             if upload.success:
                 # Create message with attachment
@@ -1591,7 +1595,6 @@ async def generate_transcription_report(
                 
                 # Generate download URL
                 download_url = await fs.get_presigned_url(
-                    tenant_id=str(tenant_id),
                     bucket=StorageBucket.ATTACHMENTS,
                     object_name=upload.object_name,
                 )

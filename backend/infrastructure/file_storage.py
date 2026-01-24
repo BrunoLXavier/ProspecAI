@@ -34,9 +34,11 @@ BUCKET_ATTACHMENTS = "attachments"
 # Upload limits
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 ALLOWED_EXTENSIONS = {
-    "documents": [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt"],
+    "documents": [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".html", ".htm"],
     "images": [".jpg", ".jpeg", ".png", ".gif", ".webp"],
     "data": [".csv", ".json", ".xml"],
+    "audio": [".mp3", ".wav", ".ogg", ".webm", ".m4a"],
+    "video": [".mp4", ".webm", ".mov", ".avi"],
 }
 
 

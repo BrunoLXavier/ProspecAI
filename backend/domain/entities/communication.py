@@ -215,7 +215,8 @@ class UpdateThreadRequest(BaseModel):
 class CreateMessageRequest(BaseModel):
     """Request to create a new message in a thread."""
     
-    body: str = Field(..., min_length=1)
+    # Body is optional when sending only attachments
+    body: str = Field(default="", min_length=0)
     message_type: MessageType = MessageType.TEXT
     email_metadata: Optional[EmailMetadata] = None
     attachments: List[Dict[str, Any]] = Field(default_factory=list)

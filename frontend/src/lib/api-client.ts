@@ -197,8 +197,11 @@ class ApiClient {
   }
 
   // Generic HTTP methods for flexible API calls
-  async get<T = any>(url: string, params?: Record<string, any>): Promise<T> {
-    const response = await this.client.get(url, { params });
+  async get<T = any>(url: string, config?: Record<string, any>): Promise<T> {
+    // Support both params-only and full config objects
+    // If config has responseType, pass it directly; otherwise treat as params
+    const axiosConfig = config?.responseType ? config : { params: config };
+    const response = await this.client.get(url, axiosConfig);
     return response.data;
   }
 

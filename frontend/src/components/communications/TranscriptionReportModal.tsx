@@ -135,7 +135,8 @@ export default function TranscriptionReportModal({
       const filename = `recording.${extension}`;
       formData.append('file', mediaBlob, filename);
       
-      const response = await apiClient.post(
+      // apiClient.post already returns response.data
+      const transcriptionResult = await apiClient.post(
         `/api/v1/communications/transcribe?language=${selectedLanguage}`,
         formData,
         {
@@ -143,7 +144,7 @@ export default function TranscriptionReportModal({
         }
       );
       
-      setTranscription(response.data);
+      setTranscription(transcriptionResult);
       setStep('selecting');
     } catch (err: any) {
       console.error('Transcription failed:', err);
@@ -159,7 +160,8 @@ export default function TranscriptionReportModal({
     setError(null);
     
     try {
-      const response = await apiClient.post(
+      // apiClient.post already returns response.data
+      const reportResult = await apiClient.post(
         `/api/v1/communications/${threadId}/transcription-report`,
         {
           template_id: selectedTemplate.id,
@@ -170,12 +172,12 @@ export default function TranscriptionReportModal({
         }
       );
       
-      setReportUrl(response.data.download_url);
-      setMessageId(response.data.message_id);
+      setReportUrl(reportResult.download_url);
+      setMessageId(reportResult.message_id);
       setStep('complete');
       
-      if (onReportGenerated && response.data.download_url && response.data.message_id) {
-        onReportGenerated(response.data.download_url, response.data.message_id);
+      if (onReportGenerated && reportResult.download_url && reportResult.message_id) {
+        onReportGenerated(reportResult.download_url, reportResult.message_id);
       }
     } catch (err: any) {
       console.error('Report generation failed:', err);
