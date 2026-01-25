@@ -52,6 +52,28 @@ export default function InfrastructurePage() {
     staleTime: 60_000,
   });
 
+    // Load institutes to display institute names instead of raw IDs
+    const { data: institutes = [] } = useQuery<any[]>({
+      queryKey: ['institutes', 'lookup'],
+      queryFn: async () => {
+        try {
+          const resp = await apiClient.get('/api/v1/institutes');
+          return resp?.items ?? resp ?? [];
+        } catch (e) {
+          return [];
+        }
+      },
+      staleTime: 60_000,
+    });
+
+    const instituteMap = useMemo(() => {
+      const m: Record<string, string> = {};
+      (institutes || []).forEach((ins: any) => {
+        m[ins.id] = ins.nome || ins.name || ins.title || '';
+      });
+      return m;
+    }, [institutes]);
+
   const filtered = useMemo(() => {
     if (!filters.search) return items;
     return items.filter((r: any) => (r.name || '').toLowerCase().includes(filters.search.toLowerCase()));
@@ -179,36 +201,53 @@ export default function InfrastructurePage() {
         />
       )}
 
-      {/* List View */}
+      {/* List View (converted to list-style, similar to Opportunities) */}
       {viewMode === 'list' && (
         <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
             {isLoading ? (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
             ) : filtered.length === 0 ? (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400">{t('noResults')}</div>
             ) : (
-              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                 {paginatedItems.map((r: any) => (
-                  <li key={r.id} className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-4 shadow-sm">
+                  <li
+                    key={r.id}
+                    className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700 transition cursor-pointer"
+                    onClick={() => { setSelectedResource(r); setModalOpen(true); }}
+                  >
                     <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{r.name}</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{r.location || r.type || ''}</p>
-                        <p className="text-xs text-gray-400 mt-2">{r.description || ''}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{r.name}</h3>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{r.type || ''}</span>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4 text-sm mt-3">
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('location') || 'Location'}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{r.location || '-'}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('capacity') || 'Capacity'}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {r.capacity?.area_m2 ? `${r.capacity.area_m2} m²` : (r.capacity?.units ? `${r.capacity.units} units` : '-')}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('status') || 'Status'}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{r.status || '-'}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">{t('institute') || 'Institute'}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{r.institute_name || instituteMap[r.institute_id] || (r.institute_id ? String(r.institute_id) : '-')}</p>
+                          </div>
+                        </div>
+                        {r.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 line-clamp-2">{r.description}</p>}
                       </div>
-                      <div className="text-xs text-gray-400">
-                        {r.capacity?.area_m2 ? `${r.capacity.area_m2} m²` : (r.capacity?.units ? `${r.capacity.units} units` : '')}
-                      </div>
-                    </div>
-                    <div className="mt-4 flex items-center gap-2">
-                      {(
-                        (user?.roles || []).includes('admin') ||
-                        selectedInstitutes.includes(String(r.institute_id))
-                      ) && (
-                        <button onClick={() => { setSelectedResource(r); setModalOpen(true); }} className="text-sm text-primary-600 hover:underline">Book</button>
-                      )}
-                      <button onClick={() => { setSelectedResource(r); setModalOpen(true); }} className="ml-auto text-sm text-gray-500">Details</button>
+
+                      {/* actions removed: clicking the row opens the modal */}
                     </div>
                   </li>
                 ))}
