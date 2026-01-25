@@ -54,22 +54,25 @@ class FundingSourceUpdate(BaseModel):
 
 
 class FundingSourceResponse(BaseModel):
-    id: str
-    name: str
-    institution: str
-    instrument_type: str
-    status: str
-    total_amount: float
-    submission_start: datetime
-    submission_end: datetime
-    trl_min: Optional[int]
-    trl_max: Optional[int]
-    ai_confidence_score: Optional[float] = None
-    created_at: str
-    updated_at: str
+    """Response model for funding sources with camelCase aliases for frontend compatibility."""
+    id: str = Field(alias="id")
+    name: str = Field(alias="name")
+    institution: str = Field(alias="institution")
+    instrument_type: str = Field(alias="instrumentType")
+    status: str = Field(alias="status")
+    total_amount: float = Field(alias="totalAmount")
+    submission_start: datetime = Field(alias="submissionStart")
+    submission_end: datetime = Field(alias="submissionEnd")
+    trl_min: Optional[int] = Field(alias="trlMin")
+    trl_max: Optional[int] = Field(alias="trlMax")
+    ai_confidence_score: Optional[float] = Field(default=None, alias="aiConfidenceScore")
+    created_at: str = Field(alias="createdAt")
+    updated_at: str = Field(alias="updatedAt")
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True  # Allow both snake_case and camelCase
+    }
 
 
 class FundingListResponse(BaseModel):
@@ -233,16 +236,16 @@ async def list_funding_sources(
             "id": str(fs.id),
             "name": getattr(fs, "name", None),
             "institution": getattr(fs, "source_organization", None),
-            "instrument_type": getattr(fs, "instrument_type", None),
+            "instrumentType": getattr(fs, "instrument_type", None),
             "status": getattr(fs, "status", None),
-            "total_amount": float(getattr(fs, "total_amount", 0)) if getattr(fs, "total_amount", None) is not None else 0.0,
-            "submission_start": _to_iso_datetime(getattr(fs, "submission_start", None)),
-            "submission_end": _to_iso_datetime(getattr(fs, "submission_end", None)),
-            "trl_min": getattr(fs, "trl_min", None),
-            "trl_max": getattr(fs, "trl_max", None),
-            "ai_confidence_score": getattr(fs, "ai_confidence_score", None),
-            "created_at": getattr(fs, "created_at", None).isoformat() if getattr(fs, "created_at", None) else None,
-            "updated_at": getattr(fs, "updated_at", None).isoformat() if getattr(fs, "updated_at", None) else None,
+            "totalAmount": float(getattr(fs, "total_amount", 0)) if getattr(fs, "total_amount", None) is not None else 0.0,
+            "submissionStart": _to_iso_datetime(getattr(fs, "submission_start", None)),
+            "submissionEnd": _to_iso_datetime(getattr(fs, "submission_end", None)),
+            "trlMin": getattr(fs, "trl_min", None),
+            "trlMax": getattr(fs, "trl_max", None),
+            "aiConfidenceScore": getattr(fs, "ai_confidence_score", None),
+            "createdAt": getattr(fs, "created_at", None).isoformat() if getattr(fs, "created_at", None) else None,
+            "updatedAt": getattr(fs, "updated_at", None).isoformat() if getattr(fs, "updated_at", None) else None,
         })
 
     has_next = (page * page_size) < total

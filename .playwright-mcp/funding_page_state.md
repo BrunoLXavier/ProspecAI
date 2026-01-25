@@ -1,0 +1,262 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - complementary "Sidebar" [ref=e4]:
+      - generic [ref=e5]:
+        - link "P ProspecAI" [ref=e6] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=e8]: P
+          - generic [ref=e9]: ProspecAI
+        - button "Collapse sidebar" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+      - navigation [ref=e13]:
+        - link "Dashboard" [ref=e15] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e16]
+          - generic [ref=e18]: Dashboard
+        - link "Fontes de Fomento" [ref=e20] [cursor=pointer]:
+          - /url: /funding
+          - img [ref=e21]
+          - generic [ref=e23]: Fontes de Fomento
+        - link "Portfólio" [ref=e26] [cursor=pointer]:
+          - /url: /portfolio
+          - img [ref=e27]
+          - generic [ref=e29]: Portfólio
+        - link "CRM" [ref=e31] [cursor=pointer]:
+          - /url: /crm
+          - img [ref=e32]
+          - generic [ref=e34]: CRM
+        - link "Oportunidades" [ref=e36] [cursor=pointer]:
+          - /url: /opportunities
+          - img [ref=e37]
+          - generic [ref=e39]: Oportunidades
+        - link "Propostas" [ref=e41] [cursor=pointer]:
+          - /url: /proposals
+          - img [ref=e42]
+          - generic [ref=e44]: Propostas
+        - link "Comunicações" [ref=e46] [cursor=pointer]:
+          - /url: /comunications
+          - img [ref=e47]
+          - generic [ref=e49]: Comunicações
+        - link "Institutos" [ref=e51] [cursor=pointer]:
+          - /url: /institutes
+          - img [ref=e52]
+          - generic [ref=e54]: Institutos
+        - link "Equipes" [ref=e56] [cursor=pointer]:
+          - /url: /teams
+          - img [ref=e57]
+          - generic [ref=e59]: Equipes
+        - link "Infraestrutura" [ref=e61] [cursor=pointer]:
+          - /url: /infrastructure
+          - img [ref=e62]
+          - generic [ref=e64]: Infraestrutura
+        - link "Configurações" [ref=e66] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e67]
+          - generic [ref=e70]: Configurações
+        - link "Notificações" [ref=e72] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e73]
+          - generic [ref=e75]: Notificações
+        - link "Atividades Recentes" [ref=e77] [cursor=pointer]:
+          - /url: /activity
+          - img [ref=e78]
+          - generic [ref=e80]: Atividades Recentes
+        - link "Modelos de Relatórios" [ref=e82] [cursor=pointer]:
+          - /url: /report-templates
+          - img [ref=e83]
+          - generic [ref=e85]: Modelos de Relatórios
+        - link "Relatórios" [ref=e87] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e88]
+          - generic [ref=e91]: Relatórios
+        - link "Ingestão de Dados" [ref=e93] [cursor=pointer]:
+          - /url: /ingestion
+          - img [ref=e94]
+          - generic [ref=e96]: Ingestão de Dados
+        - link "Análise de PII" [ref=e98] [cursor=pointer]:
+          - /url: /pii-analysis
+          - img [ref=e99]
+          - generic [ref=e101]: Análise de PII
+        - link "Gestão de Feedbacks" [ref=e103] [cursor=pointer]:
+          - /url: /feedback
+          - img [ref=e104]
+          - generic [ref=e106]: Gestão de Feedbacks
+        - generic [ref=e107]: Admin
+      - link "AD Admin User admin@prospecai.com" [ref=e109] [cursor=pointer]:
+        - /url: /profile
+        - generic [ref=e112]: AD
+        - generic [ref=e114]:
+          - paragraph [ref=e115]: Admin User
+          - paragraph [ref=e116]: admin@prospecai.com
+    - generic [ref=e117]:
+      - banner [ref=e118]:
+        - navigation "Breadcrumb" [ref=e120]:
+          - generic [ref=e122]: Fontes de Fomento
+        - generic [ref=e123]:
+          - generic [ref=e127]:
+            - generic:
+              - img
+            - searchbox "Buscar..." [ref=e128]
+          - button "CIS SO ISI B&F +3" [ref=e130] [cursor=pointer]:
+            - img [ref=e131]
+            - generic [ref=e133]:
+              - generic [ref=e134]: CIS SO
+              - generic [ref=e135]: ISI B&F
+              - generic [ref=e136]: "+3"
+            - img [ref=e137]
+          - button [ref=e140] [cursor=pointer]:
+            - img [ref=e141]
+          - button "Switch to dark mode" [ref=e143] [cursor=pointer]:
+            - img [ref=e144]
+          - button "0" [ref=e147] [cursor=pointer]:
+            - generic [ref=e148]:
+              - img [ref=e149]
+              - generic [ref=e151]: "0"
+          - button "AD Admin" [ref=e153] [cursor=pointer]:
+            - generic [ref=e155]: AD
+            - generic [ref=e156]: Admin
+      - main [ref=e157]:
+        - generic [ref=e159]:
+          - generic [ref=e160]:
+            - generic [ref=e161]:
+              - heading "Fontes de Fomento" [level=1] [ref=e162]
+              - paragraph [ref=e163]: Gerencie editais e oportunidades de financiamento
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - button "List View" [pressed] [ref=e166] [cursor=pointer]:
+                  - img [ref=e167]
+                - button "Board View" [ref=e169] [cursor=pointer]:
+                  - img [ref=e170]
+                - button "Timeline View" [ref=e172] [cursor=pointer]:
+                  - img [ref=e173]
+                - button "Table View" [ref=e175] [cursor=pointer]:
+                  - img [ref=e176]
+              - button "Novo Edital" [ref=e178] [cursor=pointer]:
+                - img [ref=e179]
+                - text: Novo Edital
+          - generic [ref=e182]:
+            - paragraph [ref=e183]: Nenhuma estatística configurada. Clique no ícone de engrenagem para selecionar as estatísticas visíveis.
+            - button "Configurar Estatísticas" [ref=e184] [cursor=pointer]:
+              - img [ref=e185]
+          - button "Expandir Filtros" [ref=e189] [cursor=pointer]:
+            - generic [ref=e190]:
+              - img [ref=e191]
+              - generic [ref=e193]: Filtros
+            - img [ref=e194]
+          - generic [ref=e196]:
+            - list [ref=e198]:
+              - listitem [ref=e199] [cursor=pointer]:
+                - generic [ref=e201]:
+                  - generic [ref=e202]:
+                    - heading "EMBRAPII - Chamada Indústria 4.0 2026" [level=3] [ref=e203]
+                    - generic [ref=e204]: Aberto
+                  - generic [ref=e205]:
+                    - generic [ref=e206]:
+                      - generic [ref=e207]: "Tipo:"
+                      - paragraph [ref=e208]: Indefinido
+                    - generic [ref=e209]:
+                      - generic [ref=e210]: "Valor:"
+                      - paragraph [ref=e211]: R$ NaN
+                    - generic [ref=e212]:
+                      - generic [ref=e213]: "TRL:"
+                      - paragraph [ref=e214]: "-"
+                    - generic [ref=e215]:
+                      - generic [ref=e216]: "Prazo:"
+                      - paragraph [ref=e217]: NaN funding.days
+              - listitem [ref=e218] [cursor=pointer]:
+                - generic [ref=e220]:
+                  - generic [ref=e221]:
+                    - heading "FINEP Inovacred Manufatura Verde 2026" [level=3] [ref=e222]
+                    - generic [ref=e223]: Aberto
+                  - generic [ref=e224]:
+                    - generic [ref=e225]:
+                      - generic [ref=e226]: "Tipo:"
+                      - paragraph [ref=e227]: Indefinido
+                    - generic [ref=e228]:
+                      - generic [ref=e229]: "Valor:"
+                      - paragraph [ref=e230]: R$ NaN
+                    - generic [ref=e231]:
+                      - generic [ref=e232]: "TRL:"
+                      - paragraph [ref=e233]: "-"
+                    - generic [ref=e234]:
+                      - generic [ref=e235]: "Prazo:"
+                      - paragraph [ref=e236]: NaN funding.days
+              - listitem [ref=e237] [cursor=pointer]:
+                - generic [ref=e239]:
+                  - generic [ref=e240]:
+                    - heading "BNDES Fundo Clima - Tecnologias Limpas 2026" [level=3] [ref=e241]
+                    - generic [ref=e242]: Aberto
+                  - generic [ref=e243]:
+                    - generic [ref=e244]:
+                      - generic [ref=e245]: "Tipo:"
+                      - paragraph [ref=e246]: Indefinido
+                    - generic [ref=e247]:
+                      - generic [ref=e248]: "Valor:"
+                      - paragraph [ref=e249]: R$ NaN
+                    - generic [ref=e250]:
+                      - generic [ref=e251]: "TRL:"
+                      - paragraph [ref=e252]: "-"
+                    - generic [ref=e253]:
+                      - generic [ref=e254]: "Prazo:"
+                      - paragraph [ref=e255]: NaN funding.days
+              - listitem [ref=e256] [cursor=pointer]:
+                - generic [ref=e258]:
+                  - generic [ref=e259]:
+                    - heading "CNPq Universal 2026 - Todas as Áreas" [level=3] [ref=e260]
+                    - generic [ref=e261]: Aberto
+                  - generic [ref=e262]:
+                    - generic [ref=e263]:
+                      - generic [ref=e264]: "Tipo:"
+                      - paragraph [ref=e265]: Indefinido
+                    - generic [ref=e266]:
+                      - generic [ref=e267]: "Valor:"
+                      - paragraph [ref=e268]: R$ NaN
+                    - generic [ref=e269]:
+                      - generic [ref=e270]: "TRL:"
+                      - paragraph [ref=e271]: "-"
+                    - generic [ref=e272]:
+                      - generic [ref=e273]: "Prazo:"
+                      - paragraph [ref=e274]: NaN funding.days
+              - listitem [ref=e275] [cursor=pointer]:
+                - generic [ref=e277]:
+                  - generic [ref=e278]:
+                    - heading "FAPESP PIPE Fase 2 - Inovação Tecnológica 2026" [level=3] [ref=e279]
+                    - generic [ref=e280]: Aberto
+                  - generic [ref=e281]:
+                    - generic [ref=e282]:
+                      - generic [ref=e283]: "Tipo:"
+                      - paragraph [ref=e284]: Indefinido
+                    - generic [ref=e285]:
+                      - generic [ref=e286]: "Valor:"
+                      - paragraph [ref=e287]: R$ NaN
+                    - generic [ref=e288]:
+                      - generic [ref=e289]: "TRL:"
+                      - paragraph [ref=e290]: "-"
+                    - generic [ref=e291]:
+                      - generic [ref=e292]: "Prazo:"
+                      - paragraph [ref=e293]: NaN funding.days
+            - generic [ref=e294]:
+              - generic [ref=e295]: Exibindo 1 até 5 de 5 itens
+              - generic [ref=e296]:
+                - generic [ref=e297]:
+                  - generic [ref=e298]: "Por página:"
+                  - combobox [ref=e299]:
+                    - option "10"
+                    - option "20" [selected]
+                    - option "50"
+                    - option "100"
+                - navigation "Pagination" [ref=e300]:
+                  - button "Primeira página" [disabled] [ref=e301]:
+                    - img [ref=e302]
+                  - button "Página anterior" [disabled] [ref=e304]:
+                    - img [ref=e305]
+                  - button "Página 1" [ref=e308] [cursor=pointer]: "1"
+                  - button "Próxima página" [disabled] [ref=e309]:
+                    - img [ref=e310]
+                  - button "Última página" [disabled] [ref=e312]:
+                    - img [ref=e313]
+    - button "Abrir assistente" [ref=e315] [cursor=pointer]:
+      - img [ref=e316]
+    - button "Enviar feedback" [ref=e322] [cursor=pointer]:
+      - img [ref=e323]

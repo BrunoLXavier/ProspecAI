@@ -238,7 +238,7 @@ export default function OpportunitiesPage() {
       id: opp.id,
       title: opp.title,
       description: `${opp.client_name} | ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(opp.estimated_value)}`,
-      date: opp.deadline,
+      date: opp.deadline || new Date().toISOString(),
       onClick: () => handleOpportunityClick(opp),
       status: opp.stage === 'won' ? 'success' : opp.stage === 'lost' ? 'error' : opp.stage === 'negotiation' ? 'warning' : 'info',
       metadata: { stage: opp.stage, probability: opp.probability },
@@ -279,7 +279,7 @@ export default function OpportunitiesPage() {
       header: t('deadline'), 
       accessor: 'deadline', 
       sortable: true,
-      render: (value) => new Date(value as string).toLocaleDateString('pt-BR'),
+      render: (value) => value ? new Date(value as string).toLocaleDateString('pt-BR') : '-',
     },
     { key: 'owner', header: t('owner'), accessor: 'owner', sortable: true },
   ], [t]);
@@ -464,7 +464,7 @@ export default function OpportunitiesPage() {
                           <div>
                             <span className="text-gray-500 dark:text-gray-400">{t('deadline') || 'Deadline'}:</span>
                             <p className="font-medium text-gray-900 dark:text-white">
-                              {new Date(opp.deadline).toLocaleDateString('pt-BR')}
+                              {opp.deadline ? new Date(opp.deadline).toLocaleDateString('pt-BR') : '-'}
                             </p>
                           </div>
                           <div>

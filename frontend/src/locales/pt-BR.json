@@ -955,6 +955,7 @@
     "noResults": "Nenhum resultado encontrado",
     "noFunding": "Nenhum edital",
     "daysLeft": "dias restantes",
+    "days": "dias",
     "type": "Tipo",
     "amount": "Valor",
     "trl": "TRL",
@@ -981,11 +982,13 @@
     },
     "types": {
       "grant": "Subvenção",
+      "subvention": "Subvenção Econômica",
       "subsidy": "Subsídio",
       "credit": "Crédito",
       "equity": "Equity",
       "loan": "Empréstimo",
       "tax_incentive": "Incentivo Fiscal",
+      "mixed": "Misto",
       "undefined": "Indefinido"
     },
     "filters": {
@@ -2258,7 +2261,8 @@
       "in_review": "Em Revisão",
       "submitted": "Submetido",
       "approved": "Aprovado",
-      "rejected": "Rejeitado"
+      "rejected": "Rejeitado",
+      "archived": "Arquivado"
     },
     "filters": {
       "allStatus": "Todos os Status",

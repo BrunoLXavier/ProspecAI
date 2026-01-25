@@ -158,7 +158,7 @@ export default function ProposalsPage() {
       date: proposal.created_at,
       onClick: () => handleProposalClick(proposal),
       status: proposal.status === 'approved' ? 'success' : proposal.status === 'rejected' ? 'error' : proposal.status === 'submitted' ? 'info' : 'default',
-      metadata: { version: proposal.current_version, status: proposal.status },
+      metadata: { version: proposal.version_count || 1, status: proposal.status },
     }));
   }, [paginatedProposals, t]);
 
@@ -193,9 +193,9 @@ export default function ProposalsPage() {
     { 
       key: 'version', 
       header: t('version'), 
-      accessor: 'current_version', 
+      accessor: 'version_count', 
       sortable: true,
-      render: (value) => `v${value || '1.0'}`,
+      render: (value) => `${value || 1} ${value === 1 ? 'versão' : 'versões'}`,
     },
     { 
       key: 'created_at', 
@@ -402,7 +402,7 @@ export default function ProposalsPage() {
                         <div className="grid grid-cols-3 gap-4 text-sm mt-3">
                           <div>
                             <span className="text-gray-500 dark:text-gray-400">{t('version')}:</span>
-                            <p className="font-medium text-gray-900 dark:text-white">v{proposal.current_version}</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{proposal.version_count || 1} {proposal.version_count === 1 ? 'versão' : 'versões'}</p>
                           </div>
                           <div>
                             <span className="text-gray-500 dark:text-gray-400">{t('created')}:</span>

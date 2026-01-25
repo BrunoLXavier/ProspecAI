@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import date, datetime
+from decimal import Decimal
 from uuid import UUID
 from enum import Enum
 from typing import Any
@@ -10,6 +11,7 @@ def to_primitive(value: Any) -> Any:
 
     - UUID -> str
     - datetime/date -> ISO string
+    - Decimal -> float
     - Enum -> value
     - lists/tuples/sets/dicts -> recursively convert
     - objects with `model_dump`/`dict`/`__dict__` -> convert their mapping
@@ -19,6 +21,8 @@ def to_primitive(value: Any) -> Any:
         return None
     if isinstance(value, (str, int, float, bool)):
         return value
+    if isinstance(value, Decimal):
+        return float(value)
     if isinstance(value, UUID):
         return str(value)
     if isinstance(value, (datetime, date)):
