@@ -1112,4 +1112,227 @@ class CommunicationDraftModel(Base):
     )
 
 
+# =============================================================================
+# NOTIFICATIONS & REPORTS - RF-07/RF-09
+# =============================================================================
+
+class NotificationModel(BaseModel):
+    """
+    Notification messages sent to users.
+    Implements RF-07: Active notifications based on dates and activities.
+    """
+    __tablename__ = "notifications"
+
+    # Target user who receives the notification
+    user_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    institute_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
+
+    # Notification content
+    title = Column(String(300), nullable=False)
+    body = Column(Text, nullable=False)
+    notification_type = Column(String(50), nullable=False, default='info')  # info, warning, success, error, deadline, matching
+    priority = Column(String(20), nullable=False, default='normal')  # low, normal, high, urgent
+    
+    # Source context
+    entity_type = Column(String(100), nullable=True)  # funding_source, opportunity, proposal, etc.
+    entity_id = Column(PGUUID(as_uuid=True), nullable=True)
+    action_url = Column(String(500), nullable=True)  # Deep link to related entity
+    
+    # Status
+    read = Column(Boolean, default=False, nullable=False)
+    read_at = Column(DateTime(timezone=True), nullable=True)
+    dismissed = Column(Boolean, default=False, nullable=False)
+    dismissed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Scheduling
+    scheduled_at = Column(DateTime(timezone=True), nullable=True)  # For future notifications
+    expires_at = Column(DateTime(timezone=True), nullable=True)  # Auto-dismiss after expiry
+    
+    # Delivery channels (JSON array: ['in_app', 'email', 'push'])
+    channels = Column(JSON, default=['in_app'])
+    delivery_status = Column(JSON, default={})  # {'email': 'sent', 'push': 'failed', ...}
+
+    __table_args__ = (
+        Index('idx_notifications_user_read', 'user_id', 'read'),
+        Index('idx_notifications_user_type', 'user_id', 'notification_type'),
+        Index('idx_notifications_scheduled', 'scheduled_at'),
+        Index('idx_notifications_tenant_user', 'tenant_id', 'user_id'),
+    )
+
+
+class UserNotificationPreferenceModel(Base):
+    """
+    User preferences for notification delivery.
+    Stores per-user settings for notification channels and types.
+    """
+    __tablename__ = "user_notification_preferences"
+
+    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    tenant_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    user_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    
+    # Per-type preferences (JSON: {notification_type: {enabled: bool, channels: [...]}})
+    type_preferences = Column(JSON, default={
+        'info': {'enabled': True, 'channels': ['in_app']},
+        'warning': {'enabled': True, 'channels': ['in_app', 'email']},
+        'deadline': {'enabled': True, 'channels': ['in_app', 'email']},
+        'matching': {'enabled': True, 'channels': ['in_app']},
+        'success': {'enabled': True, 'channels': ['in_app']},
+        'error': {'enabled': True, 'channels': ['in_app', 'email']},
+    })
+    
+    # Global settings
+    email_enabled = Column(Boolean, default=True, nullable=False)
+    push_enabled = Column(Boolean, default=True, nullable=False)
+    in_app_enabled = Column(Boolean, default=True, nullable=False)
+    
+    # Quiet hours (JSON: {start: '22:00', end: '08:00', timezone: 'America/Sao_Paulo'})
+    quiet_hours = Column(JSON, nullable=True)
+    
+    # Digest settings
+    email_digest_frequency = Column(String(20), default='immediate')  # immediate, daily, weekly
+    digest_time = Column(String(5), nullable=True)  # '09:00'
+    
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint('tenant_id', 'user_id', name='uq_notification_pref_user'),
+        Index('idx_notif_pref_tenant', 'tenant_id'),
+        Index('idx_notif_pref_user', 'user_id'),
+    )
+
+
+class ReportTemplateModel(BaseModel):
+    """
+    Report template definitions with dynamic query configuration.
+    Implements RF-09: Customizable reports based on database structure.
+    """
+    __tablename__ = "report_templates"
+
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    
+    # Visibility: private (user only), institute (institute members), all_tenants (system-wide)
+    visibility = Column(String(20), nullable=False, default='private')
+    institute_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
+    
+    # Query configuration (JSON)
+    # {
+    #   "base_table": "funding_sources",
+    #   "selected_fields": ["name", "institution", "total_amount", "status"],
+    #   "joins": [{"table": "projects", "on": {"funding_sources.id": "projects.funding_id"}, "type": "left"}],
+    #   "filters": [{"field": "status", "operator": "eq", "value": "active"}],
+    #   "group_by": ["status"],
+    #   "order_by": [{"field": "created_at", "direction": "desc"}],
+    #   "limit": 100
+    # }
+    query_config = Column(JSON, nullable=False, default={})
+    
+    # Display configuration
+    # {
+    #   "chart_type": "bar",  # bar, line, pie, table
+    #   "x_axis": "status",
+    #   "y_axis": "count",
+    #   "colors": {"active": "#22c55e", "closed": "#ef4444"}
+    # }
+    display_config = Column(JSON, default={})
+    
+    # Supported output formats
+    output_formats = Column(JSON, default=['html', 'csv', 'json', 'pdf', 'xlsx'])
+    
+    # Scheduling (cron expression)
+    schedule_cron = Column(String(100), nullable=True)  # "0 8 * * 1" = every Monday at 8am
+    schedule_enabled = Column(Boolean, default=False, nullable=False)
+    schedule_recipients = Column(JSON, default=[])  # List of user_ids or emails
+    last_scheduled_run = Column(DateTime(timezone=True), nullable=True)
+    
+    # Category/tags for organization
+    category = Column(String(100), nullable=True)
+    tags = Column(JSON, default=[])
+    
+    # Usage tracking
+    run_count = Column(Integer, default=0, nullable=False)
+    last_run_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index('idx_report_tpl_visibility', 'visibility'),
+        Index('idx_report_tpl_institute', 'institute_id'),
+        Index('idx_report_tpl_category', 'category'),
+        Index('idx_report_tpl_tenant', 'tenant_id'),
+    )
+
+
+class ReportInstanceModel(BaseModel):
+    """
+    Generated report instances (execution history).
+    Stores the result of report generation for download/audit.
+    """
+    __tablename__ = "report_instances"
+
+    template_id = Column(PGUUID(as_uuid=True), ForeignKey('report_templates.id', ondelete='SET NULL'), nullable=True)
+    
+    # Execution details
+    format = Column(String(20), nullable=False)  # html, csv, json, pdf, xlsx
+    status = Column(String(20), nullable=False, default='pending')  # pending, processing, completed, failed
+    
+    # Parameters used for this run
+    parameters = Column(JSON, default={})
+    
+    # Result storage
+    file_path = Column(String(500), nullable=True)  # MinIO path
+    file_size = Column(Integer, nullable=True)
+    row_count = Column(Integer, nullable=True)
+    
+    # Execution timing
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    error_message = Column(Text, nullable=True)
+    
+    # Expiry for cleanup
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index('idx_report_inst_template', 'template_id'),
+        Index('idx_report_inst_status', 'status'),
+        Index('idx_report_inst_tenant', 'tenant_id'),
+    )
+
+
+class ReportableTableModel(Base):
+    """
+    Metadata about tables available for dynamic reporting.
+    Populated via schema introspection or manual configuration.
+    """
+    __tablename__ = "reportable_tables"
+
+    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    
+    table_name = Column(String(100), nullable=False, unique=True)
+    display_name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    
+    # Schema info (JSON array of field definitions)
+    # [{"name": "id", "type": "uuid", "display_name": "ID", "filterable": true, "sortable": true}, ...]
+    fields = Column(JSON, nullable=False, default=[])
+    
+    # Allowed relationships for joins
+    # [{"target_table": "projects", "join_field": "id", "target_field": "funding_id", "label": "Related Projects"}, ...]
+    relationships = Column(JSON, default=[])
+    
+    # Access control
+    requires_permission = Column(String(100), nullable=True)  # e.g., "reports:funding"
+    
+    # Ordering for UI
+    display_order = Column(Integer, default=0)
+    enabled = Column(Boolean, default=True, nullable=False)
+    
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        Index('idx_reportable_enabled', 'enabled'),
+    )
+
+
 
