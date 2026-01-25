@@ -185,22 +185,67 @@ class ClientRepository:
 
         client_type_val = getattr(model, 'client_type', None) or 'other'
 
+        # Handle encrypted PII fields - strip ENCRYPTED: prefix and don't validate
+        def _clean_pii_field(value: str) -> str:
+            """Remove ENCRYPTED: prefix from PII fields for display purposes."""
+            if value and isinstance(value, str) and value.startswith('ENCRYPTED:'):
+                return value[10:]  # Strip 'ENCRYPTED:' prefix
+            return value
+
+        cnpj_raw = getattr(model, 'cnpj', None)
+        email_raw = getattr(model, 'email', None)
+        phone_raw = getattr(model, 'phone', None)
+
+        # Clean CNPJ - only keep digits for validation, or None if invalid
+        cnpj_clean = None
+        if cnpj_raw:
+            cnpj_value = _clean_pii_field(cnpj_raw)
+            # Extract only digits
+            cnpj_digits = ''.join(c for c in cnpj_value if c.isdigit())
+            if len(cnpj_digits) == 14:
+                cnpj_clean = cnpj_digits
+
+        # Clean email
+        email_clean = None
+        if email_raw:
+            email_value = _clean_pii_field(email_raw)
+            if '@' in email_value:
+                email_clean = email_value
+
+        # Handle auto_filled_data - convert string to dict if needed
+        auto_filled_raw = getattr(model, 'cnpj_data_source', None)
+        auto_filled_data = None
+        if auto_filled_raw:
+            if isinstance(auto_filled_raw, dict):
+                auto_filled_data = auto_filled_raw
+            elif isinstance(auto_filled_raw, str):
+                auto_filled_data = {"source": auto_filled_raw}
+
+        # Handle detected_demands - convert strings to dicts if needed
+        detected_demands_raw = getattr(model, 'detected_demands', []) or []
+        detected_demands = []
+        for demand in detected_demands_raw:
+            if isinstance(demand, dict):
+                detected_demands.append(demand)
+            elif isinstance(demand, str):
+                detected_demands.append({"description": demand})
+
         return Client(
             id=getattr(model, 'id'),
             tenant_id=getattr(model, 'tenant_id', None),
             name=getattr(model, 'name', ''),
             client_type=client_type_val,
-            cnpj=getattr(model, 'cnpj', None),
-            email=getattr(model, 'email', None),
-            phone=getattr(model, 'phone', None),
+            cnpj=cnpj_clean,
+            email=email_clean,
+            phone=_clean_pii_field(phone_raw) if phone_raw else None,
             address=getattr(model, 'address', None),
-            auto_filled_data=getattr(model, 'cnpj_data_source', None),
+            auto_filled_data=auto_filled_data,
             auto_fill_confidence=getattr(model, 'auto_fill_confidence', None),
             contact_person=getattr(model, 'contact_person', None),
             sector=getattr(model, 'sector', None),
             website=getattr(model, 'website', None),
             interaction_ids=getattr(model, 'interaction_ids', []) or [],
-            detected_demands=getattr(model, 'detected_demands', []) or [],
+            detected_demands=detected_demands,
             created_at=getattr(model, 'created_at', None),
             updated_at=getattr(model, 'updated_at', None),
             created_by=created_by,

@@ -54,11 +54,19 @@ async def recent_activity(
         _id, action, entity_type, entity_id, user_id, timestamp = r
         result.append({
             "id": str(_id),
+            "type": action,  # Frontend expects 'type' for action type (create, update, delete, etc.)
             "action": action,
             "entity_type": entity_type,
+            "entity": entity_type,  # Frontend also uses 'entity'
             "entity_id": str(entity_id) if entity_id else None,
             "user_id": str(user_id) if user_id else None,
             "timestamp": timestamp.isoformat() if timestamp else None,
+            "actor": {
+                "id": str(user_id) if user_id else "system",
+                "name": "Usuário do Sistema",
+                "type": "user" if user_id else "system",
+            },
+            "metadata": {},
         })
 
     return {"activities": result}

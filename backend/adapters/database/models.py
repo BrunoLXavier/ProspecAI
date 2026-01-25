@@ -351,11 +351,15 @@ class InfrastructureModel(BaseModel):
 
     # Required fields
     instituto_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
-    nome = Column(String(300), nullable=False)
-    descricao = Column(Text, nullable=False)
-    email_laboratorio = Column(String(255), nullable=False)
-    email_responsavel = Column(String(255), nullable=False)
-    area_predial_m2 = Column(Integer, nullable=False)
+    institute_id = Column(PGUUID(as_uuid=True), nullable=True)  # Legacy compatibility
+    nome = Column(String(300), nullable=False, default='')
+    descricao = Column(Text, nullable=False, default='')
+    email_laboratorio = Column(String(255), nullable=False, default='')
+    email_responsavel = Column(String(255), nullable=False, default='')
+    telefone = Column(String(20), nullable=True)
+    site_url = Column(String(500), nullable=True)
+    endereco_completo = Column(Text, nullable=True)
+    area_predial_m2 = Column(Integer, nullable=False, default=0)
     
     # Status
     status_isi = Column(String(50), nullable=False, default='Operacional')
@@ -365,14 +369,17 @@ class InfrastructureModel(BaseModel):
     maturidade_base_tecnologica = Column(Numeric(3, 1), nullable=True)
     maturidade_produtos_servicos = Column(Numeric(3, 1), nullable=True)
     maturidade_cooperacao = Column(Numeric(3, 1), nullable=True)
+    maturidade_regulatoria = Column(Numeric(3, 1), nullable=True)
+    maturidade_laboratorial = Column(Numeric(3, 1), nullable=True)
     
     # Technology platforms and areas (stored as JSON arrays)
     plataformas_tecnologicas = Column(JSON, default=list)
     areas_conhecimento = Column(JSON, default=list)
     macroareas_pesquisa = Column(JSON, default=list)
     
-    # Media files
+    # Media files and equipment
     midias = Column(JSON, default=list)
+    equipamentos = Column(JSON, default=list)
     
     # Legacy compatibility
     name = Column(String(200), nullable=True)
@@ -654,26 +661,25 @@ class IngestionJobModel(BaseModel):
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     
-    # File statistics
+    # Source type - required column
+    source_type = Column(String(50), nullable=False, default='csv')
+    
+    # File statistics - match actual database columns
     total_files = Column(Integer, default=0)
     processed_files = Column(Integer, default=0)
-    failed_files = Column(Integer, default=0)
-    total_size = Column(Integer, default=0)  # bytes
     
-    # Record statistics
+    # Record statistics - match actual database columns
     total_records = Column(Integer, default=0)
-    valid_records = Column(Integer, default=0)
-    invalid_records = Column(Integer, default=0)
+    processed_records = Column(Integer, default=0)
+    failed_records = Column(Integer, default=0)
     
-    # PII summary
-    total_pii_entities = Column(Integer, default=0)
-    pending_pii_review = Column(Integer, default=0)
-    highest_risk_level = Column(String(50), nullable=True)
+    # PII summary - match actual database columns
+    pii_detected_count = Column(Integer, default=0)
+    pii_anonymized_count = Column(Integer, default=0)
     
-    # Progress tracking
-    current_file = Column(String(500), nullable=True)
-    progress_percent = Column(Numeric(5, 2), default=0.0)
-    estimated_time_remaining = Column(Integer, nullable=True)
+    # Progress tracking - match actual database column
+    current_step = Column(String(100), nullable=True)
+    progress_percentage = Column(Numeric(5, 2), default=0.0)
     
     # Error tracking
     error_message = Column(Text, nullable=True)

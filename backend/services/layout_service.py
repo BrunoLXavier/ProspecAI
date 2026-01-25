@@ -218,7 +218,7 @@ class LayoutService:
     
     def _load_config(self) -> Dict[str, Any]:
         """Load the layout configuration."""
-        with open(self.config_file, "r", encoding="utf-8") as f:
+        with open(self.config_file, "r", encoding="utf-8-sig") as f:
             return json.load(f)
     
     def _save_config(self, config: Dict[str, Any]) -> None:

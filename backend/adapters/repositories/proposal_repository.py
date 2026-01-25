@@ -39,6 +39,15 @@ class ProposalRepository(BaseRepository[Proposal, ProposalModel]):
     
     def _model_to_entity(self, model: ProposalModel) -> Proposal:
         """Convert database model to domain entity"""
+        # Convert lessons_learned strings to dicts if needed
+        lessons_learned = []
+        if model.lessons_learned:
+            for lesson in model.lessons_learned:
+                if isinstance(lesson, str):
+                    lessons_learned.append({"description": lesson})
+                elif isinstance(lesson, dict):
+                    lessons_learned.append(lesson)
+        
         return Proposal(
             id=model.id,
             tenant_id=model.tenant_id,
@@ -63,13 +72,12 @@ class ProposalRepository(BaseRepository[Proposal, ProposalModel]):
             attachments=model.attachments or [],
             submitted_at=model.submitted_at,
             tags=model.tags or [],
-            lessons_learned=model.lessons_learned or [],
+            lessons_learned=lessons_learned,
             last_adherence_check=model.last_adherence_check,
             created_at=model.created_at,
             updated_at=model.updated_at,
             created_by=model.created_by,
-            updated_by=model.updated_by,
-            version=model.version
+            updated_by=model.updated_by
         )
     
     def _entity_to_model(self, entity: Proposal, model: Optional[ProposalModel] = None) -> ProposalModel:

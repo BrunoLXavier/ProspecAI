@@ -1,4 +1,4 @@
-﻿{
+{
   "layouts": [
     {
       "id": "default_default",
@@ -134,6 +134,171 @@
       "compact_mode": false,
       "created_at": "2026-01-24T00:00:00.000000Z",
       "updated_at": "2026-01-24T00:00:00.000000Z"
+    },
+    {
+      "id": "ba4f4bf9-2daf-4be4-81cb-69bc2b832209_00000000-0000-0000-0000-000000000001",
+      "user_id": "ba4f4bf9-2daf-4be4-81cb-69bc2b832209",
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "sidebar_position": "left",
+      "sidebar_collapsed": false,
+      "sidebar_width": 280,
+      "visible_nav_items": [
+        "dashboard",
+        "funding",
+        "portfolio",
+        "crm",
+        "opportunities",
+        "proposals",
+        "communications",
+        "institutes",
+        "teams",
+        "infrastructure",
+        "settings",
+        "notifications",
+        "activity",
+        "reportTemplates",
+        "reports",
+        "ingestion",
+        "piiAnalysis",
+        "feedbackManagement",
+        "admin"
+      ],
+      "nav_parent_map": {},
+      "visible_nav_items_by_role": {
+        "admin": [
+          "dashboard",
+          "funding",
+          "portfolio",
+          "crm",
+          "opportunities",
+          "proposals",
+          "reports",
+          "activity",
+          "ingestion",
+          "piiAnalysis",
+          "settings",
+          "communications",
+          "institutes",
+          "admin",
+          "infrastructure",
+          "teams",
+          "feedbackManagement",
+          "reportTemplates",
+          "notifications"
+        ],
+        "manager": [
+          "dashboard",
+          "funding",
+          "portfolio",
+          "crm",
+          "opportunities",
+          "proposals",
+          "reports",
+          "activity"
+        ],
+        "user": [
+          "dashboard",
+          "opportunities",
+          "proposals",
+          "activity"
+        ],
+        "viewer": [
+          "dashboard",
+          "activity"
+        ]
+      },
+      "nav_order": [
+        "dashboard",
+        "funding",
+        "portfolio",
+        "crm",
+        "opportunities",
+        "proposals",
+        "communications",
+        "institutes",
+        "teams",
+        "infrastructure",
+        "settings"
+      ],
+      "dashboard_widgets": [
+        "pipeline",
+        "opportunities",
+        "metrics",
+        "activity",
+        "analytics-kpis",
+        "analytics-pipeline",
+        "analytics-trl",
+        "analytics-trends",
+        "analytics-export"
+      ],
+      "dashboard_widget_order": [],
+      "dashboard_widgets_by_role": {
+        "admin": [
+          "pipeline",
+          "opportunities",
+          "metrics",
+          "activity",
+          "matching",
+          "calendar",
+          "analytics-kpis",
+          "analytics-pipeline",
+          "analytics-trl",
+          "analytics-trends",
+          "analytics-export"
+        ],
+        "manager": [
+          "pipeline",
+          "opportunities",
+          "metrics",
+          "activity",
+          "analytics-kpis",
+          "analytics-pipeline",
+          "analytics-trends"
+        ],
+        "user": [
+          "pipeline",
+          "metrics",
+          "activity",
+          "analytics-kpis"
+        ],
+        "viewer": [
+          "metrics",
+          "activity"
+        ]
+      },
+      "dashboard_layout": "default",
+      "default_page_size": 10,
+      "dense_tables": false,
+      "animations_enabled": true,
+      "compact_mode": false,
+      "color_mode": "light",
+      "appearance": "default",
+      "primary_color": "#E30613",
+      "secondary_color": "#003366",
+      "chat_button_color": "#E30613",
+      "feedback_button_color": "#f59e0b",
+      "sidebar_color": null,
+      "sidebar_color_dark": null,
+      "body_text_light": "#0f172a",
+      "body_text_dark": "#f8fafc",
+      "heading_text_light": "#0f172a",
+      "heading_text_dark": "#f8fafc",
+      "muted_text_light": "#6b7280",
+      "muted_text_dark": "#9ca3af",
+      "primary_color_light": "#E30613",
+      "primary_color_dark": "#E30613",
+      "secondary_color_light": "#003366",
+      "secondary_color_dark": "#003366",
+      "modal_bg_light": "#ffffff",
+      "modal_bg_dark": "#1e293b",
+      "modal_text_light": "#0f172a",
+      "modal_text_dark": "#f8fafc",
+      "modal_border_light": "#e2e8f0",
+      "modal_border_dark": "#334155",
+      "modal_overlay_opacity": 0.4,
+      "modal_elevation": "medium",
+      "created_at": "2026-01-24T23:47:01.598612Z",
+      "updated_at": "2026-01-25T00:14:28.498010Z"
     }
   ]
 }

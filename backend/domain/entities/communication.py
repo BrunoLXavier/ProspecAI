@@ -32,6 +32,7 @@ class ParticipantRole(str, Enum):
     OWNER = "owner"
     EDITOR = "editor"
     VIEWER = "viewer"
+    PARTICIPANT = "participant"  # For general participation
 
 
 class MeetingMinutesStatus(str, Enum):

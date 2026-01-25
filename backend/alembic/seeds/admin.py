@@ -8,9 +8,11 @@ the canonical admin user and roles exist for each tenant passed.
 
 from sqlalchemy import text
 
-ADMIN_ID = 'ba4f4bf9-2daf-4be4-81cb-69bc2b832209'
+# Stable admin ID for default tenant - used for FK references
+ADMIN_ID = '00000000-0000-0000-0000-000000000001'
 ADMIN_EMAIL = 'admin@prospecai.com'
-ADMIN_HASH = '$2b$12$oY2uMrEBjAGsO8Gc9G6l0uzOMhmf7oCRSJoTc3r1uPWpmhYOcUX.W'
+# BCrypt hash for password "Admin@123"
+ADMIN_HASH = '$2b$12$LRulWbk7Ol7LHQwVn.8MqOFtpjtRcgZk3Qbsxa7l9q.nv9nv0QR1K'
 ADMIN_USERNAME = 'admin'
 
 

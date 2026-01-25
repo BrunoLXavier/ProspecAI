@@ -1,5 +1,6 @@
 # Data Ingestion Repository
 # Implements RF-01: Data Ingestion and Multi-source Orchestration
+import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from uuid import UUID
@@ -14,6 +15,8 @@ from domain.entities.ingestion import (
     IngestionJob, IngestionSource, IngestionJobStatus,
     IngestionSourceType, FileType
 )
+
+logger = logging.getLogger(__name__)
 
 
 class IngestionRepository:
@@ -31,6 +34,7 @@ class IngestionRepository:
     
     def _job_model_to_entity(self, model: IngestionJobModel) -> IngestionJob:
         """Convert database model to domain entity."""
+        # Map DB columns to entity fields (DB uses different naming)
         return IngestionJob(
             id=model.id,
             tenant_id=model.tenant_id,
@@ -41,19 +45,19 @@ class IngestionRepository:
             completed_at=model.completed_at,
             total_files=model.total_files or 0,
             processed_files=model.processed_files or 0,
-            failed_files=model.failed_files or 0,
-            total_size=model.total_size or 0,
+            failed_files=0,  # Not in current DB schema
+            total_size=0,  # Not in current DB schema
             total_records=model.total_records or 0,
-            valid_records=model.valid_records or 0,
-            invalid_records=model.invalid_records or 0,
-            total_pii_entities=model.total_pii_entities or 0,
-            pending_pii_review=model.pending_pii_review or 0,
-            highest_risk_level=model.highest_risk_level,
-            current_file=model.current_file,
-            progress_percent=float(model.progress_percent) if model.progress_percent else 0.0,
-            estimated_time_remaining=model.estimated_time_remaining,
+            valid_records=getattr(model, 'processed_records', 0) or 0,  # Map processed_records -> valid_records
+            invalid_records=getattr(model, 'failed_records', 0) or 0,  # Map failed_records -> invalid_records
+            total_pii_entities=getattr(model, 'pii_detected_count', 0) or 0,  # Map pii_detected_count -> total_pii_entities
+            pending_pii_review=0,  # Not in current DB schema
+            highest_risk_level=None,  # Not in current DB schema
+            current_file=getattr(model, 'current_step', None),  # Map current_step -> current_file
+            progress_percent=float(getattr(model, 'progress_percentage', 0) or 0),  # Map progress_percentage -> progress_percent
+            estimated_time_remaining=None,  # Not in current DB schema
             error_message=model.error_message,
-            error_details=model.error_details or {},
+            error_details=getattr(model, 'error_details', {}) or {},
             created_at=model.created_at,
             updated_at=model.updated_at,
             created_by=model.created_by,
@@ -78,19 +82,15 @@ class IngestionRepository:
         model.completed_at = entity.completed_at
         model.total_files = entity.total_files
         model.processed_files = entity.processed_files
-        model.failed_files = entity.failed_files
-        model.total_size = entity.total_size
         model.total_records = entity.total_records
-        model.valid_records = entity.valid_records
-        model.invalid_records = entity.invalid_records
-        model.total_pii_entities = entity.total_pii_entities
-        model.pending_pii_review = entity.pending_pii_review
-        model.highest_risk_level = entity.highest_risk_level
-        model.current_file = entity.current_file
-        model.progress_percent = entity.progress_percent
-        model.estimated_time_remaining = entity.estimated_time_remaining
+        # Map entity fields to DB columns
+        model.processed_records = entity.valid_records
+        model.failed_records = entity.invalid_records
+        model.pii_detected_count = entity.total_pii_entities
+        model.pii_anonymized_count = entity.pending_pii_review
+        model.current_step = entity.current_file
+        model.progress_percentage = entity.progress_percent
         model.error_message = entity.error_message
-        model.error_details = entity.error_details
         model.updated_by = entity.updated_by or entity.tenant_id
         
         return model
@@ -218,6 +218,7 @@ class IngestionRepository:
         offset: int = 0,
     ) -> List[IngestionJob]:
         """Get ingestion jobs with optional filtering."""
+        logger.info(f"get_jobs called with tenant_id={tenant_id}, status={status}, limit={limit}")
         query = select(IngestionJobModel).where(and_(
             IngestionJobModel.tenant_id == tenant_id,
             IngestionJobModel.deleted_at == None,
@@ -231,16 +232,18 @@ class IngestionRepository:
         try:
             result = await self.session.execute(query)
             models = result.scalars().all()
+            logger.info(f"get_jobs ORM query returned {len(models)} models")
             return [self._job_model_to_entity(m) for m in models]
-        except ProgrammingError:
-            # Reduced-column fallback
+        except ProgrammingError as pe:
+            logger.warning(f"get_jobs ORM query failed, using fallback: {pe}")
+            # Reduced-column fallback with actual DB column names
             try:
                 q = text("""
-                    SELECT id, tenant_id, name, description, status, started_at,
-                           completed_at, total_files, processed_files, total_size,
-                           total_records, valid_records, invalid_records,
-                           total_pii_entities, pending_pii_review, highest_risk_level,
-                           current_file, progress_percent, estimated_time_remaining,
+                    SELECT id, tenant_id, name, description, status, source_type,
+                           started_at, completed_at, total_files, processed_files,
+                           total_records, processed_records, failed_records,
+                           pii_detected_count, pii_anonymized_count,
+                           current_step, progress_percentage,
                            error_message, error_details, created_at, updated_at,
                            created_by, updated_by, deleted_at
                     FROM ingestion_jobs
@@ -250,6 +253,7 @@ class IngestionRepository:
                 """)
                 res = await self.session.execute(q, {"tid": tenant_id, "lim": limit, "off": offset})
                 rows = res.fetchall()
+                logger.info(f"get_jobs fallback SQL returned {len(rows)} rows")
                 out = []
                 class _R:
                     pass
@@ -258,11 +262,10 @@ class IngestionRepository:
                     m = _R()
                     for k in row.keys():
                         setattr(m, k, getattr(row, k))
-                    if not hasattr(m, "failed_files"):
-                        m.failed_files = 0
                     out.append(self._job_model_to_entity(m))
                 return out
-            except Exception:
+            except Exception as ex:
+                logger.error(f"get_jobs fallback failed: {ex}")
                 return []
     
     async def update_job(self, entity: IngestionJob) -> IngestionJob:

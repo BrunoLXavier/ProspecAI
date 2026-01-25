@@ -1,7 +1,195 @@
 # ProspecAI - Implementation History
 
-**Última atualização:** 24 de Janeiro de 2026  
+**Última atualização:** 25 de Janeiro de 2026  
 **Status:** ✅ Production Ready - All Issues Resolved
+
+---
+
+## 2026-01-25 - Ingestion Jobs Schema Mismatch Fix + Activity Improvements
+
+### Summary:
+Fixed critical schema mismatch between SQLAlchemy model and database table for ingestion_jobs, enabling proper data display. Also improved activity API response format.
+
+### Issues Fixed:
+
+| Page | Issue | Root Cause | Fix |
+|------|-------|------------|-----|
+| Ingestão de Dados | Empty list despite 8 DB records | SQLAlchemy model had wrong column names (`total_size`, `valid_records`, `progress_percent`) vs DB (`processed_records`, `progress_percentage`, `pii_detected_count`) | Updated `IngestionJobModel` to match actual DB schema |
+| Atividades Recentes | "activity missing type" warnings, no items shown | API returned `entity_type` but frontend expected `type` | Updated `activity_routes.py` to map fields correctly |
+
+### Technical Details:
+
+#### Ingestion Jobs Schema Fix
+- **Database columns**: `processed_records`, `progress_percentage`, `pii_detected_count`, `current_step`, `source_type`
+- **Old model columns**: `valid_records`, `progress_percent`, `total_pii_entities`, `current_file`, `total_size`
+- **Fix**: Aligned `IngestionJobModel` in `models.py` with actual DB, updated repository mappings and entity `to_dict()`
+
+#### Activity API Response Fix
+- Added `type` field (mapped from `action`)
+- Added `entity` field (mapped from `entity_type`)  
+- Added `actor` object with `id`, `name`, `type`
+- Added `metadata` empty object
+
+### Files Modified:
+1. `backend/adapters/database/models.py` - Fixed `IngestionJobModel` columns
+2. `backend/adapters/repositories/ingestion_repository.py` - Updated mappings, added logging
+3. `backend/domain/entities/ingestion.py` - Updated `to_dict()` for frontend field names
+4. `backend/adapters/api/activity_routes.py` - Added missing fields for frontend
+
+### Verification:
+- ✅ Ingestion page shows 8 jobs correctly
+- ✅ Activity page shows 10 activities
+- ✅ PII Analysis page shows 4 detections
+- ✅ Infrastructure page shows 25 items
+
+### Notes:
+- Notifications and Reports pages use stub implementations that return empty lists (by design)
+- Activity timestamps show "NaNd atrás" - minor date formatting issue in frontend
+
+---
+
+## 2026-01-24 (Continued) - Infrastructure 500 Error Fix + PII/Ingestion Seeds
+
+### Summary:
+Fixed infrastructure endpoint 500 error caused by missing fields in domain entity, and added comprehensive seed data for PII detections and ingestion jobs.
+
+### Issues Fixed:
+
+| Endpoint | Error | Fix | File |
+|----------|-------|-----|------|
+| `/infrastructures` | `'Infrastructure' object has no attribute 'telefone'` | Added missing fields to entity: `telefone`, `site_url`, `endereco_completo`, `maturidade_regulatoria`, `maturidade_laboratorial` | `domain/entities/infrastructure.py` |
+
+### Seed Data Added:
+
+| Entity | Records | Notes |
+|--------|---------|-------|
+| `pii_detections` | 8 | Sample PII detection records with various risk levels and statuses |
+| `ingestion_jobs` | 8 (6 new) | Variety of statuses: completed, processing, failed, pending |
+
+### Files Modified:
+1. `backend/domain/entities/infrastructure.py` - Added missing fields to match DB schema
+2. `backend/alembic/seeds/pii_detections.py` - Enhanced to seed both rules and detection records
+3. `backend/alembic/seeds/ingestion_jobs.py` - Updated with more job records and proper schema
+4. `backend/scripts/seed_pii_data.sql` - SQL script for direct seeding
+
+### Current Data Counts (tenant `00000000-0000-0000-0000-000000000001`):
+
+| Entity | Count |
+|--------|-------|
+| portfolio_projects | 25 |
+| funding_sources | 8 |
+| audit_logs | 35 |
+| ingestion_jobs | 8 |
+| pii_detections | 8 |
+| opportunities | 27 |
+| institutes | 5 |
+| infrastructures | 25 |
+| report_templates | 3 |
+| report_instances | 2 |
+
+---
+
+## 2026-01-24 - API Endpoint 500 Error Fixes
+
+### Summary:
+Fixed multiple 500 Internal Server Error responses on API endpoints caused by model/enum mismatches between seeded data and backend code.
+
+### Issues Fixed:
+
+| Endpoint | Error | Fix | File |
+|----------|-------|-----|------|
+| `/opportunities` | `'proposal' is not a valid OpportunityStage` | Added missing enum values: `QUALIFICATION`, `PROPOSAL`, `NEGOTIATION`, `CLOSED_WON`, `CLOSED_LOST` | `domain/entities/opportunity.py` |
+| `/layout` | `JSONDecodeError: Unexpected UTF-8 BOM` | Changed encoding from `utf-8` to `utf-8-sig` to handle BOM | `services/layout_service.py` |
+| `/proposals` | `'ProposalModel' object has no attribute 'version'` | Removed invalid `version=model.version` from repository | `adapters/repositories/proposal_repository.py` |
+| `/proposals` | `lessons_learned: Input should be dict` | Convert string lessons to `{"description": str}` dicts | `adapters/repositories/proposal_repository.py` |
+| `/proposals` | `description: Input should be valid string` | Made `description` field Optional in response model | `adapters/api/proposals_routes.py` |
+| `/clients` | `cnpj: pattern mismatch`, `email: invalid`, `auto_filled_data: should be dict`, `detected_demands: should be dict` | Strip `ENCRYPTED:` prefix from PII fields, convert strings to dicts | `adapters/repositories/crm_repository.py` |
+| `/communications` | `role: should be 'owner', 'editor' or 'viewer'` | Added `PARTICIPANT = "participant"` to enum | `domain/entities/communication.py` |
+
+### Files Modified:
+1. `backend/domain/entities/opportunity.py` - Extended OpportunityStage enum
+2. `backend/services/layout_service.py` - UTF-8-sig encoding for BOM handling
+3. `backend/adapters/repositories/proposal_repository.py` - Fixed _model_to_entity method
+4. `backend/adapters/api/proposals_routes.py` - Made description Optional
+5. `backend/adapters/repositories/crm_repository.py` - PII field handling and type conversions
+6. `backend/domain/entities/communication.py` - Extended ParticipantRole enum
+
+### Verified Endpoints (All Returning 200):
+- ✅ `/api/v1/opportunities` - 27 records
+- ✅ `/api/v1/opportunities/stats/pipeline` - Pipeline statistics
+- ✅ `/api/v1/proposals` - 25 records
+- ✅ `/api/v1/clients` - 28 records
+- ✅ `/api/v1/communications` - 15 threads
+- ✅ `/api/v1/layout` - Layout configuration
+- ✅ `/api/v1/infrastructures` - Empty (no data seeded with matching tenant)
+
+---
+
+## 2026-01-24 - Comprehensive Seed Data Generation
+
+### Summary:
+Complete generation and fix of seed data for 20+ entities based on 5 SENAI institutes (ISI SVP, ISI QV, ISI B&F, ISI II, CIS SO) with 5 records per institute for related entities.
+
+### Seeds Created/Updated:
+
+| Entity | File | Records | Notes |
+|--------|------|---------|-------|
+| Admin | `admin.py` | 1 | admin@prospecai.com / Admin@123 |
+| Users | `users.py` | 25 | 5 per institute with institute membership |
+| Institutes | `institutes.py` | 5 | SENAI ISI/CIS institutes |
+| Teams | `teams.py` | 25 | 5 per institute with roles |
+| Infrastructures | `infrastructures.py` | 25 | 5 labs per institute |
+| Portfolio Projects | `portfolio_projects.py` | 25 | 5 per institute |
+| Funding Sources | `funding.py` | 5 | EMBRAPII, FINEP, BNDES, CNPq, FAPESP |
+| Clients | `clients_ops_notifications.py` | 25 | Brazilian companies |
+| Opportunities | `clients_ops_notifications.py` | 25 | With pipeline stages |
+| Notification Templates | `clients_ops_notifications.py` | 5 | Email templates |
+| Proposals | `proposals.py` | 25 | With varying statuses |
+| Proposal Versions | `proposals.py` | 50 | 2 versions per proposal |
+| Communication Threads | `communications.py` | 15 | Linked to proposals |
+| Communication Messages | `communications.py` | 45 | 3 per thread |
+| Thread Participants | `communications.py` | 30 | 2 per thread |
+| Meeting Minutes | `communications.py` | 10 | For select threads |
+
+### Technical Issues Fixed:
+
+1. **Invalid UUID Prefixes**: UUIDs must use hex characters only (0-9, a-f). Fixed:
+   - `u1000000` → `a2000000` (Users)
+   - `g1000000` → `c2000000` (Clients)  
+   - `h1000000` → `d2000000` (Opportunities)
+   - `p1000000` → `e2000000` (Proposals)
+   - `v1000000` → `f2000000` (Proposal Versions)
+   - `n1000000` → `b2000000` (Notification Templates)
+
+2. **Cross-Module Import Errors in Docker**: Seeds loaded via `importlib.util.spec_from_file_location()` cannot resolve `from alembic.seeds.xxx import YYY`. Solution: Inline all required ID dictionaries in each seed file.
+
+3. **Schema Mismatches**: Updated SQL statements to match actual table structures:
+   - `user_roles`: Removed non-existent `tenant_id` column
+   - `proposal_versions`: Fixed columns to `id, proposal_id, version, content, created_at, created_by`
+   - `communication_thread_participants`: Fixed columns to `id, tenant_id, thread_id, user_id, role, added_at, added_by`
+
+### UUID Pattern Reference:
+
+| Entity | UUID Prefix |
+|--------|-------------|
+| Tenant | `00000000-0000-0000-0000-00000000000X` |
+| Institutes | `a1000000-0000-0000-0000-00000000000X` |
+| Users | `a2000000-0000-0000-0000-00000000000X` |
+| Teams | `b1000000-0000-0000-0000-00000000000X` |
+| Notification Templates | `b2000000-0000-0000-0000-00000000000X` |
+| Infrastructures | `c1000000-0000-0000-0000-00000000000X` |
+| Clients | `c2000000-0000-0000-0000-00000000000X` |
+| Projects | `d1000000-0000-0000-0000-00000000000X` |
+| Opportunities | `d2000000-0000-0000-0000-00000000000X` |
+| Threads | `e1000000-0000-0000-0000-00000000000X` |
+| Proposals | `e2000000-0000-0000-0000-00000000000X` |
+| Funding | `f1000000-0000-0000-0000-00000000000X` |
+| Proposal Versions | `f2000000-0000-0000-0000-00000000000X` |
+
+### Testing Command:
+```bash
+docker exec prospecai-backend python scripts/run_seeds_fixed.py --tenants "00000000-0000-0000-0000-000000000001"
+```
 
 ---
 

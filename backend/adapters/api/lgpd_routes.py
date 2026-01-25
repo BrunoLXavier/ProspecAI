@@ -201,8 +201,8 @@ class DetectionResponse(BaseModel):
     reviewed_at: Optional[str]
     reviewer_comment: Optional[str]
     anonymized_at: Optional[str]
-    analyzed_at: str
-    created_at: str
+    analyzed_at: Optional[str] = None
+    created_at: Optional[str] = None
     entities: List[dict]
 
 

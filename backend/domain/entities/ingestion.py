@@ -164,28 +164,26 @@ class IngestionJob:
     deleted_at: Optional[datetime] = None
     
     def to_dict(self) -> dict:
-        """Convert to dictionary."""
+        """Convert to dictionary with frontend-expected field names."""
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id),
             "name": self.name,
             "description": self.description,
             "status": self.status.value,
+            "source_type": "csv",  # Default source type
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
             "total_files": self.total_files,
             "processed_files": self.processed_files,
-            "failed_files": self.failed_files,
-            "total_size": self.total_size,
             "total_records": self.total_records,
-            "valid_records": self.valid_records,
-            "invalid_records": self.invalid_records,
-            "total_pii_entities": self.total_pii_entities,
-            "pending_pii_review": self.pending_pii_review,
-            "highest_risk_level": self.highest_risk_level,
-            "current_file": self.current_file,
-            "progress_percent": self.progress_percent,
-            "estimated_time_remaining": self.estimated_time_remaining,
+            # Frontend expects these field names
+            "processed_records": self.valid_records,
+            "failed_records": self.invalid_records,
+            "pii_detected_count": self.total_pii_entities,
+            "pii_anonymized_count": self.pending_pii_review,
+            "progress_percentage": self.progress_percent,
+            "current_step": self.current_file,
             "error_message": self.error_message,
             "sources": [s.to_dict() for s in self.sources],
             "created_at": self.created_at.isoformat() if self.created_at else None,

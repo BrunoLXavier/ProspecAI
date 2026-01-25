@@ -14,6 +14,12 @@ class OpportunityStage(str, Enum):
     Implements RF-05: Pipeline de Oportunidades
     """
     INTELLIGENCE = "intelligence"
+    QUALIFICATION = "qualification"
+    PROPOSAL = "proposal"
+    NEGOTIATION = "negotiation"
+    CLOSED_WON = "closed_won"
+    CLOSED_LOST = "closed_lost"
+    # Legacy stages (kept for backward compatibility)
     VALIDATION = "validation"
     APPROACH = "approach"
     REGISTRATION = "registration"

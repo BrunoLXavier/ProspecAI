@@ -36,7 +36,9 @@ def run(tenant_ids, modules=None):
         'alembic.seeds.funding',
         # CRM, Opportunities, Notifications
         'alembic.seeds.clients_ops_notifications',
-        # Communications: depend on users
+        # Proposals: depend on opportunities and funding
+        'alembic.seeds.proposals',
+        # Communications: depend on users and proposals
         'alembic.seeds.communications',
         # Analytics and reporting
         'alembic.seeds.report_templates',

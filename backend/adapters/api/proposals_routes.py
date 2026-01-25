@@ -73,7 +73,7 @@ class ProposalResponse(BaseModel):
     """Response model for proposal"""
     id: UUID
     title: str
-    description: str
+    description: Optional[str] = None
     status: str
     opportunity_id: Optional[UUID]
     funding_source_id: Optional[UUID]

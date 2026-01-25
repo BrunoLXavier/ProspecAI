@@ -30,18 +30,23 @@ class Infrastructure(BaseEntity):
     instituto_id: UUID = Field(..., description="FK to Institute")
     nome: str = Field(..., min_length=1, max_length=300, description="e.g. 'Laboratório de Realidade Estendida'")
     descricao: str = Field(..., min_length=1, max_length=4000)
-    email_laboratorio: EmailStr = Field(..., description="Lab contact email")
-    email_responsavel: EmailStr = Field(..., description="Responsible person email")
-    area_predial_m2: int = Field(..., ge=0)
+    email_laboratorio: Optional[str] = Field(None, description="Lab contact email")
+    email_responsavel: Optional[str] = Field(None, description="Responsible person email")
+    telefone: Optional[str] = Field(None, max_length=20, description="Phone number")
+    site_url: Optional[str] = Field(None, max_length=500, description="Website URL")
+    endereco_completo: Optional[str] = Field(None, description="Full address")
+    area_predial_m2: Optional[float] = Field(None, ge=0)
     
     # Status
-    status_isi: InfrastructureStatus = InfrastructureStatus.OPERATIONAL
+    status_isi: Optional[InfrastructureStatus] = InfrastructureStatus.OPERATIONAL
     
     # Maturity fields
     maturidade_gestao: Optional[str] = Field(None, max_length=10, description="e.g. 'M4c'")
     maturidade_base_tecnologica: Optional[Decimal] = Field(None, ge=0, le=5, description="Maturity score 0-5 with 1 decimal place")
     maturidade_produtos_servicos: Optional[Decimal] = Field(None, ge=0, le=5, description="Maturity score 0-5 with 1 decimal place")
     maturidade_cooperacao: Optional[Decimal] = Field(None, ge=0, le=5, description="Maturity score 0-5 with 1 decimal place")
+    maturidade_regulatoria: Optional[Decimal] = Field(None, ge=0, le=5, description="Regulatory maturity score")
+    maturidade_laboratorial: Optional[Decimal] = Field(None, ge=0, le=5, description="Laboratory maturity score")
     
     # Technology platforms (ManyToMany or Array)
     plataformas_tecnologicas: List[str] = Field(default_factory=list)
