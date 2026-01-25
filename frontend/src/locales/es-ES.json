@@ -2180,6 +2180,7 @@
   },
   "proposals": {
     "title": "Propuestas",
+    "editProposal": "Editar Propuesta",
     "deleteConfirmation": "¿Está seguro de que desea eliminar esta propuesta?",
     "subtitle": "Gestionar propuestas y versiones",
     "newProposal": "Nueva Propuesta",

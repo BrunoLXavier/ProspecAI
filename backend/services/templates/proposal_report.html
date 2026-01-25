@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+{# 
+Implements RF-08: Proposal Report Template
+Jinja2 template for generating PDF and DOCX proposal reports.
+Used by WeasyPrint (PDF) and converted to DOCX via python-docx.
+#}
+<html lang="{{ language | default('pt-BR') }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ proposal.title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm 2.5cm;
+            @top-center {
+                content: "{{ proposal.title | truncate(50) }}";
+                font-size: 9pt;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            border-bottom: 3px solid #1a56db;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24pt;
+            color: #1a56db;
+            margin: 0 0 10px 0;
+        }
+        
+        .header .subtitle {
+            font-size: 14pt;
+            color: #666;
+        }
+        
+        .metadata {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .metadata-item {
+            margin: 5px 0;
+        }
+        
+        .metadata-item .label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metadata-item .value {
+            color: #1e293b;
+            font-size: 11pt;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 9pt;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-draft { background: #fef3c7; color: #92400e; }
+        .status-submitted { background: #dbeafe; color: #1e40af; }
+        .status-under_review { background: #e0e7ff; color: #3730a3; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .section h2 {
+            font-size: 16pt;
+            color: #1a56db;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .section h3 {
+            font-size: 13pt;
+            color: #334155;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .field {
+            margin-bottom: 20px;
+        }
+        
+        .field-label {
+            font-weight: 600;
+            color: #475569;
+            font-size: 10pt;
+            margin-bottom: 5px;
+        }
+        
+        .field-value {
+            color: #1e293b;
+            white-space: pre-wrap;
+        }
+        
+        .field-ai-badge {
+            display: inline-block;
+            font-size: 8pt;
+            padding: 2px 6px;
+            background: #f0fdf4;
+            color: #15803d;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+        
+        .confidence-badge {
+            display: inline-block;
+            font-size: 8pt;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .confidence-green { background: #d1fae5; color: #065f46; }
+        .confidence-yellow { background: #fef3c7; color: #92400e; }
+        .confidence-red { background: #fee2e2; color: #991b1b; }
+        
+        .budget-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .budget-table th,
+        .budget-table td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+        }
+        
+        .budget-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+            font-size: 10pt;
+        }
+        
+        .budget-table .amount {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .budget-table .total {
+            font-weight: 700;
+            background: #f8fafc;
+        }
+        
+        .timeline {
+            margin: 20px 0;
+        }
+        
+        .timeline-item {
+            display: flex;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 2px solid #1a56db;
+        }
+        
+        .timeline-item .phase {
+            font-weight: 600;
+            min-width: 200px;
+        }
+        
+        .timeline-item .dates {
+            color: #64748b;
+        }
+        
+        .trl-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .trl-bar {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .trl-segment {
+            width: 12px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+        
+        .trl-segment.active {
+            background: #1a56db;
+        }
+        
+        .objectives-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .objectives-list li {
+            padding: 10px 0 10px 30px;
+            position: relative;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .objectives-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #1a56db;
+            font-weight: bold;
+        }
+        
+        .team-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .team-table th,
+        .team-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .team-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        
+        .version-history {
+            margin: 20px 0;
+        }
+        
+        .version-item {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .version-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .version-number {
+            font-weight: 600;
+            color: #1a56db;
+        }
+        
+        .version-date {
+            color: #64748b;
+            font-size: 10pt;
+        }
+        
+        .version-message {
+            color: #475569;
+            font-size: 10pt;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 9pt;
+            color: #64748b;
+        }
+        
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .ai-disclaimer {
+            margin-top: 20px;
+            padding: 12px;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 6px;
+            font-size: 9pt;
+            color: #78350f;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ proposal.title }}</h1>
+        <div class="subtitle">
+            {% if funding_source %}
+                {{ funding_source.name }} - {{ funding_source.funder_name }}
+            {% else %}
+                Proposta de Projeto
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="metadata">
+        <div class="metadata-item">
+            <div class="label">Status</div>
+            <div class="value">
+                <span class="status-badge status-{{ proposal.status | lower }}">
+                    {{ proposal.status | replace('_', ' ') | title }}
+                </span>
+            </div>
+        </div>
+        <div class="metadata-item">
+            <div class="label">Versão Atual</div>
+            <div class="value">v{{ proposal.current_version }}</div>
+        </div>
+        <div class="metadata-item">
+            <div class="label">Data de Criação</div>
+            <div class="value">{{ proposal.created_at | date_format }}</div>
+        </div>
+        {% if proposal.submitted_at %}
+        <div class="metadata-item">
+            <div class="label">Data de Submissão</div>
+            <div class="value">{{ proposal.submitted_at | date_format }}</div>
+        </div>
+        {% endif %}
+        {% if adherence_score is defined %}
+        <div class="metadata-item">
+            <div class="label">Score de Aderência</div>
+            <div class="value">
+                <span class="confidence-badge {% if adherence_score >= 0.8 %}confidence-green{% elif adherence_score >= 0.6 %}confidence-yellow{% else %}confidence-red{% endif %}">
+                    {{ (adherence_score * 100) | round(1) }}%
+                </span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- RESUMO EXECUTIVO -->
+    {% if field_values.executive_summary %}
+    <div class="section">
+        <h2>Resumo Executivo</h2>
+        <div class="field-value">{{ field_values.executive_summary }}</div>
+    </div>
+    {% endif %}
+    
+    <!-- OBJETIVOS -->
+    {% if field_values.objectives %}
+    <div class="section">
+        <h2>Objetivos</h2>
+        
+        {% if field_values.objectives is string %}
+        <div class="field-value">{{ field_values.objectives }}</div>
+        {% else %}
+        <ul class="objectives-list">
+            {% for obj in field_values.objectives %}
+            <li>{{ obj }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        {% if field_values.expected_results %}
+        <h3>Resultados Esperados</h3>
+        {% if field_values.expected_results is string %}
+        <div class="field-value">{{ field_values.expected_results }}</div>
+        {% else %}
+        <ul class="objectives-list">
+            {% for result in field_values.expected_results %}
+            <li>{{ result }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- JUSTIFICATIVA -->
+    {% if field_values.justification %}
+    <div class="section">
+        <h2>Justificativa</h2>
+        <div class="field-value">{{ field_values.justification }}</div>
+    </div>
+    {% endif %}
+    
+    <!-- METODOLOGIA -->
+    {% if field_values.methodology %}
+    <div class="section">
+        <h2>Metodologia</h2>
+        <div class="field-value">{{ field_values.methodology }}</div>
+    </div>
+    {% endif %}
+    
+    <!-- TRL (NÍVEL DE MATURIDADE) -->
+    {% if field_values.trl_initial is defined or field_values.trl_target is defined %}
+    <div class="section">
+        <h2>Nível de Maturidade Tecnológica (TRL)</h2>
+        
+        {% if field_values.trl_initial is defined %}
+        <div class="field">
+            <div class="field-label">TRL Inicial</div>
+            <div class="field-value">
+                <div class="trl-indicator">
+                    <div class="trl-bar">
+                        {% for i in range(1, 10) %}
+                        <div class="trl-segment {% if i <= field_values.trl_initial %}active{% endif %}"></div>
+                        {% endfor %}
+                    </div>
+                    <span>TRL {{ field_values.trl_initial }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if field_values.trl_target is defined %}
+        <div class="field">
+            <div class="field-label">TRL Alvo</div>
+            <div class="field-value">
+                <div class="trl-indicator">
+                    <div class="trl-bar">
+                        {% for i in range(1, 10) %}
+                        <div class="trl-segment {% if i <= field_values.trl_target %}active{% endif %}"></div>
+                        {% endfor %}
+                    </div>
+                    <span>TRL {{ field_values.trl_target }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- CRONOGRAMA -->
+    {% if field_values.schedule %}
+    <div class="section">
+        <h2>Cronograma</h2>
+        
+        {% if field_values.schedule is mapping %}
+        <div class="timeline">
+            {% for phase, details in field_values.schedule.items() %}
+            <div class="timeline-item">
+                <div class="phase">{{ phase }}</div>
+                <div class="dates">
+                    {% if details is mapping %}
+                        {{ details.start | default('') }} - {{ details.end | default('') }}
+                    {% else %}
+                        {{ details }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="field-value">{{ field_values.schedule }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- ORÇAMENTO -->
+    {% if field_values.budget %}
+    <div class="section">
+        <h2>Orçamento</h2>
+        
+        {% if field_values.budget is mapping %}
+        <table class="budget-table">
+            <thead>
+                <tr>
+                    <th>Item/Categoria</th>
+                    <th class="amount">Valor (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set total = namespace(value=0) %}
+                {% for item, value in field_values.budget.items() %}
+                {% if item != 'total' %}
+                <tr>
+                    <td>{{ item | title }}</td>
+                    <td class="amount">
+                        {% if value is number %}
+                        {{ "{:,.2f}".format(value) }}
+                        {% set total.value = total.value + value %}
+                        {% else %}
+                        {{ value }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="total">
+                    <td><strong>Total</strong></td>
+                    <td class="amount">
+                        {% if field_values.budget.total is defined %}
+                        <strong>{{ "{:,.2f}".format(field_values.budget.total) }}</strong>
+                        {% else %}
+                        <strong>{{ "{:,.2f}".format(total.value) }}</strong>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        {% else %}
+        <div class="field-value">{{ field_values.budget }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- EQUIPE -->
+    {% if field_values.team %}
+    <div class="section">
+        <h2>Equipe</h2>
+        
+        {% if field_values.team is iterable and field_values.team is not string %}
+        <table class="team-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Função</th>
+                    <th>Instituição</th>
+                    <th>Horas/Semana</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in field_values.team %}
+                <tr>
+                    <td>{{ member.name | default('-') }}</td>
+                    <td>{{ member.role | default('-') }}</td>
+                    <td>{{ member.institution | default('-') }}</td>
+                    <td>{{ member.hours_per_week | default('-') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="field-value">{{ field_values.team }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- INFRAESTRUTURA -->
+    {% if field_values.infrastructure %}
+    <div class="section">
+        <h2>Infraestrutura Necessária</h2>
+        <div class="field-value">{{ field_values.infrastructure }}</div>
+    </div>
+    {% endif %}
+    
+    <!-- CAMPOS CUSTOMIZADOS (template-specific) -->
+    {% if custom_fields %}
+    <div class="section">
+        <h2>Informações Adicionais</h2>
+        {% for field in custom_fields %}
+        <div class="field">
+            <div class="field-label">
+                {{ field.label }}
+                {% if field.is_ai_suggested %}
+                <span class="field-ai-badge">Sugerido por IA</span>
+                {% endif %}
+            </div>
+            <div class="field-value">{{ field.value }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- HISTÓRICO DE VERSÕES -->
+    {% if include_versions and versions %}
+    <div class="section">
+        <h2>Histórico de Versões</h2>
+        <div class="version-history">
+            {% for version in versions %}
+            <div class="version-item">
+                <div class="version-header">
+                    <span class="version-number">Versão {{ version.version_number }}</span>
+                    <span class="version-date">{{ version.created_at | date_format }}</span>
+                </div>
+                <div class="version-message">{{ version.commit_message | default(version.changes_summary) }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- ANEXOS -->
+    {% if include_attachments and attachments %}
+    <div class="section">
+        <h2>Anexos</h2>
+        <table class="team-table">
+            <thead>
+                <tr>
+                    <th>Arquivo</th>
+                    <th>Tipo</th>
+                    <th>Tamanho</th>
+                    <th>Status Extração</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for att in attachments %}
+                <tr>
+                    <td>{{ att.file_name }}</td>
+                    <td>{{ att.file_type }}</td>
+                    <td>{{ (att.file_size / 1024) | round(1) }} KB</td>
+                    <td>{{ att.extraction_status | replace('_', ' ') | title }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    
+    <!-- DISCLAIMER IA -->
+    {% if has_ai_suggestions %}
+    <div class="ai-disclaimer">
+        <strong>⚠️ Aviso:</strong> Este documento contém campos que foram sugeridos por Inteligência Artificial 
+        e confirmados pelo usuário. Todos os valores foram validados por revisão humana (Human-in-the-Loop) 
+        antes da inclusão neste relatório.
+    </div>
+    {% endif %}
+    
+    <div class="footer">
+        <div class="footer-row">
+            <div>Gerado em: {{ generated_at | date_format }}</div>
+            <div>ProspecAI - Sistema de Prospecção de Projetos P&D</div>
+        </div>
+        <div class="footer-row">
+            <div>Gerado por: {{ generated_by_name | default('Sistema') }}</div>
+            <div>{{ tenant_name | default('') }}</div>
+        </div>
+    </div>
+</body>
+</html>

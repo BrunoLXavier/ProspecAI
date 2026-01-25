@@ -17,6 +17,7 @@ from adapters.repositories import (
 from adapters.repositories.feedback_repository import FeedbackRepository
 from adapters.repositories.opportunity_repository import OpportunityRepository
 from adapters.repositories.proposal_repository import ProposalRepository
+from adapters.repositories.proposal_version_repository import ProposalVersionRepository
 from adapters.repositories.matching_repository import MatchingRepository
 from use_cases.manage_funding import ManageFundingUseCase
 from use_cases.manage_portfolio import ManagePortfolioUseCase
@@ -70,6 +71,7 @@ class DependencyContainer:
         # New repositories with Neo4j integration
         self._opportunity_repo = OpportunityRepository(session, neo4j)
         self._proposal_repo = ProposalRepository(session, neo4j)
+        self._proposal_version_repo = ProposalVersionRepository(session)
         self._matching_repo = MatchingRepository(session, neo4j)
         
         # AI services
@@ -176,6 +178,7 @@ class DependencyContainer:
         """
         return ManageProposalsUseCase(
             proposal_repository=self._proposal_repo,
+            version_repository=self._proposal_version_repo,
         )
 
 

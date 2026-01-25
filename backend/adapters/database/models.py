@@ -514,6 +514,9 @@ class ProposalModel(BaseModel):
     description = Column(Text, nullable=True)
     current_status = Column(String(50), nullable=False, default='draft', index=True)
     
+    # Template reference for dynamic fields
+    template_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
+    
     opportunity_id = Column(PGUUID(as_uuid=True), nullable=True)
     funding_source_id = Column(PGUUID(as_uuid=True), nullable=True)
     owner_id = Column(PGUUID(as_uuid=True), nullable=True)
@@ -556,7 +559,8 @@ class ProposalVersionModel(BaseModel):
     attachments = Column(JSON, default=list)
     
     author_id = Column(PGUUID(as_uuid=True), nullable=False)
-    commit_message = Column(Text, nullable=False)
+    commit_message = Column(String(500), nullable=False)
+    changes_summary = Column(Text, nullable=True)
     
     adherence_score = Column(Numeric(3, 2), nullable=True)
     adherence_analysis = Column(JSON, nullable=True)
@@ -1335,4 +1339,187 @@ class ReportableTableModel(Base):
     )
 
 
+# ============================================================================
+# PROPOSAL TEMPLATE SYSTEM MODELS
+# Implements RF-08: Dynamic proposal fields based on funding source type
+# ============================================================================
 
+class ProposalTemplateModel(BaseModel):
+    """
+    PostgreSQL model for proposal templates.
+    Implements RF-08: Dynamic proposal structure per funding source.
+    """
+    __tablename__ = "proposal_templates"
+    
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    template_type = Column(String(50), nullable=False, default='generic')
+    
+    # Link to funding source (optional)
+    funding_source_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
+    
+    # Status
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_default = Column(Boolean, default=False, nullable=False)
+    
+    # Template version
+    version = Column(Integer, default=1, nullable=False)
+    
+    # Sections configuration (JSON array)
+    sections = Column(JSON, nullable=False, default=[])
+    
+    # Standard fields inclusion
+    include_standard_fields = Column(Boolean, default=True, nullable=False)
+    
+    __table_args__ = (
+        Index('idx_template_type', 'template_type'),
+        Index('idx_template_funding_source', 'funding_source_id'),
+        Index('idx_template_active_default', 'is_active', 'is_default'),
+    )
+
+
+class ProposalFieldTemplateModel(BaseModel):
+    """
+    PostgreSQL model for proposal field templates.
+    Implements RF-08: Dynamic proposal field structure.
+    """
+    __tablename__ = "proposal_field_templates"
+    
+    template_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    field_key = Column(String(100), nullable=False)
+    label = Column(String(200), nullable=False)
+    field_type = Column(String(50), nullable=False)
+    
+    # Configuration
+    required = Column(Boolean, default=False, nullable=False)
+    order = Column(Integer, default=0, nullable=False)
+    section = Column(String(100), default='general', nullable=False)
+    
+    # Validation rules
+    min_length = Column(Integer, nullable=True)
+    max_length = Column(Integer, nullable=True)
+    min_value = Column(Numeric(20, 4), nullable=True)
+    max_value = Column(Numeric(20, 4), nullable=True)
+    pattern = Column(String(500), nullable=True)
+    
+    # Select options (JSON array)
+    options = Column(JSON, nullable=True)
+    
+    # Dependencies
+    depends_on_field = Column(String(100), nullable=True)
+    depends_on_value = Column(JSON, nullable=True)
+    
+    # Nested fields for object/array types
+    nested_fields = Column(JSON, nullable=True)
+    
+    # UI hints
+    placeholder = Column(String(500), nullable=True)
+    help_text = Column(Text, nullable=True)
+    width = Column(String(20), default='full', nullable=False)
+    
+    # Auto-fill configuration
+    auto_fill_enabled = Column(Boolean, default=True, nullable=False)
+    auto_fill_prompt = Column(Text, nullable=True)
+    
+    __table_args__ = (
+        Index('idx_field_template_order', 'template_id', 'order'),
+        Index('idx_field_template_section', 'template_id', 'section'),
+        UniqueConstraint('template_id', 'field_key', name='uq_template_field_key'),
+    )
+
+
+class ProposalFieldValueModel(BaseModel):
+    """
+    PostgreSQL model for proposal field values.
+    Implements RF-08: Normalized field value storage.
+    """
+    __tablename__ = "proposal_field_values"
+    
+    proposal_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    version_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
+    field_key = Column(String(100), nullable=False)
+    
+    # Value stored as JSON
+    value = Column(JSON, nullable=True)
+    
+    # Auto-fill metadata
+    extracted_from_file = Column(String(500), nullable=True)
+    extraction_confidence = Column(Numeric(3, 2), nullable=True)
+    
+    # Confirmation tracking (human-in-the-loop)
+    is_confirmed = Column(Boolean, default=False, nullable=False)
+    confirmed_by = Column(PGUUID(as_uuid=True), nullable=True)
+    confirmed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Previous value for audit
+    previous_value = Column(JSON, nullable=True)
+    
+    __table_args__ = (
+        Index('idx_field_value_proposal_key', 'proposal_id', 'field_key'),
+        Index('idx_field_value_version_key', 'proposal_id', 'version_id', 'field_key'),
+        Index('idx_field_value_confirmed', 'proposal_id', 'is_confirmed'),
+    )
+
+
+class ProposalAttachmentModel(BaseModel):
+    """
+    PostgreSQL model for proposal attachments.
+    Implements RF-08.09: Upload de anexos with auto-fill support.
+    """
+    __tablename__ = "proposal_attachments"
+    
+    proposal_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    version_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
+    
+    # File metadata
+    file_key = Column(String(500), nullable=False)
+    file_name = Column(String(255), nullable=False)
+    file_type = Column(String(100), nullable=False)
+    file_size = Column(Integer, nullable=False)
+    
+    # Extraction status
+    extraction_status = Column(String(20), default='pending', nullable=False)
+    extraction_started_at = Column(DateTime(timezone=True), nullable=True)
+    extraction_completed_at = Column(DateTime(timezone=True), nullable=True)
+    extraction_error = Column(Text, nullable=True)
+    
+    # Extracted content
+    extracted_text = Column(Text, nullable=True)
+    extracted_fields = Column(JSON, nullable=True, default={})
+    
+    __table_args__ = (
+        Index('idx_attachment_proposal', 'proposal_id'),
+        Index('idx_attachment_status', 'extraction_status'),
+    )
+
+
+class AutoFillSuggestionModel(BaseModel):
+    """
+    PostgreSQL model for auto-fill suggestions pending confirmation.
+    Implements RF-08: Human-in-the-loop for AI suggestions.
+    """
+    __tablename__ = "auto_fill_suggestions"
+    
+    proposal_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    attachment_id = Column(PGUUID(as_uuid=True), nullable=False, index=True)
+    field_key = Column(String(100), nullable=False)
+    
+    # Suggested value
+    suggested_value = Column(JSON, nullable=True)
+    confidence_score = Column(Numeric(3, 2), nullable=False)
+    
+    # Source in document
+    source_text = Column(Text, nullable=True)  # Original text extracted
+    source_page = Column(Integer, nullable=True)  # Page number if applicable
+    
+    # Status
+    status = Column(String(20), default='pending', nullable=False)  # pending, accepted, rejected
+    
+    # User decision
+    decided_by = Column(PGUUID(as_uuid=True), nullable=True)
+    decided_at = Column(DateTime(timezone=True), nullable=True)
+    
+    __table_args__ = (
+        Index('idx_suggestion_proposal_status', 'proposal_id', 'status'),
+        Index('idx_suggestion_attachment', 'attachment_id'),
+    )

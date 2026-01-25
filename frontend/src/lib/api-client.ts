@@ -445,6 +445,29 @@ class ApiClient {
     const response = await this.client.post(`/api/v1/proposals/${id}/submit`);
     return response.data;
   }
+
+  // Proposal Versioning API (RF-08: Git-like versioning)
+  async listProposalVersions(proposalId: string): Promise<any[]> {
+    const response = await this.client.get(`/api/v1/proposals/${proposalId}/versions`);
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    return data?.items ?? data?.data ?? [];
+  }
+
+  async getProposalVersion(proposalId: string, versionNumber: number) {
+    const response = await this.client.get(`/api/v1/proposals/${proposalId}/versions/${versionNumber}`);
+    return response.data;
+  }
+
+  async createProposalVersion(proposalId: string, data: { commit_message: string; field_updates?: Record<string, any> }) {
+    const response = await this.client.post(`/api/v1/proposals/${proposalId}/versions/commit`, data);
+    return response.data;
+  }
+
+  async diffProposalVersions(proposalId: string, versionA: number, versionB: number) {
+    const response = await this.client.get(`/api/v1/proposals/${proposalId}/versions/${versionA}/diff/${versionB}`);
+    return response.data;
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -50,6 +50,12 @@
           "approve",
           "assign"
         ],
+        "proposal_templates": [
+          "create",
+          "read",
+          "update",
+          "delete"
+        ],
         "matching": [
           "create",
           "read",
@@ -160,6 +166,9 @@
           "export",
           "approve"
         ],
+        "proposal_templates": [
+          "read"
+        ],
         "matching": [
           "read",
           "export"
@@ -213,6 +222,9 @@
           "read",
           "update"
         ],
+        "proposal_templates": [
+          "read"
+        ],
         "matching": [
           "read"
         ],
@@ -254,6 +266,9 @@
           "read"
         ],
         "proposals": [
+          "read"
+        ],
+        "proposal_templates": [
           "read"
         ],
         "matching": [

@@ -1,7 +1,139 @@
 # ProspecAI - Implementation History
 
-**Última atualização:** 25 de Janeiro de 2026  
+**Última atualização:** 26 de Janeiro de 2026  
 **Status:** ✅ Production Ready - All Issues Resolved
+
+---
+
+## 2026-01-26 - i18n Translation Fixes & Build Stabilization
+
+### Summary:
+Fixed multiple i18n missing translation issues in the proposals module, corrected TypeScript errors in DynamicProposalForm.tsx, and resolved backend import error in proposals router.
+
+### Issues Fixed:
+
+| Issue | Solution | Files |
+|-------|----------|-------|
+| **TypeScript: progressEvent 'any' type** | Added `AxiosProgressEvent` import and explicit typing | `frontend/src/components/proposals/DynamicProposalForm.tsx` |
+| **TypeScript: 'loading' prop doesn't exist** | Changed Button prop from `loading` to `isLoading` | `frontend/src/components/proposals/DynamicProposalForm.tsx` |
+| **Python: ImportError check_acl_permission** | Created helper async function wrapper using `acl_service.check_permission()` | `backend/routers/proposals.py` |
+| **i18n: MISSING_MESSAGE editProposal** | Added `"editProposal": "Editar Proposta"` to all locale files | `frontend/src/locales/{pt-BR,en-US,es-ES}.json` |
+| **i18n: camelCase placeholders** | Fixed `opportunityPlaceholder`, `fundingSourcePlaceholder`, `noProposals` translations | `frontend/src/locales/pt-BR.json` |
+| **i18n: Missing common.updatedAt** | Added `"updatedAt": "Atualizado em"` to common section | `frontend/src/locales/pt-BR.json` |
+| **i18n: Untranslated common keys** | Fixed `chars`, `moveLeft`, `moveRight` camelCase values | `frontend/src/locales/pt-BR.json` |
+
+### Playwright MCP Tests Completed:
+- ✅ Dashboard loads with all widgets (Pipeline, Metrics, Activity Feed, TRL Distribution)
+- ✅ Proposals page lists 25 proposals with pagination
+- ✅ Proposal edit modal shows correctly translated labels
+- ✅ Opportunities page shows 25 items with AI confidence badges
+- ✅ All navigation links functional
+
+### Files Modified:
+- `frontend/src/components/proposals/DynamicProposalForm.tsx` - TypeScript fixes
+- `backend/routers/proposals.py` - ACL permission helper function
+- `frontend/src/locales/pt-BR.json` - Multiple i18n fixes
+- `frontend/src/locales/en-US.json` - Added editProposal translation
+- `frontend/src/locales/es-ES.json` - Added editProposal translation
+
+---
+
+## 2026-01-25 - Comprehensive Proposal System Implementation (RF-08)
+
+### Summary:
+Implemented detailed proposal system with dynamic fields based on funding source templates, AI-powered auto-fill from uploaded documents, explicit Git-like versioning with commit messages, and PDF/DOCX report generation.
+
+### New Features Implemented:
+
+| Feature | Description | Files |
+|---------|-------------|-------|
+| **Dynamic Templates** | Proposal templates with funding-source-specific fields (B&F, FINEP, EMBRAPII, BNDES, Direct) | `domain/entities/proposal.py`, `adapters/database/models.py` |
+| **Field Templates** | 12 standard fields + template-specific fields (TRL, currency, arrays, objects) | `STANDARD_PROPOSAL_FIELDS` constant |
+| **Auto-fill from Documents** | AI extraction from PDF/DOCX using pdfplumber + python-docx + LLM | `services/ai/proposal_auto_fill.py` |
+| **Human-in-the-Loop** | Confidence badges (green >80%, yellow 60-80%, red <60%) + accept/reject workflow | `AutoFillSuggestionsModal.tsx` |
+| **Explicit Versioning** | Git-like commits with required commit message | `ProposalVersion.commit_message` required |
+| **Report Generation** | PDF/DOCX export using Jinja2 + WeasyPrint | `services/templates/proposal_report.html` |
+| **Admin Templates** | ACL-controlled template management (admin-only create/update/delete) | `config/acl.json` |
+
+### New Database Tables (Migration `20260138_proposal_template_system.py`):
+
+| Table | Purpose | Key Columns |
+|-------|---------|-------------|
+| `proposal_templates` | Define proposal templates | `name`, `template_type`, `funding_source_id`, `is_default` |
+| `proposal_field_templates` | Field definitions per template | `field_key`, `field_type`, `validation_rules`, `options` |
+| `proposal_field_values` | Normalized field value storage | `proposal_id`, `field_key`, `value`, `is_ai_suggested`, `is_confirmed` |
+| `proposal_attachments` | File attachments with extraction status | `file_key`, `extraction_status`, `extracted_text` |
+| `auto_fill_suggestions` | Pending AI suggestions | `suggested_value`, `confidence_score`, `source_text` |
+
+### New API Endpoints (`routers/proposals.py`):
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/proposals/templates/` | GET | List proposal templates |
+| `/proposals/templates/{id}` | GET | Get template with fields |
+| `/proposals/templates/for-funding/{id}` | GET | Get template for funding source |
+| `/proposals/templates/` | POST | Create template (admin) |
+| `/proposals/templates/standard-fields` | GET | Get 12 standard fields |
+| `/proposals/{id}/fields` | GET/PUT | Get/update field values |
+| `/proposals/{id}/attachments` | POST/GET | Upload/list attachments |
+| `/proposals/{id}/auto-fill/suggestions` | GET | Get pending AI suggestions |
+| `/proposals/{id}/auto-fill/suggestions/{id}/confirm` | POST | Accept/reject suggestion |
+| `/proposals/{id}/auto-fill/confirm-all` | POST | Bulk accept high-confidence |
+| `/proposals/{id}/versions/commit` | POST | Create version with commit message |
+| `/proposals/{id}/report` | POST | Generate PDF/DOCX report |
+
+### New Frontend Components:
+
+| Component | Purpose |
+|-----------|---------|
+| `DynamicFieldInput.tsx` | Renders fields based on type (text, TRL slider, currency, arrays, etc.) |
+| `DynamicProposalForm.tsx` | Complete form with template loading, file upload, auto-fill integration |
+| `AutoFillSuggestionsModal.tsx` | Modal for reviewing/accepting AI suggestions with confidence tabs |
+
+### Seed Data (`alembic/seeds/proposals_seed.py`):
+
+| Data Type | Count | Examples |
+|-----------|-------|----------|
+| Templates | 6 | Generic, EMBRAPII, FINEP, BNDES, B&F, Direct Contract |
+| Field Templates | 20+ | B&F: aircraft_program, part_number, oem_partner, certification_requirements |
+| Sample Proposals | 4 | Têxtil Aeronáutico (B&F), Compósitos Termoplásticos (EMBRAPII), Visão Computacional (FINEP), Manufatura Aditiva (Direct) |
+| Versions | 7 | Multiple versions with commit messages |
+
+### Dependencies Added (`requirements.txt`):
+- `pdfplumber==0.10.3` - PDF text extraction
+- `python-docx==1.1.0` - DOCX text extraction  
+- `weasyprint==60.2` - PDF report generation
+
+### ACL Updates (`config/acl.json`):
+- Added `proposal_templates` resource
+- Admin: create, read, update, delete
+- Manager/Analyst/Viewer: read only
+
+### Files Created:
+1. `backend/alembic/versions/20260138_proposal_template_system.py`
+2. `backend/services/ai/proposal_auto_fill.py`
+3. `backend/services/templates/proposal_report.html`
+4. `backend/alembic/seeds/proposals_seed.py`
+5. `frontend/src/components/proposals/DynamicFieldInput.tsx`
+6. `frontend/src/components/proposals/DynamicProposalForm.tsx`
+7. `frontend/src/components/proposals/AutoFillSuggestionsModal.tsx`
+
+### Files Modified:
+1. `backend/domain/entities/proposal.py` - Added templates, field types, enums
+2. `backend/adapters/database/models.py` - Added 5 new model classes
+3. `backend/use_cases/manage_proposals.py` - Added 15+ new methods
+4. `backend/routers/proposals.py` - Added 20+ new endpoints
+5. `backend/requirements.txt` - Added document processing libs
+6. `backend/config/acl.json` - Added proposal_templates resource
+7. `frontend/src/locales/pt-BR.json` - Added auto_fill, version, upload translations
+
+### Architecture Notes:
+- **Clean Architecture**: Domain entities → Use Cases → Adapters → Infrastructure
+- **Human-in-the-Loop**: AI never auto-applies suggestions; human confirmation required
+- **Multi-tenant**: All tables include `tenant_id` with RLS
+- **Soft Delete**: Using `deleted_at` timestamp, no physical deletes
+- **Kafka Integration**: Auto-fill requests processed via `prospecai.proposal.auto-fill-request` topic
+- **WebSocket**: Real-time notifications via `proposal:{id}` rooms
 
 ---
 

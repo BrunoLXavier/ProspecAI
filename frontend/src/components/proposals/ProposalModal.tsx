@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTranslations } from 'next-intl';
 
 import { BaseModal, ModalTabs, DeleteConfirmation, type TabItem } from '@/components/ui';
@@ -26,6 +26,7 @@ import {
 } from '@/lib/validations';
 import apiClient from '@/lib/api-client';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
+import VersionHistoryPanel from './VersionHistoryPanel';
 
 interface Proposal {
   id: string;
@@ -338,11 +339,29 @@ export default function ProposalModal({
     </div>
   );
 
+  // Tab 4 content: Versões (Git-like version history)
+  const versionsTabContent = (
+    <div className="space-y-4">
+      {isEditMode && proposal?.id ? (
+        <VersionHistoryPanel
+          proposalId={proposal.id}
+          currentVersion={version}
+        />
+      ) : (
+        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+          <ClockIcon className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p>{t('versionsAvailableAfterCreate') || 'O histórico de versões estará disponível após a criação da proposta.'}</p>
+        </div>
+      )}
+    </div>
+  );
+
   // Tab configuration with content
   const tabs: TabItem[] = [
     { name: t('tabs.basic') || 'Básico', content: basicTabContent },
     { name: t('tabs.content') || 'Conteúdo', content: contentTabContent },
     { name: t('tabs.metadata') || 'Metadados', content: metadataTabContent },
+    ...(isEditMode ? [{ name: t('tabs.versions') || 'Versões', content: versionsTabContent }] : []),
   ];
 
   const renderNoPermission = () => (

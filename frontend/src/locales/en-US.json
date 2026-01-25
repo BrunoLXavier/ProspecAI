@@ -2176,6 +2176,7 @@
   },
   "proposals": {
     "title": "Proposals",
+    "editProposal": "Edit Proposal",
     "deleteConfirmation": "Are you sure you want to delete this proposal?",
     "subtitle": "Manage proposals and versions",
     "newProposal": "New Proposal",
@@ -2251,8 +2252,28 @@
     "tabs": {
       "basic": "Basic",
       "content": "Content",
-      "metadata": "Metadata"
-    }
+      "metadata": "Metadata",
+      "versions": "Versions"
+    },
+    "versionHistory": "Version History",
+    "createVersion": "New Version",
+    "createNewVersion": "Create New Version",
+    "commitMessage": "Commit Message",
+    "commitMessagePlaceholder": "Describe the changes made in this version...",
+    "commitMessageHint": "A good message clearly describes what was changed and why.",
+    "saveVersion": "Save Version",
+    "noVersions": "No versions recorded yet.",
+    "createFirstVersion": "Create the first version to track changes.",
+    "versionsAvailableAfterCreate": "Version history will be available after creating the proposal.",
+    "versionLoadError": "Error loading version history",
+    "current": "Current",
+    "noCommitMessage": "No commit message",
+    "by": "By",
+    "comparingVersions": "Comparing versions",
+    "viewDiff": "View Differences",
+    "selectForCompare": "Select for comparison",
+    "versionDiff": "Version Differences",
+    "noDifferences": "No differences found between versions."
   },
   "reports": {
     "title": "Reports",

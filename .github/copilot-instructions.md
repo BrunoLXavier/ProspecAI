@@ -11,7 +11,7 @@ Você é um **Engenheiro de Software Sênior** especializado em **Clean Architec
 Sempre utilize os servidores MCP para análise e testes antes de sugerir ou implementar código:
 
 ### 2.1 Playwright Testing and Debugging
-Always use Playwright MCP (with Firefox brownser) for testing.
+Ao final de qualquer implementação ou modificação de código-fonte, sempre use o Playwright MCP (com o navegador Mozilla Firefox) para testes. Caso necessário, rebuild os dockers (rode rebuild-docker.bat) com cache e caso as atualizações não tenham side verificadas, utilize o build sem cache (rode rebuild-docker.bat --no-cache). Antes de qualquer build verifique os #problems.
 
 ## 3. Diretrizes de Arquitetura e Código
 ### 3.1 Clean Architecture
