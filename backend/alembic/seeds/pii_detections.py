@@ -209,7 +209,7 @@ def seed_for_tenant(conn, tenant_id: str) -> None:
                     )
                     SELECT 
                         :id, :tenant_id, :source_type, :file_name, :file_type,
-                        :original_text_encrypted, :anonymized_text, :entities::jsonb, :total_entities,
+                        :original_text_encrypted, :anonymized_text, CAST(:entities AS jsonb), :total_entities,
                         :risk_level, :overall_risk_level, :anonymization_status,
                         now(), now(), :created_by, :created_by, 1
                     WHERE NOT EXISTS (

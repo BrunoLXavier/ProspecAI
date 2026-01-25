@@ -10,6 +10,7 @@ from .base import BaseEntity
 class InstrumentType(str, Enum):
     """Types of funding instruments."""
     GRANT = "grant"
+    SUBVENTION = "subvention"  # Non-repayable funding (similar to grant)
     LOAN = "loan"
     EQUITY = "equity"
     TAX_INCENTIVE = "tax_incentive"

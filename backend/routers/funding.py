@@ -200,13 +200,15 @@ async def list_funding_sources(
     if search:
         filters["search"] = search
 
-    # Use use-case to get filtered results scoped to selected institutes
+    # Use use-case to get filtered results
+    # NOTE: Funding sources are global/shared resources, not scoped to institutes
+    # Only apply institute filter if explicitly requested via filters
     results, total = await funding_use_case.list_funding_sources_filtered(
         filters=filters,
         skip=skip,
         limit=page_size,
         tenant_id=UUID(tenant_id),
-        institute_ids=selected_institutes,
+        institute_ids=None,  # Don't filter by institutes - funding is global
     )
 
     items = []

@@ -7,7 +7,7 @@ TABLE_NAME = "ingestion_jobs"
 # Implements RF-01: Sample ingestion jobs for data pipeline demonstration
 DEFAULT_JOBS = [
     {
-        "id": "ij000000-0000-0000-0000-000000000001",
+        "id": "1a000000-0000-0000-0000-000000000001",  # Changed from ij... to valid UUID
         "name": "Initial Dataset Import",
         "description": "Bulk import of historical datasets for analytics",
         "status": "completed",
@@ -23,7 +23,7 @@ DEFAULT_JOBS = [
         "current_step": "completed",
     },
     {
-        "id": "ij000000-0000-0000-0000-000000000002",
+        "id": "1a000000-0000-0000-0000-000000000002",
         "name": "Weekly CRM Sync",
         "description": "Scheduled ingestion from CRM export",
         "status": "pending",
@@ -39,7 +39,7 @@ DEFAULT_JOBS = [
         "current_step": "queued",
     },
     {
-        "id": "ij000000-0000-0000-0000-000000000003",
+        "id": "1a000000-0000-0000-0000-000000000003",
         "name": "Partner Database Integration",
         "description": "Ingestão de dados de parceiros industriais via API REST",
         "status": "processing",
@@ -55,7 +55,7 @@ DEFAULT_JOBS = [
         "current_step": "processing_file_4",
     },
     {
-        "id": "ij000000-0000-0000-0000-000000000004",
+        "id": "1a000000-0000-0000-0000-000000000004",
         "name": "Research Papers Import",
         "description": "Importação de artigos científicos e publicações acadêmicas",
         "status": "completed",
@@ -71,7 +71,7 @@ DEFAULT_JOBS = [
         "current_step": "completed",
     },
     {
-        "id": "ij000000-0000-0000-0000-000000000005",
+        "id": "1a000000-0000-0000-0000-000000000005",
         "name": "Government Funding Data",
         "description": "Dados de editais de fomento governamental (FINEP, CNPq)",
         "status": "completed",
@@ -87,7 +87,7 @@ DEFAULT_JOBS = [
         "current_step": "completed",
     },
     {
-        "id": "ij000000-0000-0000-0000-000000000006",
+        "id": "1a000000-0000-0000-0000-000000000006",
         "name": "Historic Proposals Archive",
         "description": "Digitalização de propostas históricas do arquivo físico",
         "status": "failed",
@@ -104,7 +104,7 @@ DEFAULT_JOBS = [
         "error_message": "OCR processing failed on corrupted PDF files",
     },
     {
-        "id": "ij000000-0000-0000-0000-000000000007",
+        "id": "1a000000-0000-0000-0000-000000000007",
         "name": "Industry Contact Import",
         "description": "Importação de contatos industriais do CRM legado",
         "status": "completed",
@@ -120,7 +120,7 @@ DEFAULT_JOBS = [
         "current_step": "completed",
     },
     {
-        "id": "ij000000-0000-0000-0000-000000000008",
+        "id": "1a000000-0000-0000-0000-000000000008",
         "name": "Monthly Funding Update",
         "description": "Atualização mensal de oportunidades de fomento",
         "status": "pending",
