@@ -68,6 +68,9 @@
       "matched": "Matching de {score}% com {funding}",
       "submitted": "Proposta submetida"
     }
+    ,"time": {
+      "unknown": "—"
+    }
   },
   "admin": {
     "acl": "Acl",
@@ -793,6 +796,8 @@
       "close": "Fechar",
       "cancel": "Cancelar",
       "submit": "Enviar feedback",
+      "reset": "Resetar",
+      "confirmReset": "Tem certeza que deseja reiniciar o formulário de feedback?",
       "submitting": "Enviando...",
       "processing": "Processando..."
     },
@@ -900,6 +905,8 @@
       "sending": "Enviando...",
       "screenshot": "Screenshot com marcações",
       "userComment": "Comentário do usuário",
+      "confirmDelete": "Tem certeza que deseja deletar este feedback?",
+      "delete": "Deletar",
       "stats": {
         "total": "Total",
         "open": "Abertos",

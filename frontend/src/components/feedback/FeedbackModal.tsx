@@ -22,6 +22,7 @@ import { useFeedbackStore, FeedbackType, FeedbackSeverity } from '@/stores/feedb
 import { useScreenshotCapture } from './ScreenshotCapture';
 import AnnotationCanvas from './AnnotationCanvas';
 import apiClient from '@/lib/api-client';
+import BaseModal, { ModalFooter } from '@/components/ui/BaseModal';
 
 // =============================================================================
 // Types
@@ -348,17 +349,16 @@ export default function FeedbackModal() {
   
   // Don't render if not open
   if (!isOpen) return null;
-  
+
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm feedback-modal"
-      data-feedback-ignore
-      id="feedback-container"
+    <BaseModal
+      isOpen={isOpen}
+      onClose={closeFeedback}
+      title={String(t('modal.title') || '')}
+      size="3xl"
+      noContentScroll={false}
+      className="max-w-[90vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl"
     >
-      <div
-        className="relative w-full max-w-[90vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] bg-white dark:bg-slate-800 rounded-xl shadow-2xl overflow-hidden"
-        data-feedback-ignore
-      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -373,7 +373,7 @@ export default function FeedbackModal() {
         </div>
         
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+        <div className="p-6 overflow-y-auto max-h-[70vh]">
           {/* Step Indicator - hide for success/error/submitting */}
           {!['success', 'error', 'submitting'].includes(currentStep) && (
             <StepIndicator currentStep={currentStep} t={t} />
@@ -505,22 +505,33 @@ export default function FeedbackModal() {
                 </div>
               )}
               
-              {/* Actions */}
-              <div className="flex justify-between pt-4">
-                <button
-                  onClick={() => setStep('annotate')}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  <ArrowLeftIcon className="h-4 w-4" />
-                  {t('comment.back')}
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={!description.trim()}
-                  className="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {t('modal.submit')}
-                </button>
+              {/* Actions - use standardized ModalFooter */}
+              <div className="pt-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <button
+                      onClick={() => {
+                        // Reset the feedback flow
+                        if (confirm(String(t('modal.confirmReset') || 'Resetar feedback?'))) {
+                          reset();
+                          setStep('capture');
+                        }
+                      }}
+                      className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    >
+                      {String(t('modal.reset') || 'Reset')}
+                    </button>
+                  </div>
+                  <div className="flex-1">
+                    <ModalFooter
+                      onCancel={() => setStep('annotate')}
+                      onSubmit={handleSubmit}
+                      isSubmitting={false}
+                      submitLabel={String(t('modal.submit') || '')}
+                      cancelLabel={String(t('comment.back') || '')}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -584,7 +595,7 @@ export default function FeedbackModal() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+        {/* Footer handled inside content for each step; render a default footer for cancel/close when appropriate */}
+      </BaseModal>
   );
 }

@@ -146,8 +146,11 @@ export default function ActivityPage() {
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
+  const formatTimeAgo = (dateString?: string | null) => {
+    if (!dateString) return t('time.unknown') || '—';
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return t('time.unknown') || '—';
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));

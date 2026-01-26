@@ -27,10 +27,11 @@ import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar
 import FeedbackModal from '@/components/feedback/FeedbackModal';
 import { useFeedbackStore } from '@/stores/feedbackStore';
 import { ViewMode } from '@/components/ui/ViewToggle';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
 import TableView, { TableColumn } from '@/components/ui/TableView';
 import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
 import apiClient from '@/lib/api-client';
+import BaseModal from '@/components/ui/BaseModal';
+import Pagination from '@/components/ui/Pagination';
 
 // =============================================================================
 // Types
@@ -90,15 +91,15 @@ const FEEDBACK_TYPES: Record<string, { label: string; emoji: string }> = {
 };
 
 const SEVERITY_LABELS: Record<string, { label: string; color: string }> = {
-  low: { label: 'Baixa', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
-  medium: { label: 'Média', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
-  high: { label: 'Alta', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' },
-  critical: { label: 'Crítica', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
+  critical: { label: 'Crítico', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
+  high: { label: 'Alto', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' },
+  medium: { label: 'Médio', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
+  low: { label: 'Baixo', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
 };
 
-const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof CheckCircleIcon }> = {
-  open: { label: 'Aberto', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', icon: ClockIcon },
-  in_review: { label: 'Em análise', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', icon: EyeIcon },
+const STATUS_LABELS: Record<string, { label: string; color: string; icon: any }> = {
+  open: { label: 'Aberto', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300', icon: ExclamationCircleIcon },
+  in_review: { label: 'Em análise', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', icon: EyeIcon },
   acknowledged: { label: 'Reconhecido', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300', icon: CheckCircleIcon },
   in_progress: { label: 'Em progresso', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300', icon: ArrowPathIcon },
   resolved: { label: 'Resolvido', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', icon: CheckCircleIcon },
@@ -114,15 +115,17 @@ function FeedbackDetailModal({
   onClose,
   onRespond,
   onUpdateStatus,
+  onDelete,
 }: {
   feedback: Feedback;
   onClose: () => void;
   onRespond: (response: string) => void;
   onUpdateStatus: (status: string) => void;
+  onDelete?: () => void;
 }) {
   const [response, setResponse] = useState(feedback.response || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const t = useTranslations('feedback');
+  const t = useTranslations();
 
   const handleSubmitResponse = async () => {
     if (!response.trim()) return;
@@ -137,40 +140,36 @@ function FeedbackDetailModal({
   const StatusIcon = statusInfo.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-slate-800 rounded-lg shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{String(t(`types.${String(feedback.feedback_type)}`) || feedback.feedback_type || '')}</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(feedback.created_at).toLocaleString()}</p>
-          </div>
-          <button onClick={onClose} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        </div>
-
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title={String(t(`feedback.types.${String(feedback.feedback_type)}`) || feedback.feedback_type || '')}
+      size="lg"
+      showCloseButton={true}
+    >
+      <div className="p-0">
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] space-y-6">
           <div className="flex items-center gap-3">
             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${statusInfo.color}`}>
               <StatusIcon className="h-4 w-4" />
               {statusInfo.label}
             </span>
-            <span className={`px-3 py-1 rounded-full text-sm ${severityInfo.color}`}>{String(t('admin.priority') || 'Priority')}: {String(t(`severity.${String(feedback.severity)}`) || '')}</span>
+            <span className={`px-3 py-1 rounded-full text-sm ${severityInfo.color}`}>{String(t('feedback.admin.priority') || 'Priority')}: {String(t(`feedback.severity.${String(feedback.severity)}`) || '')}</span>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('admin.page')}</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.page')}</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg break-all">{feedback.page_url}</p>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('admin.userComment')}</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.userComment')}</h3>
             <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg whitespace-pre-wrap">{feedback.description}</p>
           </div>
 
           {(feedback.annotation_image_url || feedback.screenshot_url) && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('admin.screenshot')}</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('feedback.admin.screenshot')}</h3>
               <div className="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden">
                 <img src={feedback.annotation_image_url || feedback.screenshot_url || ''} alt="Screenshot do feedback" className="w-full" />
               </div>
@@ -179,20 +178,20 @@ function FeedbackDetailModal({
 
           {feedback.response && (
             <div className="border-l-4 border-primary-500 pl-4">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('admin.previousResponse')}</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.previousResponse')}</h3>
               <p className="text-gray-600 dark:text-gray-400">{feedback.response}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('admin.respondedAt')}: {feedback.responded_at ? new Date(feedback.responded_at).toLocaleString() : 'N/A'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('feedback.admin.respondedAt')}: {feedback.responded_at ? new Date(feedback.responded_at).toLocaleString() : 'N/A'}</p>
             </div>
           )}
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{feedback.response ? t('admin.updateResponse') : t('admin.addResponse')}</h3>
-            <textarea value={response} onChange={(e) => setResponse(e.target.value)} placeholder={t('admin.responsePlaceholder')} rows={4} maxLength={2000} className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none" />
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{feedback.response ? t('feedback.admin.updateResponse') : t('feedback.admin.addResponse')}</h3>
+            <textarea value={response} onChange={(e) => setResponse(e.target.value)} placeholder={t('feedback.admin.responsePlaceholder')} rows={4} maxLength={2000} className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none" />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{response.length}/2000 {t('common.chars')}</p>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('admin.updateStatus')}</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('feedback.admin.updateStatus')}</h3>
             <div className="flex flex-wrap gap-2">
               {['in_review', 'in_progress', 'resolved', 'wont_fix'].map((status) => {
                 const info = STATUS_LABELS[status];
@@ -200,7 +199,7 @@ function FeedbackDetailModal({
                 return (
                   <button key={status} onClick={() => onUpdateStatus(status)} disabled={feedback.status === status} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${feedback.status === status ? 'bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}`}>
                     <Icon className="h-4 w-4" />
-                    {String(t(`status.${String(status)}`) || info.label || '')}
+                    {String(t(`feedback.status.${String(status)}`) || info.label || '')}
                   </button>
                 );
               })}
@@ -208,12 +207,19 @@ function FeedbackDetailModal({
           </div>
         </div>
 
-          <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
-          <button onClick={onClose} className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">{t('modal.close')}</button>
-          <button onClick={handleSubmitResponse} disabled={!response.trim() || isSubmitting} className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{isSubmitting ? t('admin.sending') : t('admin.sendResponse')}</button>
+        <div className="flex justify-between gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+          <div>
+            {onDelete && (
+              <button onClick={() => { if (confirm(String(t('feedback.admin.confirmDelete') || 'Confirm delete?'))) onDelete(); }} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">{t('feedback.admin.delete') || 'Deletar'}</button>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">{t('modal.close')}</button>
+            <button onClick={handleSubmitResponse} disabled={!response.trim() || isSubmitting} className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{isSubmitting ? t('feedback.admin.sending') : t('feedback.admin.sendResponse')}</button>
+          </div>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }
 
@@ -232,13 +238,12 @@ export default function AdminFeedbackPage() {
     severity?: string;
     search?: string;
   }>({});
-  
+
   // Pagination state
-  const { initialPage, initialPageSize } = usePagination(20, true);
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [pageSize, setPageSize] = useState(initialPageSize);
-  
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
+
   // Fetch feedback list
   const { data: feedbackData, isLoading, refetch } = useQuery<FeedbackListResponse>({
     queryKey: ['admin-feedback', filters],
@@ -247,12 +252,12 @@ export default function AdminFeedbackPage() {
       if (filters.status) params.append('status', filters.status);
       if (filters.feedback_type) params.append('feedback_type', filters.feedback_type);
       if (filters.severity) params.append('severity', filters.severity);
-      
+
       const response = await apiClient.get(`/api/v1/feedback/?${params.toString()}`);
       return response;
     },
   });
-  
+
   // Fetch statistics
   const { data: statistics } = useQuery<FeedbackStatistics>({
     queryKey: ['admin-feedback-stats'],
@@ -261,7 +266,7 @@ export default function AdminFeedbackPage() {
       return response;
     },
   });
-  
+
   // Respond mutation
   const respondMutation = useMutation({
     mutationFn: async ({ feedbackId, response }: { feedbackId: string; response: string }) => {
@@ -273,7 +278,7 @@ export default function AdminFeedbackPage() {
       setSelectedFeedback(null);
     },
   });
-  
+
   // Status update mutation
   const statusMutation = useMutation({
     mutationFn: async ({ feedbackId, status }: { feedbackId: string; status: string }) => {
@@ -284,20 +289,43 @@ export default function AdminFeedbackPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-feedback-stats'] });
     },
   });
-  
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async ({ feedbackId }: { feedbackId: string }) => {
+      await apiClient.delete(`/api/v1/feedback/${feedbackId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-feedback'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-feedback-stats'] });
+      setSelectedFeedback(null);
+    },
+  });
+
   // Handle respond
   const handleRespond = useCallback(async (response: string) => {
     if (!selectedFeedback) return;
     await respondMutation.mutateAsync({ feedbackId: selectedFeedback.id, response });
   }, [selectedFeedback, respondMutation]);
-  
+
   // Handle status update
   const handleUpdateStatus = useCallback(async (status: string) => {
     if (!selectedFeedback) return;
     await statusMutation.mutateAsync({ feedbackId: selectedFeedback.id, status });
     setSelectedFeedback((prev) => prev ? { ...prev, status } : null);
   }, [selectedFeedback, statusMutation]);
-  
+
+  // Handle delete
+  const handleDelete = useCallback(async () => {
+    if (!selectedFeedback) return;
+    try {
+      await deleteMutation.mutateAsync({ feedbackId: selectedFeedback.id });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to delete feedback', e);
+    }
+  }, [selectedFeedback, deleteMutation]);
+
   // Filter feedbacks by search (uses `filters.search` now)
   const filteredFeedbacks = useMemo(() => {
     if (!feedbackData?.items) return [];
@@ -311,19 +339,19 @@ export default function AdminFeedbackPage() {
       (f.page_title && f.page_title.toLowerCase().includes(query))
     );
   }, [feedbackData, filters.search]);
-  
+
   // Paginated feedbacks
   const paginatedFeedbacks = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredFeedbacks.slice(start, start + pageSize);
   }, [filteredFeedbacks, currentPage, pageSize]);
-  
+
   // Reset pagination when filters change
   const handleFilterChange = (key: string, value: string | boolean) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setCurrentPage(1);
   };
-  
+
   // Filter fields for FilterPanel
   const filterFields: FilterField[] = [
     {
@@ -360,7 +388,7 @@ export default function AdminFeedbackPage() {
       })),
     },
   ];
-  
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -383,10 +411,10 @@ export default function AdminFeedbackPage() {
 
       {/* Feedback Capture Modal */}
       <FeedbackModal />
-      
+
       {/* Configurable Statistics Bar - use same component as other pages */}
       <ConfigurableStatisticsBar module="proposals" data={feedbackData?.items || []} />
-      
+
       {/* Actions Bar removed - refresh now available via other controls */}
 
       {/* Filter Panel - collapsed by default */}
@@ -397,7 +425,7 @@ export default function AdminFeedbackPage() {
         onReset={() => setFilters({})}
         defaultExpanded={false}
       />
-      
+
       {/* Feedback Views - List, Board, Timeline, Table */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
@@ -425,9 +453,9 @@ export default function AdminFeedbackPage() {
                   const typeInfo = FEEDBACK_TYPES[fb.feedback_type] || { label: fb.feedback_type, emoji: '📝' };
                   const severityInfo = SEVERITY_LABELS[fb.severity] || SEVERITY_LABELS.medium;
                   return (
-                    <div 
-                      key={fb.id} 
-                      className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-lg cursor-pointer hover:shadow-md transition-shadow" 
+                    <div
+                      key={fb.id}
+                      className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-lg cursor-pointer hover:shadow-md transition-shadow"
                       onClick={() => setSelectedFeedback(fb)}
                     >
                       <div className="flex items-start justify-between mb-2">
@@ -456,9 +484,9 @@ export default function AdminFeedbackPage() {
               const severityInfo = SEVERITY_LABELS[fb.severity] || SEVERITY_LABELS.medium;
               const statusInfo = STATUS_LABELS[fb.status] || STATUS_LABELS.open;
               const StatusIcon = statusInfo.icon;
-              
+
               // Map feedback status to timeline status
-              const timelineStatus: TimelineItem['status'] = 
+              const timelineStatus: TimelineItem['status'] =
                 fb.status === 'resolved' || fb.status === 'closed' ? 'success' :
                 fb.status === 'in_progress' || fb.status === 'in_review' ? 'pending' :
                 fb.severity === 'critical' || fb.severity === 'high' ? 'error' :
@@ -593,10 +621,10 @@ export default function AdminFeedbackPage() {
             const severityInfo = SEVERITY_LABELS[feedback.severity] || SEVERITY_LABELS.medium;
             const statusInfo = STATUS_LABELS[feedback.status] || STATUS_LABELS.open;
             const StatusIcon = statusInfo.icon;
-            
+
             return (
-              <div 
-                key={feedback.id} 
+              <div
+                key={feedback.id}
                 className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => setSelectedFeedback(feedback)}
               >
@@ -607,7 +635,7 @@ export default function AdminFeedbackPage() {
                       {typeInfo.emoji}
                     </div>
                   </div>
-                  
+
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
@@ -620,9 +648,9 @@ export default function AdminFeedbackPage() {
                         </span>
                       </div>
                     </div>
-                    
+
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">{feedback.description}</p>
-                    
+
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
                         <CalendarIcon className="h-3.5 w-3.5" />
@@ -632,7 +660,7 @@ export default function AdminFeedbackPage() {
                         <span className="truncate max-w-[200px]">📄 {feedback.page_url}</span>
                       )}
                     </div>
-                    
+
                     {feedback.response && (
                       <div className="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700">
                         <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -641,11 +669,11 @@ export default function AdminFeedbackPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Action button */}
                   <div className="flex-shrink-0 self-start">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setSelectedFeedback(feedback); }} 
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedFeedback(feedback); }}
                       className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                     >
                       <EyeIcon className="h-5 w-5" />
@@ -655,7 +683,7 @@ export default function AdminFeedbackPage() {
               </div>
             );
           })}
-          
+
           <Pagination
             currentPage={currentPage}
             totalItems={filteredFeedbacks.length}
@@ -666,7 +694,7 @@ export default function AdminFeedbackPage() {
           />
         </div>
       )}
-      
+
       {/* Detail Modal */}
       {selectedFeedback && (
         <FeedbackDetailModal
@@ -674,6 +702,7 @@ export default function AdminFeedbackPage() {
           onClose={() => setSelectedFeedback(null)}
           onRespond={handleRespond}
           onUpdateStatus={handleUpdateStatus}
+          onDelete={handleDelete}
         />
       )}
     </div>
