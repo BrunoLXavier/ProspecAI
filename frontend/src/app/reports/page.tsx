@@ -227,18 +227,14 @@ export default function ReportsPage() {
       <ConfigurableStatisticsBar module="reports" data={generatedReports} />
 
       {error && (
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
             <p className="text-red-700 dark:text-red-300">{error}</p>
           </div>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="mt-4">
-          <FilterPanel fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onReset={() => setFilters({})} />
-        </div>
-      </div>
+      <FilterPanel fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onReset={() => setFilters({})} />
 
       <main>
         {/* Board View */}
