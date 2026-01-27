@@ -7,13 +7,13 @@ with their own prefixes (/api/v1/notifications and /api/v1/reports).
 """
 from fastapi import APIRouter
 
-from .funding import router as funding_router
-from .portfolio import router as portfolio_router
-from .crm import router as crm_router
-from .opportunities import router as opportunities_router
-from .matching import router as matching_router
-from .proposals import router as proposals_router
-from .communications import router as communications_router
+from .funding_router import router as funding_router
+from .portfolio_router import router as portfolio_router
+from .crm_router import router as crm_router
+from .opportunities_router import router as opportunities_router
+from .matching_router import router as matching_router
+from .proposals_router import router as proposals_router
+from .communications_router import router as communications_router
 
 # Main API router (not currently used - routers registered directly in main.py)
 api_router = APIRouter(prefix="/api/v1")

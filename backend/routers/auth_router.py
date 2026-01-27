@@ -20,7 +20,7 @@ from adapters.api.auth_middleware import (
 )
 from infrastructure.dependencies import get_current_tenant_id
 from adapters.database.models import UserRoleModel
-from use_cases.auth_use_cases import (
+from use_cases.auth_use_cases_use_case import (
     RegisterUser, LoginUser, VerifyEmail, RequestPasswordReset,
     ConfirmPasswordReset, RefreshAccessToken, LogoutUser,
     RegisterRequest, LoginRequest, PasswordResetRequest,
@@ -163,7 +163,7 @@ async def login(
     from adapters.repositories.refresh_token_repository import RefreshTokenRepository
     from adapters.repositories.login_attempt_repository import LoginAttemptRepository
     from adapters.repositories.system_config_repository import SystemConfigRepository
-    from use_cases.auth_use_cases import LoginUser, LoginRequest
+    from use_cases.auth_use_cases_use_case import LoginUser, LoginRequest
 
     async with AsyncSessionLocal() as session:
         try:
@@ -257,7 +257,7 @@ async def resend_verification(
     from datetime import datetime, timedelta
     import secrets
     from domain.entities.refresh_token import RefreshToken, TokenType
-    from infrastructure.email_service import get_email_service
+    from services.core.email_service import get_email_service
     
     user_repo = UserRepository(session)
     token_repo = RefreshTokenRepository(session)

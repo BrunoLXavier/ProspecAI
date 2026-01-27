@@ -13,7 +13,7 @@ from jinja2 import Template
 from pydantic import BaseModel, Field
 
 from domain.entities.system_config import EmailConfig, EmailTemplates
-from infrastructure.encryption_service import EncryptionService
+from services.core.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)
 

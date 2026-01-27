@@ -16,8 +16,8 @@ from adapters.api.auth_middleware import require_admin, AuthenticatedUser
 from domain.entities.system_config import (
     EmailConfig, SecurityConfig, ContactFormConfig, EmailTemplates, FormField
 )
-from infrastructure.email_service import get_email_service
-from infrastructure.encryption_service import EncryptionService
+from services.core.email_service import get_email_service
+from services.core.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +198,7 @@ async def test_email_config(
         )
     
     # Send test email
-    from infrastructure.email_service import EmailMessage
+    from services.core.email_service import EmailMessage
     
     test_message = EmailMessage(
         to=[data.to_email],

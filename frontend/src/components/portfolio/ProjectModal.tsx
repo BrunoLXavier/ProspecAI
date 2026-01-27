@@ -27,7 +27,7 @@ import {
   CreateProjectInput,
   projectStatusOptions,
   trlOptions,
-} from '@/lib/validations';
+} from '@/utils/validations';
 import apiClient from '@/lib/api-client';
 
 interface Project {

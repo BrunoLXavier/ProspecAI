@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from adapters.api.auth_middleware import require_admin, AuthenticatedUser
 from adapters.database.connection import get_db
 from adapters.repositories.llm_config_repository import LLMConfigRepository
-from use_cases.manage_llm_config import ManageLLMConfigUseCase, LLMConfigInput
+from use_cases.manage_llm_config_use_case import ManageLLMConfigUseCase, LLMConfigInput
 from infrastructure.serializers import to_primitive
 
 logger = logging.getLogger(__name__)

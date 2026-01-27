@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id, ensure_user_member_or_admin
-from use_cases.manage_portfolio import ManagePortfolioUseCase
+from use_cases.manage_portfolio_use_case import ManagePortfolioUseCase
 from domain.entities.portfolio import ProjectStatus
 from infrastructure.serializers import to_primitive
 from services.institute_service import get_institute_service, InstituteService

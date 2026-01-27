@@ -23,7 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   createProposalSchema,
   CreateProposalInput,
-} from '@/lib/validations';
+} from '@/utils/validations';
 import apiClient from '@/lib/api-client';
 import ConfidenceBadge from '@/components/common/ConfidenceBadge';
 import VersionHistoryPanel from './VersionHistoryPanel';

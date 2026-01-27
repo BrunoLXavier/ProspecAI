@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from domain.entities.matching import MatchingScore, MatchingResult
-from use_cases.execute_matching import ExecuteMatchingUseCase
+from use_cases.execute_matching_use_case import ExecuteMatchingUseCase
 from infrastructure.di_container import get_container
 from infrastructure.serializers import to_primitive
 

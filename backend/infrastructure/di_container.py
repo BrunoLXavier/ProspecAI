@@ -19,13 +19,13 @@ from adapters.repositories.opportunity_repository import OpportunityRepository
 from adapters.repositories.proposal_repository import ProposalRepository
 from adapters.repositories.proposal_version_repository import ProposalVersionRepository
 from adapters.repositories.matching_repository import MatchingRepository
-from use_cases.manage_funding import ManageFundingUseCase
-from use_cases.manage_portfolio import ManagePortfolioUseCase
-from use_cases.manage_crm import ManageCRMUseCase
-from use_cases.manage_pipeline import ManagePipelineUseCase
-from use_cases.execute_matching import ExecuteMatchingUseCase
-from use_cases.manage_proposals import ManageProposalsUseCase
-from use_cases.manage_feedback import ManageFeedbackUseCase
+from use_cases.manage_funding_use_case import ManageFundingUseCase
+from use_cases.manage_portfolio_use_case import ManagePortfolioUseCase
+from use_cases.manage_crm_use_case import ManageCRMUseCase
+from use_cases.manage_pipeline_use_case import ManagePipelineUseCase
+from use_cases.execute_matching_use_case import ExecuteMatchingUseCase
+from use_cases.manage_proposals_use_case import ManageProposalsUseCase
+from use_cases.manage_feedback_use_case import ManageFeedbackUseCase
 from infrastructure.ai.lgpd_agent import LGPDAgent
 import os
 

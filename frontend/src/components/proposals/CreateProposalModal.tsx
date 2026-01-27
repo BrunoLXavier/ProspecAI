@@ -22,7 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   createProposalSchema,
   CreateProposalInput,
-} from '@/lib/validations';
+} from '@/utils/validations';
 import apiClient from '@/lib/api-client';
 
 interface CreateProposalModalProps {

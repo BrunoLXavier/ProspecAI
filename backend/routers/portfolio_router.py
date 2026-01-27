@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from datetime import date
 
 from domain.entities.portfolio import Project, Portfolio, ProjectStatus
-from use_cases.manage_portfolio import ManagePortfolioUseCase
+from use_cases.manage_portfolio_use_case import ManagePortfolioUseCase
 from infrastructure.dependencies import get_portfolio_use_case, get_current_user_id, get_di_container, get_current_institute_ids
 from services.institute_service import get_institute_service, InstituteService
 import sqlalchemy as sa

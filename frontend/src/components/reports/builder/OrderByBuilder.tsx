@@ -14,7 +14,7 @@ import {
   Bars3Icon
 } from '@heroicons/react/24/outline';
 import { useTableSchema } from '@/hooks/useReportBuilder';
-import type { OrderByConfig, FieldSchema } from '@/types/report-builder';
+import type { OrderByConfig, FieldSchema } from '@/types/features/report-builder';
 
 interface OrderByBuilderProps {
   baseTable: string;

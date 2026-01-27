@@ -161,10 +161,10 @@ async def health_check():
 
 
 # API Routes (to be implemented)
-from routers.funding import router as funding_routes
+from routers.funding_router import router as funding_routes
 from adapters.api.portfolio_routes import router as portfolio_routes
-from routers.crm import router as crm_routes
-from routers.opportunities import router as opportunities_routes
+from routers.crm_router import router as crm_routes
+from routers.opportunities_router import router as opportunities_routes
 from adapters.api.proposals_routes import router as proposals_routes
 from adapters.api.matching_routes import router as matching_routes
 from adapters.api.websocket_routes import router as websocket_routes
@@ -192,9 +192,9 @@ from routers.contact_router import router as contact_routes
 from routers.admin_settings_router import router as admin_settings_routes
 from adapters.api.teams_routes import router as teams_routes
 from adapters.api.infrastructures_routes import router as infrastructures_routes
-from routers.notifications import router as notifications_routes
-from routers.reports import router as reports_routes
-from routers.communications import router as communications_routes
+from routers.notifications_router import router as notifications_routes
+from routers.reports_router import router as reports_routes
+from routers.communications_router import router as communications_routes
 
 # Register API routers
 app.include_router(auth_routes)

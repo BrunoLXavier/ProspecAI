@@ -156,7 +156,7 @@ async def health():
 from uuid import UUID
 from adapters.database.connection import get_db
 from adapters.repositories.pii_detection_repository import PIIDetectionRepository
-from use_cases.manage_pii_review import ManagePIIReviewUseCase, ApprovalInput, RejectionInput
+from use_cases.manage_pii_review_use_case import ManagePIIReviewUseCase, ApprovalInput, RejectionInput
 
 
 class DetectionFilterParams(BaseModel):

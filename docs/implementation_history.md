@@ -1,7 +1,103 @@
 # ProspecAI - Implementation History
 
-**Última atualização:** 26 de Janeiro de 2026  
-**Status:** ✅ Production Ready - All Issues Resolved
+**Última atualização:** 27 de Janeiro de 2026  
+**Status:** ✅ Production Ready - Structural Refactoring Complete
+
+---
+
+## 2026-01-27 - Backend & Frontend Structural Refactoring Phase 1 (COMPLETED)
+
+### Summary:
+Comprehensive refactoring of backend and frontend directory structures following Clean Architecture principles. This phase includes:
+- **Backend**: Router naming standardization, service consolidation, use case naming, legacy directory removal
+- **Frontend**: Duplicate directory removal, route consolidation, utility and type reorganization
+- **Validation**: Docker rebuild successful, all services running and healthy
+
+### Backend Refactoring (COMPLETED):
+
+#### Phase 1: Router File Naming Standardization
+- **Renamed 9 router files** to follow `_router.py` suffix pattern:
+  - All routers in `routers/` now follow consistent `{module}_router.py` naming
+- **Updated imports** in main.py, routers/__init__.py, and adapters/api/__init__.py
+
+#### Phase 2: Service Consolidation  
+- **Moved to `services/core/`**:
+  - `infrastructure/email_service.py` → `services/core/email_service.py`
+  - `infrastructure/encryption_service.py` → `services/core/encryption_service.py`
+- **Boundary established**: `services/` = business logic, `infrastructure/` = frameworks
+- **Updated 6 files** with new import paths
+
+#### Phase 3: Legacy Directory Removal
+- **Removed**: `backend/models/` (empty, legacy)
+
+#### Phase 4: Use Case Naming Standardization
+- **Renamed 13 use case files** to follow `_use_case.py` suffix:
+  - All use cases in `use_cases/` now follow `{action}_{subject}_use_case.py` pattern
+- **Updated imports** across di_container, dependencies, all routers and adapters
+
+#### Phase 5: Test Directory Removal
+- **Removed**: `backend/tests/` (to be recreated after refactoring complete)
+
+### Frontend Refactoring (COMPLETED):
+
+#### Phase 1: Duplicate Directory Removal
+- **Removed** `app/comunications/` (typo - kept correct `communications/`)
+
+#### Phase 2: Route Consolidation
+- **Removed** `app/team/` (consolidated into `teams/`)
+- **Maintained** single source of truth for team management routes
+
+#### Phase 3: Utilities & Types Reorganization
+- **Moved** `lib/validations.ts` → `utils/validations.ts`
+- **Created** `types/features/` subdirectory:
+  - `types/communications.ts` → `types/features/communications.ts`
+  - `types/report-builder.ts` → `types/features/report-builder.ts`
+  - `types/statistics.ts` → `types/features/statistics.ts`
+- **Updated 20 files** with new import paths via automated refactoring
+
+### Validation Status:
+✅ **Backend Health Check**
+- Docker rebuild successful
+- Backend container healthy
+- All imports resolved
+- FastAPI application running on port 8000
+
+✅ **Frontend Build Check**
+- Docker rebuild successful  
+- Frontend container running
+- All TypeScript imports updated
+- Next.js application running on port 3000
+
+✅ **System Health**
+- All 11 services running (backend, frontend, postgres, neo4j, redis, kafka, zookeeper, whisper, grafana, minio, mlflow)
+- No container errors or failed startups
+
+### Files Modified Summary:
+**Backend (15+ files)**:
+- All 9 router files (renamed)
+- main.py, routers/__init__.py, adapters/api/__init__.py
+- use_cases/__init__.py
+- infrastructure/di_container.py, infrastructure/dependencies.py
+- adapters/api/lgpd_routes.py, portfolio_routes.py, proposals_routes.py, llm_config_routes.py, feedback_routes.py, ingestion_routes.py
+
+**Frontend (20+ files)**:
+- hooks/useReportBuilder.ts, useStatistics.ts
+- components/proposals/* (3 files)
+- components/reports/* (10 files)
+- components/ui/ConfigurableStatisticsBar.tsx
+- components/portfolio/* (2 files)
+- components/opportunities/* (2 files)
+- components/funding/* (3 files)
+
+### Directories Created:
+- `backend/services/core/`
+- `frontend/src/types/features/`
+
+### Directories Removed:
+- `backend/models/`
+- `backend/tests/` (temporarily)
+- `frontend/src/app/comunications/` (typo)
+- `frontend/src/app/team/`
 
 ---
 

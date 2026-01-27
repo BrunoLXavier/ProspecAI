@@ -40,7 +40,7 @@ import type {
   JoinConfig,
   OrderByConfig,
   OutputFormat,
-} from '@/types/report-builder';
+} from '@/types/features/report-builder';
 
 // Wizard steps
 const STEPS = [

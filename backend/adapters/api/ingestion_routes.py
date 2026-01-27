@@ -13,7 +13,7 @@ from infrastructure.auth import CurrentUser
 from adapters.database.connection import get_db
 from adapters.repositories.ingestion_repository import IngestionRepository
 from adapters.repositories.pii_detection_repository import PIIDetectionRepository
-from use_cases.manage_ingestion import ManageIngestionUseCase
+from use_cases.manage_ingestion_use_case import ManageIngestionUseCase
 from infrastructure.jwt_service import get_jwt_service
 from infrastructure.serializers import to_primitive
 

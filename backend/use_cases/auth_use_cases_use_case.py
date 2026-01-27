@@ -18,7 +18,7 @@ from adapters.repositories.login_attempt_repository import LoginAttemptRepositor
 from adapters.repositories.system_config_repository import SystemConfigRepository
 from domain.entities.system_config import SecurityConfig
 from infrastructure.jwt_service import JWTService, get_jwt_service
-from infrastructure.email_service import EmailService, get_email_service
+from services.core.email_service import EmailService, get_email_service
 
 logger = logging.getLogger(__name__)
 

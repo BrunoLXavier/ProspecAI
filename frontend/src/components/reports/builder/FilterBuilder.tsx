@@ -8,8 +8,8 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PlusIcon, TrashIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { useTableSchema } from '@/hooks/useReportBuilder';
-import { FILTER_OPERATORS, getOperatorsForType } from '@/types/report-builder';
-import type { FilterConfig, FilterOperator, FieldSchema } from '@/types/report-builder';
+import { FILTER_OPERATORS, getOperatorsForType } from '@/types/features/report-builder';
+import type { FilterConfig, FilterOperator, FieldSchema } from '@/types/features/report-builder';
 
 interface FilterBuilderProps {
   baseTable: string;

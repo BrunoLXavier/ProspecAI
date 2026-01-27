@@ -30,7 +30,7 @@ import {
   downloadReport,
   getReportFilename,
 } from '@/hooks/useReportBuilder';
-import type { OutputFormat, ReportTemplate } from '@/types/report-builder';
+import type { OutputFormat, ReportTemplate } from '@/types/features/report-builder';
 
 export default function ReportsPage() {
   const t = useTranslations('reports');

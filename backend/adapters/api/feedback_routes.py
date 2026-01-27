@@ -17,7 +17,7 @@ import logging
 
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
 from adapters.api.auth_middleware import get_current_user, AuthenticatedUser
-from use_cases.manage_feedback import ManageFeedbackUseCase
+from use_cases.manage_feedback_use_case import ManageFeedbackUseCase
 from domain.entities.feedback import (
     FeedbackCreate, FeedbackType, FeedbackSeverity, FeedbackStatus
 )

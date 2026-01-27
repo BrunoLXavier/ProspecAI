@@ -28,7 +28,7 @@ import {
   categoryOptions,
   statusOptions,
   trlOptions,
-} from '@/lib/validations';
+} from '@/utils/validations';
 import apiClient from '@/lib/api-client';
 
 interface CreateFundingModalProps {

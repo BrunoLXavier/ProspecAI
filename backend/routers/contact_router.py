@@ -17,7 +17,7 @@ from adapters.database.connection import get_session
 from adapters.database.models import LoginAttemptModel  # Reuse for rate limiting
 from adapters.repositories.system_config_repository import SystemConfigRepository
 from adapters.api.auth_middleware import get_client_ip
-from infrastructure.email_service import EmailService, get_email_service
+from services.core.email_service import EmailService, get_email_service
 from domain.entities.system_config import ContactFormConfig, FormField
 
 logger = logging.getLogger(__name__)

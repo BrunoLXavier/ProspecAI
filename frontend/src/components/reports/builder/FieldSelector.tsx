@@ -18,7 +18,7 @@ import {
   CubeIcon
 } from '@heroicons/react/24/outline';
 import { useTableSchema, useTableJoins } from '@/hooks/useReportBuilder';
-import type { FieldSchema, TableSchema, RelationshipSchema } from '@/types/report-builder';
+import type { FieldSchema, TableSchema, RelationshipSchema } from '@/types/features/report-builder';
 
 interface FieldSelectorProps {
   baseTable: string;

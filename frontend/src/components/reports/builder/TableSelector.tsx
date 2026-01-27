@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { TableCellsIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { useReportableTables } from '@/hooks/useReportBuilder';
-import type { TableSummary } from '@/types/report-builder';
+import type { TableSummary } from '@/types/features/report-builder';
 
 interface TableSelectorProps {
   selectedTable: string | null;

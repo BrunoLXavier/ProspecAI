@@ -30,7 +30,7 @@ import {
   categoryOptions,
   statusOptions,
   trlOptions,
-} from '@/lib/validations';
+} from '@/utils/validations';
 import apiClient from '@/lib/api-client';
 
 import BaseModal, { ModalFooter } from '@/components/ui/BaseModal';

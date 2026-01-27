@@ -12,12 +12,12 @@ import sqlalchemy as sa
 
 from adapters.database.connection import get_session
 from infrastructure.di_container import DependencyContainer, get_container
-from use_cases.manage_funding import ManageFundingUseCase
-from use_cases.manage_portfolio import ManagePortfolioUseCase
-from use_cases.manage_crm import ManageCRMUseCase
-from use_cases.manage_pipeline import ManagePipelineUseCase
-from use_cases.execute_matching import ExecuteMatchingUseCase
-from use_cases.manage_proposals import ManageProposalsUseCase
+from use_cases.manage_funding_use_case import ManageFundingUseCase
+from use_cases.manage_portfolio_use_case import ManagePortfolioUseCase
+from use_cases.manage_crm_use_case import ManageCRMUseCase
+from use_cases.manage_pipeline_use_case import ManagePipelineUseCase
+from use_cases.execute_matching_use_case import ExecuteMatchingUseCase
+from use_cases.manage_proposals_use_case import ManageProposalsUseCase
 from services.institute_service import InstituteService
 
 # Re-export get_container for routes that need it

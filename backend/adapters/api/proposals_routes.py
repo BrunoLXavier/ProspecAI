@@ -22,7 +22,7 @@ from infrastructure.file_storage import (
     StorageBucket,
     UploadResult,
 )
-from use_cases.manage_proposals import ManageProposalsUseCase
+from use_cases.manage_proposals_use_case import ManageProposalsUseCase
 from domain.entities.proposal import ProposalStatus
 from infrastructure.serializers import to_primitive
 

@@ -13,7 +13,7 @@ import type {
   QueryConfig,
   PreviewResult,
   OutputFormat,
-} from '@/types/report-builder';
+} from '@/types/features/report-builder';
 
 const REPORTS_BASE = '/api/v1/reports';
 

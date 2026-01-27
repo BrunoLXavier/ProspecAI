@@ -13,7 +13,7 @@ import {
   TableCellsIcon
 } from '@heroicons/react/24/outline';
 import { usePreviewQuery } from '@/hooks/useReportBuilder';
-import type { QueryConfig } from '@/types/report-builder';
+import type { QueryConfig } from '@/types/features/report-builder';
 
 interface QueryPreviewProps {
   queryConfig: QueryConfig;

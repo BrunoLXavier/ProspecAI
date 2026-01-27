@@ -24,7 +24,7 @@ import json
 from infrastructure.serializers import to_primitive
 
 from domain.entities.funding_source import FundingSource, InstrumentType
-from use_cases.manage_funding import ManageFundingUseCase
+from use_cases.manage_funding_use_case import ManageFundingUseCase
 from datetime import datetime as _datetime
 
 router = APIRouter()
