@@ -38,8 +38,8 @@ import {
 	getModuleStatistics,
 	StatisticDefinition,
 	ProfileStatisticsPermissions,
-} from '@/types/statistics';
-import PageHeader from '@/components/ui/PageHeader';
+} from '@/types/features/statistics';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
 
 // =============================================================================
 // Types

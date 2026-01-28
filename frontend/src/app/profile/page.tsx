@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { PasswordChangeModal } from '@/components/profile';
+import { PasswordChangeModal } from '@/components/features/profile';
 import {
   UserCircleIcon,
   EnvelopeIcon,
@@ -259,7 +259,7 @@ export default function ProfilePage() {
 
         <div className="space-y-3">
           <Link
-            href="/profile/statistics"
+            href="/profile-statistics"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">

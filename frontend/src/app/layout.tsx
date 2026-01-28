@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
-import { ThemeScript } from '@/components/layout/ThemeProvider';
+import { ThemeScript } from '@/components/features/shared/layout/ThemeProvider';
 import LayoutShell from './layout-shell';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });

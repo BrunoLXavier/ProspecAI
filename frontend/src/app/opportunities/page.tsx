@@ -8,17 +8,17 @@ import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
-import OpportunityPipeline from '@/components/dashboard/OpportunityPipeline';
+import OpportunityPipeline from '@/components/features/dashboard/components/OpportunityPipeline';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import OpportunityModal from '@/components/opportunities/OpportunityModal';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import ConfidenceBadge from '@/components/common/ConfidenceBadge';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
-import PageHeader from '@/components/ui/PageHeader';
-import { ViewMode } from '@/components/ui/ViewToggle';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import TableView, { TableColumn } from '@/components/ui/TableView';
+import OpportunityModal from '@/components/features/opportunities/components/OpportunityModal';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 
 interface Opportunity {
   id: string;

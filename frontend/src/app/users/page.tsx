@@ -19,13 +19,13 @@ import {
 	UserPlusIcon,
 } from '@heroicons/react/24/outline';
 import { apiClient } from '@/lib/api-client';
-import UserModal from '@/components/users/UserModal';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
-import PageHeader from '@/components/ui/PageHeader';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import { ViewMode } from '@/components/ui/ViewToggle';
-import TableView, { TableColumn } from '@/components/ui/TableView';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import UserModal from '@/components/features/users/components/UserModal';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
 
 interface User {
 	id: string;

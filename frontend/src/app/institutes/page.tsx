@@ -6,18 +6,18 @@ import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import PageHeader from '@/components/ui/PageHeader';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import SafeRender from '@/components/ui/SafeRender';
-import { ViewMode } from '@/components/ui/ViewToggle';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import SafeRender from '@/components/features/shared/ui/SafeRender';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 import { PlusIcon, BuildingLibraryIcon } from '@heroicons/react/24/outline';
-import InstituteModal from '@/components/entities/InstituteModal';
-import InstitutesListView from '@/components/institutes/InstitutesListView';
-import InstitutesBoard from '@/components/institutes/InstitutesBoard';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import TableView, { TableColumn } from '@/components/ui/TableView';
+// import InstituteModal from '@/components/features/institutes/components/InstituteModal';
+import InstitutesListView from '@/components/features/institutes/components/InstitutesListView';
+import InstitutesBoard from '@/components/features/institutes/components/InstitutesBoard';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 
 export default function InstitutesPage() {
   const t = useTranslations('institutes');
@@ -213,7 +213,7 @@ export default function InstitutesPage() {
           )}
         </div>
       )}
-      <InstituteModal isOpen={modalOpen} onClose={() => setModalOpen(false)} institute={selectedInstitute} />
+      {/* <InstituteModal isOpen={modalOpen} onClose={() => setModalOpen(false)} institute={selectedInstitute} /> */}
     </div>
   );
 }

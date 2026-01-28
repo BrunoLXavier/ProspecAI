@@ -6,15 +6,15 @@
 import React, { useEffect } from 'react';
 import { useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ThemeProvider } from '@/components/layout/ThemeProvider';
-import { SidebarProvider, useSidebar } from '@/components/layout/Sidebar';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
-import ChatWidget from '@/components/chat/ChatWidget';
-import { FeedbackButton } from '@/components/feedback';
+import { ThemeProvider } from '@/components/features/shared/layout/ThemeProvider';
+import { SidebarProvider, useSidebar } from '@/components/features/shared/layout/Sidebar';
+import Sidebar from '@/components/features/shared/layout/Sidebar';
+import Header from '@/components/features/shared/layout/Header';
+import ChatWidget from '@/components/features/shared/messaging/ChatWidget';
+import { FeedbackButton } from '@/components/features/feedback';
 import { useAuth } from '@/contexts/AuthContext';
 import { LayoutProvider, useLayout } from '@/contexts/LayoutContext';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { SafeRender as ErrorBoundary } from '@/components/features/shared/ui'; // temporary
 
 // Inner layout that uses sidebar context
 function LayoutContent({ children }: { children: React.ReactNode }) {

@@ -19,13 +19,13 @@ import {
   UserGroupIcon,
   CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
-import PageHeader from '@/components/ui/PageHeader';
-import StatCard from '@/components/ui/StatCard';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
-import Icon from '@/components/ui/Icon';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import StatCard from '@/components/features/shared/ui/StatCard';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import Icon from '@/components/features/shared/ui/Icon';
 
 interface Activity {
   id: string;

@@ -18,7 +18,7 @@ import {
   CheckIcon,
 } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
-import PageHeader from '@/components/ui/PageHeader';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
 
 interface Member {
   id: string;

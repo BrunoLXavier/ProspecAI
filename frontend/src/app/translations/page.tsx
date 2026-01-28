@@ -13,15 +13,15 @@ import {
 	ArrowUpTrayIcon,
 	FunnelIcon,
 } from '@heroicons/react/24/outline';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import TranslationModal from '@/components/translations/TranslationModal';
-import TableView, { TableColumn } from '@/components/ui/TableView';
-import BoardView, { BoardItem } from '../../components/ui/BoardView';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import PageHeader from '@/components/ui/PageHeader';
-import { ViewMode } from '@/components/ui/ViewToggle';
-import Pagination from '@/components/ui/Pagination';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import TranslationModal from '@/components/features/translations/components/TranslationModal';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
+import BoardView, { BoardItem } from '../../components/features/shared/ui/BoardView';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import Pagination from '@/components/features/shared/ui/Pagination';
 import { apiClient } from '@/lib/api-client';
 
 interface TranslationKey {

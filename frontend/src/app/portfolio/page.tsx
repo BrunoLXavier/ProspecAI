@@ -9,15 +9,15 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
-import ProjectModal from '@/components/portfolio/ProjectModal';
-import PortfolioBoard from '@/components/portfolio/PortfolioBoard';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import PageHeader from '@/components/ui/PageHeader';
-import { ViewMode } from '@/components/ui/ViewToggle';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import TableView, { TableColumn } from '@/components/ui/TableView';
+import ProjectModal from '@/components/features/portfolio/components/ProjectModal';
+import PortfolioBoard from '@/components/features/portfolio/components/PortfolioBoard';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 
 interface Project {
   id: string;

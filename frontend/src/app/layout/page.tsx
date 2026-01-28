@@ -5,9 +5,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Bars3Icon, RectangleGroupIcon, UserGroupIcon, CheckIcon, ArrowPathIcon, Squares2X2Icon, ShieldCheckIcon, ArrowsPointingOutIcon, PaintBrushIcon, PhotoIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useLayout, ALL_WIDGET_IDS, DEFAULT_CONFIG } from '@/contexts/LayoutContext';
-import { navigationItems as SIDEBAR_NAV_ITEMS } from '@/components/layout/Sidebar';
+import { navigationItems as SIDEBAR_NAV_ITEMS } from '@/components/features/shared/layout/Sidebar';
 import { useAuth, getStoredAccessToken } from '@/contexts/AuthContext';
-import ConfirmModal from '@/components/ui/ConfirmModal';
+import ConfirmModal from '@/components/features/shared/ui/ConfirmModal';
 
 const availableRoles = [
   { id: 'admin', label: 'Administrador' },

@@ -20,18 +20,18 @@ import {
   UserIcon,
   CalendarIcon,
 } from '@heroicons/react/24/outline';
-import PageHeader from '@/components/ui/PageHeader';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import StatCard from '@/components/ui/StatCard';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import FeedbackModal from '@/components/feedback/FeedbackModal';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import StatCard from '@/components/features/shared/ui/StatCard';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import FeedbackModal from '@/components/features/feedback/components/FeedbackModal';
 import { useFeedbackStore } from '@/stores/feedbackStore';
-import { ViewMode } from '@/components/ui/ViewToggle';
-import TableView, { TableColumn } from '@/components/ui/TableView';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
 import apiClient from '@/lib/api-client';
-import BaseModal from '@/components/ui/BaseModal';
-import Pagination from '@/components/ui/Pagination';
+import BaseModal from '@/components/features/shared/ui/BaseModal';
+import Pagination from '@/components/features/shared/ui/Pagination';
 
 // =============================================================================
 // Types

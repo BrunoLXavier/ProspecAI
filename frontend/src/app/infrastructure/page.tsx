@@ -7,16 +7,16 @@ import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import PageHeader from '@/components/ui/PageHeader';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import { ViewMode } from '@/components/ui/ViewToggle';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import InfrastructureModal from '@/components/entities/InfrastructureModal';
-import InfrastructureBoard from '@/components/infrastructure/InfrastructureBoard';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import TableView, { TableColumn } from '@/components/ui/TableView';
+// import InfrastructureModal from '@/components/features/infrastructure/components/InfrastructureModal';
+import InfrastructureBoard from '@/components/features/infrastructure/components/InfrastructureBoard';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 
 export default function InfrastructurePage() {
   const t = useTranslations('infrastructure');
@@ -273,7 +273,7 @@ export default function InfrastructurePage() {
           )}
         </div>
       )}
-      <InfrastructureModal isOpen={modalOpen} onClose={() => setModalOpen(false)} resource={selectedResource} />
+      {/* <InfrastructureModal isOpen={modalOpen} onClose={() => setModalOpen(false)} resource={selectedResource} /> */}
     </div>
   );
 }

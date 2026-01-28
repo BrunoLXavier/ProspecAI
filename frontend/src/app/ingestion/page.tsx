@@ -20,15 +20,15 @@ import {
   ShieldExclamationIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import PageHeader from '@/components/ui/PageHeader';
-import { ViewMode } from '@/components/ui/ViewToggle';
-import IngestionBoard from '@/components/ingestion/IngestionBoard';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import TableView, { TableColumn } from '@/components/ui/TableView';
-import IngestionModal from '@/components/ingestion/IngestionModal';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import IngestionBoard from '@/components/features/ingestion/components/IngestionBoard';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
+import IngestionModal from '@/components/features/ingestion/components/IngestionModal';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
 import { getStoredAccessToken } from '@/contexts/AuthContext';
 import apiClient from '@/lib/api-client';
 

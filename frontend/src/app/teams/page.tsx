@@ -6,16 +6,16 @@ import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import PageHeader from '@/components/ui/PageHeader';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import { ViewMode } from '@/components/ui/ViewToggle';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import TableView, { TableColumn } from '@/components/ui/TableView';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
-import TeamModal from '@/components/entities/TeamModal';
-import TeamsBoard from '@/components/teams/TeamsBoard';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
+// import TeamModal from '@/components/features/teams/components/TeamModal';
+import TeamsBoard from '@/components/features/teams/components/TeamsBoard';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
 
 export default function TeamsPage() {
   const t = useTranslations('teams');
@@ -245,7 +245,7 @@ export default function TeamsPage() {
           )}
         </div>
       )}
-      <TeamModal isOpen={modalOpen} onClose={() => setModalOpen(false)} team={selectedTeam} />
+      {/* <TeamModal isOpen={modalOpen} onClose={() => setModalOpen(false)} team={selectedTeam} /> */}
     </div>
   );
 }

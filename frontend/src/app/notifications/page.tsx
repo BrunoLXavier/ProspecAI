@@ -14,15 +14,15 @@ import {
   CheckCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
 import apiClient from '@/lib/api-client';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import PageHeader from '@/components/ui/PageHeader';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
-import TableView, { TableColumn } from '@/components/ui/TableView';
-import Icon from '@/components/ui/Icon';
-import { ViewMode } from '@/components/ui/ViewToggle';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
+import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
+import Icon from '@/components/features/shared/ui/Icon';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 
 interface Notification {
   id: string;

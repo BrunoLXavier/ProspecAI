@@ -30,13 +30,13 @@ import {
   UserIcon,
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
-import PageHeader from '@/components/ui/PageHeader';
-import { ViewMode } from '@/components/ui/ViewToggle';
-import FilterPanel, { FilterField } from '@/components/ui/FilterPanel';
-import PIIAnalysisBoard from '@/components/pii/PIIAnalysisBoard';
-import ConfigurableStatisticsBar from '@/components/ui/ConfigurableStatisticsBar';
-import Pagination, { usePagination } from '@/components/ui/Pagination';
-import TimelineView, { TimelineItem } from '@/components/ui/TimelineView';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
+import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+// import { PIIAnalysisBoard } from '@/components/features/pii-analysis';
+import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
 
 // =============================================================================
 // Types
@@ -639,10 +639,11 @@ export default function PIIAnalysisPage() {
         </div>
       ) : viewMode === 'board' ? (
         /* Board View - Grouped by status */
-        <PIIAnalysisBoard 
+        /* <PIIAnalysisBoard 
           detections={filteredDetections}
           onItemClick={(detection) => setReviewModal(detection)}
-        />
+        /> */
+        <div className="text-center py-12">Board view unavailable</div>
       ) : viewMode === 'list' ? (
         /* List View - Card-based layout */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

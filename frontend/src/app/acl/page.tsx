@@ -13,7 +13,7 @@ import {
 	ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import { apiClient } from '@/lib/api-client';
-import ACLRoleModal from '@/components/acl/ACLRoleModal';
+import ACLRoleModal from '@/components/features/acl/components/ACLRoleModal';
 
 interface Role {
 	id: string;

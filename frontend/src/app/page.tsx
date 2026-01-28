@@ -10,26 +10,26 @@ import { CalendarDaysIcon } from '@heroicons/react/24/outline';
 import { useLayout } from '@/contexts/LayoutContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
-import type { AnalyticsPeriod } from '@/components/analytics-widgets/types';
-import DraggableWidgetGrid from '@/components/dashboard/DraggableWidgetGrid';
+import type { AnalyticsPeriod } from '@/components/features/shared/analytics/types';
+import DraggableWidgetGrid from '@/components/features/dashboard/components/DraggableWidgetGrid';
 
 // Existing Dashboard components
-import DashboardStats from '@/components/dashboard/DashboardStats';
-import OpportunityPipeline from '@/components/dashboard/OpportunityPipeline';
-import RecentActivity from '@/components/dashboard/RecentActivity';
+import DashboardStats from '@/components/features/dashboard/components/DashboardStats';
+import OpportunityPipeline from '@/components/features/dashboard/components/OpportunityPipeline';
+import RecentActivity from '@/components/features/dashboard/components/RecentActivity';
 
 // Lazy-loaded Dashboard widgets
-const OpportunitiesWidget = lazy(() => import('@/components/dashboard/OpportunitiesWidget'));
-const MatchingScoreWidget = lazy(() => import('@/components/dashboard/MatchingScoreWidget'));
-const CalendarWidget = lazy(() => import('@/components/dashboard/CalendarWidget'));
+const OpportunitiesWidget = lazy(() => import('@/components/features/dashboard/components/OpportunitiesWidget'));
+const MatchingScoreWidget = lazy(() => import('@/components/features/dashboard/components/MatchingScoreWidget'));
+const CalendarWidget = lazy(() => import('@/components/features/dashboard/components/CalendarWidget'));
 
 // Lazy-loaded Analytics widgets for performance
-const AnalyticsKPIs = lazy(() => import('@/components/analytics-widgets/AnalyticsKPIs'));
-const AnalyticsPipeline = lazy(() => import('@/components/analytics-widgets/AnalyticsPipeline'));
-const AnalyticsTRL = lazy(() => import('@/components/analytics-widgets/AnalyticsTRL'));
-const AnalyticsTrends = lazy(() => import('@/components/analytics-widgets/AnalyticsTrends'));
-const AnalyticsPeriodSelector = lazy(() => import('@/components/analytics-widgets/AnalyticsPeriodSelector'));
-const AnalyticsExport = lazy(() => import('@/components/analytics-widgets/AnalyticsExport'));
+const AnalyticsKPIs = lazy(() => import('@/components/features/shared/analytics/AnalyticsKPIs'));
+const AnalyticsPipeline = lazy(() => import('@/components/features/shared/analytics/AnalyticsPipeline'));
+const AnalyticsTRL = lazy(() => import('@/components/features/shared/analytics/AnalyticsTRL'));
+const AnalyticsTrends = lazy(() => import('@/components/features/shared/analytics/AnalyticsTrends'));
+const AnalyticsPeriodSelector = lazy(() => import('@/components/features/shared/analytics/AnalyticsPeriodSelector'));
+const AnalyticsExport = lazy(() => import('@/components/features/shared/analytics/AnalyticsExport'));
 
 // =============================================================================
 // Loading Skeletons

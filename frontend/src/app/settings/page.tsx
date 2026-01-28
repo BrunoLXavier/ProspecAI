@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useTheme } from '@/components/layout/ThemeProvider';
+import { useTheme } from '@/components/features/shared/layout/ThemeProvider';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocaleContext, SupportedLocale, LOCALE_FLAGS, LOCALE_NAMES } from '@/contexts/LocaleContext';
 import Link from 'next/link';
@@ -316,7 +316,7 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/settings/email"
+            href="/setting-email"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">

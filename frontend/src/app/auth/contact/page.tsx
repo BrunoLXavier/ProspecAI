@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTheme } from '@/components/layout/ThemeProvider';
+import { useTheme } from '@/components/features/shared/layout/ThemeProvider';
 import { useI18n } from '@/hooks/useI18n';
 
 interface FormField {
