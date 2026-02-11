@@ -25,7 +25,7 @@ import FilterPanel, { FilterField } from '@/components/features/shared/ui/Filter
 import StatCard from '@/components/features/shared/ui/StatCard';
 import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
 import FeedbackModal from '@/components/features/feedback/components/FeedbackModal';
-import { useFeedbackStore } from '@/stores/feedbackStore';
+import { useFeedbackStore } from '@/stores/feedback-store';
 import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';

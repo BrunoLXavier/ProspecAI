@@ -56,6 +56,12 @@ interface Props {
   onCreateThread?: () => void;
   currentUserId?: string;
   availableParticipants?: Participant[];
+  /** Optional external filters provided by parent (e.g. search text) */
+  filters?: Record<string, any>;
+  /** When incremented by parent, opens the create modal */
+  createTrigger?: number;
+  /** Notify parent when a new thread is created */
+  onThreadCreated?: (thread: Thread) => void;
 }
 
 export default function CommunicationsList({
@@ -67,19 +73,33 @@ export default function CommunicationsList({
   onCreateThread,
   currentUserId,
   availableParticipants = [],
+  filters,
+  createTrigger,
+  onThreadCreated,
 }: Props) {
   const t = useTranslations('communications');
   
   const [items, setItems] = useState<Thread[] | null>(propItems || null);
   const [selectedId, setSelectedId] = useState<string | null>(propSelected || null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showAutoCreated, setShowAutoCreated] = useState(true);
+  // Local inputs (used only if parent did not provide filters)
+  const [localSearch, setLocalSearch] = useState('');
+  const [localShowAutoCreated, setLocalShowAutoCreated] = useState(true);
+  // Use external filters when provided, otherwise fallback to local state
+  const searchQuery = filters && filters.search !== undefined ? filters.search : localSearch;
+  const showAutoCreated = filters && filters.showAutoCreated !== undefined ? filters.showAutoCreated : localShowAutoCreated;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEmailConfig, setShowEmailConfig] = useState(false);
+
+  // Open create modal when parent increments trigger
+  useEffect(() => {
+    if (typeof createTrigger === 'number') {
+      setShowCreateModal(true);
+    }
+  }, [createTrigger]);
 
   // Fetch threads
   const loadThreads = async () => {
@@ -118,7 +138,7 @@ export default function CommunicationsList({
     }, 300);
     
     return () => clearTimeout(timeout);
-  }, [searchQuery]);
+  }, [searchQuery, filters?.search, filters?.showAutoCreated]);
 
   const handleSelect = (id: string) => {
     if (propOnSelect) {
@@ -144,6 +164,7 @@ export default function CommunicationsList({
     setItems(prev => prev ? [thread, ...prev] : [thread]);
     setSelectedId(thread.id);
     setShowCreateModal(false);
+    if (onThreadCreated) onThreadCreated(thread);
   };
 
   // Filter items locally if propItems provided
@@ -230,30 +251,37 @@ export default function CommunicationsList({
             </div>
           </div>
           
-          {/* Search */}
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('searchThreads') || 'Search threads...'}
-              className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
+          {/* Search: only show when parent did not provide an external search filter */}
+          {!(filters && filters.search !== undefined) && (
+            <div className="relative">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                placeholder={t('searchThreads') || 'Search threads...'}
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+          )}
           
           {/* Filter toggle */}
           {unconfirmedCount > 0 && (
             <div className="mt-2 flex items-center justify-between">
-              <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showAutoCreated}
-                  onChange={(e) => setShowAutoCreated(e.target.checked)}
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                />
-                {t('showAutoCreated') || 'Show auto-created'}
-              </label>
+              {/* checkbox only shown if parent didn't provide showAutoCreated filter */}
+              {!(filters && filters.showAutoCreated !== undefined) ? (
+                <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localShowAutoCreated}
+                    onChange={(e) => setLocalShowAutoCreated(e.target.checked)}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  {t('showAutoCreated') || 'Show auto-created'}
+                </label>
+              ) : (
+                <div className="text-xs text-gray-600 dark:text-gray-400">{t('showAutoCreated')}</div>
+              )}
               <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full">
                 {unconfirmedCount} {t('needsReview') || 'needs review'}
               </span>

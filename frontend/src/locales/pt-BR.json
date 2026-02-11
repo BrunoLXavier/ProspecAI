@@ -483,7 +483,14 @@
       "empty": "Nenhuma atividade para exibir"
     },
     "add": "Adicionar",
-    "createdAt": "Criado em"
+    "remove": "Remover",
+    "saving": "Salvando...",
+    "noItems": "Nenhum item",
+    "tagInputPlaceholder": "Digite e pressione Enter",
+    "yes": "Sim",
+    "no": "Não",
+    "search": "Buscar",
+    "confirm": "Confirmar"
   },
   "communications": {
     "title": "Comunicações",
@@ -2256,7 +2263,7 @@
     "newProposal": "Nova Proposta",
     "loading": "Carregando...",
     "noResults": "Nenhuma proposta encontrada",
-    "version": "Versão",
+    
     "created": "Criado em",
     "submitted": "Submetido em",
     "attachments": "Anexos",
@@ -2339,6 +2346,8 @@
     "commitMessageHint": "Uma boa mensagem descreve claramente o que foi alterado e por quê.",
     "saveVersion": "Salvar Versão",
     "noVersions": "Nenhuma versão registrada ainda.",
+    "versionSingular": "versão",
+    "versionPlural": "versões",
     "createFirstVersion": "Crie a primeira versão para rastrear alterações.",
     "versionsAvailableAfterCreate": "O histórico de versões estará disponível após a criação da proposta.",
     "versionLoadError": "Erro ao carregar histórico de versões",
@@ -2378,6 +2387,7 @@
       "human_in_loop_notice": "Todas as sugestões são revisadas por humanos antes de serem aplicadas (Human-in-the-Loop)"
     },
     "version": {
+      "label": "Versão",
       "commit_message": "Mensagem de Commit",
       "commit_placeholder": "Descreva as mudanças realizadas nesta versão...",
       "commit_help": "Uma mensagem clara ajuda a rastrear o histórico de alterações",

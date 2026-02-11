@@ -67,7 +67,17 @@ export default function OpportunitiesWidget() {
 
         // `listOpportunities` may return either an array or an object { data, total }
         const resp: any = response;
-        const opportunities = Array.isArray(resp) ? resp : (resp.data || resp.opportunities || []);
+        const rawOpps = Array.isArray(resp) ? resp : (resp.data || resp.opportunities || []);
+        // Map API snake_case fields to interface
+        const opportunities = rawOpps.map((o: any) => ({
+          id: o.id,
+          title: o.title || o.titulo || '',
+          client_name: o.client_name || o.cliente || '',
+          stage: o.stage || o.etapa || 'intelligence',
+          value: o.value ?? o.estimated_value ?? 0,
+          probability: o.probability ?? o.ai_confidence_score ?? 0,
+          created_at: o.created_at || '',
+        }));
         const total = resp.total || (Array.isArray(resp) ? resp.length : opportunities.length);
         const total_value = opportunities.reduce((sum: number, o: Opportunity) => sum + (o.value || 0), 0);
         const avg_probability = opportunities.length > 0 
@@ -180,7 +190,7 @@ export default function OpportunitiesWidget() {
                   {stageLabels[opp.stage] || opp.stage}
                 </span>
                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {formatCurrency(opp.value)}
+                  {formatCurrency(opp.value || 0)}
                 </span>
               </div>
             </div>

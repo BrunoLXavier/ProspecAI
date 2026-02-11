@@ -67,8 +67,16 @@ export type { IconProps, IconBadgeProps } from './Icon';
 
 // Existing View Components
 export { default as KanbanBoard } from './KanbanBoard';
+export type { KanbanColumn } from './KanbanBoard';
 export { default as BoardView } from './BoardView';
+export { default as ListView } from './ListView';
+export type { ListViewProps, ListColumn } from './ListView';
+export { default as CrudPage } from './CrudPage';
+export type { CrudPageProps } from './CrudPage';
 export { default as EntitySearchInput } from './EntitySearchInput';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as LanguageToggle } from './LanguageToggle';
 export { default as SafeRender } from './SafeRender';
+
+// Standalone AI Confidence Badge (RNF-04)
+export { default as AIConfidenceBadge } from './ConfidenceBadge';

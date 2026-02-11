@@ -7,7 +7,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useFeedbackStore } from '@/stores/feedbackStore';
+import { useFeedbackStore } from '@/stores/feedback-store';
 import { ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
 import FeedbackModal from './FeedbackModal';
 

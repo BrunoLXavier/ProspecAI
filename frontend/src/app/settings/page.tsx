@@ -298,7 +298,7 @@ export default function SettingsPage() {
         <div className="space-y-3">
 
           <Link
-            href="/layout"
+            href="/layout-settings"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">
@@ -316,7 +316,7 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/setting-email"
+            href="/email-settings"
             className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
           >
             <div className="flex items-center gap-3">

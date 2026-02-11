@@ -18,7 +18,7 @@ import {
   ExclamationCircleIcon,
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
-import { useFeedbackStore, FeedbackType, FeedbackSeverity } from '@/stores/feedbackStore';
+import { useFeedbackStore, FeedbackType, FeedbackSeverity } from '@/stores/feedback-store';
 import { useScreenshotCapture } from './ScreenshotCapture';
 import AnnotationCanvas from './AnnotationCanvas';
 import apiClient from '@/lib/api-client';

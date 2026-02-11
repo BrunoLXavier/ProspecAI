@@ -6,7 +6,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import KanbanBoard, { KanbanColumn } from '@/components/features/shared/ui/KanbanBoard';
-import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfidenceBadge from '@/components/features/shared/ui/ConfidenceBadge';
 
 interface FundingSource {
   id: string;

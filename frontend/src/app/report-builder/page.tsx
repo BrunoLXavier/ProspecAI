@@ -10,20 +10,18 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   CheckIcon,
-  TableCellsIcon,
   FunnelIcon,
   ArrowsUpDownIcon,
-  DocumentTextIcon,
-  PlayIcon,
-  DocumentArrowDownIcon,
-  Cog6ToothIcon,
   LinkIcon,
 } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import PageHeader from '@/components/features/shared/ui/PageHeader';
+import StepIndicator, { STEPS } from '@/components/features/report-builder/components/StepIndicator';
+import StepNavigation from '@/components/features/report-builder/components/StepNavigation';
+import PreviewPanel from '@/components/features/report-builder/components/PreviewPanel';
+import SaveTemplateForm from '@/components/features/report-builder/components/SaveTemplateForm';
+import type { StepId } from '@/components/features/report-builder/components/StepIndicator';
 
 // =============================================================================
 // Types
@@ -95,22 +93,6 @@ interface PreviewResult {
   preview_limit: number;
   data: Record<string, unknown>[];
 }
-
-// =============================================================================
-// Step Configuration
-// =============================================================================
-
-type StepId = 'table' | 'fields' | 'joins' | 'filters' | 'order' | 'preview' | 'save';
-
-const STEPS: { id: StepId; label: string; icon: React.ReactNode }[] = [
-  { id: 'table', label: 'Select Table', icon: <TableCellsIcon className="w-5 h-5" /> },
-  { id: 'fields', label: 'Choose Fields', icon: <DocumentTextIcon className="w-5 h-5" /> },
-  { id: 'joins', label: 'Add Joins', icon: <LinkIcon className="w-5 h-5" /> },
-  { id: 'filters', label: 'Add Filters', icon: <FunnelIcon className="w-5 h-5" /> },
-  { id: 'order', label: 'Sort & Limit', icon: <ArrowsUpDownIcon className="w-5 h-5" /> },
-  { id: 'preview', label: 'Preview', icon: <PlayIcon className="w-5 h-5" /> },
-  { id: 'save', label: 'Save Template', icon: <Cog6ToothIcon className="w-5 h-5" /> },
-];
 
 // =============================================================================
 // Filter Operators
@@ -628,146 +610,9 @@ export default function ReportBuilderPage() {
     </div>
   );
 
-  const renderPreviewStep = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-          {t('preview') || 'Preview Results'}
-        </h3>
-        <button
-          onClick={() => previewMutation.mutate()}
-          disabled={previewMutation.isPending}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          <PlayIcon className="w-4 h-4" />
-          {previewMutation.isPending ? 'Loading...' : 'Run Preview'}
-        </button>
-      </div>
-
-      {previewError && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300">
-          {previewError}
-        </div>
-      )}
-
-      {previewData && (
-        <div className="space-y-2">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Showing {previewData.data.length} of {previewData.row_count} rows
-          </p>
-          <div className="overflow-x-auto border rounded-lg dark:border-gray-700">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  {selectedFields.map(field => (
-                    <th key={field} className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      {field}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {previewData.data.map((row, idx) => (
-                  <tr key={idx}>
-                    {selectedFields.map(field => (
-                      <td key={field} className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
-                        {String(row[field] ?? '')}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderSaveStep = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-        {t('saveTemplate') || 'Save Report Template'}
-      </h3>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('templateName') || 'Template Name'} *
-          </label>
-          <input
-            type="text"
-            value={templateName}
-            onChange={(e) => setTemplateName(e.target.value)}
-            placeholder="My Custom Report"
-            className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('description') || 'Description'}
-          </label>
-          <textarea
-            value={templateDescription}
-            onChange={(e) => setTemplateDescription(e.target.value)}
-            rows={3}
-            placeholder="Describe what this report shows..."
-            className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('visibility') || 'Visibility'}
-          </label>
-          <select
-            value={visibility}
-            onChange={(e) => setVisibility(e.target.value as typeof visibility)}
-            className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-          >
-            <option value="private">Private (Only me)</option>
-            <option value="institute">My Institute</option>
-            <option value="all_tenants">All Users</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('outputFormats') || 'Output Formats'}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {['html', 'csv', 'json', 'pdf', 'xlsx'].map(format => (
-              <label key={format} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={outputFormats.includes(format)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setOutputFormats(prev => [...prev, format]);
-                    } else {
-                      setOutputFormats(prev => prev.filter(f => f !== format));
-                    }
-                  }}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600"
-                />
-                <span className="uppercase text-sm">{format}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <button
-        onClick={() => saveMutation.mutate()}
-        disabled={saveMutation.isPending || !templateName.trim()}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
-      >
-        <DocumentArrowDownIcon className="w-5 h-5" />
-        {saveMutation.isPending ? 'Saving...' : (editId ? 'Update Template' : 'Save Template')}
-      </button>
-    </div>
-  );
+  // =============================================================================
+  // Step Router
+  // =============================================================================
 
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -776,11 +621,39 @@ export default function ReportBuilderPage() {
       case 'joins': return renderJoinsStep();
       case 'filters': return renderFiltersStep();
       case 'order': return renderOrderStep();
-      case 'preview': return renderPreviewStep();
-      case 'save': return renderSaveStep();
+      case 'preview':
+        return (
+          <PreviewPanel
+            selectedFields={selectedFields}
+            previewData={previewData}
+            previewError={previewError}
+            isPending={previewMutation.isPending}
+            onRunPreview={() => previewMutation.mutate()}
+          />
+        );
+      case 'save':
+        return (
+          <SaveTemplateForm
+            templateName={templateName}
+            templateDescription={templateDescription}
+            visibility={visibility}
+            outputFormats={outputFormats}
+            isSaving={saveMutation.isPending}
+            editId={editId}
+            onNameChange={setTemplateName}
+            onDescriptionChange={setTemplateDescription}
+            onVisibilityChange={setVisibility}
+            onOutputFormatsChange={setOutputFormats}
+            onSave={() => saveMutation.mutate()}
+          />
+        );
       default: return null;
     }
   };
+
+  // =============================================================================
+  // Render
+  // =============================================================================
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -790,66 +663,25 @@ export default function ReportBuilderPage() {
       />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Step indicator */}
-        <nav className="mb-8">
-          <ol className="flex items-center justify-between overflow-x-auto">
-            {STEPS.map((step, index) => {
-              const isActive = step.id === currentStep;
-              const isCompleted = index < currentStepIndex;
-              const isClickable = index <= currentStepIndex + 1;
-
-              return (
-                <li key={step.id} className="flex items-center">
-                  <button
-                    onClick={() => isClickable && setCurrentStep(step.id)}
-                    disabled={!isClickable}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-blue-600 text-white'
-                        : isCompleted
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-                    } ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-50'}`}
-                  >
-                    {isCompleted ? <CheckIcon className="w-5 h-5" /> : step.icon}
-                    <span className="hidden sm:inline text-sm font-medium">{step.label}</span>
-                  </button>
-                  {index < STEPS.length - 1 && (
-                    <div className="w-8 h-0.5 bg-gray-200 dark:bg-gray-700 mx-1" />
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
+        <StepIndicator
+          currentStep={currentStep}
+          currentStepIndex={currentStepIndex}
+          onStepClick={setCurrentStep}
+        />
 
         {/* Step content */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
           {renderCurrentStep()}
         </div>
 
-        {/* Navigation buttons */}
-        <div className="flex justify-between">
-          <button
-            onClick={goPrev}
-            disabled={currentStepIndex === 0}
-            className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 disabled:opacity-50"
-          >
-            <ArrowLeftIcon className="w-4 h-4" />
-            Back
-          </button>
-
-          {currentStep !== 'save' && (
-            <button
-              onClick={goNext}
-              disabled={!canProceed(currentStep)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              Next
-              <ArrowRightIcon className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        <StepNavigation
+          currentStep={currentStep}
+          currentStepIndex={currentStepIndex}
+          totalSteps={STEPS.length}
+          canProceed={canProceed(currentStep)}
+          onNext={goNext}
+          onPrev={goPrev}
+        />
       </div>
     </div>
   );

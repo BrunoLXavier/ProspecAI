@@ -46,6 +46,12 @@ class ApiClient {
     // with wildcard origins during local development. If you need cookies
     // enable them explicitly in env for specific environments.
     this.client.defaults.withCredentials = false;
+    this.initializeDefaults();
+    this.setupRequestInterceptor();
+    this.setupResponseInterceptor();
+  }
+
+  private initializeDefaults() {
     try {
       const token = (typeof window !== 'undefined' && (window as any).__PROSPECAI_ACCESS_TOKEN) || getStoredAccessToken();
       const user = getStoredUser();
@@ -55,8 +61,6 @@ class ApiClient {
       if (user?.tenantId) {
         this.client.defaults.headers.common['X-Tenant-ID'] = user.tenantId;
       } else if (process.env.NEXT_PUBLIC_DEV_TENANT_ID) {
-        // Development fallback: allow injecting a seeded tenant id via env
-        // so local frontend can call APIs without an explicit login step.
         this.client.defaults.headers.common['X-Tenant-ID'] = process.env.NEXT_PUBLIC_DEV_TENANT_ID;
       }
       if (user?.id) {
@@ -65,7 +69,9 @@ class ApiClient {
     } catch (e) {
       // fail silently
     }
+  }
 
+  private setupRequestInterceptor() {
     // Request interceptor for adding auth token
     this.client.interceptors.request.use(
           async (config) => {
@@ -141,7 +147,9 @@ class ApiClient {
       },
       (error) => Promise.reject(error)
     );
+  }
 
+  private setupResponseInterceptor() {
     // Response interceptor with token refresh
     this.client.interceptors.response.use(
       (response) => response,

@@ -473,6 +473,13 @@
       "empty": "No hay actividad para mostrar"
     },
     "add": "Agregar",
+    "remove": "Eliminar",
+    "saving": "Guardando...",
+    "noItems": "Sin elementos",
+    "tagInputPlaceholder": "Escriba y presione Enter",
+    "yes": "Sí",
+    "no": "No",
+    "confirm": "Confirmar",
     "createdAt": "Creado el"
   },
   "communications": {
@@ -2186,7 +2193,15 @@
     "newProposal": "Nueva Propuesta",
     "loading": "Cargando...",
     "noResults": "No se encontraron propuestas",
-    "version": "Versión",
+    "version": {
+      "label": "Versión",
+      "commit_message": "Mensaje de Commit",
+      "commit_placeholder": "Describa los cambios realizados en esta versión...",
+      "commit_help": "Un mensaje claro ayuda a rastrear el historial de cambios",
+      "commit_required": "Se requiere un mensaje de commit para guardar los cambios"
+    },
+    "versionSingular": "versión",
+    "versionPlural": "versiones",
     "created": "Creado",
     "submitted": "Enviado",
     "attachments": "Adjuntos",

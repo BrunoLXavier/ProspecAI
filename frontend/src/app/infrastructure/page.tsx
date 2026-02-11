@@ -12,7 +12,7 @@ import FilterPanel, { FilterField } from '@/components/features/shared/ui/Filter
 import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
 import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 import { PlusIcon } from '@heroicons/react/24/outline';
-// import InfrastructureModal from '@/components/features/infrastructure/components/InfrastructureModal';
+import InfrastructureModal from '@/components/features/infrastructure/components/InfrastructureModal';
 import InfrastructureBoard from '@/components/features/infrastructure/components/InfrastructureBoard';
 import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
 import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
@@ -273,7 +273,7 @@ export default function InfrastructurePage() {
           )}
         </div>
       )}
-      {/* <InfrastructureModal isOpen={modalOpen} onClose={() => setModalOpen(false)} resource={selectedResource} /> */}
+      <InfrastructureModal isOpen={modalOpen} onClose={() => setModalOpen(false)} resource={selectedResource} />
     </div>
   );
 }

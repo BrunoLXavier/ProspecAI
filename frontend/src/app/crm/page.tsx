@@ -9,7 +9,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
-import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfidenceBadge from '@/components/features/shared/ui/ConfidenceBadge';
 import ClientModal from '@/components/features/crm/components/ClientModal';
 import CRMBoard from '@/components/features/crm/components/CRMBoard';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
@@ -171,7 +171,18 @@ export default function CRMClientsPage() {
       if (filters.aiEnriched) params.has_ai_enrichment = true;
 
       const res = await apiClient.listClients(params);
-      return Array.isArray(res) ? res : (res.items ?? []);
+      const items = Array.isArray(res) ? res : (res.items ?? []);
+      // Map snake_case API fields to camelCase interface
+      return items.map((c: any) => ({
+        id: c.id,
+        name: c.name || c.nome || '',
+        cnpj: c.cnpj || '',
+        segment: c.segment || c.segmento || '',
+        annualRevenue: c.annual_revenue ?? c.annualRevenue ?? 0,
+        maturityLevel: c.maturity_level ?? c.maturityLevel ?? 'startup',
+        aiEnrichedData: c.ai_enriched_data ?? c.aiEnrichedData ?? false,
+        aiConfidenceScore: c.ai_confidence_score ?? c.aiConfidenceScore,
+      }));
     }
   });
 
@@ -201,7 +212,7 @@ export default function CRMClientsPage() {
     return paginatedClients.map((client) => ({
       id: client.id,
       title: client.name,
-      description: `${t('segment')}: ${client.segment} | ${t('revenue')}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(client.annualRevenue)}`,
+      description: `${t('segment')}: ${client.segment} | ${t('revenue')}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(client.annualRevenue || 0)}`,
       date: new Date().toISOString(),
       status: client.maturityLevel === 'mature' ? 'success' : client.maturityLevel === 'growth' ? 'info' : 'warning',
       metadata: { maturityLevel: client.maturityLevel, aiEnriched: client.aiEnrichedData },
@@ -219,7 +230,7 @@ export default function CRMClientsPage() {
       header: t('revenue'), 
       accessor: 'annualRevenue', 
       sortable: true,
-      render: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value as number),
+      render: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format((value as number) || 0),
     },
     { 
       key: 'maturityLevel', 
@@ -419,7 +430,7 @@ export default function CRMClientsPage() {
                                 style: 'currency',
                                 currency: 'BRL',
                                 notation: 'compact',
-                              }).format(client.annualRevenue)}
+                              }).format(client.annualRevenue || 0)}
                             </p>
                           </div>
                         </div>

@@ -12,8 +12,8 @@ import {
   ExclamationTriangleIcon,
   TableCellsIcon
 } from '@heroicons/react/24/outline';
-import { usePreviewQuery } from '@/hooks/useReportBuilder';
-import type { QueryConfig } from '@/types/features/report-builder';
+import { usePreviewQuery } from '@/hooks/use-report-builder';
+import type { QueryConfig } from '@/components/features/report-builder/types';
 
 interface QueryPreviewProps {
   queryConfig: QueryConfig;

@@ -4,14 +4,18 @@
  */
 'use client';
 
-import { Fragment, useEffect, useState, useRef } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState, useRef } from 'react';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
+import BaseModal, { ModalFooter } from '@/components/features/shared/ui/BaseModal';
+import {
+  FormInput,
+  FormTextarea,
+} from '@/components/features/shared/forms';
 
 interface TemplateInput {
   id?: string;
@@ -85,134 +89,112 @@ export default function ReportFormModal({ isOpen, onClose, initial }: ReportForm
     }
   };
 
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-            <div className="fixed inset-0 bg-black/40" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 dark:text-white p-6 shadow-xl transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {initial ? t('editTemplate') : t('newTemplate')}
-                  </Dialog.Title>
-                  <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                    <XMarkIcon className="h-6 w-6" />
-                  </button>
-                </div>
-
-                {canCreate ? (
-                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('name')}</label>
-                    <input {...register('name', { required: true })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white border-gray-200 dark:border-slate-600" />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('description')}</label>
-                    <textarea {...register('description')} rows={3} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white border-gray-200 dark:border-slate-600" />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">{t('parameters')}</label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t('parametersHelp')} <span className="font-mono">start_date</span>, <span className="font-mono">end_date</span></p>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {params.map((p) => (
-                        <span key={p} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{p}
-                          <button type="button" onClick={() => setParams(prev => prev.filter(x => x !== p))} className="text-xs text-gray-500 dark:text-gray-300 ml-2">×</button>
-                        </span>
-                      ))}
-                    </div>
-                    <input
-                      ref={paramInputRef}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ',') {
-                          e.preventDefault();
-                          const v = (e.currentTarget as HTMLInputElement).value.trim();
-                          if (v) {
-                            setParams(prev => Array.from(new Set([...prev, v])));
-                            (e.currentTarget as HTMLInputElement).value = '';
-                          }
-                        }
-                      }}
-                      className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white border-gray-200 dark:border-slate-600"
-                      placeholder={t('paramPlaceholder')}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('outputFormats')}</label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t('outputFormatsHelp')}</p>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {formats.map((f) => (
-                        <span key={f} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{f}
-                          <button type="button" onClick={() => setFormats(prev => prev.filter(x => x !== f))} className="text-xs text-gray-500 dark:text-gray-300 ml-2">×</button>
-                        </span>
-                      ))}
-                    </div>
-                    <input
-                      ref={formatInputRef}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ',') {
-                          e.preventDefault();
-                          const v = (e.currentTarget as HTMLInputElement).value.trim().toLowerCase();
-                          if (v) {
-                            setFormats(prev => Array.from(new Set([...prev, v])));
-                            (e.currentTarget as HTMLInputElement).value = '';
-                          }
-                        }
-                      }}
-                      className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white border-gray-200 dark:border-slate-600"
-                      placeholder={t('outputFormatsPlaceholder')}
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-3 border-t border-gray-200 dark:border-slate-700">
-                    <button type="button" onClick={onClose} className="px-4 py-2 bg-white dark:bg-slate-700 border rounded-lg text-gray-700 dark:text-white">{tCommon('cancel')}</button>
-                    <button type="submit" disabled={isSubmitting || createMutation.isPending || updateMutation.isPending} className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-                      {isSubmitting || createMutation.isPending || updateMutation.isPending ? tCommon('saving') : (initial ? t('saveChanges') : t('createTemplate'))}
-                    </button>
-                  </div>
-                </form>
-                ) : (
-                  <div className="py-12 px-6 text-center">
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t('noPermissionTitle') || 'Permission required'}</p>
-                    <p className="text-sm text-gray-400 mb-6">{t('noPermissionMessage') || 'You must be an administrator or have at least one selected institute to create or edit report templates. Select your institute in the header or contact an administrator.'}</p>
-                    <div className="flex justify-center">
-                      <button
-                        onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                      >
-                        {tCommon('close') || 'Close'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
+  const renderFooter = () => {
+    if (!canCreate) {
+      return (
+        <div className="flex justify-center">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+          >
+            {tCommon('close')}
+          </button>
         </div>
-      </Dialog>
-    </Transition>
+      );
+    }
+    return (
+      <ModalFooter
+        onCancel={onClose}
+        onSubmit={handleSubmit(onSubmit)}
+        isSubmitting={isSubmitting || createMutation.isPending || updateMutation.isPending}
+        submitLabel={initial ? t('saveChanges') : t('createTemplate')}
+      />
+    );
+  };
+
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={initial ? t('editTemplate') : t('newTemplate')}
+      icon={<DocumentTextIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />}
+      size="2xl"
+      footer={renderFooter()}
+    >
+      {canCreate ? (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput
+            label={t('name')}
+            required
+            {...register('name', { required: true })}
+          />
+
+          <FormTextarea
+            label={t('description')}
+            rows={3}
+            {...register('description')}
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('parameters')}</label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t('parametersHelp')} <span className="font-mono">start_date</span>, <span className="font-mono">end_date</span></p>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {params.map((p) => (
+                <span key={p} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{p}
+                  <button type="button" onClick={() => setParams(prev => prev.filter(x => x !== p))} className="text-xs text-gray-500 dark:text-gray-300 ml-2">×</button>
+                </span>
+              ))}
+            </div>
+            <input
+              ref={paramInputRef}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                  e.preventDefault();
+                  const v = (e.currentTarget as HTMLInputElement).value.trim();
+                  if (v) {
+                    setParams(prev => Array.from(new Set([...prev, v])));
+                    (e.currentTarget as HTMLInputElement).value = '';
+                  }
+                }
+              }}
+              className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-primary-500"
+              placeholder={t('paramPlaceholder')}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('outputFormats')}</label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t('outputFormatsHelp')}</p>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {formats.map((f) => (
+                <span key={f} className="inline-flex items-center gap-2 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{f}
+                  <button type="button" onClick={() => setFormats(prev => prev.filter(x => x !== f))} className="text-xs text-gray-500 dark:text-gray-300 ml-2">×</button>
+                </span>
+              ))}
+            </div>
+            <input
+              ref={formatInputRef}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                  e.preventDefault();
+                  const v = (e.currentTarget as HTMLInputElement).value.trim().toLowerCase();
+                  if (v) {
+                    setFormats(prev => Array.from(new Set([...prev, v])));
+                    (e.currentTarget as HTMLInputElement).value = '';
+                  }
+                }
+              }}
+              className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white border-gray-200 dark:border-slate-600 focus:ring-2 focus:ring-primary-500"
+              placeholder={t('outputFormatsPlaceholder')}
+            />
+          </div>
+        </form>
+      ) : (
+        <div className="py-12 px-6 text-center">
+          <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t('noPermissionTitle')}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">{t('noPermissionMessage')}</p>
+        </div>
+      )}
+    </BaseModal>
   );
 }

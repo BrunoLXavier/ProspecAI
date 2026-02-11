@@ -10,7 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/components/features/shared/layout/ThemeProvider';
-import { useI18n } from '@/hooks/useI18n';
+import { useI18n } from '@/hooks/use-i18n';
 
 type VerificationState = 'loading' | 'success' | 'error' | 'no-token';
 

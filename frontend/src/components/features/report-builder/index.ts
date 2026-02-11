@@ -9,4 +9,11 @@ export {
   OrderByBuilder,
   QueryPreview,
   ReportBuilderPage,
+  StepIndicator,
+  STEPS,
+  StepNavigation,
+  PreviewPanel,
+  SaveTemplateForm,
 } from './components';
+
+export type { StepId, StepConfig } from './components';

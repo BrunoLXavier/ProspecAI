@@ -4,6 +4,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { Card, CardHeader } from '@/components/features/shared/ui/Card';
 
 export interface KanbanColumn<T = any> {
@@ -27,11 +28,12 @@ export default function KanbanBoard<T extends { id: string }>({
   title,
   columns,
   renderItem,
-  emptyMessage = 'Nenhum item',
+  emptyMessage,
   onDragEnd,
   enableDragDrop = false,
   className = '',
 }: KanbanBoardProps<T>) {
+  const t = useTranslations('common');
   const handleDragStart = (e: React.DragEvent, itemId: string, columnKey: string) => {
     if (!enableDragDrop) return;
     e.dataTransfer.setData('itemId', itemId);
@@ -82,7 +84,7 @@ export default function KanbanBoard<T extends { id: string }>({
             <div className="space-y-2 min-h-[100px]">
               {column.items.length === 0 ? (
                 <div className="text-center py-6 text-sm text-gray-400 dark:text-gray-500">
-                  {emptyMessage}
+                  {emptyMessage || t('noItems')}
                 </div>
               ) : (
                 column.items.map((item) => (

@@ -26,6 +26,7 @@ import FilterPanel, { FilterField } from '@/components/features/shared/ui/Filter
 import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
 import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
 import Icon from '@/components/features/shared/ui/Icon';
+import { BaseModal, ModalFooter } from '@/components/features/shared/ui';
 
 interface Activity {
   id: string;
@@ -518,23 +519,22 @@ export default function ActivityPage() {
         persistInUrl={true}
       />
 
-      {/* Detail Modal */}
+      {/* Detail Modal - standardized */}
       {selectedActivity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-3xl bg-white dark:bg-slate-800 rounded-xl p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{String(t(`types.${String(selectedActivity.type)}`) || '')}</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{selectedActivity.entityName}</p>
-              </div>
-              <button onClick={() => setSelectedActivity(null)} className="text-gray-600 dark:text-gray-300 p-2 rounded-lg">Fechar</button>
-            </div>
-            <div className="mt-4">
-              <p className="text-sm text-gray-700 dark:text-gray-300">{getActivityDescription(selectedActivity)}</p>
-              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">Ator: {selectedActivity.actor.name} — {new Date(selectedActivity.createdAt).toLocaleString()}</div>
-            </div>
+        <BaseModal
+          isOpen={!!selectedActivity}
+          onClose={() => setSelectedActivity(null)}
+          title={String(t(`types.${String(selectedActivity.type)}`) || '')}
+          subtitle={selectedActivity.entityName}
+          size="2xl"
+          showCloseButton={true}
+          footer={<ModalFooter onCancel={() => setSelectedActivity(null)} />}
+        >
+          <div>
+            <p className="text-sm text-gray-700 dark:text-gray-300">{getActivityDescription(selectedActivity)}</p>
+            <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">Ator: {selectedActivity.actor.name} — {new Date(selectedActivity.createdAt).toLocaleString()}</div>
           </div>
-        </div>
+        </BaseModal>
       )}
     </div>
   );

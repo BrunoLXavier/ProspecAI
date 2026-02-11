@@ -33,7 +33,7 @@ import apiClient from '@/lib/api-client';
 import BaseModal, { ModalFooter } from '@/components/features/shared/ui/BaseModal';
 import ModalTabs, { TabHint, type TabItem } from '@/components/features/shared/ui/ModalTabs';
 import DeleteConfirmation from '@/components/features/shared/ui/DeleteConfirmation';
-import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfidenceBadge from '@/components/features/shared/ui/ConfidenceBadge';
 
 interface Client {
   id: string;

@@ -28,8 +28,8 @@ import {
   useGenerateReport,
   downloadReport,
   getReportFilename,
-} from '@/hooks/useReportBuilder';
-import type { OutputFormat, ReportTemplate } from '@/types/features/report-builder';
+} from '@/hooks/use-report-builder';
+import type { OutputFormat, ReportTemplate } from '@/components/features/report-builder/types';
 
 export default function ReportsPage() {
   const t = useTranslations('reports');

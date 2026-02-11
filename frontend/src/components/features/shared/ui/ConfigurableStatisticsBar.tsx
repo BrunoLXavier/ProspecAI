@@ -21,8 +21,8 @@ import {
   StatisticItem,
   StatCategory,
   STAT_CATEGORIES,
-} from '@/types/features/statistics';
-import { useStatistics, INSTITUTES_CALCULATORS, TEAMS_CALCULATORS, INFRASTRUCTURE_CALCULATORS, COMMUNICATIONS_CALCULATORS } from '@/hooks/useStatistics';
+} from '@/components/features/shared/analytics/statistics-types';
+import { useStatistics, INSTITUTES_CALCULATORS, TEAMS_CALCULATORS, INFRASTRUCTURE_CALCULATORS, COMMUNICATIONS_CALCULATORS } from '@/hooks/use-statistics';
 
 // =============================================================================
 // Icon Resolver

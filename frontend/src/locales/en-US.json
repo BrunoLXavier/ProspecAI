@@ -473,7 +473,14 @@
     },
     "timeline": {
       "empty": "No activity to display"
-    }
+    },
+    "remove": "Remove",
+    "saving": "Saving...",
+    "noItems": "No items",
+    "tagInputPlaceholder": "Type and press Enter",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm"
   },
   "communications": {
     "title": "Communications",
@@ -2182,7 +2189,13 @@
     "newProposal": "New Proposal",
     "loading": "Loading...",
     "noResults": "No proposals found",
-    "version": "Version",
+    "version": {
+      "label": "Version",
+      "commit_message": "Commit Message",
+      "commit_placeholder": "Describe the changes made in this version...",
+      "commit_help": "A clear message helps track change history",
+      "commit_required": "A commit message is required to save changes"
+    },
     "created": "Created",
     "view": "View",
     "institute": "Institute",
@@ -2263,6 +2276,8 @@
     "commitMessageHint": "A good message clearly describes what was changed and why.",
     "saveVersion": "Save Version",
     "noVersions": "No versions recorded yet.",
+    "versionSingular": "version",
+    "versionPlural": "versions",
     "createFirstVersion": "Create the first version to track changes.",
     "versionsAvailableAfterCreate": "Version history will be available after creating the proposal.",
     "versionLoadError": "Error loading version history",

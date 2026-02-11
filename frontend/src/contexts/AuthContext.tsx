@@ -8,63 +8,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { setTokenRefreshFunction } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
+import type { User, AuthTokens, LoginCredentials, RegisterData, AuthContextType } from './auth-types';
+import { STORAGE_KEYS, getStoredRefreshToken, getStoredSelectedInstitutes } from './auth-storage';
 
-// =============================================================================
-// Types
-// =============================================================================
-
-interface User {
-  id: string;
-  email: string;
-  username: string;
-  fullName?: string;
-  tenantId?: string;
-  roles: string[];
-  emailVerified: boolean;
-}
-
-interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: number;
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-interface RegisterData {
-  email: string;
-  username: string;
-  password: string;
-  fullName?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  tokens: AuthTokens | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  requiresEmailVerification: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<{ message: string }>;
-  logout: (revokeAll?: boolean) => Promise<void>;
-  refreshAccessToken: () => Promise<string | null>;
-  requestPasswordReset: (email: string) => Promise<void>;
-  resetPassword: (token: string, newPassword: string) => Promise<void>;
-  verifyEmail: (token: string) => Promise<void>;
-  resendVerification: () => Promise<void>;
-  checkEmailAvailable: (email: string) => Promise<boolean>;
-  checkUsernameAvailable: (username: string) => Promise<boolean>;
-  selectedInstitutes: string[];
-  setSelectedInstitutes: (ids: string[]) => void;
-}
-
-interface AuthError {
-  detail: string;
-  status: number;
-}
+// Re-export storage utilities and types for backward compatibility
+export { getStoredAccessToken, getStoredRefreshToken, getStoredUser, getStoredSelectedInstitutes } from './auth-storage';
+export type { User, AuthTokens, LoginCredentials, RegisterData, AuthContextType, AuthError } from './auth-types';
 
 // =============================================================================
 // Constants
@@ -72,14 +21,6 @@ interface AuthError {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 const AUTH_BASE = `${API_URL}/api/v1/auth`;
-
-const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'prospecai_access_token',
-  REFRESH_TOKEN: 'prospecai_refresh_token',
-  EXPIRES_AT: 'prospecai_expires_at',
-  USER: 'prospecai_user',
-  SELECTED_INSTITUTES: 'prospecai_selected_institutes',
-};
 
 // =============================================================================
 // Context
@@ -662,38 +603,4 @@ export function useAuth(): AuthContextType {
   }
   
   return context;
-}
-
-// =============================================================================
-// Export utility for API client
-// =============================================================================
-
-export function getStoredAccessToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-}
-
-export function getStoredRefreshToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-}
-
-export function getStoredUser(): User | null {
-  if (typeof window === 'undefined') return null;
-  const stored = localStorage.getItem(STORAGE_KEYS.USER);
-  return stored ? JSON.parse(stored) : null;
-}
-
-export function getStoredSelectedInstitutes(): string[] {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem(STORAGE_KEYS.SELECTED_INSTITUTES);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed;
-    if (typeof raw === 'string' && raw.trim().length) return raw.split(',').map(s => s.trim()).filter(Boolean);
-  } catch (e) {
-    if (typeof raw === 'string' && raw.trim().length) return raw.split(',').map(s => s.trim()).filter(Boolean);
-  }
-  return [];
 }

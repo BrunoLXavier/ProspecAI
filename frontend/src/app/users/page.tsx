@@ -72,21 +72,37 @@ export default function UsersPage() {
 	const { initialPage, initialPageSize } = usePagination(20, true);
 	const [currentPage, setCurrentPage] = useState(initialPage);
 	const [pageSize, setPageSize] = useState(initialPageSize);
+    const [totalUsers, setTotalUsers] = useState(0);
+	const [sortColumn, setSortColumn] = useState<string | null>(null);
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
-	// Fetch users
+	// Fetch users (server-side pagination via skip/limit)
 	const { data: users = [], isLoading } = useQuery<User[]>({
-		queryKey: ['users', searchQuery, selectedRole],
+		queryKey: ['users', searchQuery, selectedRole, currentPage, pageSize, viewMode, sortColumn, sortDirection],
 		queryFn: async () => {
 			try {
 				const params: Record<string, any> = {};
+				// For board view we may want the full set; request a large limit
+				if (viewMode === 'board') {
+					params.skip = 0;
+					params.limit = Math.max(200, pageSize * 10);
+				} else {
+					const skip = Math.max(0, (currentPage - 1) * pageSize);
+					params.skip = skip;
+					params.limit = pageSize;
+				}
+
 				if (searchQuery) params.search = searchQuery;
 				if (selectedRole) params.role = selectedRole;
-        
-				const response = await apiClient.get('/api/v1/admin/users', params);
-				// Backend returns { items, total, skip, limit }
+                    if (sortColumn) params.sort = sortColumn;
+                    if (sortDirection) params.direction = sortDirection;
+
+				const response: any = await apiClient.get('/api/v1/admin/users', params);
+				setTotalUsers(response.total ?? (Array.isArray(response) ? response.length : 0));
 				return response.items || response.users || response || [];
 			} catch (error) {
 				console.error('Failed to fetch users:', error);
+				setTotalUsers(0);
 				return [];
 			}
 		},
@@ -190,27 +206,9 @@ export default function UsersPage() {
 		return ROLES.find(r => r.value === role) || ROLES[3];
 	};
 
-	const filteredUsers = useMemo(() => {
-		return users.filter(user => {
-			if (searchQuery) {
-				const search = searchQuery.toLowerCase();
-				if (!user.name.toLowerCase().includes(search) && 
-						!user.email.toLowerCase().includes(search)) {
-					return false;
-				}
-			}
-			if (selectedRole && user.role !== selectedRole) {
-				return false;
-			}
-			return true;
-		});
-	}, [users, searchQuery, selectedRole]);
-
-	// Paginate users for table
-	const paginatedUsers = useMemo(() => {
-		const start = (currentPage - 1) * pageSize;
-		return filteredUsers.slice(start, start + pageSize);
-	}, [filteredUsers, currentPage, pageSize]);
+	// When using server-side pagination the `users` array is already the current page
+	const filteredUsers = users;
+	const paginatedUsers = users;
 
 	// Reset to first page when filters change
 	useEffect(() => {
@@ -392,11 +390,24 @@ export default function UsersPage() {
 							})}
 						</ul>
 					)}
-					{/* Summary */}
+					{/* Pagination / Summary */}
 					<div className="px-6 py-3 bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-gray-600">
-						<p className="text-sm text-gray-600 dark:text-gray-400">
-							{t('users.showing') || 'Showing'} {filteredUsers.length} {t('users.of') || 'of'} {users.length} {t('users.users') || 'users'}
-						</p>
+						<div className="flex items-center justify-between">
+							<p className="text-sm text-gray-600 dark:text-gray-400">
+								{t('users.showing') || 'Showing'} {paginatedUsers.length} {t('users.of') || 'of'} {totalUsers} {t('users.users') || 'users'}
+							</p>
+							{totalUsers > 0 && (
+								<Pagination
+									currentPage={currentPage}
+									totalItems={totalUsers}
+									pageSize={pageSize}
+									onPageChange={(p) => setCurrentPage(p)}
+									onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+									showTotal
+									showPageSizeSelector
+								/>
+							)}
+						</div>
 					</div>
 				</div>
 			)}
@@ -502,6 +513,16 @@ export default function UsersPage() {
 					getRowKey={(user) => user.id}
 					onRowClick={openEditModal}
 					loading={isLoading}
+					paginated={true}
+					pageSize={pageSize}
+					currentPage={currentPage}
+					totalItems={totalUsers}
+					onPageChange={(p) => setCurrentPage(p)}
+					onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+					serverSideSorting={true}
+					onSortChange={(col, dir) => { setSortColumn(col); setSortDirection(dir as 'asc' | 'desc' | null); setCurrentPage(1); }}
+					sortColumn={sortColumn ?? undefined}
+					sortDirection={sortDirection ?? undefined}
 					emptyMessage={t('users.noUsers') || 'No users found'}
 					hoverable
 					striped

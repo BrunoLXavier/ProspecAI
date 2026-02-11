@@ -8,6 +8,7 @@
 import { Fragment, ReactNode } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useTranslations } from 'next-intl';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'full';
 
@@ -150,11 +151,16 @@ export function ModalFooter({
   onDelete,
   isSubmitting = false,
   isDeleting = false,
-  submitLabel = 'Salvar',
-  cancelLabel = 'Cancelar',
-  deleteLabel = 'Excluir',
+  submitLabel,
+  cancelLabel,
+  deleteLabel,
   showDelete = false,
 }: ModalFooterProps) {
+  const t = useTranslations('common');
+  const resolvedSubmitLabel = submitLabel || t('save');
+  const resolvedCancelLabel = cancelLabel || t('cancel');
+  const resolvedDeleteLabel = deleteLabel || t('delete');
+
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -165,7 +171,7 @@ export function ModalFooter({
             disabled={isDeleting}
             className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
           >
-            {isDeleting ? 'Excluindo...' : deleteLabel}
+            {isDeleting ? t('deleting') : resolvedDeleteLabel}
           </button>
         )}
       </div>
@@ -175,7 +181,7 @@ export function ModalFooter({
           onClick={onCancel}
           className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
         >
-          {cancelLabel}
+          {resolvedCancelLabel}
         </button>
         {onSubmit && (
           <button
@@ -184,7 +190,7 @@ export function ModalFooter({
             disabled={isSubmitting}
             className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
           >
-            {isSubmitting ? 'Salvando...' : submitLabel}
+            {isSubmitting ? t('saving') : resolvedSubmitLabel}
           </button>
         )}
       </div>

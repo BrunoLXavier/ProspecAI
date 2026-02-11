@@ -12,7 +12,7 @@ import {
   StatCategory,
   getModuleStatistics,
   STAT_CATEGORIES,
-} from '@/types/features/statistics';
+} from '@/components/features/shared/analytics/statistics-types';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 

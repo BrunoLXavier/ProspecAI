@@ -12,7 +12,7 @@ import OpportunityPipeline from '@/components/features/dashboard/components/Oppo
 import { PlusIcon } from '@heroicons/react/24/outline';
 import OpportunityModal from '@/components/features/opportunities/components/OpportunityModal';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
-import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfidenceBadge from '@/components/features/shared/ui/ConfidenceBadge';
 import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
 import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
 import PageHeader from '@/components/features/shared/ui/PageHeader';

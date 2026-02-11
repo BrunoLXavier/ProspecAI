@@ -4,13 +4,13 @@
  */
 'use client';
 
-import { Fragment, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import { DocumentTextIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import ReportFormModal from './ReportFormModal';
 import { useTranslations } from 'next-intl';
+import BaseModal from '@/components/features/shared/ui/BaseModal';
 
 interface Template {
   id: string;
@@ -51,6 +51,23 @@ export default function ReportDetailModal({ isOpen, onClose, template, onDeleted
 
   if (!template) return null;
 
+  const renderFooter = () => (
+    <div className="flex items-center justify-end gap-3">
+      <button
+        onClick={() => setEditing(true)}
+        className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-gray-600 rounded-lg flex items-center gap-2 transition-colors"
+      >
+        <PencilIcon className="h-4 w-4" /> {tCommon('edit')}
+      </button>
+      <button
+        onClick={handleDelete}
+        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 transition-colors"
+      >
+        <TrashIcon className="h-4 w-4" /> {tCommon('delete')}
+      </button>
+    </div>
+  );
+
   return (
     <>
       <ReportFormModal isOpen={editing} onClose={() => setEditing(false)} initial={{
@@ -61,76 +78,37 @@ export default function ReportDetailModal({ isOpen, onClose, template, onDeleted
         output_formats: (template.output_formats || []).join(','),
       }} />
 
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={onClose}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black/40" />
-          </Transition.Child>
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={template.name}
+        icon={<DocumentTextIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />}
+        size="2xl"
+        footer={renderFooter()}
+      >
+        <div className="space-y-4">
+          {template.description && <p className="text-sm text-gray-700 dark:text-gray-200">{template.description}</p>}
 
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 dark:text-white p-6 shadow-xl transition-all">
-                  <div className="flex items-center justify-between mb-4">
-                    <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">{template.name}</Dialog.Title>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                      <XMarkIcon className="h-6 w-6" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    {template.description && <p className="text-sm text-gray-700 dark:text-gray-200">{template.description}</p>}
-
-                    <div>
-                      <h4 className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t('parameters')}</h4>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {(template.parameters || []).map((p) => (
-                          <span key={p} className="text-xs bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{p}</span>
-                        ))}
-                        {(!template.parameters || template.parameters.length === 0) && <span className="text-xs text-gray-400">{t('none')}</span>}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t('formats')}</h4>
-                      <div className="mt-2 flex gap-2">
-                        {(template.output_formats || []).map((f) => (
-                          <span key={f} className="text-xs bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{f.toUpperCase()}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex justify-end gap-3">
-                    <button onClick={() => setEditing(true)} className="px-4 py-2 bg-white dark:bg-slate-700 border rounded-lg flex items-center gap-2 text-gray-700 dark:text-white">
-                      <PencilIcon className="h-4 w-4" /> {tCommon('edit')}
-                    </button>
-                    <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg flex items-center gap-2">
-                      <TrashIcon className="h-4 w-4" /> {tCommon('delete')}
-                    </button>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
+          <div>
+            <h4 className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t('parameters')}</h4>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(template.parameters || []).map((p) => (
+                <span key={p} className="text-xs bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{p}</span>
+              ))}
+              {(!template.parameters || template.parameters.length === 0) && <span className="text-xs text-gray-400 dark:text-gray-500">{t('none')}</span>}
             </div>
           </div>
-        </Dialog>
-      </Transition>
+
+          <div>
+            <h4 className="text-xs text-gray-500 dark:text-gray-400 uppercase">{t('formats')}</h4>
+            <div className="mt-2 flex gap-2">
+              {(template.output_formats || []).map((f) => (
+                <span key={f} className="text-xs bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-gray-800 dark:text-white">{f.toUpperCase()}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </BaseModal>
     </>
   );
 }

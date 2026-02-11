@@ -32,7 +32,7 @@ import {
   useGenerateReport,
   downloadReport,
   getReportFilename,
-} from '@/hooks/useReportBuilder';
+} from '@/hooks/use-report-builder';
 import type {
   QueryConfig,
   DisplayConfig,
@@ -40,7 +40,7 @@ import type {
   JoinConfig,
   OrderByConfig,
   OutputFormat,
-} from '@/types/features/report-builder';
+} from '@/components/features/report-builder/types';
 
 // Wizard steps
 const STEPS = [

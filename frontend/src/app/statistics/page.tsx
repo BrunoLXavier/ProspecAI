@@ -38,7 +38,7 @@ import {
 	getModuleStatistics,
 	StatisticDefinition,
 	ProfileStatisticsPermissions,
-} from '@/types/features/statistics';
+} from '@/components/features/shared/analytics/statistics-types';
 import PageHeader from '@/components/features/shared/ui/PageHeader';
 
 // =============================================================================

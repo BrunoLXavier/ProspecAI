@@ -13,8 +13,8 @@ import {
   ArrowDownIcon,
   Bars3Icon
 } from '@heroicons/react/24/outline';
-import { useTableSchema } from '@/hooks/useReportBuilder';
-import type { OrderByConfig, FieldSchema } from '@/types/features/report-builder';
+import { useTableSchema } from '@/hooks/use-report-builder';
+import type { OrderByConfig, FieldSchema } from '@/components/features/report-builder/types';
 
 interface OrderByBuilderProps {
   baseTable: string;

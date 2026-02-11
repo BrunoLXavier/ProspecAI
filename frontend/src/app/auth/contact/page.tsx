@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/features/shared/layout/ThemeProvider';
-import { useI18n } from '@/hooks/useI18n';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface FormField {
   name: string;

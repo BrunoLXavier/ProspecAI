@@ -12,7 +12,7 @@ import ConfigurableStatisticsBar from '@/components/features/shared/ui/Configura
 import SafeRender from '@/components/features/shared/ui/SafeRender';
 import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 import { PlusIcon, BuildingLibraryIcon } from '@heroicons/react/24/outline';
-// import InstituteModal from '@/components/features/institutes/components/InstituteModal';
+import InstituteModal from '@/components/features/institutes/components/InstituteModal';
 import InstitutesListView from '@/components/features/institutes/components/InstitutesListView';
 import InstitutesBoard from '@/components/features/institutes/components/InstitutesBoard';
 import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
@@ -213,7 +213,7 @@ export default function InstitutesPage() {
           )}
         </div>
       )}
-      {/* <InstituteModal isOpen={modalOpen} onClose={() => setModalOpen(false)} institute={selectedInstitute} /> */}
+      <InstituteModal isOpen={modalOpen} onClose={() => setModalOpen(false)} institute={selectedInstitute} />
     </div>
   );
 }

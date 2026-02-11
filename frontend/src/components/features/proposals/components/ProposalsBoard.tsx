@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import KanbanBoard, { KanbanColumn } from '@/components/features/shared/ui/KanbanBoard';
-import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfidenceBadge from '@/components/features/shared/ui/ConfidenceBadge';
 
 interface Proposal {
   id: string;

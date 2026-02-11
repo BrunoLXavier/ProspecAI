@@ -9,7 +9,7 @@
 import { useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import html2canvas from 'html2canvas';
-import { useFeedbackStore } from '@/stores/feedbackStore';
+import { useFeedbackStore } from '@/stores/feedback-store';
 
 interface ScreenshotCaptureProps {
   onCapture: (base64: string, width: number, height: number) => void;

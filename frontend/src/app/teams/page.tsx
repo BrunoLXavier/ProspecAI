@@ -13,7 +13,7 @@ import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
 import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
-// import TeamModal from '@/components/features/teams/components/TeamModal';
+import TeamModal from '@/components/features/teams/components/TeamModal';
 import TeamsBoard from '@/components/features/teams/components/TeamsBoard';
 import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
 
@@ -245,7 +245,7 @@ export default function TeamsPage() {
           )}
         </div>
       )}
-      {/* <TeamModal isOpen={modalOpen} onClose={() => setModalOpen(false)} team={selectedTeam} /> */}
+      <TeamModal isOpen={modalOpen} onClose={() => setModalOpen(false)} team={selectedTeam} />
     </div>
   );
 }

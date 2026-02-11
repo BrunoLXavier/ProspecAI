@@ -28,7 +28,7 @@ import {
   pipelineStageOptions,
 } from '@/utils/validations';
 import apiClient from '@/lib/api-client';
-import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfidenceBadge from '@/components/features/shared/ui/ConfidenceBadge';
 
 interface Opportunity {
   id: string;

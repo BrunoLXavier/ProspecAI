@@ -6,8 +6,8 @@
 
 import { useTranslations } from 'next-intl';
 import { PlusIcon, TrashIcon, LinkIcon } from '@heroicons/react/24/outline';
-import { useTableJoins } from '@/hooks/useReportBuilder';
-import type { JoinConfig, RelationshipSchema } from '@/types/features/report-builder';
+import { useTableJoins } from '@/hooks/use-report-builder';
+import type { JoinConfig, RelationshipSchema } from '@/components/features/report-builder/types';
 
 interface JoinBuilderProps {
   baseTable: string;

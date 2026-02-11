@@ -9,7 +9,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
-import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfidenceBadge from '@/components/features/shared/ui/ConfidenceBadge';
 import FundingModal from '@/components/features/funding/components/FundingModal';
 import FundingBoard from '@/components/features/funding/components/FundingBoard';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';

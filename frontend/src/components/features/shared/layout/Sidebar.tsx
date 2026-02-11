@@ -49,7 +49,7 @@ export const navigationItems: NavigationItem[] = [
   { id: 'funding', name: 'funding', href: '/funding', icon: CurrencyDollarIcon },
   { id: 'portfolio', name: 'portfolio', href: '/portfolio', icon: BriefcaseIcon },
   { id: 'crm', name: 'crm', href: '/crm', icon: UserGroupIcon },
-  { id: 'communications', name: 'communications', href: '/comunications', icon: ChatBubbleLeftRightIcon },
+  { id: 'communications', name: 'communications', href: '/communications', icon: ChatBubbleLeftRightIcon },
   { id: 'institutes', name: 'institutes', href: '/institutes', icon: BuildingLibraryIcon },
   { id: 'teams', name: 'teams', href: '/teams', icon: UsersIcon },
   { id: 'infrastructure', name: 'infrastructure', href: '/infrastructure', icon: BuildingOfficeIcon },

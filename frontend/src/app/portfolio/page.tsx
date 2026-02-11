@@ -191,7 +191,18 @@ export default function PortfolioPage() {
       if (filters.maxBudget) params.max_budget = Number(filters.maxBudget);
 
       const res = await apiClient.listProjects(params);
-      return Array.isArray(res) ? res : (res.items ?? []);
+      const items = Array.isArray(res) ? res : (res.items ?? []);
+      // Map snake_case API fields to camelCase interface
+      return items.map((p: any) => ({
+        id: p.id,
+        title: p.title || p.titulo || '',
+        status: p.status || 'active',
+        trl: p.trl ?? p.trl_entrada ?? p.trl_saida ?? null,
+        budget: p.budget ?? p.orcamento ?? 0,
+        startDate: p.startDate || p.start_date || p.data_inicio || '',
+        endDate: p.endDate || p.end_date || p.data_fim || '',
+        researchArea: p.researchArea || p.research_area || p.area_pesquisa || '',
+      }));
     }
   });
 
@@ -220,7 +231,7 @@ export default function PortfolioPage() {
     return paginatedProjects.map((project) => ({
       id: project.id,
       title: project.title,
-      description: `${t('area')}: ${project.researchArea} | ${t('budget')}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(project.budget)}`,
+      description: `${t('area')}: ${project.researchArea || '-'} | ${t('budget')}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(project.budget || 0)}`,
       date: project.startDate,
       status: project.status === 'completed' ? 'success' : project.status === 'active' ? 'info' : project.status === 'suspended' ? 'warning' : 'default',
       onClick: () => handleProjectClick(project),
@@ -246,14 +257,14 @@ export default function PortfolioPage() {
       header: t('trl'), 
       accessor: 'trl', 
       sortable: true,
-      render: (value) => <span className={`font-bold ${getTRLColor(value as number)}`}>TRL {String(value)}</span>,
+      render: (value) => <span className={`font-bold ${getTRLColor(value as number)}`}>{value ? `TRL ${String(value)}` : '-'}</span>,
     },
     { 
       key: 'budget', 
       header: t('budget'), 
       accessor: 'budget', 
       sortable: true,
-      render: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value as number),
+      render: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format((value as number) || 0),
     },
     { key: 'researchArea', header: t('area'), accessor: 'researchArea', sortable: true },
     { 
@@ -261,7 +272,11 @@ export default function PortfolioPage() {
       header: t('period'), 
       accessor: 'startDate', 
       sortable: true,
-      render: (value, row) => `${new Date(value as string).toLocaleDateString('pt-BR')} - ${new Date(row.endDate).toLocaleDateString('pt-BR')}`,
+      render: (value, row) => {
+        const start = value ? new Date(value as string).toLocaleDateString('pt-BR') : '-';
+        const end = row.endDate ? new Date(row.endDate).toLocaleDateString('pt-BR') : '-';
+        return `${start} - ${end}`;
+      },
     },
   ], [t]);
 
@@ -420,7 +435,7 @@ export default function PortfolioPage() {
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">{t('trl')}:</span>
                         <p className={`font-bold ${getTRLColor(project.trl)}`}>
-                          TRL {project.trl}
+                          {project.trl ? `TRL ${project.trl}` : t('trl')}
                         </p>
                       </div>
                       <div>
@@ -430,7 +445,7 @@ export default function PortfolioPage() {
                             style: 'currency',
                             currency: 'BRL',
                             notation: 'compact',
-                          }).format(project.budget)}
+                          }).format(project.budget || 0)}
                         </p>
                       </div>
                       <div>
@@ -440,8 +455,8 @@ export default function PortfolioPage() {
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">{t('period')}:</span>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          {new Date(project.startDate).toLocaleDateString('pt-BR')} -{' '}
-                          {new Date(project.endDate).toLocaleDateString('pt-BR')}
+                          {project.startDate ? new Date(project.startDate).toLocaleDateString('pt-BR') : '-'} -{' '}
+                          {project.endDate ? new Date(project.endDate).toLocaleDateString('pt-BR') : '-'}
                         </p>
                       </div>
                     </div>

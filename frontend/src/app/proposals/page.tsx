@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 import { PlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import ConfidenceBadge from '@/components/features/shared/common/ConfidenceBadge';
+import ConfidenceBadge from '@/components/features/shared/ui/ConfidenceBadge';
 import ProposalModal from '@/components/features/proposals/components/ProposalModal';
 import ProposalsBoard from '@/components/features/proposals/components/ProposalsBoard';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
@@ -192,10 +192,10 @@ export default function ProposalsPage() {
     },
     { 
       key: 'version', 
-      header: t('version'), 
+      header: t('version.label'), 
       accessor: 'version_count', 
       sortable: true,
-      render: (value) => `${value || 1} ${value === 1 ? 'versão' : 'versões'}`,
+      render: (value) => `${value || 1} ${Number(value) === 1 ? t('versionSingular') : t('versionPlural')}`,
     },
     { 
       key: 'created_at', 
@@ -401,8 +401,8 @@ export default function ProposalsPage() {
 
                         <div className="grid grid-cols-3 gap-4 text-sm mt-3">
                           <div>
-                            <span className="text-gray-500 dark:text-gray-400">{t('version')}:</span>
-                            <p className="font-medium text-gray-900 dark:text-white">{proposal.version_count || 1} {proposal.version_count === 1 ? 'versão' : 'versões'}</p>
+                            <span className="text-gray-500 dark:text-gray-400">{t('version.label')}:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{proposal.version_count || 1} {proposal.version_count === 1 ? t('versionSingular') : t('versionPlural')}</p>
                           </div>
                           <div>
                             <span className="text-gray-500 dark:text-gray-400">{t('created')}:</span>
