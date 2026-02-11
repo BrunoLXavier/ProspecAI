@@ -129,9 +129,8 @@ export default function InfrastructurePage() {
         onViewChange={setViewMode}
         action={(
           canCreateResource ? (
-            <button onClick={() => { setSelectedResource(null); setModalOpen(true); }} className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-              <PlusIcon className="w-5 h-5 mr-2" />
-              {t('newResource')}
+            <button onClick={() => { setSelectedResource(null); setModalOpen(true); }} title={t('newResource')} className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg">
+              <PlusIcon className="w-5 h-5" />
             </button>
           ) : null
         )}

@@ -262,10 +262,10 @@ export default function ProposalsPage() {
         action={
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+            title={t('newProposal')}
+            className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
           >
-            <PlusIcon className="w-5 h-5 mr-2" />
-            {t('newProposal')}
+            <PlusIcon className="w-5 h-5" />
           </button>
         }
       />

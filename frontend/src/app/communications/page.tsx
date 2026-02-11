@@ -22,7 +22,7 @@ export default function CommunicationsPage() {
 
   // Minimal filters placeholder to keep consistent layout (advanced filters can be added later)
   const [filters, setFilters] = useState<Record<string, any>>({ search: '', showAutoCreated: true });
-  const [createTrigger, setCreateTrigger] = useState<number>(0);
+  const [createTrigger, setCreateTrigger] = useState<number | null>(null);
 
   return (
     <div className="space-y-6">
@@ -34,7 +34,7 @@ export default function CommunicationsPage() {
         onViewChange={setViewMode}
         action={
           <button
-            onClick={() => setCreateTrigger((c) => c + 1)}
+            onClick={() => setCreateTrigger((c) => (c ?? 0) + 1)}
             title={t('newThread')}
             className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"
           >

@@ -21,6 +21,9 @@ RUN if [ -d src/locales ]; then \
 			echo "[docker build] No src/locales directory found; skipping locales copy"; \
 		fi
 
+# Validate and synchronize i18n locale files before build
+RUN node scripts/validate-i18n.js
+
 # Build the Next.js app at image build time to avoid running dev watcher in container
 # Allow the build to proceed in CI/dev even if TypeScript type errors exist by
 # setting `NEXT_IGNORE_TYPE_ERRORS=1`. Fix types in source as a follow-up.

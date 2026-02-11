@@ -189,10 +189,10 @@ export default function ACLPage() {
         
 				<button
 					onClick={openCreateModal}
-					className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+					title={t('acl.createRole') || 'New Role'}
+					className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
 				>
 					<PlusIcon className="w-5 h-5" />
-					{t('acl.createRole') || 'New Role'}
 				</button>
 			</div>
 

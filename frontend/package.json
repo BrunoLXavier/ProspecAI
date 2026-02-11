@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "validate-i18n": "node scripts/validate-i18n.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"

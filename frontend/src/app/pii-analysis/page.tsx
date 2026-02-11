@@ -10,6 +10,9 @@ import { useSearchParams } from 'next/navigation';
 import {
   ShieldExclamationIcon,
   XCircleIcon,
+  EyeIcon,
+  ClockIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import PageHeader from '@/components/features/shared/ui/PageHeader';
 import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
@@ -22,10 +25,13 @@ import {
   APIDetection,
   APIStatistics,
   PII_CUSTOM_CALCULATORS,
+  RISK_COLORS,
+  STATUS_CONFIG,
+  PII_TYPE_LABELS,
+  formatDate,
   transformAPIDetection,
   transformAPIStatistics,
 } from '@/components/features/pii-analysis/components/types';
-import PIIDetectionCard from '@/components/features/pii-analysis/components/PIIDetectionCard';
 import PIIDetectionTableView from '@/components/features/pii-analysis/components/PIIDetectionTableView';
 import PIIDetectionTimelineView from '@/components/features/pii-analysis/components/PIIDetectionTimelineView';
 import PIIReviewModal from '@/components/features/pii-analysis/components/PIIReviewModal';
@@ -367,33 +373,140 @@ export default function PIIAnalysisPage() {
           </p>
         </div>
       ) : viewMode === 'board' ? (
-        <div className="text-center py-12">Board view unavailable</div>
-      ) : viewMode === 'list' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {paginatedDetections.map((detection) => (
-            <PIIDetectionCard
-              key={detection.id}
-              detection={detection}
-              isSelected={selectedIds.has(detection.id)}
-              onSelect={toggleSelection}
-              onClick={setReviewModal}
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Object.entries(STATUS_CONFIG).map(([statusKey, statusInfo]) => (
+            <div key={statusKey} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <ShieldExclamationIcon className="h-4 w-4" />
+                {statusInfo.label}
+                <span className="ml-auto text-xs bg-gray-200 dark:bg-slate-600 px-2 py-0.5 rounded-full">
+                  {filteredDetections.filter(d => d.anonymization_status === statusKey).length}
+                </span>
+              </h3>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {filteredDetections.filter(d => d.anonymization_status === statusKey).map((detection) => {
+                  const riskColor = RISK_COLORS[detection.risk_level];
+                  return (
+                    <div
+                      key={detection.id}
+                      className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setReviewModal(detection)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${riskColor.bg} ${riskColor.text}`}>
+                          {detection.risk_level.toUpperCase()}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                        {detection.entities.length} entidades PII
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
+                        {detection.entities.map(e => PII_TYPE_LABELS[e.type] || e.type).join(', ')}
+                      </p>
+                      <div className="text-xs text-gray-400 dark:text-gray-500">
+                        {formatDate(detection.created_at)}
+                      </div>
+                    </div>
+                  );
+                })}
+                {filteredDetections.filter(d => d.anonymization_status === statusKey).length === 0 && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">Nenhum item</p>
+                )}
+              </div>
+            </div>
           ))}
         </div>
+      ) : viewMode === 'list' ? (
+        <div className="space-y-4">
+          {paginatedDetections.map((detection) => {
+            const riskColor = RISK_COLORS[detection.risk_level];
+            const statusConfig = STATUS_CONFIG[detection.anonymization_status];
+
+            return (
+              <div
+                key={detection.id}
+                className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setReviewModal(detection)}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                  {/* Icon */}
+                  <div className="flex-shrink-0">
+                    <div className={`w-12 h-12 rounded-lg ${riskColor.bg} flex items-center justify-center`}>
+                      <ShieldExclamationIcon className={`w-6 h-6 ${riskColor.text}`} />
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                      <h3 className="text-base font-medium text-gray-900 dark:text-white">
+                        {detection.entities.length} entidades PII detectadas
+                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-2 py-1 rounded-full text-xs ${riskColor.bg} ${riskColor.text}`}>
+                          {detection.risk_level.toUpperCase()}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs bg-${statusConfig.color}-100 dark:bg-${statusConfig.color}-900/30 text-${statusConfig.color}-700 dark:text-${statusConfig.color}-300`}>
+                          {statusConfig.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {detection.entities.slice(0, 5).map((entity, i) => (
+                        <span key={i} className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
+                          {PII_TYPE_LABELS[entity.type] || entity.type}
+                        </span>
+                      ))}
+                      {detection.entities.length > 5 && (
+                        <span className="px-2 py-0.5 text-xs text-gray-500">+{detection.entities.length - 5}</span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <ClockIcon className="h-3.5 w-3.5" />
+                        {formatDate(detection.created_at)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <DocumentTextIcon className="h-3.5 w-3.5" />
+                        {detection.source_type}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action */}
+                  <div className="flex-shrink-0 self-start">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setReviewModal(detection); }}
+                      className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       ) : viewMode === 'timeline' ? (
-        <PIIDetectionTimelineView
-          detections={paginatedDetections}
-          onReview={setReviewModal}
-        />
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+          <PIIDetectionTimelineView
+            detections={paginatedDetections}
+            onReview={setReviewModal}
+          />
+        </div>
       ) : (
-        <PIIDetectionTableView
-          detections={paginatedDetections}
-          allDetections={filteredDetections}
-          selectedIds={selectedIds}
-          onToggleSelection={toggleSelection}
-          onToggleSelectAll={toggleSelectAll}
-          onReview={setReviewModal}
-        />
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+          <PIIDetectionTableView
+            detections={paginatedDetections}
+            allDetections={filteredDetections}
+            selectedIds={selectedIds}
+            onToggleSelection={toggleSelection}
+            onToggleSelectAll={toggleSelectAll}
+            onReview={setReviewModal}
+          />
+        </div>
       )}
       
       {/* Pagination */}

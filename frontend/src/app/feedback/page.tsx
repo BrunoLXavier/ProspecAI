@@ -228,6 +228,7 @@ function FeedbackDetailModal({
 // =============================================================================
 
 export default function AdminFeedbackPage() {
+  const t = useTranslations();
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
@@ -401,10 +402,10 @@ export default function AdminFeedbackPage() {
         action={(
           <button
             onClick={() => openFeedback()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+            title={t('feedback.send') || 'Enviar feedback'}
+            className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
           >
             <PencilSquareIcon className="h-5 w-5" />
-            Enviar feedback
           </button>
         )}
       />

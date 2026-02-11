@@ -1,7 +1,72 @@
 # ProspecAI - Implementation History
 
-**Última atualização:** 27 de Janeiro de 2026  
-**Status:** ✅ Production Ready - Structural Refactoring Complete
+**Última atualização:** 28 de Janeiro de 2026  
+**Status:** ✅ Production Ready - Phase 7 UI/UX Polish Complete
+
+---
+
+## 2026-01-28 - Phase 7: UI/UX Polish, Modal Rewrites & i18n Tooling (COMPLETED)
+
+### Summary:
+Comprehensive UI/UX polish pass covering 8 tasks across the entire frontend. All changes verified in browser with zero console errors.
+
+### Task 1: Standardize Add/New Buttons to "+" Icon-Only (14 pages)
+- Replaced text-based "Novo"/"Add" buttons with icon-only "+" circular buttons
+- Pages: Dashboard, Institutes, Infrastructure, Teams, Communications, CRM, Funding, Matching, Opportunities, Portfolio, Proposals, Reports, PII Analysis, Contacts
+- Pattern: `<button className="rounded-full p-2 ..."><PlusIcon className="h-5 w-5" /></button>`
+
+### Task 2: Fix Communications Auto-Open Modal Bug
+- **Root cause**: `useState<number>(0)` — falsy `0` was truthy for `createTrigger` guard
+- **Fix**: Changed to `useState<number | null>(null)` + guard `createTrigger !== null && createTrigger > 0`
+- Files: `communications/page.tsx`, `CommunicationsList.tsx`
+
+### Task 3: Unify CRUD Views to Match Feedback Pattern
+- Refactored PII Analysis page with Board/List/Timeline/Table view modes
+- Added `ViewModeSelector` and `SearchBar` components
+- Followed Feedback page's established card-based layout pattern
+
+### Task 4: Fix Institutes/Infrastructure/Teams Modals (Full DB Schema)
+- **InstituteModal.tsx**: Rewritten with 4 tabs (Básico, Endereço, Contato, Detalhes) — ~20 fields matching `InstitutionModel`
+- **InfrastructureModal.tsx**: Rewritten with 3 tabs (Dados Básicos, Contato e Capacidade, Maturidade) — ~20 fields matching `InfrastructureModel`
+- **TeamModal.tsx**: Rewritten with 3 tabs (Dados Pessoais, Contato, Acadêmico) — ~15 fields matching `TeamModel`
+- All modals use `react-hook-form` + `Controller` for selects/switches + proper `FormField`/`FormSelect` components
+
+### Task 5: Fix Dark Mode in Modal Text Fields
+- Updated 5 form elements in `CreateThreadModal.tsx` with proper dark mode classes
+- Pattern: `bg-white text-gray-900 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400`
+
+### Task 6: Fix TimelineView Vertical Line
+- Simplified connector rendering logic in `TimelineView.tsx`
+- Removed conditional rendering that was hiding the vertical connector line
+
+### Task 7: Create i18n Validation Script
+- Created `frontend/scripts/validate-i18n.js` — Node.js sync script for 3 locales
+- Integrated into Docker build: `RUN node scripts/validate-i18n.js` in Dockerfile
+- Added `npm run validate-i18n` to package.json
+- Behavior: Collects dot-separated leaf paths from pt-BR, adds missing keys to en-US/es-ES, removes extras, fixes type mismatches, sorts deterministically
+
+### Task 8: Verify Pending Bug Fixes + i18n Key Fixes
+- Browser-verified all key pages: Dashboard, Institutes, Infrastructure, Teams, Communications
+- Discovered and fixed ~65 missing i18n keys across institutes/infrastructure/teams sections in `pt-BR.json`
+- Ran `validate-i18n.js` to propagate +130 keys to en-US/es-ES
+- Final state: **0 console errors** on all verified pages
+
+### Docker Build Result:
+- 38/38 pages compiled successfully
+- All 12 services healthy (frontend, backend, postgres, neo4j, redis, kafka, zookeeper, mailhog, whisper, etc.)
+- Migrations and seeds completed
+
+### Files Modified (key files):
+- 14 page files (icon-only buttons)
+- `communications/page.tsx`, `CommunicationsList.tsx` (auto-open fix)
+- `pii-analysis/page.tsx` (unified CRUD views)
+- `InstituteModal.tsx`, `InfrastructureModal.tsx`, `TeamModal.tsx` (full rewrites)
+- `CreateThreadModal.tsx` (dark mode fix)
+- `TimelineView.tsx` (vertical line fix)
+- `frontend/scripts/validate-i18n.js` (new file)
+- `frontend/Dockerfile`, `frontend/package.json` (i18n script integration)
+- `pt-BR.json`, `en-US.json`, `es-ES.json` (~130 keys synced to 2702 total)
+- `feedback/page.tsx` (added missing `useTranslations()`)
 
 ---
 

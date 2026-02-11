@@ -59,7 +59,7 @@ interface Props {
   /** Optional external filters provided by parent (e.g. search text) */
   filters?: Record<string, any>;
   /** When incremented by parent, opens the create modal */
-  createTrigger?: number;
+  createTrigger?: number | null;
   /** Notify parent when a new thread is created */
   onThreadCreated?: (thread: Thread) => void;
 }
@@ -96,7 +96,7 @@ export default function CommunicationsList({
 
   // Open create modal when parent increments trigger
   useEffect(() => {
-    if (typeof createTrigger === 'number') {
+    if (typeof createTrigger === 'number' && createTrigger > 0) {
       setShowCreateModal(true);
     }
   }, [createTrigger]);

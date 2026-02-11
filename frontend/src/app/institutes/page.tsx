@@ -133,9 +133,8 @@ export default function InstitutesPage() {
         viewMode={viewMode}
         onViewChange={setViewMode}
         action={(
-          <button onClick={() => { setSelectedInstitute(null); setModalOpen(true); }} className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-            <PlusIcon className="w-5 h-5 mr-2" />
-            {t('new')}
+          <button onClick={() => { setSelectedInstitute(null); setModalOpen(true); }} title={t('new')} className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg">
+            <PlusIcon className="w-5 h-5" />
           </button>
         )}
       />

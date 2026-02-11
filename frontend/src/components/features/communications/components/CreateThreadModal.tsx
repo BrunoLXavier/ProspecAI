@@ -374,7 +374,7 @@ export default function CreateThreadModal({
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder={t('subjectPlaceholder') || 'Enter thread subject...'}
-            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+            className="w-full px-4 py-2.5 bg-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 text-gray-900"
             autoFocus
           />
         </div>
@@ -389,7 +389,7 @@ export default function CreateThreadModal({
             onChange={(e) => setInitialMessage(e.target.value)}
             placeholder={t('initialMessagePlaceholder') || 'Start the conversation...'}
             rows={4}
-            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white resize-none"
+            className="w-full px-4 py-2.5 bg-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 text-gray-900 resize-none"
           />
         </div>
 
@@ -553,7 +553,7 @@ export default function CreateThreadModal({
                 ...prev,
                 type: e.target.value as LinkedEntity['type'] || null,
               }))}
-              className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+              className="flex-1 px-4 py-2.5 bg-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-gray-900"
             >
               <option value="">{t('selectEntityType') || 'Select type...'}</option>
               {entityTypes.map(type => (
@@ -566,7 +566,7 @@ export default function CreateThreadModal({
               onChange={(e) => setLinkedEntity(prev => ({ ...prev, id: e.target.value || null }))}
               placeholder={t('entityIdPlaceholder') || 'Entity ID...'}
               disabled={!linkedEntity.type}
-              className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 bg-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 text-gray-900 disabled:opacity-50"
             />
           </div>
         </div>
@@ -610,7 +610,7 @@ export default function CreateThreadModal({
               }}
               onFocus={() => setShowParticipantSearch(true)}
               placeholder={t('addParticipant') || 'Search and add participants...'}
-              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+              className="w-full px-4 py-2.5 bg-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 text-gray-900"
             />
             
             {/* Dropdown */}

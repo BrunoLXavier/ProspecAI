@@ -385,10 +385,10 @@ export default function IngestionPage() {
         action={
           <button
             onClick={() => setShowNewModal(true)}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2"
+            title={t('newJob') || 'Novo Job'}
+            className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
           >
             <PlusIcon className="w-5 h-5" />
-            Novo Job
           </button>
         }
       />
