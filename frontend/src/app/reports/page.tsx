@@ -13,6 +13,7 @@ import PageHeader from '@/components/features/shared/ui/PageHeader';
 import Icon from '@/components/features/shared/ui/Icon';
 // StatCard not required here
 import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import BaseModal from '@/components/features/shared/ui/BaseModal';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
 // report templates components are used in templates page
 import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
@@ -424,62 +425,61 @@ function ReportGeneratorModal({ onClose, onGenerated }: any) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div className="fixed inset-0 bg-black/40" onClick={onClose} />
-    <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-2xl p-6 z-10">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Gerar Relatório</h3>
-          <button onClick={onClose} className="text-gray-400">✕</button>
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title="Gerar Relatório"
+      size="2xl"
+      footer={(
+        <div className="flex items-center justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 bg-white dark:bg-slate-700 border rounded-lg">Cancelar</button>
+          <button onClick={handleGenerate} disabled={pending || !selectedTemplate} className="px-4 py-2 bg-blue-600 text-white rounded-lg">{pending? 'Gerando...' : 'Gerar'}</button>
         </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-600">Template</label>
-            <select className="w-full border rounded px-3 py-2" value={selectedTemplate || ''} onChange={(e) => setSelectedTemplate(e.target.value)}>
-              <option value="">Selecione</option>
-              {templates.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm text-gray-600">Formato</label>
-            <div className="flex gap-2 mt-2">
-              {['html','pdf','xlsx'].map((f) => (
-                <button key={f} onClick={() => setFormat(f)} className={`px-3 py-2 rounded ${format===f? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
-                  {f.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-            <div className="flex justify-end gap-3 pt-3 border-t">
-            <button onClick={onClose} className="px-4 py-2 bg-white dark:bg-slate-700 border rounded-lg">Cancelar</button>
-            <button onClick={handleGenerate} disabled={pending || !selectedTemplate} className="px-4 py-2 bg-blue-600 text-white rounded-lg">{pending? 'Gerando...' : 'Gerar'}</button>
+      )}
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm text-gray-600">Template</label>
+          <select className="w-full border rounded px-3 py-2" value={selectedTemplate || ''} onChange={(e) => setSelectedTemplate(e.target.value)}>
+            <option value="">Selecione</option>
+            {templates.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600">Formato</label>
+          <div className="flex gap-2 mt-2">
+            {['html','pdf','xlsx'].map((f) => (
+              <button key={f} onClick={() => setFormat(f)} className={`px-3 py-2 rounded ${format===f? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+                {f.toUpperCase()}
+              </button>
+            ))}
           </div>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }
 
 function ReportViewModal({ report, onClose, onDelete }: any) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div className="fixed inset-0 bg-black/40" onClick={onClose} />
-    <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-3xl p-6 z-10">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Relatório</h3>
-          <button onClick={onClose} className="text-gray-400">✕</button>
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title="Relatório"
+      subtitle={report.template_id}
+      size="3xl"
+      footer={(
+        <div className="flex items-center justify-end gap-3">
+          {report.download_url && <a href={report.download_url} download className="px-4 py-2 bg-green-600 text-white rounded-lg">Download</a>}
+          <button onClick={onDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg">Excluir</button>
         </div>
-        <div className="space-y-4">
-          <div className="text-sm text-gray-600">Template: {report.template_id}</div>
-          <div className="text-sm text-gray-600">Gerado em: {new Date(report.generated_at).toLocaleString()}</div>
-          {report.content && <div className="prose max-h-[500px] overflow-auto border rounded p-4" dangerouslySetInnerHTML={{ __html: report.content }} />}
-          {report.download_url && (
-            <div className="pt-4 flex items-center gap-3">
-              <a href={report.download_url} download className="px-4 py-2 bg-green-600 text-white rounded-lg">Download</a>
-              <button onClick={onDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg">Excluir</button>
-            </div>
-          )}
-        </div>
+      )}
+    >
+      <div className="space-y-4">
+        <div className="text-sm text-gray-600">Template: {report.template_id}</div>
+        <div className="text-sm text-gray-600">Gerado em: {new Date(report.generated_at).toLocaleString()}</div>
+        {report.content && <div className="prose max-h-[500px] overflow-auto border rounded p-4" dangerouslySetInnerHTML={{ __html: report.content }} />}
       </div>
-    </div>
+    </BaseModal>
   );
 }

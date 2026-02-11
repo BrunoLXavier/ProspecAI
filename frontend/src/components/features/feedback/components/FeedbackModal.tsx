@@ -346,6 +346,75 @@ export default function FeedbackModal() {
   const handleSuccessClose = useCallback(() => {
     closeFeedback();
   }, [closeFeedback]);
+
+  // Render standardized footer for BaseModal
+  const renderFooter = useCallback(() => {
+    // Comment step: show reset on left and standard cancel/submit on right
+    if (currentStep === 'comment') {
+      return (
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <button
+              onClick={() => {
+                if (confirm(String(t('modal.confirmReset') || 'Resetar feedback?'))) {
+                  reset();
+                  setStep('capture');
+                }
+              }}
+              className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              {String(t('modal.reset') || 'Reset')}
+            </button>
+          </div>
+          <div className="flex-1">
+            <ModalFooter
+              onCancel={() => setStep('annotate')}
+              onSubmit={handleSubmit}
+              isSubmitting={submitMutation.isLoading}
+              submitLabel={String(t('modal.submit') || '')}
+              cancelLabel={String(t('comment.back') || '')}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Success step: single close button
+    if (currentStep === 'success') {
+      return (
+        <div className="flex items-center justify-end">
+          <button
+            onClick={handleSuccessClose}
+            className="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+          >
+            {t('success.close')}
+          </button>
+        </div>
+      );
+    }
+
+    // Error step: cancel + retry
+    if (currentStep === 'error') {
+      return (
+        <div className="flex items-center justify-end gap-3">
+          <button
+            onClick={closeFeedback}
+            className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            {t('modal.cancel')}
+          </button>
+          <button
+            onClick={() => { setError(null); setStep('comment'); }}
+            className="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+          >
+            {t('error.retry')}
+          </button>
+        </div>
+      );
+    }
+
+    return null;
+  }, [currentStep, t, reset, setStep, handleSubmit, submitMutation.isLoading, handleSuccessClose, closeFeedback, setError]);
   
   // Don't render if not open
   if (!isOpen) return null;
@@ -357,10 +426,10 @@ export default function FeedbackModal() {
       title={String(t('modal.title') || '')}
       size="3xl"
       noContentScroll={false}
+      footer={renderFooter()}
       // add a specific class so screenshot capture can ignore this modal
       className="feedback-modal max-w-[90vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl"
     >
-        
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[70vh]">
           {/* Step Indicator - hide for success/error/submitting */}
@@ -494,34 +563,7 @@ export default function FeedbackModal() {
                 </div>
               )}
               
-              {/* Actions - use standardized ModalFooter */}
-              <div className="pt-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <button
-                      onClick={() => {
-                        // Reset the feedback flow
-                        if (confirm(String(t('modal.confirmReset') || 'Resetar feedback?'))) {
-                          reset();
-                          setStep('capture');
-                        }
-                      }}
-                      className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                    >
-                      {String(t('modal.reset') || 'Reset')}
-                    </button>
-                  </div>
-                  <div className="flex-1">
-                    <ModalFooter
-                      onCancel={() => setStep('annotate')}
-                      onSubmit={handleSubmit}
-                      isSubmitting={false}
-                      submitLabel={String(t('modal.submit') || '')}
-                      cancelLabel={String(t('comment.back') || '')}
-                    />
-                  </div>
-                </div>
-              </div>
+              {/* Footer handled via BaseModal `footer` prop for consistency */}
             </div>
           )}
           
