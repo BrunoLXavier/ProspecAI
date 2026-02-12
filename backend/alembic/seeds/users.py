@@ -421,15 +421,15 @@ def seed_for_tenant(conn, tenant_id: str) -> None:
         # Create 3 notifications per user
         if _table_exists(conn, "notifications"):
             for i, notif in enumerate(NOTIFICATION_TYPES):
-                notif_id = f"n1{user['id'][2:26]}{str(i+1).zfill(6)}"
+                notif_id = str(uuid.uuid4())
                 notif_stmt = text("""
                     INSERT INTO notifications (
-                        id, tenant_id, user_id, type, title, message,
-                        is_read, created_at, updated_at
+                        id, tenant_id, user_id, notification_type, title, body,
+                        read, created_by, updated_by, created_at, updated_at
                     )
                     SELECT
-                        :id, :tenant_id, :user_id, :type, :title, :message,
-                        :is_read, now() - (interval '1 day' * :offset), now()
+                        :id, :tenant_id, :user_id, :notification_type, :title, :body,
+                        :read, :created_by, :updated_by, now() - (interval '1 day' * :offset), now()
                     WHERE NOT EXISTS (
                         SELECT 1 FROM notifications WHERE tenant_id = :tenant_id AND id = :id
                     )
@@ -438,10 +438,12 @@ def seed_for_tenant(conn, tenant_id: str) -> None:
                     'id': notif_id,
                     'tenant_id': tenant_id,
                     'user_id': user['id'],
-                    'type': notif['type'],
+                    'notification_type': notif['type'],
                     'title': notif['title'],
-                    'message': notif['message'],
-                    'is_read': notif['is_read'],
+                    'body': notif['message'],
+                    'read': notif['is_read'],
+                    'created_by': ADMIN_ID,
+                    'updated_by': ADMIN_ID,
                     'offset': i,
                 })
 

@@ -23,6 +23,10 @@ if [ "${RUN_SEEDS_ON_START:-}" = "1" ] || [ "${RUN_SEEDS_ON_START:-}" = "true" ]
     python /app/scripts/run_seeds_fixed.py
   fi
   echo "[entrypoint] Seed runner finished"
+elif [ -n "${SEED_TENANT_IDS:-}" ]; then
+  echo "[entrypoint] SEED_TENANT_IDS is set — executing seed runner"
+  python /app/scripts/run_seeds_fixed.py --tenants "${SEED_TENANT_IDS}"
+  echo "[entrypoint] Seed runner finished"
 else
   echo "[entrypoint] RUN_SEEDS_ON_START not set; skipping seeds"
 fi

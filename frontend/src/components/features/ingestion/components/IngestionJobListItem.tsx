@@ -42,7 +42,14 @@ export default function IngestionJobListItem({
 
   return (
     <div
-      onClick={() => onView(job)}
+      onClick={() => {
+        try {
+          // debug: trace clicks to help diagnose modal open issue
+          // eslint-disable-next-line no-console
+          console.debug('[IngestionJobListItem] clicked', job?.id, job?.name);
+        } catch (e) {}
+        onView(job);
+      }}
       className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer ${
         isSelected ? 'bg-primary-50 dark:bg-primary-900/10' : ''
       }`}

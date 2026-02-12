@@ -46,7 +46,7 @@ interface Activity {
 export default function ActivityPage() {
   const t = useTranslations('activity');
   const [filters, setFilters] = useState<{ entity: string; type: string }>({ entity: 'all', type: 'all' });
-  const [viewMode, setViewMode] = useState<'list' | 'board' | 'timeline' | 'table'>('timeline');
+  const [viewMode, setViewMode] = useState<'list' | 'board' | 'timeline' | 'table'>('list');
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   
   // Pagination state

@@ -338,6 +338,11 @@ export default function IngestionPage() {
   };
   
   const handleViewJob = async (job: IngestionJob) => {
+    try {
+      // debug: trace when view handler is invoked
+      // eslint-disable-next-line no-console
+      console.debug('[IngestionPage] handleViewJob', job?.id, job?.name);
+    } catch (e) {}
     setSelectedJob(job);
     setIsDetailModalOpen(true);
     

@@ -1045,6 +1045,9 @@
         "suspended": "Suspendido"
       }
     },
+    "status": {
+      "draft": "Borrador"
+    },
     "processing": "Procesando...",
     "searchPlaceholder": "Buscar por nombre o descripción...",
     "sourceName": "Nombre de la Fuente",
@@ -2109,7 +2112,18 @@
         "updateResponse": "Actualizar respuesta",
         "updateStatus": "Actualizar estado",
         "userComment": "Comentario del usuario",
-        "view": "Ver"
+        "view": "Ver",
+        "cancel": "Cancelar",
+        "generate": "Generar",
+        "selectTemplate": "Seleccionar Plantilla",
+        "types": {
+          "proposalSummary": "Resumen de la Propuesta",
+          "matchingAnalysis": "Análisis de Matching",
+          "portfolioOverview": "Resumen del Portafolio",
+          "pipelineStatus": "Estado del Pipeline",
+          "fundingOpportunities": "Oportunidades de Financiamiento",
+          "custom": "Personalizado"
+        }
       },
       "annotate": {
         "clear": "Limpiar todo",
@@ -2485,6 +2499,7 @@
     "createError": "Error al crear la propuesta. Inténtalo de nuevo.",
     "createFirstVersion": "Crea la primera versión para rastrear cambios.",
     "createJob": "Create Job",
+    "newJob": "Nuevo Job",
     "createJobPrompt": "Create a new job to get started",
     "createNewVersion": "Crear Nueva Versión",
     "createVersion": "Nueva Versión",
@@ -3303,6 +3318,14 @@
     "archived": "Archivado",
     "boardPlaceholder": "Vista en tablero para equipos",
     "bond": "Vínculo Principal",
+    "bonds": {
+      "clt": "CLT",
+      "bolsista": "Becario",
+      "consultor": "Consultor",
+      "estagiario": "Practicante",
+      "pj": "PJ",
+      "outro": "Otro"
+    },
     "cancel": "Cancelar",
     "confirmDelete": "¿Está seguro de que desea eliminar este equipo?",
     "create": "Crear",
