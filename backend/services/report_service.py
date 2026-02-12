@@ -49,9 +49,9 @@ class ReportTemplate:
 REPORT_TEMPLATES: Dict[str, ReportTemplate] = {
     "proposal_summary": ReportTemplate(
         id="proposal_summary",
-        name="Resumo de Proposta",
+        name="Proposal Summary",
         type=ReportType.PROPOSAL_SUMMARY,
-        description="Documento resumido da proposta para submissão",
+        description="Summarized proposal document for submission",
         sections=[
             "header", "executive_summary", "objectives",
             "methodology", "budget", "timeline", "team"
@@ -60,9 +60,9 @@ REPORT_TEMPLATES: Dict[str, ReportTemplate] = {
     ),
     "matching_analysis": ReportTemplate(
         id="matching_analysis",
-        name="Análise de Matching",
+        name="Matching Analysis",
         type=ReportType.MATCHING_ANALYSIS,
-        description="Relatório detalhado de aderência projeto-edital",
+        description="Detailed project-funding adherence report",
         sections=[
             "header", "score_breakdown", "strengths",
             "gaps", "recommendations", "appendix"
@@ -71,9 +71,9 @@ REPORT_TEMPLATES: Dict[str, ReportTemplate] = {
     ),
     "portfolio_overview": ReportTemplate(
         id="portfolio_overview",
-        name="Visão do Portfólio",
+        name="Portfolio Overview",
         type=ReportType.PORTFOLIO_OVERVIEW,
-        description="Status consolidado de todos os projetos",
+        description="Consolidated status of all projects",
         sections=[
             "header", "summary_stats", "projects_list",
             "trl_distribution", "lessons_learned"
@@ -82,9 +82,9 @@ REPORT_TEMPLATES: Dict[str, ReportTemplate] = {
     ),
     "pipeline_status": ReportTemplate(
         id="pipeline_status",
-        name="Status do Pipeline",
+        name="Pipeline Status",
         type=ReportType.PIPELINE_STATUS,
-        description="Relatório de oportunidades por estágio",
+        description="Opportunities report by stage",
         sections=[
             "header", "funnel_chart", "opportunities_table",
             "forecast", "action_items"
@@ -93,9 +93,9 @@ REPORT_TEMPLATES: Dict[str, ReportTemplate] = {
     ),
     "funding_opportunities": ReportTemplate(
         id="funding_opportunities",
-        name="Oportunidades de Fomento",
+        name="Funding Opportunities",
         type=ReportType.FUNDING_OPPORTUNITIES,
-        description="Lista de editais disponíveis com análise",
+        description="Available funding calls with analysis",
         sections=[
             "header", "active_calls", "upcoming_deadlines",
             "budget_summary", "recommendations"
@@ -204,29 +204,29 @@ class ReportGenerator:
     def _get_section_title(self, section: str) -> str:
         """Get human-readable section title"""
         titles = {
-            "header": "Cabeçalho",
-            "executive_summary": "Sumário Executivo",
-            "objectives": "Objetivos",
-            "methodology": "Metodologia",
-            "budget": "Orçamento",
-            "timeline": "Cronograma",
-            "team": "Equipe",
-            "score_breakdown": "Detalhamento do Score",
-            "strengths": "Pontos Fortes",
-            "gaps": "Lacunas Identificadas",
-            "recommendations": "Recomendações",
-            "appendix": "Anexos",
-            "summary_stats": "Estatísticas",
-            "projects_list": "Lista de Projetos",
-            "trl_distribution": "Distribuição TRL",
-            "lessons_learned": "Lições Aprendidas",
-            "funnel_chart": "Funil de Vendas",
-            "opportunities_table": "Tabela de Oportunidades",
-            "forecast": "Previsão",
-            "action_items": "Itens de Ação",
-            "active_calls": "Chamadas Ativas",
-            "upcoming_deadlines": "Prazos Próximos",
-            "budget_summary": "Resumo Orçamentário",
+            "header": "Header",
+            "executive_summary": "Executive Summary",
+            "objectives": "Objectives",
+            "methodology": "Methodology",
+            "budget": "Budget",
+            "timeline": "Timeline",
+            "team": "Team",
+            "score_breakdown": "Score Breakdown",
+            "strengths": "Strengths",
+            "gaps": "Identified Gaps",
+            "recommendations": "Recommendations",
+            "appendix": "Appendix",
+            "summary_stats": "Statistics",
+            "projects_list": "Projects List",
+            "trl_distribution": "TRL Distribution",
+            "lessons_learned": "Lessons Learned",
+            "funnel_chart": "Sales Funnel",
+            "opportunities_table": "Opportunities Table",
+            "forecast": "Forecast",
+            "action_items": "Action Items",
+            "active_calls": "Active Calls",
+            "upcoming_deadlines": "Upcoming Deadlines",
+            "budget_summary": "Budget Summary",
         }
         return titles.get(section, section.replace("_", " ").title())
     
@@ -249,7 +249,7 @@ class ReportGenerator:
         
         return f"""
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -319,8 +319,8 @@ class ReportGenerator:
     <header class="report-header">
         <h1>{template.name}</h1>
         <p class="report-meta">
-            Gerado em: {content['metadata']['generated_at']}<br>
-            Tipo: {template.description}
+            Generated on: {content['metadata']['generated_at']}<br>
+            Type: {template.description}
         </p>
     </header>
     
@@ -330,7 +330,7 @@ class ReportGenerator:
     
     <footer>
         <p style="color: #666; font-size: 0.8em; text-align: center; margin-top: 40px;">
-            Relatório gerado pelo ProspecAI - Sistema Inteligente de Prospecção de P&D
+            Report generated by ProspecAI - Intelligent R&D Prospecting System
         </p>
     </footer>
 </body>
@@ -340,11 +340,11 @@ class ReportGenerator:
     def _data_to_html(self, data: Any, level: int = 0) -> str:
         """Convert data structure to HTML representation"""
         if data is None or data == {}:
-            return "<p><em>Sem dados disponíveis</em></p>"
+            return "<p><em>No data available</em></p>"
         
         if isinstance(data, dict):
             if not data:
-                return "<p><em>Sem dados</em></p>"
+                return "<p><em>No data</em></p>"
             
             items = []
             for key, value in data.items():
@@ -354,7 +354,7 @@ class ReportGenerator:
         
         elif isinstance(data, list):
             if not data:
-                return "<p><em>Lista vazia</em></p>"
+                return "<p><em>Empty list</em></p>"
             
             # If list of dicts, render as table
             if data and isinstance(data[0], dict):

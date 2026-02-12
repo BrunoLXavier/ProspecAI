@@ -11,9 +11,8 @@ import logging
 from fastapi.responses import JSONResponse
 
 from adapters.database.connection import engine
-# Use the enhanced schema when available so repositories and models stay in sync
-# `models_new` exposes `BaseModel` as the declarative base; alias it to `Base`
-from adapters.database.models_new import BaseModel as Base
+# Import the unified declarative Base for metadata.create_all
+from adapters.database.models import Base
 from adapters.database.neo4j_connection import neo4j_connection
 
 load_dotenv()

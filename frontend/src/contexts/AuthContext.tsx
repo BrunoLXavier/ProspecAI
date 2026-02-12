@@ -487,6 +487,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    const response = await authFetch('/change-password', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${tokens?.accessToken}`,
+      },
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw { detail: error.detail || 'Password change failed', status: response.status };
+    }
+  };
+
   const verifyEmail = async (token: string): Promise<void> => {
     const response = await authFetch('/verify-email', {
       method: 'POST',
@@ -578,6 +593,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshAccessToken,
         requestPasswordReset,
         resetPassword,
+        changePassword,
         verifyEmail,
         resendVerification,
         checkEmailAvailable,

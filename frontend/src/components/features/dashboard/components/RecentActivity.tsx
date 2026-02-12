@@ -153,7 +153,7 @@ export default function RecentActivity() {
       />
 
       <div className="space-y-1">
-        {activities.filter(Boolean).map((activity) => (
+        {activities.filter(Boolean).map((activity: Activity) => (
           <ActivityItem key={activity?.id ?? Math.random().toString(36).slice(2,9)} activity={activity as Activity} />
         ))}
       </div>

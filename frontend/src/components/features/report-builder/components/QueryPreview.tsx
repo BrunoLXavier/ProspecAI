@@ -46,7 +46,7 @@ export default function QueryPreview({ queryConfig, isValid }: QueryPreviewProps
       <div className="flex items-center justify-between">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           <EyeIcon className="w-4 h-4 inline-block mr-2" />
-          {t('preview') || 'Preview'}
+          {t('preview')}
         </label>
         <div className="flex items-center gap-2">
           <select
@@ -68,7 +68,7 @@ export default function QueryPreview({ queryConfig, isValid }: QueryPreviewProps
                        text-sm font-medium transition-colors"
           >
             <PlayIcon className="w-4 h-4" />
-            {isPending ? (t('loading') || 'Loading...') : (t('runPreview') || 'Run')}
+            {isPending ? t('loading') : t('runPreview')}
           </button>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function QueryPreview({ queryConfig, isValid }: QueryPreviewProps
             <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-red-700 dark:text-red-300">
-                {t('previewError') || 'Preview Error'}
+                {t('previewError')}
               </p>
               <p className="text-sm text-red-600 dark:text-red-400">
                 {error.message}
@@ -95,7 +95,7 @@ export default function QueryPreview({ queryConfig, isValid }: QueryPreviewProps
         <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
           <TableCellsIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
           <p className="text-gray-500 dark:text-gray-400">
-            {t('noDataFound') || 'No data found matching your criteria'}
+            {t('noDataFound')}
           </p>
         </div>
       )}
@@ -105,7 +105,7 @@ export default function QueryPreview({ queryConfig, isValid }: QueryPreviewProps
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
           <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('showing') || 'Showing'} {previewData.data.length} {t('of') || 'of'} {previewData.row_count} {t('rows') || 'rows'}
+              {t('showingResults', { count: previewData.data.length, total: previewData.row_count })}
             </p>
           </div>
           <div className="overflow-x-auto">
@@ -154,7 +154,7 @@ export default function QueryPreview({ queryConfig, isValid }: QueryPreviewProps
         <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
           <EyeIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
           <p className="text-gray-500 dark:text-gray-400">
-            {t('selectTableAndFields') || 'Select a table and at least one field to preview'}
+            {t('selectTableAndFields')}
           </p>
         </div>
       )}

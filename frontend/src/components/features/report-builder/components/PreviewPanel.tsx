@@ -43,7 +43,7 @@ export default function PreviewPanel({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-          {t('preview') || 'Preview Results'}
+          {t('preview')}
         </h3>
         <button
           onClick={onRunPreview}
@@ -51,7 +51,7 @@ export default function PreviewPanel({
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
           <PlayIcon className="w-4 h-4" />
-          {isPending ? 'Loading...' : 'Run Preview'}
+          {isPending ? t('loading') : t('runPreview')}
         </button>
       </div>
 
@@ -64,7 +64,7 @@ export default function PreviewPanel({
       {previewData && (
         <div className="space-y-2">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Showing {previewData.data.length} of {previewData.row_count} rows
+            {t('showingResults', { count: previewData.data.length, total: previewData.row_count })}
           </p>
           <div className="overflow-x-auto border rounded-lg dark:border-gray-700">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">

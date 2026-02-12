@@ -8,8 +8,11 @@ from uuid import UUID
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field, EmailStr
 
+from domain.schemas.team_schemas import (
+    TeamResponse, TeamStatsResponse,
+    TeamCreateRequest, TeamUpdateRequest,
+)
 from domain.entities.team import Team, TeamCreate, TeamUpdate
 from adapters.repositories.team_repository import TeamRepository
 from adapters.repositories.institute_repository import InstituteRepository
@@ -22,78 +25,6 @@ from infrastructure.dependencies import (
 from infrastructure.serializers import to_primitive
 
 router = APIRouter()
-
-
-# ===========================================
-# RESPONSE SCHEMAS
-# ===========================================
-
-class TeamResponse(BaseModel):
-    id: str
-    tenant_id: str
-    usuario_id: str
-    instituto_id: str
-    cargo: str
-    funcao_principal: str
-    vinculo_principal: bool = False
-    email_profissional: Optional[str] = None
-    telefone_celular: Optional[str] = None
-    linkedin_url: Optional[str] = None
-    lattes_url: Optional[str] = None
-    orcid_id: Optional[str] = None
-    researchgate_url: Optional[str] = None
-    scopus_author_id: Optional[str] = None
-    web_of_science_researcher_id: Optional[str] = None
-    foto_perfil_url: Optional[str] = None
-    data_vinculo_inicio: Optional[str] = None
-    data_vinculo_fim: Optional[str] = None
-    created_at: str
-    updated_at: str
-
-    class Config:
-        from_attributes = True
-
-
-class TeamStatsResponse(BaseModel):
-    total: int
-    primary_links: int
-    distinct_users: int
-
-
-class TeamCreateRequest(BaseModel):
-    usuario_id: str
-    instituto_id: str
-    cargo: str
-    funcao_principal: str
-    vinculo_principal: bool = False
-    email_profissional: Optional[str] = None
-    telefone_celular: Optional[str] = None
-    linkedin_url: Optional[str] = None
-    lattes_url: Optional[str] = None
-    orcid_id: Optional[str] = None
-    researchgate_url: Optional[str] = None
-    scopus_author_id: Optional[str] = None
-    web_of_science_researcher_id: Optional[str] = None
-    foto_perfil_url: Optional[str] = None
-    data_vinculo_inicio: Optional[date] = None
-    data_vinculo_fim: Optional[date] = None
-
-
-class TeamUpdateRequest(BaseModel):
-    cargo: Optional[str] = None
-    funcao_principal: Optional[str] = None
-    vinculo_principal: Optional[bool] = None
-    email_profissional: Optional[str] = None
-    telefone_celular: Optional[str] = None
-    linkedin_url: Optional[str] = None
-    lattes_url: Optional[str] = None
-    orcid_id: Optional[str] = None
-    researchgate_url: Optional[str] = None
-    scopus_author_id: Optional[str] = None
-    web_of_science_researcher_id: Optional[str] = None
-    foto_perfil_url: Optional[str] = None
-    data_vinculo_inicio: Optional[date] = None
-    data_vinculo_fim: Optional[date] = None
 
 
 # ===========================================

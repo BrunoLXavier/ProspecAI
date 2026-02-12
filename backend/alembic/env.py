@@ -27,8 +27,8 @@ def get_target_metadata():
     if os.environ.get("SKIP_AI_MODELS") == "1":
         return MetaData()
     try:
-        from adapters.database.models_new import BaseModel
-        return BaseModel.metadata
+        from adapters.database.models import Base
+        return Base.metadata
     except Exception:
         # Fallback to empty metadata to avoid crashing Alembic when imports
         # fail due to environment constraints (e.g., low memory)

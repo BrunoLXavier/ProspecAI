@@ -64,13 +64,13 @@ export default function SaveTemplateForm({
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-        {t('saveTemplate') || 'Save Report Template'}
+        {t('saveReportTemplate')}
       </h3>
 
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('templateName') || 'Template Name'} *
+            {t('templateName')} *
           </label>
           <input
             type="text"
@@ -83,7 +83,7 @@ export default function SaveTemplateForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('description') || 'Description'}
+            {t('description')}
           </label>
           <textarea
             value={templateDescription}
@@ -96,22 +96,22 @@ export default function SaveTemplateForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('visibility') || 'Visibility'}
+            {t('visibility')}
           </label>
           <select
             value={visibility}
             onChange={(e) => onVisibilityChange(e.target.value as Visibility)}
             className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
           >
-            <option value="private">Private (Only me)</option>
-            <option value="institute">My Institute</option>
-            <option value="all_tenants">All Users</option>
+            <option value="private">{t('visibilityPrivate')}</option>
+            <option value="institute">{t('visibilityInstitute')}</option>
+            <option value="all_tenants">{t('visibilityAllUsers')}</option>
           </select>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('outputFormats') || 'Output Formats'}
+            {t('outputFormats')}
           </label>
           <div className="flex flex-wrap gap-2">
             {AVAILABLE_FORMATS.map(format => (
@@ -135,7 +135,7 @@ export default function SaveTemplateForm({
         className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
       >
         <DocumentArrowDownIcon className="w-5 h-5" />
-        {isSaving ? 'Saving...' : (editId ? 'Update Template' : 'Save Template')}
+        {isSaving ? t('saving') : (editId ? t('updateTemplate') : t('saveTemplateAction'))}
       </button>
     </div>
   );

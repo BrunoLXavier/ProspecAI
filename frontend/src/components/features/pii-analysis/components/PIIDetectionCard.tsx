@@ -2,6 +2,7 @@
 // Implements RF-01: LGPD Agent with manual approval workflow
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   ShieldExclamationIcon,
   DocumentTextIcon,
@@ -28,6 +29,7 @@ export default function PIIDetectionCard({
   onSelect,
   onClick,
 }: PIIDetectionCardProps) {
+  const t = useTranslations('pii');
   const riskColor = RISK_COLORS[detection.risk_level];
   const statusConfig = STATUS_CONFIG[detection.anonymization_status];
 
@@ -56,7 +58,7 @@ export default function PIIDetectionCard({
       {/* Entity badges */}
       <div className="mb-3">
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-          {detection.entities.length} entidades detectadas
+          {t('entitiesDetected', { count: detection.entities.length })}
         </p>
         <div className="flex flex-wrap gap-1">
           {detection.entities.slice(0, 4).map((entity, i) => (
@@ -96,7 +98,7 @@ export default function PIIDetectionCard({
             onChange={() => onSelect(detection.id)}
             className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
           />
-          <span className="text-gray-500 dark:text-gray-400">Selecionar</span>
+          <span className="text-gray-500 dark:text-gray-400">{t('select')}</span>
         </label>
       </div>
     </div>

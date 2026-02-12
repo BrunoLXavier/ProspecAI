@@ -103,6 +103,7 @@ export default function RichTextEditor({
   editorRef: externalEditorRef,
 }: Props) {
   const t = useTranslations('communications');
+  const tRt = useTranslations('richText');
   const internalEditorRef = useRef<HTMLDivElement>(null);
   const editorRef = externalEditorRef || internalEditorRef;
   const [showLinkInput, setShowLinkInput] = useState(false);
@@ -242,15 +243,15 @@ export default function RichTextEditor({
     <div className={`border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden ${className}`}>
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-gray-600">
-        <FormatButton command="bold" icon={BoldIcon} title="Bold (Ctrl+B)" formatKey="bold" />
-        <FormatButton command="italic" icon={ItalicIcon} title="Italic (Ctrl+I)" formatKey="italic" />
-        <FormatButton command="underline" icon={UnderlineIcon} title="Underline (Ctrl+U)" formatKey="underline" />
-        <FormatButton command="strikeThrough" icon={StrikethroughIcon} title="Strikethrough" formatKey="strikethrough" />
+        <FormatButton command="bold" icon={BoldIcon} title={tRt('bold')} formatKey="bold" />
+        <FormatButton command="italic" icon={ItalicIcon} title={tRt('italic')} formatKey="italic" />
+        <FormatButton command="underline" icon={UnderlineIcon} title={tRt('underline')} formatKey="underline" />
+        <FormatButton command="strikeThrough" icon={StrikethroughIcon} title={tRt('strikethrough')} formatKey="strikethrough" />
         
         <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
         
-        <FormatButton command="insertUnorderedList" icon={ListBulletIcon} title="Bullet list" formatKey="ul" />
-        <FormatButton command="insertOrderedList" icon={QueueListIcon} title="Numbered list" formatKey="ol" />
+        <FormatButton command="insertUnorderedList" icon={ListBulletIcon} title={tRt('bulletList')} formatKey="ul" />
+        <FormatButton command="insertOrderedList" icon={QueueListIcon} title={tRt('numberedList')} formatKey="ol" />
         
         <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
         
@@ -259,7 +260,7 @@ export default function RichTextEditor({
           onClick={() => setShowLinkInput(true)}
           disabled={disabled}
           className="p-1.5 rounded text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50"
-          title="Insert link (Ctrl+K)"
+          title={tRt('insertLink')}
         >
           <LinkIcon className="w-4 h-4" />
         </button>
@@ -269,7 +270,7 @@ export default function RichTextEditor({
           onClick={handleInsertCode}
           disabled={disabled}
           className="p-1.5 rounded text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50"
-          title="Code"
+          title={tRt('code')}
         >
           <CodeBracketIcon className="w-4 h-4" />
         </button>

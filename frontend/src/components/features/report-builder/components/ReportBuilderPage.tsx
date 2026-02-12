@@ -74,19 +74,19 @@ export default function ReportBuilderPage() {
     existingTemplate?.query_config?.selected_fields || []
   );
   const [joins, setJoins] = useState<JoinConfig[]>(
-    (existingTemplate?.query_config?.joins || []).map(j => ({
+    (existingTemplate?.query_config?.joins || []).map((j: any) => ({
       ...j,
       id: crypto.randomUUID()
     }))
   );
   const [filters, setFilters] = useState<FilterConfig[]>(
-    (existingTemplate?.query_config?.filters || []).map(f => ({
+    (existingTemplate?.query_config?.filters || []).map((f: any) => ({
       ...f,
       id: crypto.randomUUID()
     }))
   );
   const [orderBy, setOrderBy] = useState<OrderByConfig[]>(
-    (existingTemplate?.query_config?.order_by || []).map(o => ({
+    (existingTemplate?.query_config?.order_by || []).map((o: any) => ({
       ...o,
       id: crypto.randomUUID()
     }))
@@ -112,15 +112,15 @@ export default function ReportBuilderPage() {
     if (existingTemplate) {
       setBaseTable(existingTemplate.query_config?.base_table || null);
       setSelectedFields(existingTemplate.query_config?.selected_fields || []);
-      setJoins((existingTemplate.query_config?.joins || []).map(j => ({
+      setJoins((existingTemplate.query_config?.joins || []).map((j: any) => ({
         ...j,
         id: crypto.randomUUID()
       })));
-      setFilters((existingTemplate.query_config?.filters || []).map(f => ({
+      setFilters((existingTemplate.query_config?.filters || []).map((f: any) => ({
         ...f,
         id: crypto.randomUUID()
       })));
-      setOrderBy((existingTemplate.query_config?.order_by || []).map(o => ({
+      setOrderBy((existingTemplate.query_config?.order_by || []).map((o: any) => ({
         ...o,
         id: crypto.randomUUID()
       })));

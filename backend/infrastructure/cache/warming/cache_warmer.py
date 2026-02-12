@@ -22,7 +22,7 @@ from celery import Celery
 
 from infrastructure.cache.cache_manager import CacheManager, get_cache
 from adapters.database.connection import get_session
-from adapters.database.models_new import (
+from adapters.database.models import (
     FundingSourceModel, ProjectModel, ClientModel, OpportunityModel
 )
 from adapters.repositories.funding_repository import FundingRepository

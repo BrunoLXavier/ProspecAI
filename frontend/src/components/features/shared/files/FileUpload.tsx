@@ -5,6 +5,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useMutation } from '@tanstack/react-query';
 import {
   CloudArrowUpIcon,
@@ -53,6 +54,7 @@ export default function FileUpload({
   onUploadComplete,
   className = '',
 }: FileUploadProps) {
+  const t = useTranslations('files');
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,10 +69,10 @@ export default function FileUpload({
   // Validate file
   const validateFile = (file: File): string | null => {
     if (file.size > maxSize * 1024 * 1024) {
-      return `Arquivo muito grande. Máximo: ${maxSize}MB`;
+      return t('fileTooLarge', { maxSize });
     }
     if (acceptedTypes && !acceptedTypes.includes(file.type)) {
-      return `Tipo de arquivo não aceito`;
+      return t('fileTypeNotAccepted');
     }
     return null;
   };
@@ -222,10 +224,10 @@ export default function FileUpload({
       >
         <CloudArrowUpIcon className="h-12 w-12 mx-auto text-gray-400" />
         <p className="mt-2 text-gray-600">
-          Arraste arquivos aqui ou <span className="text-blue-600">clique para selecionar</span>
+          {t('dragOrClick')} <span className="text-blue-600">{t('clickToSelect')}</span>
         </p>
         <p className="mt-1 text-xs text-gray-400">
-          Máximo {maxFiles} arquivos, até {maxSize}MB cada
+          {t('maxFilesHint', { maxFiles, maxSize })}
         </p>
       </div>
 
@@ -312,6 +314,7 @@ interface FileListProps {
 }
 
 export function FileList({ files, onRemove, showDownload = true }: FileListProps) {
+  const tc = useTranslations('common');
   const formatSize = (bytes?: number) => {
     if (!bytes) return '';
     if (bytes < 1024) return `${bytes} B`;
@@ -340,7 +343,7 @@ export function FileList({ files, onRemove, showDownload = true }: FileListProps
               rel="noopener noreferrer"
               className="text-sm text-blue-600 hover:underline"
             >
-              Download
+              {tc('download')}
             </a>
           )}
           {onRemove && (

@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, EmailStr, field_validator
 import bcrypt
 
 
@@ -59,9 +59,7 @@ class User(BaseModel):
             raise ValueError('CPF must have 11 digits')
         return digits
     
-    class Config:
-        from_attributes = True
-        validate_assignment = True
+    model_config = ConfigDict(from_attributes=True, validate_assignment=True)
     
     @staticmethod
     def hash_password(password: str) -> str:

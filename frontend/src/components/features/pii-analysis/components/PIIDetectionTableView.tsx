@@ -2,6 +2,7 @@
 // Implements RF-01: LGPD Agent with manual approval workflow
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   EyeIcon,
 } from '@heroicons/react/24/outline';
@@ -30,6 +31,7 @@ export default function PIIDetectionTableView({
   onToggleSelectAll,
   onReview,
 }: PIIDetectionTableViewProps) {
+  const t = useTranslations('pii');
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
       <table className="w-full">
@@ -44,22 +46,22 @@ export default function PIIDetectionTableView({
               />
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Entidades
+              {t('entities')}
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Risco
+              {t('risk')}
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Origem
+              {t('origin')}
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Status
+              {t('status')}
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Data
+              {t('date')}
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Ações
+              {t('actions')}
             </th>
           </tr>
         </thead>

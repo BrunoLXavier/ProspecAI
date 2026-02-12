@@ -3,12 +3,14 @@ CRM Repository Implementation
 PostgreSQL repository for Client and Interaction entities
 Implements RF-04: CRM Inteligente
 """
-from typing import List, Optional
+from typing import List, Optional, Sequence, Union
+from uuid import UUID
 from sqlalchemy import select, and_, or_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entities.client import Client, Interaction
 from adapters.database.models import ClientModel, InteractionModel
+from adapters.repositories.institute_filter_mixin import apply_institute_filter, InstituteIdList
 
 
 class ClientRepository:
@@ -92,11 +94,13 @@ class ClientRepository:
         segment: Optional[str] = None,
         maturity_level: Optional[str] = None,
         search: Optional[str] = None,
+        institute_ids: InstituteIdList = None,
         skip: int = 0,
         limit: int = 100,
     ) -> List[Client]:
         """
         List clients with filters
+        Implements RF-04.01: institute-level CRM filtering
         """
         # Use a raw SQL projection to cope with schema variations between DB
         # and model definitions (some deployments use encrypted column names
@@ -110,6 +114,9 @@ class ClientRepository:
             .limit(limit)
             .offset(skip)
         )
+
+        # Apply institute-level filter (RF-04: multi-institute CRM)
+        stmt = apply_institute_filter(stmt, ClientModel, institute_ids)
 
         result = await self.session.execute(stmt)
         models = result.scalars().all()

@@ -145,6 +145,7 @@ CLIENTS = [
     # ISI SVP region clients (5) - Manufacturing/Automation
     {
         'id': CLIENT_IDS['CLIENT_SVP_1'],
+        'institute_id': INSTITUTE_IDS['ISI_SVP'],
         'name': 'WEG Equipamentos Elétricos S.A.',
         'client_type': 'company',
         'sector': 'Máquinas e Equipamentos Elétricos',
@@ -159,6 +160,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_SVP_2'],
+        'institute_id': INSTITUTE_IDS['ISI_SVP'],
         'name': 'Embraco Indústria de Compressores',
         'client_type': 'company',
         'sector': 'Refrigeração Industrial',
@@ -173,6 +175,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_SVP_3'],
+        'institute_id': INSTITUTE_IDS['ISI_SVP'],
         'name': 'Tupy S.A.',
         'client_type': 'company',
         'sector': 'Fundição e Metalurgia',
@@ -187,6 +190,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_SVP_4'],
+        'institute_id': INSTITUTE_IDS['ISI_SVP'],
         'name': 'Tigre S.A.',
         'client_type': 'company',
         'sector': 'Materiais de Construção',
@@ -201,6 +205,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_SVP_5'],
+        'institute_id': INSTITUTE_IDS['ISI_SVP'],
         'name': 'Schulz S.A.',
         'client_type': 'company',
         'sector': 'Compressores e Fundição',
@@ -216,6 +221,7 @@ CLIENTS = [
     # ISI QV region clients (5) - Chemistry/Energy
     {
         'id': CLIENT_IDS['CLIENT_QV_1'],
+        'institute_id': INSTITUTE_IDS['ISI_QV'],
         'name': 'Braskem S.A.',
         'client_type': 'company',
         'sector': 'Química e Petroquímica',
@@ -230,6 +236,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_QV_2'],
+        'institute_id': INSTITUTE_IDS['ISI_QV'],
         'name': 'Raízen S.A.',
         'client_type': 'company',
         'sector': 'Energia e Biocombustíveis',
@@ -244,6 +251,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_QV_3'],
+        'institute_id': INSTITUTE_IDS['ISI_QV'],
         'name': 'Natura Cosméticos S.A.',
         'client_type': 'company',
         'sector': 'Cosméticos e Higiene',
@@ -258,6 +266,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_QV_4'],
+        'institute_id': INSTITUTE_IDS['ISI_QV'],
         'name': 'Eurofarma Laboratórios',
         'client_type': 'company',
         'sector': 'Farmacêutico',
@@ -272,6 +281,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_QV_5'],
+        'institute_id': INSTITUTE_IDS['ISI_QV'],
         'name': 'BASF Brasil',
         'client_type': 'company',
         'sector': 'Química',
@@ -287,6 +297,7 @@ CLIENTS = [
     # ISI B&F region clients (5) - Textile/Fashion
     {
         'id': CLIENT_IDS['CLIENT_BF_1'],
+        'institute_id': INSTITUTE_IDS['ISI_BF'],
         'name': 'Malwee Malhas Ltda',
         'client_type': 'company',
         'sector': 'Têxtil e Confecção',
@@ -301,6 +312,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_BF_2'],
+        'institute_id': INSTITUTE_IDS['ISI_BF'],
         'name': 'Karsten S.A.',
         'client_type': 'company',
         'sector': 'Têxtil - Cama, Mesa e Banho',
@@ -315,6 +327,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_BF_3'],
+        'institute_id': INSTITUTE_IDS['ISI_BF'],
         'name': 'Hering S.A.',
         'client_type': 'company',
         'sector': 'Moda e Varejo',
@@ -329,6 +342,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_BF_4'],
+        'institute_id': INSTITUTE_IDS['ISI_BF'],
         'name': 'Renner S.A.',
         'client_type': 'company',
         'sector': 'Varejo de Moda',
@@ -343,6 +357,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_BF_5'],
+        'institute_id': INSTITUTE_IDS['ISI_BF'],
         'name': 'Döhler S.A.',
         'client_type': 'company',
         'sector': 'Têxtil',
@@ -358,6 +373,7 @@ CLIENTS = [
     # ISI II region clients (5) - Industry/Inspection
     {
         'id': CLIENT_IDS['CLIENT_II_1'],
+        'institute_id': INSTITUTE_IDS['ISI_II'],
         'name': 'Petrobras S.A.',
         'client_type': 'company',
         'sector': 'Óleo e Gás',
@@ -372,6 +388,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_II_2'],
+        'institute_id': INSTITUTE_IDS['ISI_II'],
         'name': 'Vale S.A.',
         'client_type': 'company',
         'sector': 'Mineração',
@@ -386,6 +403,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_II_3'],
+        'institute_id': INSTITUTE_IDS['ISI_II'],
         'name': 'Embraer S.A.',
         'client_type': 'company',
         'sector': 'Aeroespacial',
@@ -400,6 +418,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_II_4'],
+        'institute_id': INSTITUTE_IDS['ISI_II'],
         'name': 'CPFL Energia',
         'client_type': 'company',
         'sector': 'Energia Elétrica',
@@ -414,6 +433,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_II_5'],
+        'institute_id': INSTITUTE_IDS['ISI_II'],
         'name': 'Transpetro S.A.',
         'client_type': 'company',
         'sector': 'Logística de Óleo e Gás',
@@ -429,6 +449,7 @@ CLIENTS = [
     # CIS SO region clients (5) - Services/SMEs
     {
         'id': CLIENT_IDS['CLIENT_SO_1'],
+        'institute_id': INSTITUTE_IDS['CIS_SO'],
         'name': 'Marcopolo S.A.',
         'client_type': 'company',
         'sector': 'Automotivo - Ônibus',
@@ -443,6 +464,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_SO_2'],
+        'institute_id': INSTITUTE_IDS['CIS_SO'],
         'name': 'Tramontina S.A.',
         'client_type': 'company',
         'sector': 'Utilidades Domésticas',
@@ -457,6 +479,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_SO_3'],
+        'institute_id': INSTITUTE_IDS['CIS_SO'],
         'name': 'Randon S.A.',
         'client_type': 'company',
         'sector': 'Implementos Rodoviários',
@@ -471,6 +494,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_SO_4'],
+        'institute_id': INSTITUTE_IDS['CIS_SO'],
         'name': 'Metalúrgica Precision Ltda',
         'client_type': 'company',
         'sector': 'Metalurgia',
@@ -485,6 +509,7 @@ CLIENTS = [
     },
     {
         'id': CLIENT_IDS['CLIENT_SO_5'],
+        'institute_id': INSTITUTE_IDS['CIS_SO'],
         'name': 'Indústrias ABC Ltda',
         'client_type': 'company',
         'sector': 'Máquinas e Equipamentos',
@@ -501,6 +526,24 @@ CLIENTS = [
 
 # Pipeline stages for opportunities
 STAGES = ['intelligence', 'qualification', 'proposal', 'negotiation', 'closed_won', 'closed_lost']
+
+# Map opportunity prefix to institute_id for seeding
+_OPP_INSTITUTE_MAP = {
+    'OPP_SVP_': INSTITUTE_IDS['ISI_SVP'],
+    'OPP_QV_': INSTITUTE_IDS['ISI_QV'],
+    'OPP_BF_': INSTITUTE_IDS['ISI_BF'],
+    'OPP_II_': INSTITUTE_IDS['ISI_II'],
+    'OPP_SO_': INSTITUTE_IDS['CIS_SO'],
+}
+
+
+def _resolve_opp_institute(opp_id_value: str) -> str | None:
+    """Resolve institute_id from opportunity stable ID."""
+    for _prefix, _inst_id in _OPP_INSTITUTE_MAP.items():
+        opp_key = next((k for k, v in OPPORTUNITY_IDS.items() if v == opp_id_value), None)
+        if opp_key and opp_key.startswith(_prefix):
+            return _inst_id
+    return None
 
 # 25 opportunities
 OPPORTUNITIES = [
@@ -892,15 +935,18 @@ def seed_clients(conn, tenant_id: str) -> None:
         return
 
     for c in CLIENTS:
+        # Insert if not exists
         stmt = text("""
             INSERT INTO clients (
                 id, tenant_id, name, client_type, sector, size_category,
+                institute_id,
                 cnpj_encrypted, email_encrypted, phone_encrypted, address_data,
                 cnpj_data_source, detected_demands, engagement_score,
                 created_by, updated_by, created_at, updated_at
             )
             SELECT
                 :id, :tenant_id, :name, :client_type, :sector, :size_category,
+                :institute_id,
                 :cnpj_encrypted, :email_encrypted, :phone_encrypted, 
                 CAST(:address_data AS jsonb), :cnpj_data_source,
                 CAST(:detected_demands AS jsonb), :engagement_score,
@@ -909,14 +955,15 @@ def seed_clients(conn, tenant_id: str) -> None:
                 SELECT 1 FROM clients WHERE tenant_id = :tenant_id AND id = :id
             )
         """)
-        
-        conn.execute(stmt, {
+
+        params = {
             'id': c['id'],
             'tenant_id': tenant_id,
             'name': c['name'],
             'client_type': c['client_type'],
             'sector': c['sector'],
             'size_category': c.get('size_category', 'Média'),
+            'institute_id': c.get('institute_id'),
             'cnpj_encrypted': c.get('cnpj_encrypted', ''),
             'email_encrypted': c.get('email_encrypted', ''),
             'phone_encrypted': c.get('phone_encrypted', ''),
@@ -926,7 +973,21 @@ def seed_clients(conn, tenant_id: str) -> None:
             'engagement_score': c.get('engagement_score', 5.0),
             'created_by': SEED_CREATED_BY,
             'updated_by': SEED_CREATED_BY,
-        })
+        }
+        conn.execute(stmt, params)
+
+        # Backfill institute_id for existing rows that have NULL
+        if c.get('institute_id'):
+            conn.execute(text("""
+                UPDATE clients
+                SET institute_id = :institute_id, updated_at = now()
+                WHERE id = :id AND tenant_id = :tenant_id
+                  AND institute_id IS NULL
+            """), {
+                'id': c['id'],
+                'tenant_id': tenant_id,
+                'institute_id': c['institute_id'],
+            })
 
     print(f"clients seed applied for tenant: {tenant_id} ({len(CLIENTS)} clients)")
 
@@ -937,14 +998,19 @@ def seed_opportunities(conn, tenant_id: str) -> None:
         return
 
     for o in OPPORTUNITIES:
+        # Resolve institute_id from opportunity ID mapping
+        inst_id = _resolve_opp_institute(o['id'])
+
         stmt = text("""
             INSERT INTO opportunities (
                 id, tenant_id, title, description, client_id, funding_source_id,
+                institute_id,
                 stage, priority, estimated_value, probability, expected_close_date,
                 assigned_to, created_by, updated_by, created_at, updated_at
             )
             SELECT
                 :id, :tenant_id, :title, :description, :client_id, :funding_source_id,
+                :institute_id,
                 :stage, :priority, :estimated_value, :probability,
                 CAST(:expected_close_date AS timestamptz), :assigned_to,
                 :created_by, :updated_by, now(), now()
@@ -952,14 +1018,15 @@ def seed_opportunities(conn, tenant_id: str) -> None:
                 SELECT 1 FROM opportunities WHERE tenant_id = :tenant_id AND id = :id
             )
         """)
-        
-        conn.execute(stmt, {
+
+        params = {
             'id': o['id'],
             'tenant_id': tenant_id,
             'title': o['title'],
             'description': o['description'],
             'client_id': o.get('client_id'),
             'funding_source_id': o.get('funding_source_id'),
+            'institute_id': inst_id,
             'stage': o['stage'],
             'priority': o.get('priority', 50),
             'estimated_value': o.get('estimated_value', 0),
@@ -968,7 +1035,21 @@ def seed_opportunities(conn, tenant_id: str) -> None:
             'assigned_to': o.get('assigned_to'),
             'created_by': SEED_CREATED_BY,
             'updated_by': SEED_CREATED_BY,
-        })
+        }
+        conn.execute(stmt, params)
+
+        # Backfill institute_id for existing rows that have NULL
+        if inst_id:
+            conn.execute(text("""
+                UPDATE opportunities
+                SET institute_id = :institute_id, updated_at = now()
+                WHERE id = :id AND tenant_id = :tenant_id
+                  AND institute_id IS NULL
+            """), {
+                'id': o['id'],
+                'tenant_id': tenant_id,
+                'institute_id': inst_id,
+            })
 
     print(f"opportunities seed applied for tenant: {tenant_id} ({len(OPPORTUNITIES)} opportunities)")
 

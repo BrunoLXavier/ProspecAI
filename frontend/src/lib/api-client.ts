@@ -5,6 +5,7 @@
  */
 import axios, { AxiosInstance } from 'axios';
 import { getStoredAccessToken, getStoredUser, getStoredSelectedInstitutes } from '@/contexts/AuthContext';
+import { toSnakeCaseKeys, toCamelCaseKeys } from '@/lib/case-transform';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BYPASS_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -143,6 +144,17 @@ class ApiClient {
         } catch (e) {
           // ignore storage errors
         }
+
+        // Transform request body keys from camelCase to snake_case
+        // Skip FormData and non-object payloads
+        if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData) && !(config.data instanceof Blob)) {
+          config.data = toSnakeCaseKeys(config.data);
+        }
+        // Transform query params keys from camelCase to snake_case
+        if (config.params && typeof config.params === 'object') {
+          config.params = toSnakeCaseKeys(config.params);
+        }
+
         return config;
       },
       (error) => Promise.reject(error)
@@ -150,9 +162,15 @@ class ApiClient {
   }
 
   private setupResponseInterceptor() {
-    // Response interceptor with token refresh
+    // Response interceptor: snake_case → camelCase + token refresh
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Transform response data keys from snake_case to camelCase
+        if (response.data && typeof response.data === 'object') {
+          response.data = toCamelCaseKeys(response.data);
+        }
+        return response;
+      },
       async (error) => {
         const originalRequest = error.config;
 

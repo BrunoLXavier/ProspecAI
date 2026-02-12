@@ -49,6 +49,9 @@ class Opportunity(BaseEntity):
     stage: OpportunityStage = OpportunityStage.INTELLIGENCE
     priority: OpportunityPriority = OpportunityPriority.MEDIUM
     
+    # Institute scope (RF-05: institute-level pipeline filtering)
+    institute_id: Optional[UUID] = None
+    
     # Related entities
     client_id: Optional[UUID] = None
     funding_source_id: Optional[UUID] = None

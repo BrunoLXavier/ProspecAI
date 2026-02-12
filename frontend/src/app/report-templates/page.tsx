@@ -1,74 +1,76 @@
-// Report Templates management page (mirrors Proposals layout)
-// Implements RF-09: Report templates CRUD
+// Report Templates Page — Standardized via useCrudPage + EntityModal
+// Implements RF-09: Report template CRUD management
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { useQuery } from '@tanstack/react-query';
-import apiClient from '@/lib/api-client';
 import { PlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import PageHeader from '@/components/features/shared/ui/PageHeader';
+import apiClient from '@/lib/api-client';
+import { useCrudPage, FetchResult } from '@/hooks/use-crud-page';
+import { reportDefinition, ReportFormData } from '@/lib/form-registry/definitions/report.definition';
+import EntityModal from '@/components/features/shared/ui/EntityModal';
+import { ReportsBoard, ReportsList } from '@/components/features/reports';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
 import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
-import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
-import { ReportsList, ReportModal, ReportsBoard } from '@/components/features/reports';
+import Pagination from '@/components/features/shared/ui/Pagination';
 import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
 import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
-import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface ReportTemplate {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  output_formats: string[];
+  parameters: string[];
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface TemplateFilters {
+  search: string;
+}
+
+const initialFilters: TemplateFilters = { search: '' };
+
+// ─── Page Component ──────────────────────────────────────────────────────────
 
 export default function TemplatesPage() {
   const t = useTranslations('reports');
-  const [viewMode, setViewMode] = useState<'list' | 'board' | 'timeline' | 'table'>('list');
-  const [filters, setFilters] = useState<{ search?: string }>({});
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [detailTemplate, setDetailTemplate] = useState<any | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  
-  // Pagination state
-  const { initialPage, initialPageSize } = usePagination(20, true);
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [pageSize, setPageSize] = useState(initialPageSize);
+  const tCommon = useTranslations('common');
 
-  const { data: templatesRaw = [], isLoading } = useQuery({
-    queryKey: ['report-templates'],
-    queryFn: async () => {
+  const state = useCrudPage<ReportTemplate, TemplateFilters>({
+    queryKey: 'report-templates',
+    definition: reportDefinition,
+    initialFilters,
+    defaultPageSize: 20,
+    filterFn: (item, filters) => {
+      if (!filters.search) return true;
+      const s = filters.search.toLowerCase();
+      return (item.name || '').toLowerCase().includes(s) || (item.description || '').toLowerCase().includes(s);
+    },
+    fetchFn: async () => {
       try {
         const data = await apiClient.get('/api/v1/reports/templates');
-        return data;
+        const items = Array.isArray(data) ? data : (data?.templates || data?.data || []);
+        return { items, total: items.length } as FetchResult<ReportTemplate>;
       } catch (err) {
-        console.warn('Failed to fetch templates, returning empty array', err);
-        return [];
+        console.warn('Failed to fetch templates', err);
+        return { items: [], total: 0 };
       }
     },
   });
 
-  const templates: any[] = Array.isArray(templatesRaw) ? templatesRaw : (templatesRaw?.templates || templatesRaw?.data || []);
+  const filterFields: FilterField[] = useMemo(() => [
+    { key: 'search', label: t('filters.search') || 'Search', type: 'text', placeholder: t('filters.searchPlaceholder') || 'Search...' },
+  ], [t]);
 
-  const filterFields: FilterField[] = [
-    { key: 'search', label: t('filters.search') || 'Buscar', type: 'text', placeholder: t('filters.searchPlaceholder') || 'Buscar...' },
-  ];
-
-  const filtered = useMemo(() => {
-    if (!filters.search) return templates;
-    const s = filters.search.toLowerCase();
-    return templates.filter((tpl: any) => tpl.name?.toLowerCase().includes(s) || tpl.description?.toLowerCase().includes(s));
-  }, [templates, filters]);
-  
-  // Paginated templates
-  const paginatedTemplates = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [filtered, currentPage, pageSize]);
-  
-  // Handle filter change with pagination reset
-  const handleFilterChange = (k: string, v: string | boolean) => {
-    setFilters((p) => ({ ...p, [k]: v }));
-    setCurrentPage(1);
-  };
-
-  // Timeline items for TimelineView
   const timelineItems: TimelineItem[] = useMemo(() => {
-    return filtered.map((tpl: any) => ({
+    return state.data.map((tpl) => ({
       id: tpl.id,
       title: tpl.name || 'Untitled Template',
       description: tpl.description || '',
@@ -76,126 +78,98 @@ export default function TemplatesPage() {
       status: tpl.is_active ? 'success' : 'pending',
       icon: <DocumentTextIcon className="w-4 h-4" />,
       tags: tpl.type ? [{ label: tpl.type, color: 'blue' }] : [],
-      onClick: () => {
-        setDetailTemplate(tpl);
-        setIsDetailOpen(true);
-      },
+      onClick: () => state.openViewModal(tpl),
     }));
-  }, [filtered]);
+  }, [state.data]);
 
-  // Table columns for TableView
-  const tableColumns: TableColumn<any>[] = useMemo(() => [
+  const tableColumns: TableColumn<ReportTemplate>[] = useMemo(() => [
+    { key: 'name', header: t('templateName') || 'Name', accessor: 'name', sortable: true },
+    { key: 'description', header: t('description') || 'Description', accessor: 'description', sortable: false, hiddenOnMobile: true },
+    { key: 'type', header: t('type') || 'Type', accessor: 'type', sortable: true },
     {
-      key: 'name',
-      header: t('templateName') || 'Nome',
-      accessor: 'name',
-      sortable: true,
-      filterable: true,
+      key: 'updated_at', header: t('updatedAt') || 'Updated', accessor: (row) => row.updated_at ? new Date(row.updated_at).toLocaleDateString('pt-BR') : '-', sortable: true, hiddenOnMobile: true,
     },
     {
-      key: 'description',
-      header: t('description') || 'Descrição',
-      accessor: 'description',
-      sortable: false,
-      hiddenOnMobile: true,
-    },
-    {
-      key: 'type',
-      header: t('type') || 'Tipo',
-      accessor: 'type',
-      sortable: true,
-    },
-    {
-      key: 'updated_at',
-      header: t('updatedAt') || 'Atualizado',
-      accessor: (row: any) => row.updated_at ? new Date(row.updated_at).toLocaleDateString('pt-BR') : '-',
-      sortable: true,
-      hiddenOnMobile: true,
-    },
-    {
-      key: 'is_active',
-      header: t('status') || 'Status',
-      accessor: (row: any) => row.is_active ? 'Ativo' : 'Inativo',
-      sortable: true,
+      key: 'is_active', header: t('statusLabel') || 'Status', accessor: (row) => row.is_active ? 'active' : 'inactive', sortable: true,
       render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${value === 'Ativo' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
-          {value as string}
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${value === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
+          {value === 'active' ? t('available') || 'Active' : t('processed') || 'Inactive'}
         </span>
       ),
     },
   ], [t]);
 
+  const modalEntity = useMemo(() => {
+    if (!state.selectedItem) return null;
+    const tpl = state.selectedItem;
+    return {
+      id: tpl.id,
+      name: tpl.name || '',
+      description: tpl.description || '',
+      type: tpl.type || '',
+      output_formats: tpl.output_formats || [],
+      parameters: tpl.parameters || [],
+      is_active: tpl.is_active ?? true,
+    };
+  }, [state.selectedItem]);
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t('templatesTitle') || 'Templates de Relatórios'}
-        subtitle={t('templatesSubtitle') || 'Gerencie templates de relatórios (CRUD)'}
-        viewToggle={true}
-        viewMode={viewMode}
-        onViewChange={setViewMode}
-        action={(
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            title={t('newTemplate') || 'Novo Template'}
-            className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
-          >
+        title={t('templatesTitle') || 'Report Templates'}
+        subtitle={t('templatesSubtitle') || 'Manage report templates'}
+        viewToggle
+        viewMode={state.viewMode}
+        onViewChange={state.setViewMode}
+        action={
+          <button onClick={state.openCreateModal} title={t('newTemplate') || 'New Template'} className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition">
             <PlusIcon className="w-5 h-5" />
           </button>
-        )}
+        }
       />
 
-      <ConfigurableStatisticsBar module="reports" data={templates} />
+      <EntityModal<ReportFormData>
+        definition={reportDefinition}
+        entity={state.isCreateModalOpen ? null : modalEntity}
+        mode={state.isCreateModalOpen ? 'create' : 'edit'}
+        isOpen={state.isCreateModalOpen || state.isViewModalOpen}
+        onClose={state.closeModal}
+        onSuccess={() => { state.closeModal(); state.refetch(); }}
+        onDeleteSuccess={() => { state.closeModal(); state.refetch(); }}
+        icon={<DocumentTextIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />}
+        size="2xl"
+      />
 
-      <FilterPanel fields={filterFields} values={filters} onChange={handleFilterChange} onReset={() => { setFilters({}); setCurrentPage(1); }} />
+      <ConfigurableStatisticsBar module="reports" data={state.allData} />
 
-      {viewMode === 'board' ? (
-        <ReportsBoard templates={filtered} loading={isLoading} onItemClick={(t) => { setDetailTemplate(t); setIsDetailOpen(true); }} onSelect={() => {}} />
-      ) : viewMode === 'timeline' ? (
+      <FilterPanel fields={filterFields} values={state.filters} onChange={state.setFilter} onReset={state.resetFilters} />
+
+      {state.viewMode === 'board' && (
+        <ReportsBoard templates={state.allData} loading={state.isLoading} onItemClick={(tpl) => state.openViewModal(tpl as ReportTemplate)} onSelect={() => {}} />
+      )}
+
+      {state.viewMode === 'timeline' && (
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-          <TimelineView
-            items={timelineItems}
-            loading={isLoading}
-            emptyMessage={t('noTemplates') || 'Nenhum template encontrado'}
-          />
-        </div>
-      ) : viewMode === 'table' ? (
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
-          <TableView
-            data={paginatedTemplates}
-            columns={tableColumns}
-            getRowKey={(row) => (row as any).id}
-            loading={isLoading}
-            onRowClick={(row) => { setDetailTemplate(row); setIsDetailOpen(true); }}
-            emptyMessage={t('noTemplates') || 'Nenhum template encontrado'}
-            stickyHeader
-          />
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
-          <ReportsList templates={paginatedTemplates} loading={isLoading} selectedId={null} onSelect={() => {}} onOpenDetail={(t) => { setDetailTemplate(t); setIsDetailOpen(true); }} />
+          <TimelineView items={timelineItems} loading={state.isLoading} emptyMessage={t('noTemplates') || 'No templates found'} />
         </div>
       )}
-      
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalItems={filtered.length}
-        pageSize={pageSize}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
-        persistInUrl={true}
-      />
 
-      <ReportModal 
-        isOpen={isCreateOpen || isDetailOpen} 
-        onClose={() => { 
-          setIsCreateOpen(false); 
-          setIsDetailOpen(false); 
-          setDetailTemplate(null); 
-        }} 
-        template={detailTemplate} 
-        onDelete={(id) => { if (detailTemplate?.id === id) setDetailTemplate(null); }} 
-      />
+      {state.viewMode === 'table' && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+          <TableView data={state.data} columns={tableColumns} getRowKey={(row) => row.id} onRowClick={state.openViewModal} loading={state.isLoading} emptyMessage={t('noTemplates') || 'No templates found'} paginated pageSize={state.pageSize} currentPage={state.currentPage} totalItems={state.totalItems} onPageChange={state.setCurrentPage} onPageSizeChange={state.setPageSize} stickyHeader striped hoverable />
+        </div>
+      )}
+
+      {state.viewMode === 'list' && (
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+            <ReportsList templates={state.data} loading={state.isLoading} selectedId={null} onSelect={() => {}} onOpenDetail={(tpl) => state.openViewModal(tpl as ReportTemplate)} />
+          </div>
+          {state.totalItems > 0 && (
+            <Pagination currentPage={state.currentPage} totalItems={state.totalItems} pageSize={state.pageSize} onPageChange={state.setCurrentPage} onPageSizeChange={state.setPageSize} persistInUrl showTotal showPageSizeSelector />
+          )}
+        </div>
+      )}
     </div>
   );
 }

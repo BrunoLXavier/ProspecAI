@@ -22,6 +22,7 @@ from difflib import unified_diff, SequenceMatcher
 from domain.entities.proposal import Proposal, ProposalVersion, ProposalStatus
 from adapters.database.models import ProposalModel, ProposalVersionModel
 from adapters.repositories.base_repository import BaseRepository
+from adapters.repositories.institute_filter_mixin import apply_institute_filter
 from adapters.database.neo4j_connection import Neo4jConnection
 
 logger = logging.getLogger(__name__)
@@ -271,36 +272,25 @@ class ProposalRepository(BaseRepository[Proposal, ProposalModel]):
         use_cache: bool = True
     ) -> List[Proposal]:
         """
-        Override to support `institute_ids` filter which restricts proposals
-        to those whose linked opportunity's project belongs to the given institutes.
+        Override to support `institute_ids` filter.
+        Now uses the direct institute_id column (RF-08) instead of
+        the expensive triple-JOIN through opportunities → projects.
         """
         try:
             institute_ids = None
             if 'institute_ids' in criteria:
                 institute_ids = criteria.pop('institute_ids')
 
-            # If institute filter provided, resolve proposal ids via SQL join
+            # If institute filter provided, convert to direct column filter
             if institute_ids:
-                params = {f"inst_{i}": iid for i, iid in enumerate(institute_ids)}
-                placeholders = ", ".join([f":inst_{i}" for i in range(len(institute_ids))])
-                sql = f"SELECT p.id FROM proposals p JOIN opportunities o ON p.opportunity_id = o.id JOIN projects pj ON o.project_id = pj.id WHERE p.tenant_id = :tenant_id AND p.deleted_at IS NULL AND pj.institute_id IN ({placeholders})"
-                if 'tenant_id' not in criteria:
-                    raise ValueError("tenant_id is required in criteria when using institute filters")
-                params['tenant_id'] = criteria['tenant_id']
-                res = await self.session.execute(sa_text(sql), params)
-                rows = res.fetchall()
-                proposal_ids = [r[0] for r in rows]
-                if not proposal_ids:
-                    return []
-                # Use base finder but restrict by id list
-                new_criteria = {'id': proposal_ids}
-                # Copy tenant filter if present
-                if 'tenant_id' in criteria:
-                    new_criteria['tenant_id'] = criteria['tenant_id']
-                return await super().find_by_criteria(new_criteria, skip=skip, limit=limit, order_by=order_by, use_cache=use_cache)
+                # Pass as institute_id (singular) list for base find_by_criteria
+                criteria['institute_id'] = [str(iid) for iid in institute_ids]
 
-            # Fallback to base implementation
-            return await super().find_by_criteria(criteria, skip=skip, limit=limit, order_by=order_by, use_cache=use_cache)
+            # Delegate to base implementation which handles list values via IN()
+            return await super().find_by_criteria(
+                criteria, skip=skip, limit=limit,
+                order_by=order_by, use_cache=use_cache
+            )
 
         except Exception as e:
             logger.error(f"Error finding proposals by criteria: {e}")

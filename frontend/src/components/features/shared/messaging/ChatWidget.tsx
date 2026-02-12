@@ -48,10 +48,11 @@ interface Message {
 }
 
 function ConfidenceBadge({ level, score }: { level: string; score: number }) {
+  const tChat = useTranslations('chat');
   const config: Record<string, any> = {
-    high: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', icon: CheckCircleIcon, label: 'Alta confiança' },
-    medium: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-300', icon: InformationCircleIcon, label: 'Confiança média' },
-    low: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-300', icon: ExclamationTriangleIcon, label: 'Baixa confiança' },
+    high: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', icon: CheckCircleIcon, label: tChat('confidenceHigh') },
+    medium: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-300', icon: InformationCircleIcon, label: tChat('confidenceMedium') },
+    low: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-300', icon: ExclamationTriangleIcon, label: tChat('confidenceLow') },
   };
 
   const { bg, text, icon: Icon, label } = config[level] || config.medium;
@@ -64,10 +65,11 @@ function ConfidenceBadge({ level, score }: { level: string; score: number }) {
 }
 
 function SourceList({ sources }: { sources: SourceReference[] }) {
+  const tChat = useTranslations('chat');
   if (!sources?.length) return null;
   return (
     <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Fontes utilizadas:</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{tChat('sourcesUsed')}</p>
       <div className="flex flex-wrap gap-1">
         {sources.map((source, idx) => (
           <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300" title={source.excerpt}>
@@ -105,7 +107,7 @@ export default function ChatWidget() {
       setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: 'assistant', content: response.answer, response, timestamp: new Date() }]);
     },
     onError: () => {
-      setMessages(prev => [...prev, { id: `error-${Date.now()}`, role: 'assistant', content: 'Desculpe, ocorreu um erro ao processar sua mensagem.', timestamp: new Date() }]);
+      setMessages(prev => [...prev, { id: `error-${Date.now()}`, role: 'assistant', content: tChat('errorProcessing'), timestamp: new Date() }]);
     }
   });
 
@@ -145,7 +147,7 @@ export default function ChatWidget() {
         <div className="fixed bottom-28 right-6 w-96 h-[500px] bg-white dark:bg-slate-800 rounded-xl shadow-2xl dark:shadow-black/30 flex flex-col z-50 border border-gray-200 dark:border-slate-700">
           <div className="flex items-center justify-between px-4 py-3 bg-primary-600 dark:bg-primary-700 text-white rounded-t-xl">
             <div className="flex items-center gap-2"><SparklesIcon className="h-5 w-5" /><span className="font-medium">{tChat('title')}</span></div>
-            <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-primary-700 dark:hover:bg-primary-800 rounded" aria-label={tCommon('close') || 'Fechar'}><XMarkIcon className="h-5 w-5" /></button>
+            <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-primary-700 dark:hover:bg-primary-800 rounded" aria-label={tCommon('close')}><XMarkIcon className="h-5 w-5" /></button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -157,8 +159,8 @@ export default function ChatWidget() {
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                   {msg.role === 'assistant' && msg.response && (
                     <div className="mt-2 space-y-2">
-                      <div className="flex items-center gap-2"><ConfidenceBadge level={msg.response.confidence_level} score={msg.response.confidence} />{msg.response.requires_human_validation && (<span className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1"><ExclamationTriangleIcon className="h-3 w-3" />Validar</span>)}</div>
-                      {msg.response.reasoning_steps?.length > 0 && (<button onClick={() => setShowReasoning(showReasoning === msg.id ? null : msg.id)} className="text-xs text-primary-600 dark:text-primary-400 hover:underline">{showReasoning === msg.id ? 'Ocultar raciocínio' : 'Ver raciocínio'}</button>)}
+                      <div className="flex items-center gap-2"><ConfidenceBadge level={msg.response.confidence_level} score={msg.response.confidence} />{msg.response.requires_human_validation && (<span className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1"><ExclamationTriangleIcon className="h-3 w-3" />{tChat('validate')}</span>)}</div>
+                      {msg.response.reasoning_steps?.length > 0 && (<button onClick={() => setShowReasoning(showReasoning === msg.id ? null : msg.id)} className="text-xs text-primary-600 dark:text-primary-400 hover:underline">{showReasoning === msg.id ? tChat('hideReasoning') : tChat('showReasoning')}</button>)}
                       {showReasoning === msg.id && (<div className="bg-gray-50 dark:bg-slate-600 rounded p-2 text-xs"><ol className="list-decimal list-inside space-y-1">{msg.response.reasoning_steps.map((s, i) => <li key={i}>{s}</li>)}</ol></div>)}
                       <SourceList sources={msg.response.sources} />
                       {msg.response.suggestions?.length > 0 && (<div className="flex flex-wrap gap-1 mt-2">{msg.response.suggestions.map((s, idx) => (<button key={idx} onClick={() => handleSuggestionClick(s)} className="text-xs bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 rounded-full px-2 py-1 hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors text-gray-700 dark:text-gray-200">{s}</button>))}</div>)}

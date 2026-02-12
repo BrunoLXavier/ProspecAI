@@ -165,7 +165,7 @@ export default function ActivityPage() {
 
   // Normalize and filter incoming activities to avoid runtime errors
   const safeActivities = useMemo(() => {
-    const list = (activities || []).map((a, idx) => {
+    const list = (activities || []).map((a: Activity, idx: number) => {
       if (!a || typeof a !== 'object') {
         // eslint-disable-next-line no-console
         console.warn('ActivityPage: skipping invalid activity at index', idx, a);

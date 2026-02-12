@@ -5,10 +5,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NextIntlClientProvider } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ToastProvider } from '@/contexts/ToastContext';
+import { ACLProvider } from '@/contexts/ACLContext';
 import { LocaleProvider, useLocaleContext, SupportedLocale } from '@/contexts/LocaleContext';
 import ptBR from '@/locales/pt-BR.json';
 import enUS from '@/locales/en-US.json';
 import esES from '@/locales/es-ES.json';
+
+// Auto-register all entity definitions on app startup
+import '@/lib/form-registry/definitions';
 
 const messages: Record<SupportedLocale, any> = {
   'pt-BR': ptBR,
@@ -53,7 +58,11 @@ export function Providers({
       <IntlProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            {children}
+            <ACLProvider>
+              <ToastProvider>
+                {children}
+              </ToastProvider>
+            </ACLProvider>
           </AuthProvider>
         </QueryClientProvider>
       </IntlProvider>

@@ -1,620 +1,528 @@
-// User Management Page
-// Admin interface for managing users
-// Implements RF-09: Admin User Management
+/**
+ * User Management Page — Standardized via useCrudPage
+ * Admin interface for managing users
+ * Implements RF-09: Admin User Management
+ */
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-	PlusIcon,
-	PencilIcon,
-	TrashIcon,
-	MagnifyingGlassIcon,
-	UserCircleIcon,
-	CheckIcon,
-	XMarkIcon,
-	ClockIcon,
-	UserPlusIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  UserCircleIcon,
+  CheckIcon,
+  XMarkIcon,
+  ClockIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline';
 import { apiClient } from '@/lib/api-client';
+import { useCrudPage, FetchResult } from '@/hooks/use-crud-page';
+import { userDefinition } from '@/lib/form-registry/definitions';
 import UserModal from '@/components/features/users/components/UserModal';
-import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
 import PageHeader from '@/components/features/shared/ui/PageHeader';
 import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
-import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
+import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
+import Pagination from '@/components/features/shared/ui/Pagination';
 import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
 
+// ─── Types ───────────────────────────────────────────────────────────────────
+
 interface User {
-	id: string;
-	email: string;
-	name: string;
-	role: string;
-	is_active: boolean;
-	created_at: string;
-	last_login?: string;
-	tenant_id?: string;
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+  last_login?: string;
+  tenant_id?: string;
 }
 
 interface UserFormData {
-	email: string;
-	name: string;
-	role: string;
-	password?: string;
-	is_active: boolean;
+  email: string;
+  name: string;
+  role: string;
+  password?: string;
+  is_active: boolean;
 }
 
+interface UserFilters {
+  search: string;
+  role: string;
+  status: string;
+}
+
+const initialFilters: UserFilters = { search: '', role: '', status: '' };
+
 const ROLES = [
-	{ value: 'admin', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' },
-	{ value: 'manager', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
-	{ value: 'analyst', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
-	{ value: 'viewer', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+  { value: 'admin', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' },
+  { value: 'manager', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
+  { value: 'analyst', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+  { value: 'viewer', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
 ];
 
+const getRoleConfig = (role: string) => ROLES.find(r => r.value === role) || ROLES[3];
+
+// ─── Page Component ──────────────────────────────────────────────────────────
+
 export default function UsersPage() {
-	const t = useTranslations('settings');
-	const tCommon = useTranslations('common');
-	const queryClient = useQueryClient();
-	const searchParams = useSearchParams();
-	const router = useRouter();
-  
-	const [searchQuery, setSearchQuery] = useState('');
-	const [selectedRole, setSelectedRole] = useState<string>('');
-	const [showModal, setShowModal] = useState(false);
-	const [editingUser, setEditingUser] = useState<User | null>(null);
-	const [formError, setFormError] = useState<string | null>(null);
-	const [viewMode, setViewMode] = useState<ViewMode>('list');
-	const [highlightProcessed, setHighlightProcessed] = useState(false);
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+  const queryClient = useQueryClient();
+  const [formError, setFormError] = useState<string | null>(null);
 
-	// Pagination state
-	const { initialPage, initialPageSize } = usePagination(20, true);
-	const [currentPage, setCurrentPage] = useState(initialPage);
-	const [pageSize, setPageSize] = useState(initialPageSize);
-    const [totalUsers, setTotalUsers] = useState(0);
-	const [sortColumn, setSortColumn] = useState<string | null>(null);
-	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+  // ── useCrudPage — replaces ~20 manual useState + useQuery + URL handling ──
+  const state = useCrudPage<User, UserFilters>({
+    queryKey: 'users',
+    definition: userDefinition,
+    initialFilters,
+    defaultPageSize: 20,
+    filterFn: (item, filters) => {
+      if (filters.search) {
+        const s = filters.search.toLowerCase();
+        if (!item.name?.toLowerCase().includes(s) && !item.email?.toLowerCase().includes(s)) return false;
+      }
+      if (filters.role && item.role !== filters.role) return false;
+      if (filters.status === 'active' && !item.is_active) return false;
+      if (filters.status === 'inactive' && item.is_active) return false;
+      return true;
+    },
+    fetchFn: async () => {
+      try {
+        const response: any = await apiClient.get('/api/v1/admin/users', { skip: 0, limit: 500 });
+        const items = response.items || response.users || (Array.isArray(response) ? response : []);
+        return { items, total: response.total ?? items.length } as FetchResult<User>;
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        return { items: [], total: 0 };
+      }
+    },
+  });
 
-	// Fetch users (server-side pagination via skip/limit)
-	const { data: users = [], isLoading } = useQuery<User[]>({
-		queryKey: ['users', searchQuery, selectedRole, currentPage, pageSize, viewMode, sortColumn, sortDirection],
-		queryFn: async () => {
-			try {
-				const params: Record<string, any> = {};
-				// For board view we may want the full set; request a large limit
-				if (viewMode === 'board') {
-					params.skip = 0;
-					params.limit = Math.max(200, pageSize * 10);
-				} else {
-					const skip = Math.max(0, (currentPage - 1) * pageSize);
-					params.skip = skip;
-					params.limit = pageSize;
-				}
+  // ── Mutations ─────────────────────────────────────────────────────────────
 
-				if (searchQuery) params.search = searchQuery;
-				if (selectedRole) params.role = selectedRole;
-                    if (sortColumn) params.sort = sortColumn;
-                    if (sortDirection) params.direction = sortDirection;
+  const createMutation = useMutation({
+    mutationFn: (data: UserFormData) => apiClient.post('/api/v1/admin/users', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      state.closeModal();
+      setFormError(null);
+    },
+    onError: (error: any) => {
+      setFormError(error.response?.data?.detail || 'Failed to create user');
+    },
+  });
 
-				const response: any = await apiClient.get('/api/v1/admin/users', params);
-				setTotalUsers(response.total ?? (Array.isArray(response) ? response.length : 0));
-				return response.items || response.users || response || [];
-			} catch (error) {
-				console.error('Failed to fetch users:', error);
-				setTotalUsers(0);
-				return [];
-			}
-		},
-	});
+  const updateMutation = useMutation({
+    mutationFn: (data: { id: string; updates: Partial<UserFormData> }) =>
+      apiClient.put(`/api/v1/admin/users/${data.id}`, data.updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      state.closeModal();
+      setFormError(null);
+    },
+    onError: (error: any) => {
+      setFormError(error.response?.data?.detail || 'Failed to update user');
+    },
+  });
 
-	// Handle highlight param to auto-open user modal
-	useEffect(() => {
-		const highlightId = searchParams.get('highlight');
-		if (highlightId && users.length > 0 && !highlightProcessed) {
-			const userToHighlight = users.find(u => u.id === highlightId);
-			if (userToHighlight) {
-				setEditingUser(userToHighlight);
-				setShowModal(true);
-				setHighlightProcessed(true);
-				// Clear the highlight param from URL
-				router.replace('/users', { scroll: false });
-			}
-		}
-	}, [searchParams, users, highlightProcessed, router]);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/api/v1/admin/users/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      state.closeModal();
+      setFormError(null);
+    },
+    onError: (error: any) => {
+      setFormError(error.response?.data?.detail || 'Failed to delete user');
+    },
+  });
 
-	// Create user mutation
-	const createMutation = useMutation({
-		mutationFn: (data: UserFormData) => 
-			apiClient.post('/api/v1/admin/users', data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['users'] });
-			closeModal();
-		},
-		onError: (error: any) => {
-			setFormError(error.response?.data?.detail || 'Failed to create user');
-		},
-	});
+  const handleSave = async (data: UserFormData, isEdit: boolean, userId?: string) => {
+    setFormError(null);
+    if (isEdit && userId) {
+      const updates: Partial<UserFormData> = {
+        email: data.email, name: data.name, role: data.role, is_active: data.is_active,
+      };
+      if (data.password) updates.password = data.password;
+      await updateMutation.mutateAsync({ id: userId, updates });
+    } else {
+      await createMutation.mutateAsync(data);
+    }
+  };
 
-	// Update user mutation
-	const updateMutation = useMutation({
-		mutationFn: (data: { id: string; updates: Partial<UserFormData> }) => 
-			apiClient.put(`/api/v1/admin/users/${data.id}`, data.updates),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['users'] });
-			closeModal();
-		},
-		onError: (error: any) => {
-			setFormError(error.response?.data?.detail || 'Failed to update user');
-		},
-	});
+  const handleDelete = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
+  };
 
-	// Delete user mutation
-	const deleteMutation = useMutation({
-		mutationFn: (id: string) => 
-			apiClient.delete(`/api/v1/admin/users/${id}`),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['users'] });
-			closeModal();
-		},
-		onError: (error: any) => {
-			setFormError(error.response?.data?.detail || 'Failed to delete user');
-		},
-	});
+  // ── Filter Panel Fields ───────────────────────────────────────────────────
 
-	const openCreateModal = () => {
-		setEditingUser(null);
-		setFormError(null);
-		setShowModal(true);
-	};
+  const filterFields: FilterField[] = useMemo(() => [
+    {
+      key: 'search', label: t('users.searchPlaceholder') || 'Search...',
+      type: 'text', placeholder: t('users.searchPlaceholder') || 'Search by name or email...',
+    },
+    {
+      key: 'role', label: t('users.role') || 'Role', type: 'select',
+      options: [
+        { value: '', label: t('users.allRoles') || 'All Roles' },
+        ...ROLES.map(r => ({ value: r.value, label: String(t(`users.roleTypes.${r.value}`) || r.value) })),
+      ],
+    },
+    {
+      key: 'status', label: t('users.status') || 'Status', type: 'select',
+      options: [
+        { value: '', label: tCommon('all') || 'All' },
+        { value: 'active', label: t('users.active') || 'Active' },
+        { value: 'inactive', label: t('users.inactive') || 'Inactive' },
+      ],
+    },
+  ], [t, tCommon]);
 
-	const openEditModal = (user: User) => {
-		setEditingUser(user);
-		setFormError(null);
-		setShowModal(true);
-	};
+  // ── Table Columns ─────────────────────────────────────────────────────────
 
-	const closeModal = () => {
-		setShowModal(false);
-		setEditingUser(null);
-		setFormError(null);
-	};
+  const tableColumns: TableColumn<User>[] = useMemo(() => [
+    {
+      key: 'name', header: t('users.user') || 'User', accessor: 'name', sortable: true,
+      render: (_value: unknown, user: User) => (
+        <div className="flex items-center">
+          <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+            <UserCircleIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'email', header: t('users.email') || 'Email', accessor: 'email',
+      sortable: true, hiddenOnMobile: true,
+    },
+    {
+      key: 'role', header: t('users.role') || 'Role', accessor: 'role', sortable: true,
+      render: (_value: unknown, user: User) => {
+        const rc = getRoleConfig(user.role);
+        return (
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${rc.color}`}>
+            {String(t(`users.roleTypes.${rc.value}`) || rc.value)}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'status', header: t('users.status') || 'Status', accessor: 'is_active',
+      render: (_value: unknown, user: User) => (
+        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${
+          user.is_active
+            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+        }`}>
+          {user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+          {user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
+        </span>
+      ),
+    },
+    {
+      key: 'last_login', header: t('users.lastLogin') || 'Last Login', accessor: 'last_login', sortable: true,
+      render: (_value: unknown, user: User) => (
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {user.last_login ? new Date(user.last_login).toLocaleString('pt-BR') : t('users.never') || 'Never'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions', header: t('users.actions') || 'Actions', accessor: 'id', align: 'right' as const,
+      render: (_value: unknown, user: User) => (
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); state.openViewModal(user); }}
+            className="p-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
+            title={tCommon('edit') || 'Edit'}
+          >
+            <PencilIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }}
+            className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+            title={tCommon('delete') || 'Delete'}
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        </div>
+      ),
+    },
+  ], [t, tCommon, state, handleDelete]);
 
-	const handleSave = async (data: UserFormData, isEdit: boolean, userId?: string) => {
-		setFormError(null);
-		if (isEdit && userId) {
-			const updates: Partial<UserFormData> = {
-				email: data.email,
-				name: data.name,
-				role: data.role,
-				is_active: data.is_active,
-			};
-			if (data.password) {
-				updates.password = data.password;
-			}
-			await updateMutation.mutateAsync({ id: userId, updates });
-		} else {
-			await createMutation.mutateAsync(data);
-		}
-	};
+  // ── Timeline Items ────────────────────────────────────────────────────────
 
-	const handleDelete = async (id: string) => {
-		await deleteMutation.mutateAsync(id);
-	};
+  const timelineItems: TimelineItem[] = useMemo(() => {
+    return [...state.data]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .map((user): TimelineItem => {
+        const rc = getRoleConfig(user.role);
+        return {
+          id: user.id,
+          title: user.name,
+          description: (
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${rc.color}`}>
+                  {String(t(`users.roleTypes.${rc.value}`) || rc.value)}
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${
+                  user.is_active
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                }`}>
+                  {user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+                  {user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
+                </span>
+              </div>
+              {user.last_login && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('users.lastLogin') || 'Last login'}: {new Date(user.last_login).toLocaleString('pt-BR')}
+                </p>
+              )}
+            </div>
+          ),
+          date: user.created_at,
+          status: user.is_active ? 'success' : 'error',
+          icon: <UserPlusIcon className="w-4 h-4" />,
+          onClick: () => state.openViewModal(user),
+        };
+      });
+  }, [state.data, t, state.openViewModal]);
 
-	const getRoleConfig = (role: string) => {
-		return ROLES.find(r => r.value === role) || ROLES[3];
-	};
+  // ── Render ────────────────────────────────────────────────────────────────
 
-	// When using server-side pagination the `users` array is already the current page
-	const filteredUsers = users;
-	const paginatedUsers = users;
+  return (
+    <div className="max-w-6xl mx-auto space-y-6">
+      <PageHeader
+        title={t('users.title') || 'User Management'}
+        subtitle={t('users.subtitle') || 'Manage system users and their permissions'}
+        viewToggle
+        viewMode={state.viewMode}
+        onViewChange={state.setViewMode}
+        action={
+          <button
+            onClick={state.openCreateModal}
+            title={t('users.newUser') || 'New User'}
+            className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+          >
+            <PlusIcon className="w-5 h-5" />
+          </button>
+        }
+      />
 
-	// Reset to first page when filters change
-	useEffect(() => {
-		setCurrentPage(1);
-	}, [searchQuery, selectedRole]);
+      <ConfigurableStatisticsBar module="users" data={state.allData} />
 
-	return (
-		<div className="max-w-6xl mx-auto space-y-6">
-			{/* Header */}
-			<PageHeader
-				title={t('users.title') || 'User Management'}
-				subtitle={t('users.subtitle') || 'Manage system users and their permissions'}
-				viewToggle={true}
-				viewMode={viewMode}
-				onViewChange={(m) => setViewMode(m)}
-				action={(
-					<button
-						onClick={openCreateModal}
-						title={t('users.newUser') || 'New User'}
-						className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-					>
-						<PlusIcon className="w-5 h-5" />
-					</button>
-				)}
-			/>
-			
-			{/* Statistics Bar */}
-			<ConfigurableStatisticsBar module="users" data={users} />
+      <FilterPanel
+        fields={filterFields}
+        values={state.filters}
+        onChange={state.setFilter}
+        onReset={state.resetFilters}
+      />
 
-			{/* Filters */}
-			<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-4">
-				<div className="flex flex-col sm:flex-row gap-4">
-					{/* Search */}
-					<div className="flex-1 relative">
-						<MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-						<input
-							type="text"
-							placeholder={t('users.searchPlaceholder') || 'Search by name or email...'}
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-						/>
-					</div>
-          
-					{/* Role Filter */}
-					<select
-						value={selectedRole}
-						onChange={(e) => setSelectedRole(e.target.value)}
-						className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-					>
-						<option value="">{t('users.allRoles') || 'All Roles'}</option>
-						{ROLES.map(role => (
-							<option key={role.value} value={role.value}>{String(t(`users.roleTypes.${String(role.value)}`) || role.value || '')}</option>
-						))}
-					</select>
-				</div>
-			</div>
+      {/* Board View — Grouped by Role */}
+      {state.viewMode === 'board' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {ROLES.map(roleConfig => {
+            const roleUsers = state.data.filter(u => u.role === roleConfig.value);
+            return (
+              <div key={roleConfig.value} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-between">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
+                    {String(t(`users.roleTypes.${roleConfig.value}`) || roleConfig.value)}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{roleUsers.length}</span>
+                </h3>
+                <div className="space-y-3">
+                  {roleUsers.map(user => (
+                    <div
+                      key={user.id}
+                      onClick={() => state.openViewModal(user)}
+                      className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-lg cursor-pointer hover:shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                          <UserCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                        </div>
+                        <span className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full ${
+                          user.is_active
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        }`}>
+                          {user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {roleUsers.length === 0 && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">
+                      {t('users.noUsers') || 'No users'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-			{/* Users View */}
-			{viewMode === 'board' && (
-				/* Board View - Grouped by Role */
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-					{ROLES.map(roleConfig => {
-						const roleUsers = filteredUsers.filter(u => u.role === roleConfig.value);
-						return (
-							<div key={roleConfig.value} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
-								<h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-between">
-									<span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
-										{String(t(`users.roleTypes.${String(roleConfig.value)}`) || roleConfig.value || '')}
-									</span>
-									<span className="text-xs text-gray-500 dark:text-gray-400">{roleUsers.length}</span>
-								</h3>
-								<div className="space-y-3">
-									{roleUsers.map(user => (
-										<div 
-											key={user.id} 
-											onClick={() => openEditModal(user)}
-											className="p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-lg cursor-pointer hover:shadow"
-										>
-											<div className="flex items-center gap-3">
-												<div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
-													<UserCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-												</div>
-												<div className="min-w-0 flex-1">
-													<p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.name}</p>
-													<p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-												</div>
-												<span className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full ${
-													user.is_active
-														? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-														: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-												}`}>
-													{user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
-												</span>
-											</div>
-										</div>
-									))}
-									{roleUsers.length === 0 && (
-										<p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">
-											{t('users.noUsers') || 'No users'}
-										</p>
-									)}
-								</div>
-							</div>
-						);
-					})}
-				</div>
-			)}
+      {/* List View */}
+      {state.viewMode === 'list' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
+          {state.isLoading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              {tCommon('loading') || 'Loading...'}
+            </div>
+          ) : state.data.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              {t('users.noUsers') || 'No users found'}
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+              {state.data.map((user) => {
+                const roleConfig = getRoleConfig(user.role);
+                return (
+                  <li
+                    key={user.id}
+                    onClick={() => state.openViewModal(user)}
+                    className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                          <UserCircleIcon className="h-7 w-7 text-primary-600 dark:text-primary-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white">{user.name}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
+                          {String(t(`users.roleTypes.${roleConfig.value}`) || roleConfig.value)}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${
+                          user.is_active
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        }`}>
+                          {user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+                          {user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
+                        </span>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <ClockIcon className="w-4 h-4 inline mr-1" />
+                          {user.last_login
+                            ? new Date(user.last_login).toLocaleDateString('pt-BR')
+                            : t('users.never') || 'Never'}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); state.openViewModal(user); }}
+                            className="p-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
+                            title={tCommon('edit') || 'Edit'}
+                          >
+                            <PencilIcon className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(user.id); }}
+                            className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                            title={tCommon('delete') || 'Delete'}
+                          >
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
 
-			{viewMode === 'list' && (
-				/* List View - Card-based layout */
-				<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft overflow-hidden">
-					{isLoading ? (
-						<div className="p-8 text-center text-gray-500 dark:text-gray-400">
-							{tCommon('loading') || 'Loading...'}
-						</div>
-					) : filteredUsers.length === 0 ? (
-						<div className="p-8 text-center text-gray-500 dark:text-gray-400">
-							{t('users.noUsers') || 'No users found'}
-						</div>
-					) : (
-						<ul className="divide-y divide-gray-200 dark:divide-gray-700">
-							{paginatedUsers.map((user) => {
-								const roleConfig = getRoleConfig(user.role);
-								return (
-									<li
-										key={user.id}
-										onClick={() => openEditModal(user)}
-										className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer"
-									>
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-4">
-												<div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
-													<UserCircleIcon className="h-7 w-7 text-primary-600 dark:text-primary-400" />
-												</div>
-												<div>
-													<h3 className="text-base font-semibold text-gray-900 dark:text-white">{user.name}</h3>
-													<p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
-												</div>
-											</div>
-											<div className="flex items-center gap-4">
-												<span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
-													{String(t(`users.roleTypes.${String(roleConfig.value)}`) || roleConfig.value || '')}
-												</span>
-												<span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${
-													user.is_active
-														? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-														: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-												}`}>
-													{user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
-													{user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
-												</span>
-												<div className="text-sm text-gray-500 dark:text-gray-400">
-													<ClockIcon className="w-4 h-4 inline mr-1" />
-													{user.last_login 
-														? new Date(user.last_login).toLocaleDateString('pt-BR')
-														: t('users.never') || 'Never'}
-												</div>
-												<div className="flex gap-2">
-													<button
-														onClick={(e) => { e.stopPropagation(); openEditModal(user); }}
-														className="p-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
-														title={tCommon('edit') || 'Edit'}
-													>
-														<PencilIcon className="w-5 h-5" />
-													</button>
-													<button
-														onClick={(e) => { e.stopPropagation(); openEditModal(user); }}
-														className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-														title={tCommon('delete') || 'Delete'}
-													>
-														<TrashIcon className="w-5 h-5" />
-													</button>
-												</div>
-											</div>
-										</div>
-									</li>
-								);
-							})}
-						</ul>
-					)}
-					{/* Pagination / Summary */}
-					<div className="px-6 py-3 bg-gray-50 dark:bg-slate-700 border-t border-gray-200 dark:border-gray-600">
-						<div className="flex items-center justify-between">
-							<p className="text-sm text-gray-600 dark:text-gray-400">
-								{t('users.showing') || 'Showing'} {paginatedUsers.length} {t('users.of') || 'of'} {totalUsers} {t('users.users') || 'users'}
-							</p>
-							{totalUsers > 0 && (
-								<Pagination
-									currentPage={currentPage}
-									totalItems={totalUsers}
-									pageSize={pageSize}
-									onPageChange={(p) => setCurrentPage(p)}
-									onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
-									showTotal
-									showPageSizeSelector
-								/>
-							)}
-						</div>
-					</div>
-				</div>
-			)}
+      {/* Table View */}
+      {state.viewMode === 'table' && (
+        <TableView<User>
+          data={state.data}
+          columns={tableColumns}
+          getRowKey={(user) => user.id}
+          onRowClick={(user) => state.openViewModal(user)}
+          loading={state.isLoading}
+          paginated
+          pageSize={state.pageSize}
+          currentPage={state.currentPage}
+          totalItems={state.totalItems}
+          onPageChange={state.setCurrentPage}
+          onPageSizeChange={state.setPageSize}
+          emptyMessage={t('users.noUsers') || 'No users found'}
+          hoverable
+          striped
+        />
+      )}
 
-			{viewMode === 'table' && (
-				/* Table View - Using TableView component */
-				<TableView<User>
-					data={paginatedUsers}
-					columns={[
-						{
-							key: 'name',
-							header: t('users.user') || 'User',
-							accessor: 'name',
-							sortable: true,
-							render: (_value, user) => (
-								<div className="flex items-center">
-									<div className="flex-shrink-0 h-10 w-10">
-										<div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-											<UserCircleIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-										</div>
-									</div>
-									<div className="ml-4">
-										<div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
-										<div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
-									</div>
-								</div>
-							),
-						},
-						{
-							key: 'email',
-							header: t('users.email') || 'Email',
-							accessor: 'email',
-							sortable: true,
-							hiddenOnMobile: true,
-						},
-						{
-							key: 'role',
-							header: t('users.role') || 'Role',
-							accessor: 'role',
-							sortable: true,
-							render: (_value, user) => {
-								const roleConfig = getRoleConfig(user.role);
-								return (
-									<span className={`px-2 py-1 text-xs font-medium rounded-full ${roleConfig.color}`}>
-										{String(t(`users.roleTypes.${String(roleConfig.value)}`) || roleConfig.value || '')}
-									</span>
-								);
-							},
-						},
-						{
-							key: 'status',
-							header: t('users.status') || 'Status',
-							accessor: 'is_active',
-							render: (_value, user) => (
-								<span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${
-									user.is_active
-										? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-										: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-								}`}>
-									{user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
-									{user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
-								</span>
-							),
-						},
-						{
-							key: 'last_login',
-							header: t('users.lastLogin') || 'Last Login',
-							accessor: 'last_login',
-							sortable: true,
-							render: (_value, user) => (
-								<span className="text-sm text-gray-500 dark:text-gray-400">
-									{user.last_login 
-										? new Date(user.last_login).toLocaleString('pt-BR')
-										: t('users.never') || 'Never'}
-								</span>
-							),
-						},
-						{
-							key: 'actions',
-							header: t('users.actions') || 'Actions',
-							accessor: 'id',
-							align: 'right',
-							render: (_value, user) => (
-								<div className="flex justify-end gap-2">
-									<button
-										onClick={(e) => { e.stopPropagation(); openEditModal(user); }}
-										className="p-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
-										title={tCommon('edit') || 'Edit'}
-									>
-										<PencilIcon className="w-5 h-5" />
-									</button>
-									<button
-										onClick={(e) => { e.stopPropagation(); openEditModal(user); }}
-										className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-										title={tCommon('delete') || 'Delete'}
-									>
-										<TrashIcon className="w-5 h-5" />
-									</button>
-								</div>
-							),
-						},
-					] as TableColumn<User>[]}
-					getRowKey={(user) => user.id}
-					onRowClick={openEditModal}
-					loading={isLoading}
-					paginated={true}
-					pageSize={pageSize}
-					currentPage={currentPage}
-					totalItems={totalUsers}
-					onPageChange={(p) => setCurrentPage(p)}
-					onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
-					serverSideSorting={true}
-					onSortChange={(col, dir) => { setSortColumn(col); setSortDirection(dir as 'asc' | 'desc' | null); setCurrentPage(1); }}
-					sortColumn={sortColumn ?? undefined}
-					sortDirection={sortDirection ?? undefined}
-					emptyMessage={t('users.noUsers') || 'No users found'}
-					hoverable
-					striped
-				/>
-			)}
+      {/* Timeline View */}
+      {state.viewMode === 'timeline' && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
+          {state.isLoading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              {tCommon('loading') || 'Loading...'}
+            </div>
+          ) : state.data.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              {t('users.noUsers') || 'No users found'}
+            </div>
+          ) : (
+            <TimelineView
+              items={timelineItems}
+              size="md"
+              showConnectors
+              animated
+              emptyMessage={t('users.noUsers') || 'No users found'}
+            />
+          )}
+        </div>
+      )}
 
-			{viewMode === 'timeline' && (
-				/* Timeline View - User activity/creation dates */
-				<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
-					{isLoading ? (
-						<div className="p-8 text-center text-gray-500 dark:text-gray-400">
-							{tCommon('loading') || 'Loading...'}
-						</div>
-					) : filteredUsers.length === 0 ? (
-						<div className="p-8 text-center text-gray-500 dark:text-gray-400">
-							{t('users.noUsers') || 'No users found'}
-						</div>
-					) : (
-						<TimelineView
-							items={paginatedUsers
-								.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-								.map((user): TimelineItem => {
-									const roleConfig = getRoleConfig(user.role);
-									return {
-										id: user.id,
-										title: user.name,
-										description: (
-											<div className="space-y-1">
-												<p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
-												<div className="flex items-center gap-2">
-													<span className={`px-2 py-0.5 text-xs font-medium rounded-full ${roleConfig.color}`}>
-														{String(t(`users.roleTypes.${String(roleConfig.value)}`) || roleConfig.value || '')}
-													</span>
-													<span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${
-														user.is_active
-															? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-															: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-													}`}>
-														{user.is_active ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
-														{user.is_active ? (t('users.active') || 'Active') : (t('users.inactive') || 'Inactive')}
-													</span>
-												</div>
-												{user.last_login && (
-													<p className="text-xs text-gray-500 dark:text-gray-400">
-														{t('users.lastLogin') || 'Last login'}: {new Date(user.last_login).toLocaleString('pt-BR')}
-													</p>
-												)}
-											</div>
-										),
-										date: user.created_at,
-										status: user.is_active ? 'success' : 'error',
-										icon: <UserPlusIcon className="w-4 h-4" />,
-										onClick: () => openEditModal(user),
-									};
-								})}
-							size="md"
-							showConnectors
-							animated
-							emptyMessage={t('users.noUsers') || 'No users found'}
-						/>
-					)}
-				</div>
-			)}
+      {/* Pagination (non-table views — TableView has built-in pagination) */}
+      {state.viewMode !== 'table' && state.totalItems > 0 && (
+        <Pagination
+          currentPage={state.currentPage}
+          totalItems={state.totalItems}
+          pageSize={state.pageSize}
+          onPageChange={state.setCurrentPage}
+          onPageSizeChange={state.setPageSize}
+          persistInUrl
+          showTotal
+          showPageSizeSelector
+        />
+      )}
 
-			{/* Pagination */}
-			{filteredUsers.length > 0 && (
-				<Pagination
-					currentPage={currentPage}
-					totalItems={filteredUsers.length}
-					pageSize={pageSize}
-					onPageChange={setCurrentPage}
-					onPageSizeChange={(size) => {
-						setPageSize(size);
-						setCurrentPage(1);
-					}}
-					persistInUrl={true}
-					showTotal={true}
-					showPageSizeSelector={true}
-				/>
-			)}
-
-			{/* User Modal */}
-			<UserModal
-				isOpen={showModal}
-				onClose={closeModal}
-				user={editingUser}
-				onSave={handleSave}
-				onDelete={handleDelete}
-				saving={createMutation.isPending || updateMutation.isPending}
-				deleting={deleteMutation.isPending}
-				error={formError}
-			/>
-		</div>
-	);
+      {/* User Modal — Bespoke modal with custom save/delete workflow */}
+      <UserModal
+        isOpen={state.isCreateModalOpen || state.isViewModalOpen}
+        onClose={state.closeModal}
+        user={state.selectedItem}
+        onSave={handleSave}
+        onDelete={handleDelete}
+        saving={createMutation.isPending || updateMutation.isPending}
+        deleting={deleteMutation.isPending}
+        error={formError}
+      />
+    </div>
+  );
 }

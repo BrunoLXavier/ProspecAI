@@ -121,7 +121,7 @@ export default function NotificationsPage() {
     return `${diffDays}d atrás`;
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n: Notification) => !n.read).length;
 
   // Paginate notifications for list view
   const paginatedNotifications = useMemo(() => {
@@ -143,7 +143,7 @@ export default function NotificationsPage() {
   
   // Transform notifications to TimelineItems
   const timelineItems: TimelineItem[] = useMemo(() => {
-    return paginatedNotifications.map((notification) => {
+    return paginatedNotifications.map((notification: Notification) => {
       const iconConfig = getTypeIconConfig(notification.type);
       return {
         id: notification.id,
@@ -330,7 +330,7 @@ export default function NotificationsPage() {
                 <p>{t('empty')}</p>
               </div>
             ) : (
-              paginatedNotifications.map((n) => {
+              paginatedNotifications.map((n: Notification) => {
                 const iconConfig = getTypeIconConfig(n.type);
                 return (
                   <div
@@ -411,7 +411,7 @@ export default function NotificationsPage() {
       {viewMode === 'board' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {['success', 'warning', 'info', 'error'].map((type) => {
-            const filteredNotifications = notifications.filter(n => n.type === type);
+            const filteredNotifications = notifications.filter((n: Notification) => n.type === type);
             return (
               <div key={type} className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-soft">
                 <div className="flex items-center justify-between mb-3">
@@ -424,7 +424,7 @@ export default function NotificationsPage() {
                   {filteredNotifications.length === 0 ? (
                     <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">{t('empty')}</p>
                   ) : (
-                    filteredNotifications.map(n => {
+                    filteredNotifications.map((n: Notification) => {
                       const iconConfig = getTypeIconConfig(n.type);
                       return (
                         <div

@@ -95,12 +95,12 @@ export default function InstituteMembersPage() {
 
   // Filter out users who are already members
   const availableUsers = useMemo(() => {
-    const memberUserIds = new Set(members.map((m) => m.user_id));
-    let filtered = allUsers.filter((u) => !memberUserIds.has(u.id));
+    const memberUserIds = new Set(members.map((m: Member) => m.user_id));
+    let filtered = allUsers.filter((u: User) => !memberUserIds.has(u.id));
     if (userSearchQuery) {
       const q = userSearchQuery.toLowerCase();
       filtered = filtered.filter(
-        (u) =>
+        (u: User) =>
           u.username?.toLowerCase().includes(q) ||
           u.email?.toLowerCase().includes(q) ||
           u.first_name?.toLowerCase().includes(q) ||
@@ -115,7 +115,7 @@ export default function InstituteMembersPage() {
     if (!searchQuery) return members;
     const q = searchQuery.toLowerCase();
     return members.filter(
-      (m) =>
+      (m: Member) =>
         m.user?.username?.toLowerCase().includes(q) ||
         m.user?.email?.toLowerCase().includes(q) ||
         m.user?.first_name?.toLowerCase().includes(q) ||
@@ -288,7 +288,7 @@ export default function InstituteMembersPage() {
               </div>
             ) : (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                {availableUsers.slice(0, 20).map((user) => (
+                {availableUsers.slice(0, 20).map((user: User) => (
                   <li
                     key={user.id}
                     className="p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700"
@@ -365,7 +365,7 @@ export default function InstituteMembersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredMembers.map((member) => (
+              {filteredMembers.map((member: Member) => (
                 <tr
                   key={member.id}
                   className="hover:bg-gray-50 dark:hover:bg-slate-700 transition"
@@ -433,11 +433,11 @@ export default function InstituteMembersPage() {
           </span>
           <span>
             {t('coordinators') || 'Coordenadores'}:{' '}
-            <strong>{members.filter((m) => m.role === 'coordinator').length}</strong>
+            <strong>{members.filter((m: Member) => m.role === 'coordinator').length}</strong>
           </span>
           <span>
             {t('researchers') || 'Pesquisadores'}:{' '}
-            <strong>{members.filter((m) => m.role === 'researcher').length}</strong>
+            <strong>{members.filter((m: Member) => m.role === 'researcher').length}</strong>
           </span>
         </div>
       </div>

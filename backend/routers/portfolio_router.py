@@ -5,9 +5,12 @@ Implements RF-03: Gestão de Portfólio Institucional
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
 from datetime import date
 
+from domain.schemas.portfolio_schemas import (
+    ProjectCreate, ProjectUpdate, TRLAdvancement,
+    ProjectResponse, PortfolioStatsResponse,
+)
 from domain.entities.portfolio import Project, Portfolio, ProjectStatus
 from use_cases.manage_portfolio_use_case import ManagePortfolioUseCase
 from infrastructure.dependencies import get_portfolio_use_case, get_current_user_id, get_di_container, get_current_institute_ids
@@ -16,62 +19,6 @@ import sqlalchemy as sa
 from infrastructure.serializers import to_primitive
 
 router = APIRouter()
-
-
-# Request/Response Schemas
-class ProjectCreate(BaseModel):
-    title: str
-    description: str
-    research_area: str
-    current_trl: int
-    start_date: date
-    end_date: date
-    budget: float
-    objectives: List[str]
-    methodology: str
-    expected_results: List[str]
-    institute_id: str
-
-
-class ProjectUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    status: str | None = None
-    current_trl: int | None = None
-    budget: float | None = None
-    lessons_learned: List[str] | None = None
-
-
-class TRLAdvancement(BaseModel):
-    new_trl: int
-    evidence: str
-    date_achieved: date
-
-
-class ProjectResponse(BaseModel):
-    id: str
-    title: str
-    description: str
-    research_area: str
-    current_trl: int
-    status: str
-    start_date: date
-    end_date: date
-    budget: float
-    created_at: str
-    updated_at: str
-
-    class Config:
-        from_attributes = True
-
-
-class PortfolioStatsResponse(BaseModel):
-    total_projects: int
-    active_projects: int
-    total_budget: float
-    average_trl: float
-    projects_by_status: dict
-    projects_by_trl: dict
 
 
 @router.get("/projects", response_model=List[ProjectResponse])

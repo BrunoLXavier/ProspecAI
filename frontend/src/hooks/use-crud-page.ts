@@ -3,9 +3,11 @@
  * Composable hook that orchestrates common CRUD page patterns:
  * - View mode toggling (list, table, board, timeline) with URL persistence
  * - Filter state management with reset
- * - Server-side pagination with React Query integration
+ * - Server-side AND client-side pagination
  * - Modal state (create / view-edit) management
  * - Data fetching via React Query
+ * - EntityFormDefinition integration (auto filter/stats config)
+ * - Institute scoping (auto-filter by selectedInstitutes when entity is instituteScoped)
  *
  * Each feature page provides its own config (query key, fetch fn, filters, columns),
  * and this hook returns all the state + handlers needed by the CrudPage component.
@@ -19,6 +21,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 import { usePagination } from '@/components/features/shared/ui/Pagination';
+import type { EntityFormDefinition, FilterFieldDefinition } from '@/lib/form-registry/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -43,6 +46,45 @@ export interface CrudPageConfig<TItem, TFilters extends Record<string, any>> {
   staleTime?: number;
   /** Additional React Query options */
   queryOptions?: Partial<UseQueryOptions>;
+
+  // ── New: Entity Definition integration ────────────────────────────────
+
+  /**
+   * Optional EntityFormDefinition — when provided, queryKey, apiEndpoint,
+   * instituteScoped, statisticsModule, and filter defaults are auto-derived.
+   */
+  definition?: EntityFormDefinition;
+
+  /**
+   * Client-side filter function. When provided, ALL data is fetched once
+   * and filtering+pagination happens in-memory. Useful when backend doesn't
+   * support query params.
+   */
+  filterFn?: (item: TItem, filters: TFilters) => boolean;
+
+  /**
+   * Search text filter field key. When provided, a text search is applied
+   * against item fields automatically.
+   */
+  searchKey?: keyof TFilters;
+
+  /**
+   * Fields to include in text search. Defaults to ['name', 'title', 'description'].
+   */
+  searchFields?: (keyof TItem)[];
+
+  /**
+   * Whether this entity is scoped by institute. When true, the query key
+   * includes selectedInstitutes so cache invalidates on institute switch.
+   * Defaults to definition?.instituteScoped ?? false.
+   */
+  instituteScoped?: boolean;
+
+  /**
+   * Currently selected institute IDs (from auth context).
+   * Required when instituteScoped is true for cache key scoping.
+   */
+  selectedInstitutes?: string[];
 }
 
 export interface FetchParams<TFilters> {
@@ -58,8 +100,10 @@ export interface FetchResult<TItem> {
 
 export interface CrudPageState<TItem, TFilters extends Record<string, any>> {
   // ── Data ────────────────────────────────────────────────────────────────
-  /** Fetched items for the current page */
+  /** Fetched items for the current page (filtered if filterFn provided) */
   data: TItem[];
+  /** All items before client-side filtering (for stats calculation) */
+  allData: TItem[];
   /** Total item count (for pagination) */
   totalItems: number;
   /** Whether data is loading */
@@ -101,6 +145,14 @@ export interface CrudPageState<TItem, TFilters extends Record<string, any>> {
   closeModal: () => void;
   /** Open view/edit modal with a specific item */
   openViewModal: (item: TItem) => void;
+
+  // ── Entity Definition (when available) ──────────────────────────────────
+  /** The entity form definition (if provided via config) */
+  definition?: EntityFormDefinition;
+  /** Whether entity is institute-scoped */
+  isInstituteScoped: boolean;
+  /** Statistics module key for ConfigurableStatisticsBar */
+  statisticsModule?: string;
 }
 
 // ─── Hook Implementation ─────────────────────────────────────────────────────
@@ -109,7 +161,7 @@ export function useCrudPage<TItem, TFilters extends Record<string, any>>(
   config: CrudPageConfig<TItem, TFilters>
 ): CrudPageState<TItem, TFilters> {
   const {
-    queryKey,
+    queryKey: configQueryKey,
     fetchFn,
     initialFilters,
     defaultView = 'list',
@@ -118,7 +170,19 @@ export function useCrudPage<TItem, TFilters extends Record<string, any>>(
     persistPagination = true,
     persistViewMode = true,
     staleTime = 30_000,
+    definition,
+    filterFn,
+    searchKey,
+    searchFields = ['name', 'title', 'description'] as (keyof TItem)[],
+    selectedInstitutes,
   } = config;
+
+  // Resolve config from definition if provided
+  const queryKey = definition?.entityKey ?? configQueryKey;
+  const isInstituteScoped = config.instituteScoped ?? definition?.instituteScoped ?? false;
+  const statisticsModule = definition?.statisticsModule;
+
+  const isClientSideFiltering = !!filterFn;
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -177,15 +241,78 @@ export function useCrudPage<TItem, TFilters extends Record<string, any>>(
   }, [filters]);
 
   // ── Data Fetching ───────────────────────────────────────────────────────
+  // Include selectedInstitutes in query key when institute-scoped
+  const effectiveQueryKey = useMemo(() => {
+    const key: any[] = [queryKey];
+    if (isInstituteScoped && selectedInstitutes) {
+      key.push({ institutes: selectedInstitutes });
+    }
+    if (!isClientSideFiltering) {
+      // Server-side: include filters and pagination in key
+      key.push(filters, currentPage, pageSize);
+    }
+    return key;
+  }, [queryKey, isInstituteScoped, selectedInstitutes, isClientSideFiltering, filters, currentPage, pageSize]);
+
   const { data: queryResult, isLoading, isRefetching, refetch } = useQuery({
-    queryKey: [queryKey, filters, currentPage, pageSize],
-    queryFn: () => fetchFn({ filters, page: currentPage, pageSize }),
+    queryKey: effectiveQueryKey,
+    queryFn: () => {
+      if (isClientSideFiltering) {
+        // Client-side: fetch all items (no pagination params)
+        return fetchFn({ filters: initialFilters, page: 1, pageSize: 9999 });
+      }
+      return fetchFn({ filters, page: currentPage, pageSize });
+    },
     staleTime,
     ...(config.queryOptions as Record<string, unknown>),
   });
 
-  const data = (queryResult as FetchResult<TItem> | undefined)?.items ?? [];
-  const totalItems = (queryResult as FetchResult<TItem> | undefined)?.total ?? 0;
+  const allItems = (queryResult as FetchResult<TItem> | undefined)?.items ?? [];
+
+  // ── Client-side Filtering ─────────────────────────────────────────────
+  const filteredItems = useMemo(() => {
+    if (!isClientSideFiltering) return allItems;
+
+    let result = allItems;
+
+    // Apply text search if searchKey is active
+    if (searchKey && filters[searchKey as string]) {
+      const searchTerm = String(filters[searchKey as string]).toLowerCase();
+      if (searchTerm) {
+        result = result.filter((item) =>
+          searchFields.some((field) => {
+            const value = (item as any)[field];
+            return value && String(value).toLowerCase().includes(searchTerm);
+          })
+        );
+      }
+    }
+
+    // Apply custom filterFn
+    if (filterFn) {
+      result = result.filter((item) => filterFn(item, filters));
+    }
+
+    return result;
+  }, [allItems, isClientSideFiltering, filterFn, filters, searchKey, searchFields]);
+
+  // ── Client-side Pagination ────────────────────────────────────────────
+  const { paginatedData, totalForPagination } = useMemo(() => {
+    if (!isClientSideFiltering) {
+      return {
+        paginatedData: allItems,
+        totalForPagination: (queryResult as FetchResult<TItem> | undefined)?.total ?? 0,
+      };
+    }
+    const start = (currentPage - 1) * pageSize;
+    return {
+      paginatedData: filteredItems.slice(start, start + pageSize),
+      totalForPagination: filteredItems.length,
+    };
+  }, [isClientSideFiltering, allItems, filteredItems, currentPage, pageSize, queryResult]);
+
+  const data = paginatedData;
+  const totalItems = totalForPagination;
 
   // ── Modal State ─────────────────────────────────────────────────────────
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -225,6 +352,7 @@ export function useCrudPage<TItem, TFilters extends Record<string, any>>(
   return {
     // Data
     data,
+    allData: isClientSideFiltering ? filteredItems : allItems,
     totalItems,
     isLoading,
     isRefetching,
@@ -251,6 +379,10 @@ export function useCrudPage<TItem, TFilters extends Record<string, any>>(
     openCreateModal,
     closeModal,
     openViewModal,
+    // Entity definition extras
+    definition,
+    isInstituteScoped,
+    statisticsModule,
   };
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 interface State {
   hasError: boolean;
@@ -8,9 +9,17 @@ interface State {
   info: React.ErrorInfo | null;
 }
 
-type Props = React.PropsWithChildren<{}>;
+interface ErrorBoundaryTranslations {
+  clientError: string;
+  unexpectedRenderError: string;
+  showErrorDetails: string;
+}
 
-export default class ErrorBoundary extends React.Component<Props, State> {
+type Props = React.PropsWithChildren<{
+  translations?: ErrorBoundaryTranslations;
+}>;
+
+class ErrorBoundaryClass extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null, info: null };
@@ -39,10 +48,10 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="p-6 bg-white dark:bg-slate-900 rounded shadow">
-          <h2 className="text-lg font-semibold text-red-600">Erro na aplicação (cliente)</h2>
-          <p className="mt-2 text-sm text-gray-600">Um erro inesperado ocorreu ao renderizar esta página.</p>
+          <h2 className="text-lg font-semibold text-red-600">{this.props.translations?.clientError ?? 'Application error (client)'}</h2>
+          <p className="mt-2 text-sm text-gray-600">{this.props.translations?.unexpectedRenderError ?? 'An unexpected error occurred while rendering this page.'}</p>
           <details className="mt-4 text-xs text-gray-500">
-            <summary className="cursor-pointer">Mostrar detalhes do erro</summary>
+            <summary className="cursor-pointer">{this.props.translations?.showErrorDetails ?? 'Show error details'}</summary>
             <pre className="whitespace-pre-wrap mt-2">{String(this.state.error && this.state.error.stack)}</pre>
             <pre className="whitespace-pre-wrap mt-2">{String(this.state.info && this.state.info.componentStack)}</pre>
           </details>
@@ -52,4 +61,23 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
     return this.props.children as React.ReactElement;
   }
+}
+
+/**
+ * Functional wrapper that provides i18n translations to the class-based ErrorBoundary.
+ * Implements RF-07 – internationalized error UI.
+ */
+export default function ErrorBoundary({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('errors');
+  return (
+    <ErrorBoundaryClass
+      translations={{
+        clientError: t('clientError'),
+        unexpectedRenderError: t('unexpectedRenderError'),
+        showErrorDetails: t('showErrorDetails'),
+      }}
+    >
+      {children}
+    </ErrorBoundaryClass>
+  );
 }

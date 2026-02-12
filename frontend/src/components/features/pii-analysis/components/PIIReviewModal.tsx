@@ -3,6 +3,7 @@
 // Implements RF-01: LGPD Agent with manual approval workflow
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   ShieldExclamationIcon,
   XMarkIcon,
@@ -40,37 +41,38 @@ export default function PIIReviewModal({
   onReject,
   onAnonymize,
 }: PIIReviewModalProps) {
+  const t = useTranslations('pii');
   return (
     <BaseModal
       isOpen={true}
       onClose={onClose}
-      title={`Revisar Detecção PII`}
+      title={t('reviewTitle')}
       subtitle={`ID: ${detection.id}`}
       icon={<div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg"><ShieldExclamationIcon className="w-6 h-6 text-yellow-600 dark:text-yellow-400" /></div>}
       size="2xl"
       footer={(
         <div className="flex items-center justify-between gap-3">
           <div>
-            <button onClick={onClose} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition">Cancelar</button>
+            <button onClick={onClose} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition">{t('cancel')}</button>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => onReject(detection)} disabled={isProcessing} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">Rejeitar</button>
-            <button onClick={() => onAnonymize(detection)} disabled={isProcessing} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50">Anonimizar</button>
-            <button onClick={() => onApprove(detection)} disabled={isProcessing} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">Aprovar</button>
+            <button onClick={() => onReject(detection)} disabled={isProcessing} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">{t('reject')}</button>
+            <button onClick={() => onAnonymize(detection)} disabled={isProcessing} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50">{t('anonymize')}</button>
+            <button onClick={() => onApprove(detection)} disabled={isProcessing} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">{t('approve')}</button>
           </div>
         </div>
       )}
     >
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Nível de Risco:</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{t('riskLevel')}</span>
           <span className={`px-3 py-1 text-sm rounded-full ${RISK_COLORS[detection.risk_level].bg} ${RISK_COLORS[detection.risk_level].text}`}>
             {detection.risk_level.toUpperCase()}
           </span>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Entidades Detectadas ({detection.entities.length})</h4>
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('detectedEntities', { count: detection.entities.length })}</h4>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {detection.entities.map((entity, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
@@ -79,7 +81,7 @@ export default function PIIReviewModal({
                   <span className="text-gray-900 dark:text-white font-mono text-sm">{entity.value.slice(0, 30)}{entity.value.length > 30 ? '...' : ''}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{Math.round(entity.confidence * 100)}% conf.</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{Math.round(entity.confidence * 100)}% {t('confidence')}</span>
                 </div>
               </div>
             ))}

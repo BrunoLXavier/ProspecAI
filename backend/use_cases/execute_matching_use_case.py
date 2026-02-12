@@ -1,4 +1,4 @@
-# Implements RF-06: Matching Estratégico
+# Implements RF-06: Strategic Matching
 from typing import List, Dict, Any, Optional, Tuple
 from uuid import UUID
 from datetime import datetime
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class ExecuteMatchingUseCase:
     """
     Executes strategic matching between demands, capabilities, and funding.
-    Implements RF-06: Matching Estratégico
+    Implements RF-06: Strategic Matching
     Formula: Score = (Technical * 0.4) + (Financial * 0.3) + (Strategic * 0.3)
     """
     

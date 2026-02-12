@@ -34,12 +34,12 @@ export default function OrderByBuilder({
 
   // Only allow ordering by sortable selected fields
   const sortableFields = (schema?.fields || []).filter(
-    f => f.sortable && selectedFields.includes(f.name)
+    (f: FieldSchema) => f.sortable && selectedFields.includes(f.name)
   );
 
   const addOrderBy = () => {
     const availableFields = sortableFields.filter(
-      f => !orderBy.some(o => o.field === f.name)
+      (f: FieldSchema) => !orderBy.some(o => o.field === f.name)
     );
     
     if (availableFields.length === 0) return;
@@ -73,11 +73,11 @@ export default function OrderByBuilder({
   };
 
   const getFieldDisplayName = (fieldName: string): string => {
-    return schema?.fields.find(f => f.name === fieldName)?.display_name || fieldName;
+    return schema?.fields.find((f: FieldSchema) => f.name === fieldName)?.display_name || fieldName;
   };
 
   const availableForAdd = sortableFields.filter(
-    f => !orderBy.some(o => o.field === f.name)
+    (f: FieldSchema) => !orderBy.some(o => o.field === f.name)
   );
 
   return (
@@ -150,7 +150,7 @@ export default function OrderByBuilder({
                            bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm
                            focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {sortableFields.map(field => (
+                {sortableFields.map((field: FieldSchema) => (
                   <option 
                     key={field.name} 
                     value={field.name}

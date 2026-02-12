@@ -44,6 +44,7 @@ export interface AuthContextType {
   refreshAccessToken: () => Promise<string | null>;
   requestPasswordReset: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   resendVerification: () => Promise<void>;
   checkEmailAvailable: (email: string) => Promise<boolean>;

@@ -71,6 +71,12 @@ class PasswordResetConfirm(BaseModel):
     new_password: str = Field(min_length=8)
 
 
+class ChangePasswordRequest(BaseModel):
+    """Authenticated password change request."""
+    current_password: str
+    new_password: str = Field(min_length=8)
+
+
 class EmailVerificationRequest(BaseModel):
     """Email verification request."""
     token: str
@@ -640,6 +646,74 @@ class ConfirmPasswordReset:
         logger.info(f"Password reset completed for: {user.email}")
         
         return {"message": "Password reset successful"}
+
+
+class ChangePassword:
+    """
+    Use case for authenticated password change.
+    Requires current password verification before updating.
+    """
+
+    def __init__(
+        self,
+        user_repository: UserRepository,
+        config_repository: SystemConfigRepository
+    ):
+        self.user_repo = user_repository
+        self.config_repo = config_repository
+
+    async def execute(
+        self,
+        user_id: UUID,
+        request: ChangePasswordRequest,
+        tenant_id: Optional[UUID] = None
+    ) -> Dict[str, Any]:
+        """
+        Change password for authenticated user.
+
+        Args:
+            user_id: Authenticated user's ID
+            request: Current + new password
+            tenant_id: Optional tenant context
+
+        Raises:
+            AuthenticationError: If current password is wrong
+            PasswordTooWeakError: If new password doesn't meet requirements
+        """
+        # Get user
+        user = await self.user_repo.get_by_id(user_id, tenant_id)
+        if not user:
+            raise AuthenticationError("User not found")
+
+        # Verify current password
+        if not User.verify_password(request.current_password, user.password_hash):
+            raise AuthenticationError("Current password is incorrect")
+
+        # Validate new password strength
+        security_config = await self.config_repo.get_security_config(tenant_id)
+        password_config = PasswordStrengthConfig(
+            min_length=security_config.password_min_length,
+            require_uppercase=security_config.password_require_uppercase,
+            require_lowercase=security_config.password_require_lowercase,
+            require_number=security_config.password_require_number,
+            require_special_char=security_config.password_require_special_char
+        )
+
+        is_valid, errors = password_config.validate_password(request.new_password)
+        if not is_valid:
+            raise PasswordTooWeakError('; '.join(errors))
+
+        # Hash and update
+        new_password_hash = User.hash_password(request.new_password)
+        await self.user_repo.update(
+            user_id=user.id,
+            tenant_id=tenant_id,
+            password_hash=new_password_hash
+        )
+
+        logger.info(f"Password changed for user: {user.email}")
+
+        return {"message": "Password changed successfully"}
 
 
 class RefreshAccessToken:

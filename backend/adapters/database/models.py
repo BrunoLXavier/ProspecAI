@@ -47,6 +47,25 @@ class BaseModel(Base):
     __table_args__ = ()
 
 
+class TenantModel(Base):
+    """
+    PostgreSQL model for tenant management.
+    Implements RNF-02: Multi-tenancy support.
+    """
+    __tablename__ = "tenants"
+
+    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    name = Column(String(200), nullable=False)
+    slug = Column(String(100), unique=True, nullable=False, index=True)
+    status = Column(String(20), default='active', nullable=False, index=True)
+    subscription_tier = Column(String(20), default='basic', nullable=False)
+    settings = Column(JSON, default=dict)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+
 class FundingSourceModel(BaseModel):
     """PostgreSQL model for funding sources."""
     __tablename__ = "funding_sources"
@@ -402,6 +421,7 @@ class ClientModel(BaseModel):
     client_type = Column(String(50), nullable=False)
     sector = Column(String(200), nullable=True)
     size_category = Column(String(100), nullable=True)
+    institute_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
 
     # Encrypted PII fields - map to actual DB column names used in deployed
     # schemas (e.g. *_encrypted suffix)
@@ -458,6 +478,7 @@ class OpportunityModel(BaseModel):
     funding_source_id = Column(PGUUID(as_uuid=True), nullable=True)
     project_id = Column(PGUUID(as_uuid=True), nullable=True)
     portfolio_id = Column(PGUUID(as_uuid=True), nullable=True)
+    institute_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
     
     estimated_value = Column(Numeric(20, 2), nullable=True)
     probability = Column(Numeric(3, 2), default=0.5)
@@ -520,6 +541,7 @@ class ProposalModel(BaseModel):
     opportunity_id = Column(PGUUID(as_uuid=True), nullable=True)
     funding_source_id = Column(PGUUID(as_uuid=True), nullable=True)
     owner_id = Column(PGUUID(as_uuid=True), nullable=True)
+    institute_id = Column(PGUUID(as_uuid=True), nullable=True, index=True)
     
     current_version = Column(Integer, default=1)
     current_version_id = Column(PGUUID(as_uuid=True), nullable=True)

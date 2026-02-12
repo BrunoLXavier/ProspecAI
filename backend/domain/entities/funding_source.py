@@ -16,6 +16,16 @@ class InstrumentType(str, Enum):
     TAX_INCENTIVE = "tax_incentive"
     MIXED = "mixed"
 
+    @classmethod
+    def _missing_(cls, value: object) -> "InstrumentType | None":
+        """Case-insensitive enum lookup for DB compatibility."""
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            for member in cls:
+                if member.value == normalized:
+                    return member
+        return None
+
 
 class FundingStatus(str, Enum):
     """Status of funding opportunities."""
@@ -23,6 +33,16 @@ class FundingStatus(str, Enum):
     OPEN = "open"
     CLOSED = "closed"
     SUSPENDED = "suspended"
+
+    @classmethod
+    def _missing_(cls, value: object) -> "FundingStatus | None":
+        """Case-insensitive enum lookup for DB compatibility."""
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            for member in cls:
+                if member.value == normalized:
+                    return member
+        return None
 
 
 class FundingSource(BaseEntity):

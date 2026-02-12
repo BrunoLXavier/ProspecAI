@@ -62,10 +62,6 @@ class Infrastructure(BaseEntity):
     # Equipments attached to this infrastructure
     equipamentos: List[Dict[str, Any]] = Field(default_factory=list, description="List of equipment objects with name, serial, description, status")
     
-    class Config:
-        from_attributes = True
-        validate_assignment = True
-    
     def is_operational(self) -> bool:
         """Check if infrastructure is operational."""
         return self.status_isi == InfrastructureStatus.OPERATIONAL and self.deleted_at is None

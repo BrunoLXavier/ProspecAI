@@ -20,6 +20,7 @@ from sqlalchemy.orm import selectinload
 from domain.entities.opportunity import Opportunity, OpportunityStage
 from adapters.database.models import OpportunityModel, ClientModel, FundingSourceModel
 from adapters.repositories.base_repository import BaseRepository
+from adapters.repositories.institute_filter_mixin import apply_institute_filter, InstituteFilterMixin
 from adapters.database.neo4j_connection import Neo4jConnection
 
 logger = logging.getLogger(__name__)
@@ -117,25 +118,16 @@ class OpportunityRepository(BaseRepository[Opportunity, OpportunityModel]):
                     result[stage] = [self._deserialize_entity(o) for o in opps]
                 return result
             
-            # If institute_ids provided, filter opportunities by the institute of their linked project.
+            # If institute_ids provided, filter directly on institute_id column
+            # (RF-05: replaces expensive JOIN through projects table)
             if institute_ids:
-                # Build parameterized IN clause
-                params = {f"inst_{i}": iid for i, iid in enumerate(institute_ids)}
-                placeholders = ", ".join([f":inst_{i}" for i in range(len(institute_ids))])
-                sql = f"SELECT o.id FROM opportunities o JOIN projects p ON o.project_id = p.id WHERE o.tenant_id = :tenant_id AND o.deleted_at IS NULL AND p.institute_id IN ({placeholders})"
-                params['tenant_id'] = tenant_id
-                res = await self.session.execute(sa.text(sql), params)
-                rows = res.fetchall()
-                opp_ids = [r[0] for r in rows]
-                if not opp_ids:
-                    return {s.value: [] for s in OpportunityStage}
                 query = select(OpportunityModel).where(
                     and_(
                         OpportunityModel.tenant_id == tenant_id,
-                        OpportunityModel.deleted_at.is_(None),
-                        OpportunityModel.id.in_(opp_ids)
+                        OpportunityModel.deleted_at.is_(None)
                     )
                 )
+                query = apply_institute_filter(query, OpportunityModel, institute_ids)
             else:
                 query = select(OpportunityModel).where(
                     and_(

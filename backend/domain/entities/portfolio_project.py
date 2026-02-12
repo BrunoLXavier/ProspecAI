@@ -104,10 +104,6 @@ class PortfolioProject(BaseEntity):
     budget: Optional[Decimal] = None
     lessons_learned: List[Dict[str, str]] = Field(default_factory=list)
     
-    class Config:
-        from_attributes = True
-        validate_assignment = True
-    
     def get_trl_evolution(self) -> int:
         """Get TRL evolution (difference between output and input TRL)."""
         if self.trl_entrada:

@@ -66,10 +66,6 @@ class Institute(BaseEntity):
     # Logo
     logo_url: Optional[str] = Field(None, max_length=1000)
     
-    class Config:
-        from_attributes = True
-        validate_assignment = True
-    
     @field_validator('endereco_uf')
     @classmethod
     def uppercase_uf(cls, v: str) -> str:

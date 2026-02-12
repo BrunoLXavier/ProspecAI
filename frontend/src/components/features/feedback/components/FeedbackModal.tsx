@@ -370,7 +370,7 @@ export default function FeedbackModal() {
             <ModalFooter
               onCancel={() => setStep('annotate')}
               onSubmit={handleSubmit}
-              isSubmitting={submitMutation.isLoading}
+              isSubmitting={submitMutation.isPending}
               submitLabel={String(t('modal.submit') || '')}
               cancelLabel={String(t('comment.back') || '')}
             />
@@ -414,7 +414,7 @@ export default function FeedbackModal() {
     }
 
     return null;
-  }, [currentStep, t, reset, setStep, handleSubmit, submitMutation.isLoading, handleSuccessClose, closeFeedback, setError]);
+  }, [currentStep, t, reset, setStep, handleSubmit, submitMutation.isPending, handleSuccessClose, closeFeedback, setError]);
   
   // Don't render if not open
   if (!isOpen) return null;

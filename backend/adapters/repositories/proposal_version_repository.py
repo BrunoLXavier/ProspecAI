@@ -11,7 +11,7 @@ from sqlalchemy import select, and_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entities.proposal import ProposalVersion
-from adapters.database.models_new import ProposalVersionModel
+from adapters.database.models import ProposalVersionModel
 
 import logging
 

@@ -5,7 +5,7 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from enum import Enum
 
 
@@ -101,8 +101,7 @@ class CommunicationMessage(BaseModel):
     created_by: Optional[UUID] = None
     updated_by: Optional[UUID] = None
     
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class ThreadParticipant(BaseModel):
@@ -115,8 +114,7 @@ class ThreadParticipant(BaseModel):
     added_at: datetime = Field(default_factory=datetime.utcnow)
     added_by: Optional[UUID] = None
     
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class MeetingMinutes(BaseModel):
@@ -138,8 +136,7 @@ class MeetingMinutes(BaseModel):
     created_by: Optional[UUID] = None
     updated_by: Optional[UUID] = None
     
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class CommunicationThread(BaseModel):
@@ -175,8 +172,7 @@ class CommunicationThread(BaseModel):
     # Versioning
     version: int = 1
     
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class CommunicationDraft(BaseModel):
@@ -192,55 +188,13 @@ class CommunicationDraft(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
-# Request/Response DTOs
-
-class CreateThreadRequest(BaseModel):
-    """Request to create a new communication thread."""
-    
-    subject: str = Field(..., min_length=1, max_length=500)
-    linked_entity_type: Optional[LinkedEntityType] = None
-    linked_entity_id: Optional[UUID] = None
-    initial_message: Optional[str] = None
-    participant_ids: List[UUID] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class UpdateThreadRequest(BaseModel):
-    """Request to update an existing communication thread."""
-    
-    subject: Optional[str] = Field(None, min_length=1, max_length=500)
-    linked_entity_type: Optional[str] = None
-    linked_entity_id: Optional[str] = None
-
-
-class CreateMessageRequest(BaseModel):
-    """Request to create a new message in a thread."""
-    
-    # Body is optional when sending only attachments
-    body: str = Field(default="", min_length=0)
-    message_type: MessageType = MessageType.TEXT
-    email_metadata: Optional[EmailMetadata] = None
-    attachments: List[Dict[str, Any]] = Field(default_factory=list)
-
-
-class UpdateDraftRequest(BaseModel):
-    """Request to update a draft message."""
-    
-    body: Optional[str] = None
-    attachments: List[Dict[str, Any]] = Field(default_factory=list)
-
-
-class ConfirmAutoCreatedRequest(BaseModel):
-    """Request to confirm auto-created content."""
-    
-    confirmed: bool = True
-    reassign_to_thread_id: Optional[UUID] = None  # Optional: move to different thread
-
-
-class GenerateMeetingMinutesRequest(BaseModel):
-    """Request to generate meeting minutes for a thread."""
-    
-    title: Optional[str] = None
-    include_attachments: bool = True
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
+# Request/Response DTOs — Moved to domain/schemas/communication_schemas.py (Phase 9A)
+# Re-exported here for backward compatibility
+from domain.schemas.communication_schemas import (  # noqa: E402
+    CreateThreadRequest,
+    UpdateThreadRequest,
+    CreateMessageRequest,
+    UpdateDraftRequest,
+    ConfirmAutoCreatedRequest,
+    GenerateMeetingMinutesRequest,
+)

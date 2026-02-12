@@ -21,13 +21,14 @@ export interface FormTagInputProps {
   required?: boolean;
   maxTags?: number;
   /** Tag color variant */
-  tagVariant?: 'primary' | 'secondary' | 'neutral';
+  tagVariant?: 'primary' | 'secondary' | 'neutral' | 'info';
 }
 
 const tagColors = {
   primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300',
   secondary: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
   neutral: 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-300',
+  info: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-300',
 };
 
 export default function FormTagInput({

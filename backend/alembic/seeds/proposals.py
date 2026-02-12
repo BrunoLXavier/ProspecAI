@@ -698,6 +698,25 @@ PROPOSALS = [
 ]
 
 
+# Map proposal prefix to institute_id for seeding
+_PROP_INSTITUTE_MAP = {
+    'PROP_SVP_': INSTITUTE_IDS['ISI_SVP'],
+    'PROP_QV_': INSTITUTE_IDS['ISI_QV'],
+    'PROP_BF_': INSTITUTE_IDS['ISI_BF'],
+    'PROP_II_': INSTITUTE_IDS['ISI_II'],
+    'PROP_SO_': INSTITUTE_IDS['CIS_SO'],
+}
+
+
+def _resolve_prop_institute(prop_id_value: str) -> str | None:
+    """Resolve institute_id from proposal stable ID."""
+    for _prefix, _inst_id in _PROP_INSTITUTE_MAP.items():
+        prop_key = next((k for k, v in PROPOSAL_IDS.items() if v == prop_id_value), None)
+        if prop_key and prop_key.startswith(_prefix):
+            return _inst_id
+    return None
+
+
 def _table_exists(conn, table: str) -> bool:
     r = conn.execute(text("SELECT to_regclass(:t)"), {"t": table}).scalar()
     return r is not None
@@ -709,17 +728,19 @@ def seed_proposals(conn, tenant_id: str) -> None:
         return
 
     for p in PROPOSALS:
+        inst_id = _resolve_prop_institute(p['id'])
+
         stmt = text("""
             INSERT INTO proposals (
                 id, tenant_id, title, description, current_status,
-                opportunity_id, funding_source_id, owner_id,
+                opportunity_id, funding_source_id, owner_id, institute_id,
                 current_version, executive_summary, technical_content,
                 budget_data, latest_adherence_score, collaborators, tags,
                 lessons_learned, created_by, updated_by, created_at, updated_at
             )
             SELECT
                 :id, :tenant_id, :title, :description, :current_status,
-                :opportunity_id, :funding_source_id, :owner_id,
+                :opportunity_id, :funding_source_id, :owner_id, :institute_id,
                 :current_version, :executive_summary, :technical_content,
                 CAST(:budget_data AS jsonb), :latest_adherence_score,
                 CAST(:collaborators AS jsonb), CAST(:tags AS jsonb),
@@ -739,6 +760,7 @@ def seed_proposals(conn, tenant_id: str) -> None:
             'opportunity_id': p.get('opportunity_id'),
             'funding_source_id': p.get('funding_source_id'),
             'owner_id': p.get('owner_id'),
+            'institute_id': inst_id,
             'current_version': p.get('current_version', 1),
             'executive_summary': p.get('executive_summary', ''),
             'technical_content': p.get('technical_content', ''),
@@ -750,6 +772,19 @@ def seed_proposals(conn, tenant_id: str) -> None:
             'created_by': SEED_CREATED_BY,
             'updated_by': SEED_CREATED_BY,
         })
+
+        # Backfill institute_id for existing rows that have NULL
+        if inst_id:
+            conn.execute(text("""
+                UPDATE proposals
+                SET institute_id = :institute_id, updated_at = now()
+                WHERE id = :id AND tenant_id = :tenant_id
+                  AND institute_id IS NULL
+            """), {
+                'id': p['id'],
+                'tenant_id': tenant_id,
+                'institute_id': inst_id,
+            })
 
     print(f"proposals seed applied for tenant: {tenant_id} ({len(PROPOSALS)} proposals)")
 

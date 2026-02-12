@@ -4,66 +4,19 @@ Implements RF-05: Pipeline de Oportunidades
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
 from datetime import datetime, date
 from uuid import UUID
 
 from domain.entities.opportunity import Opportunity, OpportunityStage, OpportunityPriority
+from domain.schemas.opportunity_schemas import (
+    OpportunityCreate, OpportunityUpdate, StageTransition,
+    OpportunityResponse, PipelineStatsResponse,
+)
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id, get_current_institute_ids, _check_user_member_or_admin
 from infrastructure.serializers import to_primitive
 from infrastructure.di_container import DependencyContainer
 
 router = APIRouter()
-
-
-# Request/Response Schemas
-class OpportunityCreate(BaseModel):
-    title: str
-    description: str
-    client_id: str
-    funding_source_id: str | None = None
-    estimated_value: float
-    probability: float
-    priority_score: float | None = None
-
-
-class OpportunityUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    estimated_value: float | None = None
-    probability: float | None = None
-    priority_score: float | None = None
-
-
-class StageTransition(BaseModel):
-    new_stage: OpportunityStage
-    notes: str | None = None
-
-
-class OpportunityResponse(BaseModel):
-    id: str
-    title: str
-    description: str
-    client_id: str
-    funding_source_id: str | None
-    current_stage: str
-    estimated_value: float
-    probability: float
-    priority_score: float
-    priority_factors: dict | None
-    created_at: str
-    updated_at: str
-
-    class Config:
-        from_attributes = True
-
-
-class PipelineStatsResponse(BaseModel):
-    total_opportunities: int
-    total_estimated_value: float
-    opportunities_by_stage: dict
-    conversion_rates: dict
-    average_time_by_stage: dict
 
 
 # Note: endpoints use repository methods via the DI container and require
@@ -121,6 +74,7 @@ async def list_opportunities(
     container: DependencyContainer = Depends(get_di_container),
     current_user: UUID = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
+    institute_ids: list = Depends(get_current_institute_ids),
 ):
     """
     List all opportunities with advanced filters
@@ -150,6 +104,10 @@ async def list_opportunities(
         "created_at_lte": created_before,
         "search_text": search,
     }
+
+    # RF-05: institute-level pipeline filtering via direct column
+    if institute_ids:
+        criteria["institute_id"] = [str(iid) for iid in institute_ids]
 
     opportunities = await container.opportunity_repository.find_by_criteria(
         criteria, skip=skip, limit=limit

@@ -21,7 +21,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import and_, func, text
 
-from adapters.database.models_new import (
+from adapters.database.models import (
     BaseModel, TenantModel, AuditLogModel
 )
 from infrastructure.cache.cache_manager import CacheManager, get_cache_manager

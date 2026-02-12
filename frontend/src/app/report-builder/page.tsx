@@ -344,7 +344,7 @@ export default function ReportBuilderPage() {
         </div>
       ) : (
         <div className="grid gap-3">
-          {tables.map(table => (
+          {tables.map((table: TableSummary) => (
             <button
               key={table.table_name}
               onClick={() => {
@@ -395,7 +395,7 @@ export default function ReportBuilderPage() {
       {tableSchema && (
         <div className="grid gap-2">
           <button
-            onClick={() => setSelectedFields(tableSchema.fields.map(f => f.name))}
+            onClick={() => setSelectedFields(tableSchema.fields.map((f: FieldSchema) => f.name))}
             className="text-sm text-blue-600 hover:text-blue-700 text-left"
           >
             {t('selectAll') || 'Select All'}
@@ -408,7 +408,7 @@ export default function ReportBuilderPage() {
           </button>
 
           <div className="border rounded-lg divide-y dark:border-gray-700 dark:divide-gray-700 max-h-96 overflow-y-auto">
-            {tableSchema.fields.map(field => (
+            {tableSchema.fields.map((field: FieldSchema) => (
               <label
                 key={field.name}
                 className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
@@ -475,8 +475,8 @@ export default function ReportBuilderPage() {
         ) : (
           <div className="grid gap-2">
             {availableJoins
-              .filter(rel => !joins.some(j => j.table === rel.target_table))
-              .map(rel => (
+              .filter((rel: RelationshipSchema) => !joins.some(j => j.table === rel.target_table))
+              .map((rel: RelationshipSchema) => (
                 <button
                   key={rel.target_table}
                   onClick={() => addJoin(rel)}
@@ -509,7 +509,7 @@ export default function ReportBuilderPage() {
             onChange={(e) => updateFilter(filter.id, { field: e.target.value })}
             className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
           >
-            {tableSchema?.fields.filter(f => f.filterable).map(f => (
+            {tableSchema?.fields.filter((f: FieldSchema) => f.filterable).map((f: FieldSchema) => (
               <option key={f.name} value={f.name}>{f.display_name}</option>
             ))}
           </select>
@@ -564,7 +564,7 @@ export default function ReportBuilderPage() {
               onChange={(e) => updateOrderBy(order.id, { field: e.target.value })}
               className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
             >
-              {tableSchema?.fields.filter(f => f.sortable).map(f => (
+              {tableSchema?.fields.filter((f: FieldSchema) => f.sortable).map((f: FieldSchema) => (
                 <option key={f.name} value={f.name}>{f.display_name}</option>
               ))}
             </select>

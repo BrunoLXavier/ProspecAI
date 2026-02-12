@@ -22,9 +22,10 @@ from infrastructure.dependencies import get_current_tenant_id
 from adapters.database.models import UserRoleModel
 from use_cases.auth_use_cases_use_case import (
     RegisterUser, LoginUser, VerifyEmail, RequestPasswordReset,
-    ConfirmPasswordReset, RefreshAccessToken, LogoutUser,
+    ConfirmPasswordReset, RefreshAccessToken, LogoutUser, ChangePassword,
     RegisterRequest, LoginRequest, PasswordResetRequest,
     PasswordResetConfirm, EmailVerificationRequest, RefreshTokenRequest,
+    ChangePasswordRequest,
     RegisterResponse, LoginResponse,
     AuthenticationError, InvalidCredentialsError, AccountLockedError,
     EmailNotVerifiedError, UserExistsError, PasswordTooWeakError, TokenInvalidError
@@ -501,11 +502,72 @@ async def get_me(
         "id": str(db_user.id),
         "email": db_user.email,
         "username": db_user.username,
-        "full_name": getattr(db_user, 'full_name', None),
+        "full_name": getattr(db_user, 'full_name', None) or (
+            f"{db_user.first_name or ''} {db_user.last_name or ''}".strip() or None
+        ),
+        "first_name": db_user.first_name,
+        "last_name": db_user.last_name,
         "email_verified": db_user.email_verified,
         "roles": roles,
         "created_at": db_user.created_at.isoformat() if getattr(db_user, 'created_at', None) else None,
         "last_login_at": db_user.last_login_at.isoformat() if getattr(db_user, 'last_login_at', None) else None
+    }
+
+
+# ============================================================================
+# Profile Update
+# ============================================================================
+
+@router.put(
+    "/me",
+    summary="Update current user profile",
+    description="Update profile fields for the authenticated user."
+)
+async def update_me(
+    request: Request,
+    user: AuthenticatedUser = Depends(require_auth),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Update authenticated user's profile.
+
+    Accepts: full_name, first_name, last_name.
+    Splits full_name into first_name / last_name when provided.
+    """
+    body = await request.json()
+
+    user_repo = UserRepository(session)
+    db_user = await user_repo.get_by_id(user.user_id)
+
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Handle full_name → first_name / last_name split
+    full_name = body.get("full_name")
+    if full_name:
+        parts = full_name.strip().split(" ", 1)
+        db_user.first_name = parts[0]
+        db_user.last_name = parts[1] if len(parts) > 1 else ""
+    else:
+        if "first_name" in body:
+            db_user.first_name = body["first_name"]
+        if "last_name" in body:
+            db_user.last_name = body["last_name"]
+
+    await session.commit()
+    await session.refresh(db_user)
+
+    return {
+        "id": str(db_user.id),
+        "email": db_user.email,
+        "username": db_user.username,
+        "full_name": f"{db_user.first_name or ''} {db_user.last_name or ''}".strip() or None,
+        "first_name": db_user.first_name,
+        "last_name": db_user.last_name,
+        "message": "Profile updated successfully"
     }
 
 
@@ -547,3 +609,52 @@ async def check_username(
     exists = await user_repo.username_exists(username)
     
     return {"available": not exists}
+
+
+@router.put(
+    "/change-password",
+    summary="Change password",
+    description="Change password for authenticated user. Requires current password."
+)
+async def change_password(
+    data: ChangePasswordRequest,
+    user: AuthenticatedUser = Depends(require_auth),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Change password for authenticated user.
+
+    - Verifies current password
+    - Validates new password strength
+    - Updates password hash
+    """
+    user_repo = UserRepository(session)
+    config_repo = SystemConfigRepository(session)
+
+    use_case = ChangePassword(user_repo, config_repo)
+
+    try:
+        result = await use_case.execute(
+            user_id=user.user_id,
+            request=data,
+            tenant_id=getattr(user, 'tenant_id', None)
+        )
+        await session.commit()
+        return to_primitive(result)
+    except AuthenticationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except PasswordTooWeakError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
+    except Exception as e:
+        await session.rollback()
+        logger.error(f"Password change error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password change failed"
+        )

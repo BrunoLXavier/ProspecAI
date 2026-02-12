@@ -20,7 +20,7 @@ export default function TableSelector({ selectedTable, onSelect }: TableSelector
   const { data: tables, isLoading, error } = useReportableTables();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredTables = tables?.filter(table =>
+  const filteredTables = tables?.filter((table: TableSummary) =>
     table.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     table.table_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     table.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -62,7 +62,7 @@ export default function TableSelector({ selectedTable, onSelect }: TableSelector
       </div>
 
       <div className="grid gap-3 max-h-96 overflow-y-auto">
-        {filteredTables.map((table) => (
+        {filteredTables.map((table: TableSummary) => (
           <TableCard
             key={table.table_name}
             table={table}

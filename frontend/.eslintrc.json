@@ -1,0 +1,54 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["@headlessui/react"],
+            "importNames": ["Dialog", "Transition"],
+            "message": "Use BaseModal or EntityModal from shared/ui/ instead of importing Dialog/Transition directly. See ARCHITECTURE.md §4."
+          }
+        ],
+        "paths": [
+          {
+            "name": "@headlessui/react",
+            "importNames": ["Dialog", "Transition"],
+            "message": "Use BaseModal or EntityModal from shared/ui/ instead of importing Dialog/Transition directly. See ARCHITECTURE.md §4."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/^[A-ZÀ-ÿa-zà-ÿ]{4,}.*\\s+.*[A-ZÀ-ÿa-zà-ÿ]{2,}/]",
+        "message": "Possible hardcoded UI string detected. Use t() from next-intl for i18n. See ARCHITECTURE.md §4."
+      },
+      {
+        "selector": "JSXText[value=/[A-ZÀ-ÿ][a-zà-ÿ]{3,}.*\\s/]",
+        "message": "Possible hardcoded JSX text detected. Use t() from next-intl for i18n. See ARCHITECTURE.md §4."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/components/features/shared/ui/BaseModal.tsx",
+        "src/components/features/shared/ui/EntityModal.tsx",
+        "src/components/features/shared/ui/ConfirmModal.tsx",
+        "src/components/features/shared/ui/DeleteConfirmation.tsx"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    },
+    {
+      "files": ["src/messages/**", "**/*.test.*", "**/*.spec.*"],
+      "rules": {
+        "no-restricted-syntax": "off"
+      }
+    }
+  ]
+}

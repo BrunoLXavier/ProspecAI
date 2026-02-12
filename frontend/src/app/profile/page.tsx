@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import apiClient from '@/lib/api-client';
 import { PasswordChangeModal } from '@/components/features/profile';
 import {
   UserCircleIcon,
@@ -22,7 +23,7 @@ import {
 
 export default function ProfilePage() {
   const t = useTranslations('profile');
-  const { user, logout } = useAuth();
+  const { user, logout, changePassword } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -39,8 +40,15 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      await apiClient.put('/api/v1/auth/me', {
+        full_name: formData.name,
+        department: formData.department,
+        phone: formData.phone,
+      });
+    } catch (err) {
+      console.error('Failed to save profile:', err);
+    }
     setIsSaving(false);
     setIsEditing(false);
     setShowSaved(true);
@@ -50,9 +58,10 @@ export default function ProfilePage() {
   const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
     setPasswordSaving(true);
     try {
-      // TODO: Implement actual password change API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await changePassword(currentPassword, newPassword);
       setShowPasswordModal(false);
+    } catch (err: any) {
+      throw new Error(err?.detail || t('passwordChangeFailed'));
     } finally {
       setPasswordSaving(false);
     }

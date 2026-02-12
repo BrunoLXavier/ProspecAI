@@ -8,7 +8,7 @@ from uuid import UUID, uuid4
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_, func
@@ -19,27 +19,11 @@ from adapters.repositories.system_config_repository import SystemConfigRepositor
 from adapters.api.auth_middleware import get_client_ip
 from services.core.email_service import EmailService, get_email_service
 from domain.entities.system_config import ContactFormConfig, FormField
+from domain.schemas.contact_schemas import ContactFormData, ContactFormResponse
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/contact", tags=["Contact"])
-
-
-class ContactFormData(BaseModel):
-    """Contact form submission data."""
-    email: EmailStr
-    name: str = Field(min_length=2, max_length=100)
-    company: Optional[str] = Field(default=None, max_length=100)
-    phone: Optional[str] = Field(default=None, max_length=20)
-    message: str = Field(min_length=10, max_length=2000)
-    fields: Optional[Dict[str, Any]] = Field(default=None)  # Dynamic fields
-
-
-class ContactFormResponse(BaseModel):
-    """Contact form response."""
-    success: bool
-    message: str
-    reference_id: Optional[str] = None
 
 
 class ContactRateLimiter:

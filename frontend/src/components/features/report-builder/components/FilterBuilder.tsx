@@ -47,7 +47,7 @@ export default function FilterBuilder({
   };
 
   const getFieldSchema = (fieldName: string): FieldSchema | undefined => {
-    return schema?.fields.find(f => f.name === fieldName);
+    return schema?.fields.find((f: FieldSchema) => f.name === fieldName);
   };
 
   return (
@@ -55,14 +55,14 @@ export default function FilterBuilder({
       <div className="flex items-center justify-between">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           <FunnelIcon className="w-4 h-4 inline-block mr-2" />
-          {t('filters') || 'Filters'}
+          {t('filtersLabel')}
         </label>
         <button
           onClick={addFilter}
           className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
         >
           <PlusIcon className="w-4 h-4" />
-          {t('addFilter') || 'Add Filter'}
+          {t('addFilter')}
         </button>
       </div>
 
@@ -70,13 +70,13 @@ export default function FilterBuilder({
         <div className="text-center py-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
           <FunnelIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('noFiltersAdded') || 'No filters added yet'}
+            {t('noFiltersAdded')}
           </p>
           <button
             onClick={addFilter}
             className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
           >
-            {t('addFirstFilter') || 'Add your first filter'}
+            {t('addFirstFilter')}
           </button>
         </div>
       ) : (
@@ -138,7 +138,7 @@ function FilterRow({
   return (
     <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
       {index > 0 && (
-        <span className="text-xs text-gray-500 dark:text-gray-400 px-2">AND</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 px-2">{t('filterAnd')}</span>
       )}
       
       {/* Field selector */}
@@ -185,7 +185,7 @@ function FilterRow({
       <button
         onClick={onRemove}
         className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-        title={t('removeFilter') || 'Remove filter'}
+        title={t('removeFilter')}
       >
         <TrashIcon className="w-4 h-4" />
       </button>
@@ -201,6 +201,8 @@ interface ValueInputProps {
 }
 
 function ValueInput({ type, value, operator, onChange }: ValueInputProps) {
+  const t = useTranslations('reports');
+
   // Handle 'between' operator with two inputs
   if (operator === 'between') {
     const values = Array.isArray(value) ? value : ['', ''];
@@ -210,17 +212,17 @@ function ValueInput({ type, value, operator, onChange }: ValueInputProps) {
           type={type === 'datetime' ? 'date' : type === 'integer' || type === 'decimal' ? 'number' : 'text'}
           value={values[0] || ''}
           onChange={(e) => onChange([e.target.value, values[1] || ''])}
-          placeholder="From"
+          placeholder={t('filterFrom')}
           className="w-24 px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                      bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        <span className="text-gray-500 text-sm">to</span>
+        <span className="text-gray-500 text-sm">{t('filterTo')}</span>
         <input
           type={type === 'datetime' ? 'date' : type === 'integer' || type === 'decimal' ? 'number' : 'text'}
           value={values[1] || ''}
           onChange={(e) => onChange([values[0] || '', e.target.value])}
-          placeholder="To"
+          placeholder={t('filterToPlaceholder')}
           className="w-24 px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                      bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -237,7 +239,7 @@ function ValueInput({ type, value, operator, onChange }: ValueInputProps) {
         type="text"
         value={stringValue}
         onChange={(e) => onChange(e.target.value.split(',').map(v => v.trim()))}
-        placeholder="Value1, Value2, Value3"
+        placeholder={t('filterValuesPlaceholder')}
         className="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                    bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -269,9 +271,9 @@ function ValueInput({ type, value, operator, onChange }: ValueInputProps) {
                    bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       >
-        <option value="">Select...</option>
-        <option value="true">Yes</option>
-        <option value="false">No</option>
+        <option value="">{t('filterSelectPlaceholder')}</option>
+        <option value="true">{t('filterYes')}</option>
+        <option value="false">{t('filterNo')}</option>
       </select>
     );
   }
@@ -281,7 +283,7 @@ function ValueInput({ type, value, operator, onChange }: ValueInputProps) {
       type={inputType}
       value={String(value || '')}
       onChange={(e) => onChange(inputType === 'number' ? Number(e.target.value) : e.target.value)}
-      placeholder="Value..."
+      placeholder={t('filterValuePlaceholder')}
       step={type === 'decimal' ? '0.01' : undefined}
       className="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                  bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm

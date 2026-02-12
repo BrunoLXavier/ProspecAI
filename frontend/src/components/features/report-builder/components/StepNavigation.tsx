@@ -5,6 +5,7 @@
  */
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import type { StepId } from './StepIndicator';
 
@@ -25,6 +26,8 @@ export default function StepNavigation({
   onNext,
   onPrev,
 }: StepNavigationProps) {
+  const t = useTranslations('reports');
+
   return (
     <div className="flex justify-between">
       <button
@@ -33,7 +36,7 @@ export default function StepNavigation({
         className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 disabled:opacity-50"
       >
         <ArrowLeftIcon className="w-4 h-4" />
-        Back
+        {t('back')}
       </button>
 
       {currentStep !== 'save' && (
@@ -42,7 +45,7 @@ export default function StepNavigation({
           disabled={!canProceed}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          Next
+          {t('next')}
           <ArrowRightIcon className="w-4 h-4" />
         </button>
       )}

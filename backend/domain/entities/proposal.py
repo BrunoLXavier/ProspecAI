@@ -76,6 +76,9 @@ class Proposal(BaseEntity):
     # Template for dynamic fields
     template_id: Optional[UUID] = None
     
+    # Institute scope (RF-08: institute-level proposal filtering)
+    institute_id: Optional[UUID] = None
+    
     # Related entities
     opportunity_id: Optional[UUID] = None
     funding_source_id: Optional[UUID] = None

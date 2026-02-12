@@ -43,10 +43,6 @@ class Team(BaseEntity):
     data_vinculo_inicio: Optional[date] = None
     data_vinculo_fim: Optional[date] = None
     
-    class Config:
-        from_attributes = True
-        validate_assignment = True
-    
     @field_validator('telefone_celular')
     @classmethod
     def format_phone(cls, v: Optional[str]) -> Optional[str]:

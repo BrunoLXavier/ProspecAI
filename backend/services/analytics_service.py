@@ -77,42 +77,42 @@ class AnalyticsService:
         current_funding = await self._count_active(FundingSourceModel, start, end)
         prev_funding = await self._count_active(FundingSourceModel, prev_start, start)
         kpis["active_funding"] = self._create_kpi(
-            current_funding, prev_funding, "Editais Ativos", ""
+            current_funding, prev_funding, "Active Funding", ""
         )
         
         # Total Projects
         current_projects = await self._count_active(ProjectModel, start, end)
         prev_projects = await self._count_active(ProjectModel, prev_start, start)
         kpis["total_projects"] = self._create_kpi(
-            current_projects, prev_projects, "Projetos", ""
+            current_projects, prev_projects, "Projects", ""
         )
         
         # Pipeline Value (sum of opportunity values)
         current_pipeline = await self._sum_pipeline_value(start, end)
         prev_pipeline = await self._sum_pipeline_value(prev_start, start)
         kpis["pipeline_value"] = self._create_kpi(
-            current_pipeline, prev_pipeline, "Valor do Pipeline", "R$"
+            current_pipeline, prev_pipeline, "Pipeline Value", "R$"
         )
         
         # Conversion Rate (won opportunities / total)
         current_rate = await self._calculate_conversion_rate(start, end)
         prev_rate = await self._calculate_conversion_rate(prev_start, start)
         kpis["conversion_rate"] = self._create_kpi(
-            current_rate, prev_rate, "Taxa de Conversão", "%"
+            current_rate, prev_rate, "Conversion Rate", "%"
         )
         
         # Proposals Submitted
         current_proposals = await self._count_submitted_proposals(start, end)
         prev_proposals = await self._count_submitted_proposals(prev_start, start)
         kpis["proposals_submitted"] = self._create_kpi(
-            current_proposals, prev_proposals, "Propostas Submetidas", ""
+            current_proposals, prev_proposals, "Proposals Submitted", ""
         )
         
         # Average Match Score
         current_score = await self._average_match_score(start, end)
         prev_score = await self._average_match_score(prev_start, start)
         kpis["avg_match_score"] = self._create_kpi(
-            current_score, prev_score, "Score Médio de Match", "%"
+            current_score, prev_score, "Average Match Score", "%"
         )
         
         return kpis
@@ -168,7 +168,7 @@ class AnalyticsService:
         
         return [
             {
-                "category": row[0] or "Outros",
+                "category": row[0] or "Others",
                 "count": row[1],
                 "total_budget": float(row[2] or 0),
             }

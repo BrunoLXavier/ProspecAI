@@ -2,6 +2,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional, List, Dict, Any
+from uuid import UUID
 from pydantic import Field, EmailStr
 from .base import BaseEntity
 
@@ -51,6 +52,9 @@ class Client(BaseEntity):
     # Basic Information
     name: str = Field(..., min_length=1, max_length=500)
     client_type: ClientType
+    
+    # Institute scope (RF-04: institute-level CRM filtering)
+    institute_id: Optional[UUID] = None
     
     # Company/Organization Data (encrypted in database per RNF-01)
     cnpj: Optional[str] = Field(default=None, pattern=r"^\d{14}$")

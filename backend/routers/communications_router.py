@@ -7,7 +7,6 @@ Implements RF-08: Communications and collaboration with human-in-the-loop suppor
 """
 from typing import List, Any, Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, BackgroundTasks, Query
-from pydantic import BaseModel, Field
 from datetime import datetime
 from uuid import uuid4, UUID
 
@@ -32,12 +31,14 @@ from domain.entities.communication import (
     LinkedEntityType,
     ParticipantRole,
     MeetingMinutesStatus,
-    CreateThreadRequest,
-    UpdateThreadRequest,
-    CreateMessageRequest,
-    UpdateDraftRequest,
-    ConfirmAutoCreatedRequest,
-    GenerateMeetingMinutesRequest,
+)
+from domain.schemas.communication_schemas import (
+    CreateThreadRequest, UpdateThreadRequest, CreateMessageRequest,
+    UpdateDraftRequest, ConfirmAutoCreatedRequest, GenerateMeetingMinutesRequest,
+    ThreadResponse, MessageResponse, ParticipantResponse, DraftResponse,
+    MeetingMinutesResponse, ThreadListResponse, EmailConfigRequest,
+    EmailConfigResponse, InboundEmailRequest, TranscriptionRequest,
+    TranscriptionResponse, TranscriptionReportRequest, TranscriptionReportResponse,
 )
 from services.audit_service import get_kafka_producer
 
@@ -46,68 +47,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/communications", tags=["Communications"])
-
-
-# =============================================================================
-# Response Models
-# =============================================================================
-
-class ThreadResponse(BaseModel):
-    id: str
-    subject: Optional[str] = None
-    preview: Optional[str] = None
-    last_message_at: Optional[str] = None
-    linked_entity_type: Optional[str] = None
-    linked_entity_id: Optional[str] = None
-    is_auto_created: bool = False
-    auto_created_confirmed: bool = False
-    created_at: Optional[str] = None
-    participant_count: int = 0
-
-
-class MessageResponse(BaseModel):
-    id: str
-    thread_id: str
-    author: str
-    author_name: Optional[str] = None
-    body: str
-    message_type: str = "text"
-    created_at: str
-    attachments: List[Any] = []
-    is_auto_created: bool = False
-    auto_created_confirmed: bool = False
-    email_metadata: Optional[dict] = None
-
-
-class ParticipantResponse(BaseModel):
-    id: str
-    user_id: str
-    role: str
-    added_at: str
-
-
-class DraftResponse(BaseModel):
-    thread_id: str
-    body: Optional[str] = None
-    attachments: List[Any] = []
-    last_updated_at: str
-
-
-class MeetingMinutesResponse(BaseModel):
-    id: str
-    thread_id: str
-    title: Optional[str] = None
-    content: Optional[str] = None
-    status: str
-    generated_at: Optional[str] = None
-    created_at: str
-
-
-class ThreadListResponse(BaseModel):
-    items: List[ThreadResponse]
-    total: int
-    skip: int
-    limit: int
 
 
 # =============================================================================
@@ -1104,36 +1043,6 @@ async def get_meeting_minutes(
 # Email Ingestion Configuration Endpoints
 # =============================================================================
 
-class EmailConfigRequest(BaseModel):
-    """Request model for email configuration."""
-    enabled: bool = True
-    whitelist: List[str] = Field(default_factory=list)
-    auto_confirm: bool = False
-
-
-class EmailConfigResponse(BaseModel):
-    """Response model for email configuration."""
-    inbound_address: str
-    enabled: bool
-    whitelist: List[str]
-    auto_confirm: bool
-
-
-class InboundEmailRequest(BaseModel):
-    """Request model for inbound email webhook (from email service)."""
-    from_address: str
-    from_name: Optional[str] = None
-    to_address: str
-    cc_addresses: List[str] = Field(default_factory=list)
-    subject: Optional[str] = None
-    body_text: Optional[str] = None
-    body_html: Optional[str] = None
-    received_at: Optional[datetime] = None
-    message_id: Optional[str] = None
-    in_reply_to: Optional[str] = None
-    attachments: List[dict] = Field(default_factory=list)
-
-
 @router.get("/{thread_id}/email-config", response_model=EmailConfigResponse)
 async def get_email_config(
     thread_id: str,
@@ -1383,40 +1292,6 @@ async def receive_inbound_email(
 # =============================================================================
 # Transcription and Report Generation
 # =============================================================================
-
-class TranscriptionRequest(BaseModel):
-    """Request for transcription with optional report generation"""
-    language: Optional[str] = "auto"  # auto, pt, en, es
-
-
-class TranscriptionResponse(BaseModel):
-    """Response with transcription result"""
-    text: str
-    language: str
-    duration_seconds: float
-    confidence: float
-    segments: List[dict]
-
-
-class TranscriptionReportRequest(BaseModel):
-    """Request to generate report from transcription"""
-    template_id: str
-    transcription_text: str
-    transcription_language: str = "pt"
-    additional_context: Optional[str] = None
-    attach_to_thread: bool = True  # Whether to attach report as message
-
-
-class TranscriptionReportResponse(BaseModel):
-    """Response with generated report"""
-    template_id: str
-    template_name: str
-    report_content: str
-    report_format: str
-    generated_at: str
-    message_id: Optional[str] = None  # If attached to thread
-    download_url: Optional[str] = None
-
 
 @router.post("/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio_video(

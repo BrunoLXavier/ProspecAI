@@ -146,41 +146,28 @@
       "tenant_id": "00000000-0000-0000-0000-000000000001",
       "sidebar_position": "left",
       "sidebar_collapsed": false,
-      "sidebar_width": 295,
+      "sidebar_width": 260,
       "visible_nav_items": [
         "dashboard",
-        "activity",
-        "notifications",
-        "institutes",
-        "portfolio",
-        "teams",
-        "infrastructure",
         "funding",
-        "opportunities",
+        "portfolio",
         "crm",
+        "opportunities",
         "proposals",
         "communications",
-        "admin",
+        "institutes",
+        "teams",
+        "infrastructure",
         "feedbackManagement",
         "ingestion",
         "piiAnalysis",
         "reports",
         "reportTemplates",
+        "activity",
+        "notifications",
         "settings"
       ],
-      "nav_parent_map": {
-        "funding": null,
-        "reportTemplates": "reports",
-        "piiAnalysis": "ingestion",
-        "activity": "dashboard",
-        "notifications": "dashboard",
-        "infrastructure": "institutes",
-        "teams": "institutes",
-        "portfolio": "institutes",
-        "opportunities": "funding",
-        "proposals": "crm",
-        "communications": "crm"
-      },
+      "nav_parent_map": {},
       "visible_nav_items_by_role": {
         "admin": [
           "dashboard",
@@ -189,19 +176,17 @@
           "crm",
           "opportunities",
           "proposals",
+          "communications",
+          "institutes",
+          "teams",
+          "infrastructure",
           "reports",
+          "reportTemplates",
           "activity",
           "ingestion",
           "piiAnalysis",
-          "settings",
-          "communications",
-          "institutes",
-          "admin",
-          "infrastructure",
-          "teams",
-          "feedbackManagement",
-          "reportTemplates",
-          "notifications"
+          "notifications",
+          "settings"
         ],
         "manager": [
           "dashboard",
@@ -211,65 +196,37 @@
           "opportunities",
           "proposals",
           "reports",
+          "reportTemplates",
           "activity"
         ],
         "user": [
           "dashboard",
           "opportunities",
           "proposals",
-          "activity"
+          "activity",
+          "notifications"
         ],
         "viewer": [
           "dashboard",
-          "activity"
+          "activity",
+          "notifications"
         ]
       },
-      "nav_order": [
-        "dashboard",
-        "activity",
-        "notifications",
-        "institutes",
-        "infrastructure",
-        "teams",
-        "portfolio",
-        "funding",
-        "opportunities",
-        "crm",
-        "proposals",
-        "communications",
-        "admin",
-        "feedbackManagement",
-        "ingestion",
-        "piiAnalysis",
-        "reports",
-        "reportTemplates",
-        "settings"
-      ],
+      "nav_order": [],
       "dashboard_widgets": [
         "pipeline",
         "opportunities",
         "metrics",
         "activity",
-        "analytics-kpis",
-        "analytics-pipeline",
-        "analytics-trl",
         "matching",
         "calendar",
-        "analytics-trends"
-      ],
-      "dashboard_widget_order": [
-        "metrics",
-        "pipeline",
-        "opportunities",
-        "activity",
         "analytics-kpis",
         "analytics-pipeline",
         "analytics-trl",
         "analytics-trends",
-        "analytics-export",
-        "matching",
-        "calendar"
+        "analytics-export"
       ],
+      "dashboard_widget_order": [],
       "dashboard_widgets_by_role": {
         "admin": [
           "pipeline",
@@ -289,15 +246,12 @@
           "opportunities",
           "metrics",
           "activity",
-          "analytics-kpis",
-          "analytics-pipeline",
-          "analytics-trends"
+          "matching"
         ],
         "user": [
           "pipeline",
           "metrics",
-          "activity",
-          "analytics-kpis"
+          "activity"
         ],
         "viewer": [
           "metrics",
@@ -305,7 +259,7 @@
         ]
       },
       "dashboard_layout": "default",
-      "default_page_size": 10,
+      "default_page_size": 20,
       "dense_tables": false,
       "animations_enabled": true,
       "compact_mode": false,
@@ -315,8 +269,8 @@
       "secondary_color": "#003366",
       "chat_button_color": "#E30613",
       "feedback_button_color": "#f59e0b",
-      "sidebar_color": null,
-      "sidebar_color_dark": null,
+      "sidebar_color": "#003366",
+      "sidebar_color_dark": "#002244",
       "body_text_light": "#0f172a",
       "body_text_dark": "#f8fafc",
       "heading_text_light": "#0f172a",
@@ -336,7 +290,7 @@
       "modal_overlay_opacity": 0.4,
       "modal_elevation": "medium",
       "created_at": "2026-01-24T23:47:01.598612Z",
-      "updated_at": "2026-02-11T19:28:10.827483Z"
+      "updated_at": "2026-02-12T11:06:45.518773Z"
     },
     {
       "id": "default_default",

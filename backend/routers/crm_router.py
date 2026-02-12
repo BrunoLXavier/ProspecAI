@@ -4,87 +4,19 @@ Implements RF-04: CRM Inteligente
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
 from datetime import datetime, date
 
 from domain.entities.client import Client as DomainClient, Interaction, ClientType
-from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
+from domain.schemas.crm_schemas import (
+    ClientCreate, ClientUpdate, InteractionCreate,
+    ClientResponse, InteractionResponse, CNPJEnrichmentResponse,
+)
+from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id, get_current_institute_ids
 from infrastructure.di_container import DependencyContainer
 from uuid import UUID
 from infrastructure.serializers import to_primitive
 
 router = APIRouter()
-
-
-# Request/Response Schemas
-class ClientCreate(BaseModel):
-    name: str
-    cnpj: str
-    segment: str
-    contact_email: str
-    contact_phone: str
-    annual_revenue: float | None = None
-    maturity_level: str | None = None
-
-
-class ClientUpdate(BaseModel):
-    name: str | None = None
-    contact_email: str | None = None
-    contact_phone: str | None = None
-    annual_revenue: float | None = None
-    maturity_level: str | None = None
-
-
-class InteractionCreate(BaseModel):
-    client_id: str
-    interaction_type: str
-    channel: str
-    summary: str
-    notes: str | None = None
-    next_steps: List[str] | None = None
-
-
-class ClientResponse(BaseModel):
-    id: str
-    name: str
-    cnpj: str
-    segment: str
-    contact_email: str
-    contact_phone: str
-    annual_revenue: float | None
-    maturity_level: str | None
-    ai_enriched_data: dict | None
-    ai_confidence_score: float | None
-    created_at: str
-    updated_at: str
-
-    class Config:
-        from_attributes = True
-
-
-class InteractionResponse(BaseModel):
-    id: str
-    client_id: str
-    interaction_type: str
-    channel: str
-    summary: str
-    implicit_demands: List[str] | None
-    ai_confidence_score: float | None
-    occurred_at: str
-    created_at: str
-
-    class Config:
-        from_attributes = True
-
-
-class CNPJEnrichmentResponse(BaseModel):
-    company_name: str
-    legal_nature: str
-    establishment_date: str
-    address: dict
-    activities: List[str]
-    employees_range: str | None
-    confidence_score: float
 
 
 @router.get("/", response_model=List[ClientResponse])
@@ -132,6 +64,7 @@ async def list_clients(
     container: DependencyContainer = Depends(get_di_container),
     current_user: UUID = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
+    institute_ids: list = Depends(get_current_institute_ids),
 ):
     """
     List all clients with advanced filters
@@ -151,6 +84,7 @@ async def list_clients(
         segment=segment,
         maturity_level=maturity_level,
         search=search,
+        institute_ids=institute_ids,
         skip=skip,
         limit=limit
     )

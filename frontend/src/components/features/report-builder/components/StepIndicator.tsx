@@ -6,6 +6,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   CheckIcon,
   TableCellsIcon,
@@ -54,6 +55,17 @@ export default function StepIndicator({
   currentStepIndex,
   onStepClick,
 }: StepIndicatorProps) {
+  const t = useTranslations('reports');
+  const stepLabels: Record<StepId, string> = {
+    table: t('stepSelectTable'),
+    fields: t('stepChooseFields'),
+    joins: t('stepAddJoins'),
+    filters: t('stepAddFilters'),
+    order: t('stepSortLimit'),
+    preview: t('stepPreview'),
+    save: t('stepSaveTemplate'),
+  };
+
   return (
     <nav className="mb-8">
       <ol className="flex items-center justify-between overflow-x-auto">
@@ -76,7 +88,7 @@ export default function StepIndicator({
                 } ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-50'}`}
               >
                 {isCompleted ? <CheckIcon className="w-5 h-5" /> : step.icon}
-                <span className="hidden sm:inline text-sm font-medium">{step.label}</span>
+                <span className="hidden sm:inline text-sm font-medium">{stepLabels[step.id]}</span>
               </button>
               {index < STEPS.length - 1 && (
                 <div className="w-8 h-0.5 bg-gray-200 dark:bg-gray-700 mx-1" />

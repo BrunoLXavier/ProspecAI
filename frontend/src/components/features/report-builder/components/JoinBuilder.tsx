@@ -51,12 +51,12 @@ export default function JoinBuilder({
   };
 
   const getRelationshipInfo = (tableName: string): RelationshipSchema | undefined => {
-    return availableJoins?.find(r => r.target_table === tableName);
+    return availableJoins?.find((r: RelationshipSchema) => r.target_table === tableName);
   };
 
   // Filter out already joined tables
   const availableToJoin = availableJoins?.filter(
-    r => !joins.some(j => j.table === r.target_table)
+    (r: RelationshipSchema) => !joins.some(j => j.table === r.target_table)
   ) || [];
 
   return (
@@ -127,7 +127,7 @@ export default function JoinBuilder({
             {t('availableRelationships') || 'Available Relationships'}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {availableToJoin.map(rel => (
+            {availableToJoin.map((rel: RelationshipSchema) => (
               <button
                 key={rel.target_table}
                 onClick={() => addJoin(rel)}

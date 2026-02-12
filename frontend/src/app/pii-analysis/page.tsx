@@ -43,6 +43,7 @@ import { usePIIFilterFields } from '@/components/features/pii-analysis/component
 
 export default function PIIAnalysisPage() {
   const t = useTranslations('common');
+  const tp = useTranslations('pii');
   const searchParams = useSearchParams();
   const urlView = searchParams.get('view') as ViewMode | null;
   const validModes: ViewMode[] = ['list', 'board', 'timeline', 'table'];
@@ -185,7 +186,7 @@ export default function PIIAnalysisPage() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          notes: reviewNotes || 'Rejeitado manualmente',
+          notes: reviewNotes || tp('rejectedManually'),
         }),
       });
       
@@ -233,7 +234,7 @@ export default function PIIAnalysisPage() {
   const handleBulkApprove = async () => {
     if (selectedIds.size === 0) return;
     
-    if (!confirm(`Aprovar ${selectedIds.size} detecções selecionadas?`)) return;
+    if (!confirm(tp('confirmApprove', { count: selectedIds.size }))) return;
     
     setIsProcessing(true);
     
@@ -323,12 +324,12 @@ export default function PIIAnalysisPage() {
     <div className="space-y-8">
       {/* Header */}
       <PageHeader
-        title="Análise de PII"
-        subtitle="Revise e aprove detecções de dados pessoais antes da anonimização"
+        title={tp('title')}
+        subtitle={tp('subtitle')}
         viewToggle={true}
         viewMode={viewMode}
         onViewChange={setViewMode}
-        viewLabels={{ list: 'Table View' }}
+        viewLabels={{ list: tp('tableView') }}
       />
       
       {/* Error Banner */}
@@ -369,7 +370,7 @@ export default function PIIAnalysisPage() {
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-12 text-center">
           <ShieldExclamationIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
           <p className="text-gray-500 dark:text-gray-400">
-            Nenhuma detecção encontrada
+            {tp('noDetectionsFound')}
           </p>
         </div>
       ) : viewMode === 'board' ? (
@@ -398,7 +399,7 @@ export default function PIIAnalysisPage() {
                         </span>
                       </div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                        {detection.entities.length} entidades PII
+                        {detection.entities.length} {tp('piiEntities')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
                         {detection.entities.map(e => PII_TYPE_LABELS[e.type] || e.type).join(', ')}
@@ -410,7 +411,7 @@ export default function PIIAnalysisPage() {
                   );
                 })}
                 {filteredDetections.filter(d => d.anonymization_status === statusKey).length === 0 && (
-                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">Nenhum item</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">{tp('noItems')}</p>
                 )}
               </div>
             </div>
@@ -440,7 +441,7 @@ export default function PIIAnalysisPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                       <h3 className="text-base font-medium text-gray-900 dark:text-white">
-                        {detection.entities.length} entidades PII detectadas
+                        {tp('piiEntitiesDetected', { count: detection.entities.length })}
                       </h3>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2 py-1 rounded-full text-xs ${riskColor.bg} ${riskColor.text}`}>

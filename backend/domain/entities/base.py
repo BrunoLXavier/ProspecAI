@@ -2,11 +2,13 @@
 from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BaseEntity(BaseModel):
     """Base entity with common fields for all domain entities."""
+    
+    model_config = ConfigDict(from_attributes=True, validate_assignment=True)
     
     id: UUID = Field(default_factory=uuid4)
     tenant_id: UUID
@@ -15,10 +17,6 @@ class BaseEntity(BaseModel):
     deleted_at: Optional[datetime] = None
     created_by: Optional[UUID] = None
     updated_by: Optional[UUID] = None
-    
-    class Config:
-        from_attributes = True
-        validate_assignment = True
     
     def is_deleted(self) -> bool:
         """Check if entity is soft-deleted."""

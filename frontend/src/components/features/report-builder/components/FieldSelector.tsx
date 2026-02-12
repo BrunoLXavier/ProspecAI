@@ -88,7 +88,7 @@ export default function FieldSelector({
 
   // Get joined table schemas
   const joinedTables = joins.map(j => {
-    const rel = availableJoins?.find(r => r.target_table === j.table);
+    const rel = availableJoins?.find((r: RelationshipSchema) => r.target_table === j.table);
     return rel ? { ...rel, isJoined: true } : null;
   }).filter(Boolean) as (RelationshipSchema & { isJoined: boolean })[];
 
@@ -96,10 +96,10 @@ export default function FieldSelector({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {t('selectFields') || 'Select Fields'}
+          {t('selectFields')}
         </label>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {selectedFields.length} {t('selected') || 'selected'}
+          {selectedFields.length} {t('selected')}
         </span>
       </div>
 
@@ -136,7 +136,7 @@ export default function FieldSelector({
 
       {selectedFields.length === 0 && (
         <p className="text-sm text-amber-600 dark:text-amber-400">
-          {t('selectAtLeastOneField') || 'Please select at least one field'}
+          {t('selectAtLeastOneField')}
         </p>
       )}
     </div>
@@ -168,6 +168,7 @@ function TableFieldGroup({
   prefix = '',
   isBaseTable = false
 }: TableFieldGroupProps) {
+  const t = useTranslations('reports');
   const fieldNames = fields.map(f => `${prefix}${f.name}`);
   const selectedCount = fieldNames.filter(f => selectedFields.includes(f)).length;
   const allSelected = selectedCount === fields.length && fields.length > 0;
@@ -205,7 +206,7 @@ function TableFieldGroup({
               }
             `}
           >
-            {allSelected ? 'Deselect All' : 'Select All'}
+            {allSelected ? t('deselectAll') : t('selectAll')}
           </button>
         </div>
       </button>

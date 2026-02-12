@@ -10,6 +10,7 @@
 'use client';
 
 import { Fragment, useState, useEffect, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Combobox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon, MagnifyingGlassIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
@@ -55,6 +56,7 @@ export default function EntitySearchInput({
   placeholder = 'Search entities...',
   disabled = false,
 }: EntitySearchInputProps) {
+  const t = useTranslations('common');
   const [query, setQuery] = useState('');
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
 
@@ -97,7 +99,7 @@ export default function EntitySearchInput({
   // Set selected entity when value changes
   useEffect(() => {
     if (value && entities.length > 0) {
-      const found = entities.find(e => e.id === value);
+      const found = entities.find((e: Entity) => e.id === value);
       if (found) {
         setSelectedEntity(found);
       }
@@ -116,7 +118,7 @@ export default function EntitySearchInput({
     }
     const lowerQuery = query.toLowerCase();
     return entities.filter(
-      entity =>
+      (entity: Entity) =>
         entity.name.toLowerCase().includes(lowerQuery) ||
         entity.id.toLowerCase().includes(lowerQuery) ||
         entity.description?.toLowerCase().includes(lowerQuery)
@@ -142,7 +144,7 @@ export default function EntitySearchInput({
             className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             displayValue={(entity: Entity | null) => entity?.name || ''}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={isLoading ? 'Loading...' : placeholder}
+            placeholder={isLoading ? t('loading') : placeholder}
           />
           <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
             <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -162,18 +164,18 @@ export default function EntitySearchInput({
           >
             {isLoading ? (
               <div className="relative cursor-default select-none py-3 px-4 text-gray-500 dark:text-gray-400 text-center">
-                <span className="animate-pulse">Carregando entidades...</span>
+                <span className="animate-pulse">{t('loadingEntities')}</span>
               </div>
             ) : entities.length === 0 ? (
               <div className="relative cursor-default select-none py-4 px-4 text-gray-500 dark:text-gray-400 text-center">
                 <ExclamationCircleIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p className="font-medium">Nenhum registro encontrado</p>
-                <p className="text-xs mt-1">Não existem registros deste tipo cadastrados</p>
+                <p className="font-medium">{t('noRecordsFound')}</p>
+                <p className="text-xs mt-1">{t('noRecordsOfType')}</p>
               </div>
             ) : filteredEntities.length === 0 ? (
               <div className="relative cursor-default select-none py-3 px-4 text-gray-500 dark:text-gray-400 text-center">
-                <p>Nenhum resultado para "{query}"</p>
-                <p className="text-xs mt-1">Tente outro termo de busca</p>
+                <p>{t('noResultsFor', { query })}</p>
+                <p className="text-xs mt-1">{t('tryAnotherSearch')}</p>
               </div>
             ) : (
               <>
@@ -187,11 +189,11 @@ export default function EntitySearchInput({
                       } text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-600`
                     }
                   >
-                    <span className="italic">Clear selection</span>
+                    <span className="italic">{t('clearSelection')}</span>
                   </Combobox.Option>
                 )}
                 
-                {filteredEntities.map((entity) => (
+                {filteredEntities.map((entity: Entity) => (
                   <Combobox.Option
                     key={entity.id}
                     value={entity}
@@ -231,7 +233,7 @@ export default function EntitySearchInput({
                 {/* Hint about more entities */}
                 {hasMoreEntities && (
                   <div className="py-2 px-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-600/50 border-t border-gray-100 dark:border-gray-600">
-                    💡 Digite para buscar entre todos os {entities.length} registros
+                    💡 {t('typeToSearchAll', { count: entities.length })}
                   </div>
                 )}
               </>

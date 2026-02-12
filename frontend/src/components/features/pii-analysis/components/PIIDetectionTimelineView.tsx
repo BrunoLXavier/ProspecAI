@@ -2,6 +2,7 @@
 // Implements RF-01: LGPD Agent with manual approval workflow
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   ShieldExclamationIcon,
 } from '@heroicons/react/24/outline';
@@ -22,6 +23,7 @@ export default function PIIDetectionTimelineView({
   detections,
   onReview,
 }: PIIDetectionTimelineViewProps) {
+  const t = useTranslations('pii');
   const statusToTimelineStatus: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info' | 'pending'> = {
     pending_review: 'pending',
     approved: 'info',
@@ -36,7 +38,7 @@ export default function PIIDetectionTimelineView({
 
     return {
       id: detection.id,
-      title: `${detection.entities.length} entidades PII detectadas`,
+      title: t('piiEntitiesDetected', { count: detection.entities.length }),
       description: (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-1">
@@ -54,7 +56,7 @@ export default function PIIDetectionTimelineView({
               </span>
             )}
           </div>
-          <p className="text-xs">Origem: {detection.source_type}</p>
+          <p className="text-xs">{t('source', { source: detection.source_type })}</p>
         </div>
       ),
       date: detection.created_at,
@@ -75,7 +77,7 @@ export default function PIIDetectionTimelineView({
         size="md"
         showConnectors={true}
         animated={true}
-        emptyMessage="Nenhuma detecção encontrada"
+        emptyMessage={t('noDetectionsFound')}
       />
     </div>
   );

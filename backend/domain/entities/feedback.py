@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Dict, Any, List
 from uuid import UUID
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from .base import BaseEntity
 
 
@@ -51,9 +51,6 @@ class AnnotationStroke(BaseEntity):
     paths: List[Dict[str, Any]]  # Array of {x, y} coordinates
     stroke_width: float = 3.0
     stroke_color: str = "#FCD34D"  # Yellow marker color
-    
-    class Config:
-        from_attributes = True
 
 
 class Feedback(BaseEntity):
@@ -104,11 +101,9 @@ class Feedback(BaseEntity):
     resolved_at: Optional[datetime] = None
     resolution_notes: Optional[str] = None
     
-    class Config:
-        from_attributes = True
-    
-    @validator('description')
-    def validate_description_length(cls, v):
+    @field_validator('description')
+    @classmethod
+    def validate_description_length(cls, v: Optional[str]) -> Optional[str]:
         """Ensure description does not exceed 500 characters."""
         if v and len(v) > 500:
             raise ValueError('Description must not exceed 500 characters')

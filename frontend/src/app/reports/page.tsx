@@ -1,39 +1,32 @@
 /**
- * Reports Page
+ * Reports Page — Standardized via useCrudPage
  * Implements RF-09: Report generation and export
+ *
+ * Note: Reports have a custom generate workflow (select template → choose format → generate)
+ * that sits alongside the standard CRUD views. The generate/view modals remain custom
+ * because they don't follow the entity CRUD pattern.
  */
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { DocumentTextIcon, PlusIcon, ChartBarIcon, FolderIcon, FunnelIcon, CurrencyDollarIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { useQuery } from '@tanstack/react-query';
+import { DocumentTextIcon, PlusIcon, ChartBarIcon, FolderIcon, FunnelIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
+import { useCrudPage, FetchResult } from '@/hooks/use-crud-page';
 import PageHeader from '@/components/features/shared/ui/PageHeader';
 import Icon from '@/components/features/shared/ui/Icon';
-// StatCard not required here
 import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
 import BaseModal from '@/components/features/shared/ui/BaseModal';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
-// report templates components are used in templates page
-import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
-import Pagination, { usePagination } from '@/components/features/shared/ui/Pagination';
+import Pagination from '@/components/features/shared/ui/Pagination';
 import TimelineView, { TimelineItem } from '@/components/features/shared/ui/TimelineView';
 import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 
-// =============================================================================
-// Types
-// =============================================================================
-
-interface ReportTemplate {
-  id: string;
-  name: string;
-  description: string;
-  parameters: string[];
-  output_formats: string[];
-}
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface GeneratedReport {
+  id?: string;
   template_id: string;
   generated_at: string;
   format: string;
@@ -41,9 +34,11 @@ interface GeneratedReport {
   download_url?: string;
 }
 
-// =============================================================================
-// Template Icons
-// =============================================================================
+interface ReportFilters {
+  search: string;
+}
+
+const initialFilters: ReportFilters = { search: '' };
 
 const templateIcons: Record<string, React.ReactNode> = {
   proposal_summary: <DocumentTextIcon className="h-6 w-6" />,
@@ -53,331 +48,201 @@ const templateIcons: Record<string, React.ReactNode> = {
   funding_opportunities: <CurrencyDollarIcon className="h-6 w-6" />,
 };
 
-// =============================================================================
-// Reports Page
-// =============================================================================
+// ─── Page Component ──────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
   const t = useTranslations('reports');
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [filters, setFilters] = useState<{ search?: string }>({});
+  const tCommon = useTranslations('common');
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
-  const [generatedReports, setGeneratedReports] = useState<GeneratedReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<GeneratedReport | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [isLoadingReports, setIsLoadingReports] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Pagination state
-  const { initialPage, initialPageSize } = usePagination(20, true);
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [pageSize, setPageSize] = useState(initialPageSize);
-
-  // load generated reports (backend may expose /api/v1/reports)
-  const loadReports = async () => {
-    try {
-      setIsLoadingReports(true);
-      const data = await apiClient.get('/api/v1/reports');
-      const arr = Array.isArray(data) ? data : data?.data || [];
-      setGeneratedReports(arr);
-    } catch (err) {
-      console.error('Failed to load generated reports:', err);
-      setGeneratedReports([]);
-      setError((err as any)?.message || 'Failed to load generated reports');
-    } finally {
-      setIsLoadingReports(false);
-    }
-  };
-
-  // initial load
-  useQuery({
-    queryKey: ['generated-reports'],
-    queryFn: loadReports,
+  const state = useCrudPage<GeneratedReport, ReportFilters>({
+    queryKey: 'generated-reports',
+    initialFilters,
+    defaultPageSize: 20,
+    filterFn: (item, filters) => {
+      if (!filters.search) return true;
+      const s = filters.search.toLowerCase();
+      return (item.template_id || '').toLowerCase().includes(s) || (item.format || '').toLowerCase().includes(s);
+    },
+    fetchFn: async () => {
+      try {
+        const data = await apiClient.get('/api/v1/reports');
+        const items = Array.isArray(data) ? data : data?.data || [];
+        return { items, total: items.length } as FetchResult<GeneratedReport>;
+      } catch (err) {
+        console.error('Failed to load generated reports:', err);
+        return { items: [], total: 0 };
+      }
+    },
   });
 
-  const filterFields: FilterField[] = [
+  const filterFields: FilterField[] = useMemo(() => [
     { key: 'search', label: t('filters.search'), type: 'text', placeholder: t('filters.searchPlaceholder') },
-  ];
+  ], [t]);
 
-  const filtered = generatedReports.filter((r) => {
-    if (!filters.search) return true;
-    const s = filters.search.toLowerCase();
-    return (r.template_id || '').toLowerCase().includes(s) || (r.generated_at || '').toLowerCase().includes(s) || (r.format || '').toLowerCase().includes(s);
-  });
-
-  // Paginate reports for list view
-  const paginatedReports = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [filtered, currentPage, pageSize]);
-
-  // Timeline items for timeline view
   const timelineItems: TimelineItem[] = useMemo(() => {
-    return filtered.map((r, idx) => ({
+    return state.data.map((r, idx) => ({
       id: (r as any).id || `report-${idx}`,
-      title: r.template_id || t('untitledReport') || 'Untitled Report',
+      title: r.template_id || t('title') || 'Report',
       description: `${t('format') || 'Format'}: ${(r.format || '').toUpperCase()}`,
       date: r.generated_at,
       status: r.download_url ? 'success' : 'info',
       icon: <DocumentTextIcon className="w-4 h-4" />,
-      tags: [
-        { label: (r.format || '').toUpperCase(), color: 'blue' },
-      ],
-      onClick: () => {
-        setSelectedReport(r);
-        setIsDetailOpen(true);
-      },
+      tags: [{ label: (r.format || '').toUpperCase(), color: 'blue' }],
+      onClick: () => { setSelectedReport(r); setIsDetailOpen(true); },
     }));
-  }, [filtered, t]);
+  }, [state.data, t]);
 
-  // Table columns for table view
   const tableColumns: TableColumn<GeneratedReport>[] = useMemo(() => [
     {
-      key: 'template_id',
-      header: t('templateLabel') || 'Template',
-      accessor: 'template_id',
-      sortable: true,
+      key: 'template_id', header: t('templateLabel') || 'Template', accessor: 'template_id', sortable: true,
       render: (value) => (
         <div className="flex items-center gap-2">
-          <Icon color="secondary" size="sm" withBackground={false}>
-            <DocumentTextIcon />
-          </Icon>
+          <Icon color="secondary" size="sm" withBackground={false}><DocumentTextIcon /></Icon>
           <span className="font-medium">{value as string || '—'}</span>
         </div>
       ),
     },
     {
-      key: 'format',
-      header: t('format') || 'Format',
-      accessor: 'format',
-      sortable: true,
-      render: (value) => (
-        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-          {((value as string) || '').toUpperCase()}
-        </span>
-      ),
+      key: 'format', header: t('format') || 'Format', accessor: 'format', sortable: true,
+      render: (value) => <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">{((value as string) || '').toUpperCase()}</span>,
     },
     {
-      key: 'generated_at',
-      header: t('generated') || 'Generated At',
-      accessor: 'generated_at',
-      sortable: true,
-      render: (value) => (
-        <span className="text-gray-600 dark:text-gray-400">
-          {value ? new Date(value as string).toLocaleString() : '—'}
-        </span>
-      ),
+      key: 'generated_at', header: t('generated') || 'Generated', accessor: 'generated_at', sortable: true,
+      render: (value) => <span className="text-gray-600 dark:text-gray-400">{value ? new Date(value as string).toLocaleString() : '—'}</span>,
     },
     {
-      key: 'status',
-      header: t('statusLabel') || 'Status',
-      accessor: (row) => row.download_url ? t('available') || 'Available' : t('processed') || 'Processed',
+      key: 'status', header: t('statusLabel') || 'Status', accessor: (row) => row.download_url ? t('available') || 'Available' : t('processed') || 'Processed',
       render: (value) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          value === (t('available') || 'Available')
-            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
-            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-        }`}>
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${value === (t('available') || 'Available') ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
           {value as string}
         </span>
       ),
     },
   ], [t]);
 
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters]);
-
   const handleDelete = async (report: GeneratedReport) => {
     if (!report) return;
-    if (!confirm('Excluir relatório gerado?')) return;
     try {
-      // try backend delete
       if ((report as any).id) {
         await apiClient.delete(`/api/v1/reports/${(report as any).id}`);
       }
     } catch (err) {
       console.warn('Delete failed on backend', err);
     }
-    // optimistic client removal
-    setGeneratedReports((prev) => prev.filter((r) => r !== report));
     setSelectedReport(null);
     setIsDetailOpen(false);
+    state.refetch();
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t('title') || 'Relatórios'}
-        subtitle={t('subtitle') || 'Relatórios gerados e históricos'}
-        viewToggle={true}
-        viewMode={viewMode}
-        onViewChange={setViewMode}
-        action={(
-          <button
-            onClick={() => setIsGenerateOpen(true)}
-            title={t('newReport') || 'Gerar Relatório'}
-            className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
-          >
+        title={t('title') || 'Reports'}
+        subtitle={t('subtitle') || 'Generated reports and history'}
+        viewToggle
+        viewMode={state.viewMode}
+        onViewChange={state.setViewMode}
+        action={
+          <button onClick={() => setIsGenerateOpen(true)} title={t('newReport') || 'Generate Report'} className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition">
             <PlusIcon className="w-5 h-5" />
           </button>
-        )}
+        }
       />
 
-      <ConfigurableStatisticsBar module="reports" data={generatedReports} />
+      <ConfigurableStatisticsBar module="reports" data={state.allData} />
 
-      {error && (
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
-            <p className="text-red-700 dark:text-red-300">{error}</p>
-          </div>
-        </div>
-      )}
+      <FilterPanel fields={filterFields} values={state.filters} onChange={state.setFilter} onReset={state.resetFilters} />
 
-      <FilterPanel fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onReset={() => setFilters({})} />
-
-      <main>
-        {/* Board View */}
-        {viewMode === 'board' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoadingReports ? (
-              <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">{t('loading')}</div>
-            ) : filtered.length === 0 ? (
-              <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">{t('noReports')}</div>
-            ) : (
-              filtered.map((r, idx) => (
-                <div key={idx} className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 hover:shadow-elevated transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
-                  <div className="flex items-start gap-3">
-                    <Icon color="secondary" size="lg">
-                      <DocumentTextIcon />
-                    </Icon>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{r.template_id || '—'}</h3>
-                      <p className="text-sm text-gray-500 mt-2">{new Date(r.generated_at).toLocaleString()}</p>
-                      <div className="mt-4 flex items-center justify-between">
-                        <div className="text-xs text-gray-400">{(r.format || '').toUpperCase()}</div>
-                        <div className="flex items-center gap-3">
-                          <button onClick={(e) => { e.stopPropagation(); setSelectedReport(r); setIsDetailOpen(true); }} className="text-sm text-primary-600">{t('view')}</button>
-                          <button onClick={(e) => { e.stopPropagation(); handleDelete(r); }} className="text-sm text-red-600">{t('delete')}</button>
-                        </div>
+      {/* Board View */}
+      {state.viewMode === 'board' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {state.isLoading ? (
+            <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">{tCommon('loading')}</div>
+          ) : state.data.length === 0 ? (
+            <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">{t('noReports')}</div>
+          ) : (
+            state.data.map((r, idx) => (
+              <div key={idx} className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 hover:shadow-elevated transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
+                <div className="flex items-start gap-3">
+                  <Icon color="secondary" size="lg"><DocumentTextIcon /></Icon>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{r.template_id || '—'}</h3>
+                    <p className="text-sm text-gray-500 mt-2">{new Date(r.generated_at).toLocaleString()}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="text-xs text-gray-400">{(r.format || '').toUpperCase()}</div>
+                      <div className="flex items-center gap-3">
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedReport(r); setIsDetailOpen(true); }} className="text-sm text-primary-600">{t('view')}</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(r); }} className="text-sm text-red-600">{tCommon('delete')}</button>
                       </div>
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Timeline View */}
-        {viewMode === 'timeline' && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-            <TimelineView
-              items={timelineItems}
-              loading={isLoadingReports}
-              emptyMessage={t('noReports')}
-              animated={true}
-              showConnectors={true}
-            />
-          </div>
-        )}
-
-        {/* Table View */}
-        {viewMode === 'table' && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
-            <TableView<GeneratedReport>
-              data={filtered}
-              columns={tableColumns}
-              getRowKey={(row) => (row as any).id || `${row.template_id}-${row.generated_at}`}
-              onRowClick={(row) => {
-                setSelectedReport(row);
-                setIsDetailOpen(true);
-              }}
-              loading={isLoadingReports}
-              emptyMessage={t('noReports')}
-              paginated={true}
-              pageSize={pageSize}
-              currentPage={currentPage}
-              totalItems={filtered.length}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
-        )}
-
-        {/* List View (default) */}
-        {viewMode === 'list' && (
-          <div className="space-y-4">
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
-              {isLoadingReports ? (
-                <div className="p-8 text-center text-gray-500">{t('loading')}</div>
-              ) : filtered.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">{t('noReports')}</div>
-              ) : (
-                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {paginatedReports.map((r, idx) => (
-                    <li key={idx} className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <Icon color="secondary" size="md" withBackground={false}>
-                              <DocumentTextIcon />
-                            </Icon>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{r.template_id}</h3>
-                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{(r.format || '').toUpperCase()}</span>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-4 text-sm mt-3">
-                            <div>
-                              <span className="text-gray-500 dark:text-gray-400">{t('generated')}:</span>
-                              <p className="font-medium text-gray-900 dark:text-white">{new Date(r.generated_at).toLocaleString()}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 dark:text-gray-400">{t('templateLabel')}:</span>
-                              <p className="font-medium text-gray-900 dark:text-white">{r.template_id || '—'}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 dark:text-gray-400">{t('statusLabel')}:</span>
-                              <p className="font-medium text-gray-900 dark:text-white">{r.download_url ? t('available') : t('processed')}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Pagination */}
-            {filtered.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalItems={filtered.length}
-                pageSize={pageSize}
-                onPageChange={setCurrentPage}
-                onPageSizeChange={(size) => {
-                  setPageSize(size);
-                  setCurrentPage(1);
-                }}
-                persistInUrl={true}
-                showTotal={true}
-                showPageSizeSelector={true}
-              />
-            )}
-          </div>
-        )}
-      </main>
-
-      {/* Generate modal and Detail modal: reuse part of original generation logic inline */}
-      {isGenerateOpen && (
-        <ReportGeneratorModal onClose={() => setIsGenerateOpen(false)} onGenerated={(r: GeneratedReport) => { setGeneratedReports((p) => [r, ...p]); setIsGenerateOpen(false); }} />
+              </div>
+            ))
+          )}
+        </div>
       )}
 
+      {/* Timeline View */}
+      {state.viewMode === 'timeline' && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+          <TimelineView items={timelineItems} loading={state.isLoading} emptyMessage={t('noReports')} animated showConnectors />
+        </div>
+      )}
+
+      {/* Table View */}
+      {state.viewMode === 'table' && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+          <TableView<GeneratedReport> data={state.data} columns={tableColumns} getRowKey={(row) => (row as any).id || `${row.template_id}-${row.generated_at}`} onRowClick={(row) => { setSelectedReport(row); setIsDetailOpen(true); }} loading={state.isLoading} emptyMessage={t('noReports')} paginated pageSize={state.pageSize} currentPage={state.currentPage} totalItems={state.totalItems} onPageChange={state.setCurrentPage} onPageSizeChange={state.setPageSize} striped hoverable />
+        </div>
+      )}
+
+      {/* List View */}
+      {state.viewMode === 'list' && (
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+            {state.isLoading ? (
+              <div className="p-8 text-center text-gray-500">{tCommon('loading')}</div>
+            ) : state.data.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">{t('noReports')}</div>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {state.data.map((r, idx) => (
+                  <li key={idx} className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer" onClick={() => { setSelectedReport(r); setIsDetailOpen(true); }}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <Icon color="secondary" size="md" withBackground={false}><DocumentTextIcon /></Icon>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{r.template_id}</h3>
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{(r.format || '').toUpperCase()}</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm mt-3">
+                          <div><span className="text-gray-500 dark:text-gray-400">{t('generated')}:</span><p className="font-medium text-gray-900 dark:text-white">{new Date(r.generated_at).toLocaleString()}</p></div>
+                          <div><span className="text-gray-500 dark:text-gray-400">{t('templateLabel')}:</span><p className="font-medium text-gray-900 dark:text-white">{r.template_id || '—'}</p></div>
+                          <div><span className="text-gray-500 dark:text-gray-400">{t('statusLabel')}:</span><p className="font-medium text-gray-900 dark:text-white">{r.download_url ? t('available') : t('processed')}</p></div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {state.totalItems > 0 && (
+            <Pagination currentPage={state.currentPage} totalItems={state.totalItems} pageSize={state.pageSize} onPageChange={state.setCurrentPage} onPageSizeChange={state.setPageSize} persistInUrl showTotal showPageSizeSelector />
+          )}
+        </div>
+      )}
+
+      {/* Custom Generate Modal */}
+      {isGenerateOpen && (
+        <ReportGeneratorModal onClose={() => setIsGenerateOpen(false)} onGenerated={(r: GeneratedReport) => { setIsGenerateOpen(false); state.refetch(); }} />
+      )}
+
+      {/* Custom Detail/View Modal */}
       {isDetailOpen && selectedReport && (
         <ReportViewModal report={selectedReport} onClose={() => setIsDetailOpen(false)} onDelete={() => handleDelete(selectedReport)} />
       )}
@@ -385,16 +250,24 @@ export default function ReportsPage() {
   );
 }
 
-// Small inline generator modal component reused from original page behavior
-function ReportGeneratorModal({ onClose, onGenerated }: any) {
+// ─── Custom Generate Modal (domain-specific, not standard CRUD) ──────────────
+
+function ReportGeneratorModal({ onClose, onGenerated }: { onClose: () => void; onGenerated: (r: GeneratedReport) => void }) {
+  const t = useTranslations('reports');
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [format, setFormat] = useState('html');
-  const [params, setParams] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
 
-  // load templates
-  useQuery({ queryKey: ['report-templates-for-gen'], queryFn: async () => { try { const d = await apiClient.get('/api/v1/reports/templates'); setTemplates(Array.isArray(d) ? d : (d?.templates || d?.data || [])); } catch(e){ setTemplates([]);} } });
+  useQuery({
+    queryKey: ['report-templates-for-gen'],
+    queryFn: async () => {
+      try {
+        const d = await apiClient.get('/api/v1/reports/templates');
+        setTemplates(Array.isArray(d) ? d : (d?.templates || d?.data || []));
+      } catch { setTemplates([]); }
+    },
+  });
 
   const handleGenerate = async () => {
     if (!selectedTemplate) return;
@@ -403,53 +276,46 @@ function ReportGeneratorModal({ onClose, onGenerated }: any) {
       const response = await fetch(`/api/v1/reports/generate/${format}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ template_id: selectedTemplate, parameters: params, format }),
+        body: JSON.stringify({ template_id: selectedTemplate, parameters: {}, format }),
       });
       if (!response.ok) throw new Error('Generate failed');
       if (format === 'html') {
         const html = await response.text();
-        const rep = { template_id: selectedTemplate, generated_at: new Date().toISOString(), format, content: html };
-        onGenerated(rep);
+        onGenerated({ template_id: selectedTemplate, generated_at: new Date().toISOString(), format, content: html });
       } else {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        const rep = { template_id: selectedTemplate, generated_at: new Date().toISOString(), format, download_url: url };
-        onGenerated(rep);
+        onGenerated({ template_id: selectedTemplate, generated_at: new Date().toISOString(), format, download_url: url });
       }
     } catch (err) {
       console.error(err);
-      alert('Erro ao gerar relatório');
     } finally {
       setPending(false);
     }
   };
 
   return (
-    <BaseModal
-      isOpen={true}
-      onClose={onClose}
-      title="Gerar Relatório"
-      size="2xl"
-      footer={(
+    <BaseModal isOpen onClose={onClose} title={t('newReport') || 'Generate Report'} size="2xl"
+      footer={
         <div className="flex items-center justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 bg-white dark:bg-slate-700 border rounded-lg">Cancelar</button>
-          <button onClick={handleGenerate} disabled={pending || !selectedTemplate} className="px-4 py-2 bg-blue-600 text-white rounded-lg">{pending? 'Gerando...' : 'Gerar'}</button>
+          <button onClick={onClose} className="px-4 py-2 bg-white dark:bg-slate-700 border rounded-lg">{t('cancel') || 'Cancel'}</button>
+          <button onClick={handleGenerate} disabled={pending || !selectedTemplate} className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50">{pending ? t('generating') || 'Generating...' : t('generate') || 'Generate'}</button>
         </div>
-      )}
+      }
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm text-gray-600">Template</label>
-          <select className="w-full border rounded px-3 py-2" value={selectedTemplate || ''} onChange={(e) => setSelectedTemplate(e.target.value)}>
-            <option value="">Selecione</option>
-            {templates.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
+          <label className="block text-sm text-gray-600 dark:text-gray-400">{t('templateLabel')}</label>
+          <select className="w-full border rounded px-3 py-2 dark:bg-slate-700 dark:border-gray-600 dark:text-white" value={selectedTemplate || ''} onChange={(e) => setSelectedTemplate(e.target.value)}>
+            <option value="">{t('selectTemplate') || 'Select...'}</option>
+            {templates.map((tpl) => (<option key={tpl.id} value={tpl.id}>{tpl.name}</option>))}
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600">Formato</label>
+          <label className="block text-sm text-gray-600 dark:text-gray-400">{t('format') || 'Format'}</label>
           <div className="flex gap-2 mt-2">
-            {['html','pdf','xlsx'].map((f) => (
-              <button key={f} onClick={() => setFormat(f)} className={`px-3 py-2 rounded ${format===f? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+            {['html', 'pdf', 'xlsx'].map((f) => (
+              <button key={f} onClick={() => setFormat(f)} className={`px-3 py-2 rounded ${format === f ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 dark:text-gray-300'}`}>
                 {f.toUpperCase()}
               </button>
             ))}
@@ -460,25 +326,21 @@ function ReportGeneratorModal({ onClose, onGenerated }: any) {
   );
 }
 
-function ReportViewModal({ report, onClose, onDelete }: any) {
+function ReportViewModal({ report, onClose, onDelete }: { report: GeneratedReport; onClose: () => void; onDelete: () => void }) {
+  const t = useTranslations('reports');
   return (
-    <BaseModal
-      isOpen={true}
-      onClose={onClose}
-      title="Relatório"
-      subtitle={report.template_id}
-      size="3xl"
-      footer={(
+    <BaseModal isOpen onClose={onClose} title={t('details') || 'Report'} subtitle={report.template_id} size="3xl"
+      footer={
         <div className="flex items-center justify-end gap-3">
           {report.download_url && <a href={report.download_url} download className="px-4 py-2 bg-green-600 text-white rounded-lg">Download</a>}
-          <button onClick={onDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg">Excluir</button>
+          <button onClick={onDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg">{t('delete') || 'Delete'}</button>
         </div>
-      )}
+      }
     >
       <div className="space-y-4">
-        <div className="text-sm text-gray-600">Template: {report.template_id}</div>
-        <div className="text-sm text-gray-600">Gerado em: {new Date(report.generated_at).toLocaleString()}</div>
-        {report.content && <div className="prose max-h-[500px] overflow-auto border rounded p-4" dangerouslySetInnerHTML={{ __html: report.content }} />}
+        <div className="text-sm text-gray-600 dark:text-gray-400">Template: {report.template_id}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">{t('generated')}: {new Date(report.generated_at).toLocaleString()}</div>
+        {report.content && <div className="prose max-h-[500px] overflow-auto border rounded p-4 dark:border-gray-600" dangerouslySetInnerHTML={{ __html: report.content }} />}
       </div>
     </BaseModal>
   );

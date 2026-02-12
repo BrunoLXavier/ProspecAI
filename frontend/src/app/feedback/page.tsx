@@ -334,7 +334,7 @@ export default function AdminFeedbackPage() {
     if (!searchQ) return feedbackData.items;
 
     const query = searchQ.toLowerCase();
-    return feedbackData.items.filter((f) =>
+    return feedbackData.items.filter((f: Feedback) =>
       f.description.toLowerCase().includes(query) ||
       f.page_url.toLowerCase().includes(query) ||
       (f.page_title && f.page_title.toLowerCase().includes(query))
@@ -446,11 +446,11 @@ export default function AdminFeedbackPage() {
                 <statusInfo.icon className="h-4 w-4" />
                 {statusInfo.label}
                 <span className="ml-auto text-xs bg-gray-200 dark:bg-slate-600 px-2 py-0.5 rounded-full">
-                  {filteredFeedbacks.filter(f => f.status === statusKey).length}
+                  {filteredFeedbacks.filter((f: Feedback) => f.status === statusKey).length}
                 </span>
               </h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {filteredFeedbacks.filter(f => f.status === statusKey).map((fb) => {
+                {filteredFeedbacks.filter((f: Feedback) => f.status === statusKey).map((fb: Feedback) => {
                   const typeInfo = FEEDBACK_TYPES[fb.feedback_type] || { label: fb.feedback_type, emoji: '📝' };
                   const severityInfo = SEVERITY_LABELS[fb.severity] || SEVERITY_LABELS.medium;
                   return (
@@ -469,7 +469,7 @@ export default function AdminFeedbackPage() {
                     </div>
                   );
                 })}
-                {filteredFeedbacks.filter(f => f.status === statusKey).length === 0 && (
+                {filteredFeedbacks.filter((f: Feedback) => f.status === statusKey).length === 0 && (
                   <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">Nenhum item</p>
                 )}
               </div>
@@ -480,7 +480,7 @@ export default function AdminFeedbackPage() {
         /* Timeline View */
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
           <TimelineView
-            items={paginatedFeedbacks.map((fb): TimelineItem => {
+            items={paginatedFeedbacks.map((fb: Feedback): TimelineItem => {
               const typeInfo = FEEDBACK_TYPES[fb.feedback_type] || { label: fb.feedback_type, emoji: '📝' };
               const severityInfo = SEVERITY_LABELS[fb.severity] || SEVERITY_LABELS.medium;
               const statusInfo = STATUS_LABELS[fb.status] || STATUS_LABELS.open;
@@ -617,7 +617,7 @@ export default function AdminFeedbackPage() {
       ) : (
         /* List View - Card-based layout (default) */
         <div className="space-y-4">
-          {paginatedFeedbacks.map((feedback) => {
+          {paginatedFeedbacks.map((feedback: Feedback) => {
             const typeInfo = FEEDBACK_TYPES[feedback.feedback_type] || { label: feedback.feedback_type, emoji: '📝' };
             const severityInfo = SEVERITY_LABELS[feedback.severity] || SEVERITY_LABELS.medium;
             const statusInfo = STATUS_LABELS[feedback.status] || STATUS_LABELS.open;

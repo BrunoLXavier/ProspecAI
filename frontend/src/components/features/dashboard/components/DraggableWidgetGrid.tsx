@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { EyeIcon, EyeSlashIcon, Bars3Icon, LockClosedIcon } from '@heroicons/react/24/outline';
 import type { MouseEvent } from 'react';
 import {
@@ -82,6 +83,7 @@ function WidgetOverlaySkeleton({ size = 'medium' }: { size?: string }) {
 // =============================================================================
 
 function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidgetProps) {
+  const t = useTranslations('dashboard');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: widget.id,
     disabled: !isEditMode,
@@ -111,7 +113,7 @@ function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidge
           {...attributes}
           {...listeners}
           className="absolute -top-2 -left-2 z-10 p-1.5 bg-blue-600 text-white rounded-lg shadow-lg cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Arrastar para reordenar"
+          title={t('dragToReorder')}
         >
           <Bars3Icon className="w-4 h-4" />
         </div>
@@ -135,6 +137,7 @@ function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidge
   onToggleWidget,
   disabledWidgets,
 }: DraggableWidgetGridProps) {
+  const t = useTranslations('dashboard');
   const [activeId, setActiveId] = useState<string | null>(null);
 
   // Sort widgets by user's custom order
@@ -227,12 +230,12 @@ function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidge
           {isEditMode ? (
             <>
               <LockClosedIcon className="w-4 h-4" />
-              Concluir Organização
+              {t('finishOrganization')}
             </>
           ) : (
             <>
               <Bars3Icon className="w-4 h-4" />
-              Organizar Widgets
+              {t('organizeWidgets')}
             </>
           )}
         </button>
@@ -242,8 +245,8 @@ function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidge
       {isEditMode && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <strong>Modo de Organização:</strong> Arraste os widgets para reorganizá-los. 
-            Clique em "Concluir Organização" quando terminar.
+            <strong>{t('organizationMode')}:</strong> {t('dragInstructions')}{' '}
+            {t('clickDoneWhenFinished')}
           </p>
         </div>
       )}
@@ -274,7 +277,7 @@ function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidge
                             console.warn('toggle widget failed', err);
                           }
                         }}
-                        title="Ocultar este widget"
+                        title={t('hideThisWidget')}
                         className="bg-white dark:bg-slate-800 border rounded p-1 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700"
                       >
                         <EyeSlashIcon className="w-4 h-4 text-gray-600 dark:text-gray-200" />
@@ -291,7 +294,7 @@ function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidge
           {isEditMode && disabledWidgets && disabledWidgets.length > 0 && (
             <div className="mt-4 p-4 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Widgets desabilitados</div>
+                <div className="text-sm font-medium text-gray-800 dark:text-gray-200">{t('disabledWidgets')}</div>
               </div>
               <div className="flex flex-wrap gap-2">
                 {disabledWidgets.map(id => (
@@ -302,7 +305,7 @@ function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidge
                       onClick={async () => { try { if (onToggleWidget) await onToggleWidget(id, true); } catch (e) { console.warn('enable widget failed', e); } }}
                     >
                       <EyeIcon className="w-4 h-4 inline-block mr-1" />
-                      Ativar
+                      {t('activate')}
                     </button>
                   </div>
                 ))}

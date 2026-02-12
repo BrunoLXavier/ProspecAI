@@ -23,11 +23,12 @@ export interface FormSliderProps {
   disabled?: boolean;
   required?: boolean;
   /** Color variant for the slider thumb and track */
-  colorVariant?: 'primary' | 'success' | 'warning' | 'danger';
+  colorVariant?: 'primary' | 'info' | 'success' | 'warning' | 'danger';
 }
 
 const thumbColors = {
   primary: '[&::-webkit-slider-thumb]:bg-primary-600 [&::-moz-range-thumb]:bg-primary-600',
+  info: '[&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:bg-blue-500',
   success: '[&::-webkit-slider-thumb]:bg-green-600 [&::-moz-range-thumb]:bg-green-600',
   warning: '[&::-webkit-slider-thumb]:bg-amber-500 [&::-moz-range-thumb]:bg-amber-500',
   danger: '[&::-webkit-slider-thumb]:bg-red-600 [&::-moz-range-thumb]:bg-red-600',
@@ -35,6 +36,7 @@ const thumbColors = {
 
 const valueColors = {
   primary: 'text-primary-600 dark:text-primary-400',
+  info: 'text-blue-500 dark:text-blue-400',
   success: 'text-green-600 dark:text-green-400',
   warning: 'text-amber-600 dark:text-amber-400',
   danger: 'text-red-600 dark:text-red-400',

@@ -53,10 +53,21 @@ interface HeaderNotification {
 export default function Header() {
   const pathname = usePathname();
   const t = useTranslations('navigation');
+  const tc = useTranslations('common');
   const { theme, toggleTheme } = useTheme();
   const { isCollapsed } = useSidebar();
   const { logout, user } = useAuth();
   const { config } = useLayout();
+
+  // Derive display name and initials from user context
+  const displayName = user?.fullName || user?.username || t('user');
+  const userInitials = (() => {
+    const name = user?.fullName || user?.username || '';
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  })();
 
   const handleLogout = async () => {
     try {
@@ -188,7 +199,7 @@ export default function Header() {
         {/* Search Bar */}
         <div className="hidden md:block w-64 lg:w-80">
           <SearchInput
-            placeholder="Buscar..."
+            placeholder={`${tc('search')}...`}
             inputSize="sm"
             variant="filled"
           />
@@ -209,7 +220,7 @@ export default function Header() {
         <button
           onClick={toggleTheme}
           className="header-icon-btn"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={theme === 'dark' ? tc('switchToLightMode') : tc('switchToDarkMode')}
         >
           {theme === 'dark' ? (
             <SunIcon className="w-5 h-5" />
@@ -238,12 +249,12 @@ export default function Header() {
             <Menu.Items className="absolute right-0 mt-2 w-80 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-elevated border border-gray-200 dark:border-slate-700 focus:outline-none overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Notificações
+                  {t('notifications')}
                 </h3>
               </div>
               
               <div className="max-h-96 overflow-y-auto">
-                {notifications.map((notification) => (
+                {notifications.map((notification: HeaderNotification) => (
                   <Menu.Item key={notification.id}>
                     {({ active }) => (
                       <button
@@ -276,7 +287,7 @@ export default function Header() {
                   href="/notifications"
                   className="text-sm font-medium text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
                 >
-                  Ver todas as notificações
+                  {t('viewAllNotifications')}
                 </a>
               </div>
             </Menu.Items>
@@ -287,10 +298,10 @@ export default function Header() {
         <Menu as="div" className="relative">
           <Menu.Button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-              <span className="text-xs font-bold text-white">AD</span>
+              <span className="text-xs font-bold text-white">{userInitials}</span>
             </div>
             <span className="hidden lg:block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Admin
+              {displayName}
             </span>
           </Menu.Button>
 
@@ -305,7 +316,7 @@ export default function Header() {
           >
             <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-elevated border border-gray-200 dark:border-slate-700 focus:outline-none overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.fullName || user?.username || 'Usuário'}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{displayName}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || ''}</p>
               </div>
 
@@ -321,7 +332,7 @@ export default function Header() {
                       }`}
                     >
                       <UserCircleIcon className="w-5 h-5" />
-                      Meu Perfil
+                      {t('myProfile')}
                     </a>
                   )}
                 </Menu.Item>
@@ -336,7 +347,7 @@ export default function Header() {
                       }`}
                     >
                       <Cog6ToothIcon className="w-5 h-5" />
-                      Configurações
+                      {t('settings')}
                     </a>
                   )}
                 </Menu.Item>
@@ -354,7 +365,7 @@ export default function Header() {
                       }`}
                     >
                       <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                      Sair
+                      {t('logout')}
                     </button>
                   )}
                 </Menu.Item>
