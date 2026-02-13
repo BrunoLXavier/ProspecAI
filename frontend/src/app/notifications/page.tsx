@@ -326,7 +326,6 @@ export default function NotificationsPage() {
               ))
             ) : paginatedNotifications.length === 0 ? (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
-                <InboxIcon className="w-12 h-12 mb-4" />
                 <p>{t('empty')}</p>
               </div>
             ) : (

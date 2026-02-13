@@ -66,9 +66,19 @@ call :setup_env
 
 REM Start services
 call :log Bringing up compose services...
-docker compose up -d >nul 2>&1
+set "COMPOSE_LOG=%~dp0docker_compose_up.log"
+if exist "%COMPOSE_LOG%" del /q "%COMPOSE_LOG%" >nul 2>&1
+docker compose up -d > "%COMPOSE_LOG%" 2>&1
 if !ERRORLEVEL! NEQ 0 (
-  call :log [ERROR] docker compose up failed
+  call :log [ERROR] docker compose up failed; dumping compose log to %COMPOSE_LOG%
+  type "%COMPOSE_LOG%" || echo [WARN] Could not display %COMPOSE_LOG%
+  echo. >> "%COMPOSE_LOG%"
+  echo ===== docker compose ps ===== >> "%COMPOSE_LOG%" 2>&1
+  docker compose ps >> "%COMPOSE_LOG%" 2>&1 || echo [WARN] docker compose ps failed >> "%COMPOSE_LOG%"
+  echo. >> "%COMPOSE_LOG%"
+  echo ===== neo4j logs (tail 200) ===== >> "%COMPOSE_LOG%" 2>&1
+  docker compose logs neo4j --no-color --tail 200 >> "%COMPOSE_LOG%" 2>&1 || echo [WARN] docker compose logs neo4j failed >> "%COMPOSE_LOG%"
+  type "%COMPOSE_LOG%" || echo [WARN] Could not display %COMPOSE_LOG%
   call :cleanup
   exit /b 1
 )
