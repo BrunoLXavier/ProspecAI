@@ -135,6 +135,9 @@ export default function InstituteMembersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['institute-members', instituteId] });
     },
+    onError: (error: any) => {
+      console.error('Failed to add member:', error);
+    },
   });
 
   // Remove member mutation
@@ -144,8 +147,11 @@ export default function InstituteMembersPage() {
         `/api/v1/portfolio/institutes/${instituteId}/members/${memberId}`
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['institute-members', instituteId] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['institute-members', instituteId] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to remove member:', error);
     },
   });
 
@@ -159,6 +165,9 @@ export default function InstituteMembersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['institute-members', instituteId] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to update member role:', error);
     },
   });
 

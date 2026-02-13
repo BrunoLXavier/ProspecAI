@@ -46,13 +46,15 @@ export default function ProfilePage() {
         department: formData.department,
         phone: formData.phone,
       });
+      setIsEditing(false);
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2000);
     } catch (err) {
       console.error('Failed to save profile:', err);
+      // Do NOT show success toast — keep editing mode open so user can retry
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
-    setIsEditing(false);
-    setShowSaved(true);
-    setTimeout(() => setShowSaved(false), 2000);
   };
 
   const handlePasswordChange = async (currentPassword: string, newPassword: string) => {

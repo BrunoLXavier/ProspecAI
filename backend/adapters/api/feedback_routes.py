@@ -370,6 +370,7 @@ async def get_feedback(
     feedback_id: UUID,
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
@@ -379,7 +380,11 @@ async def get_feedback(
     - Regular users can only view their own feedback
     """
     use_case = await _get_use_case(container)
-    is_admin = await _is_admin(container, user_id, tenant_id)
+    # Prefer token-based role check when available (faster, avoids DB lookup)
+    if current_user is not None:
+        is_admin = current_user.is_admin()
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
     
     feedback = await use_case.get_feedback(
         feedback_id=feedback_id,

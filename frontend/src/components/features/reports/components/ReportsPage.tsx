@@ -37,6 +37,9 @@ export default function ReportsPage() {
   const [deleteTarget, setDeleteTarget] = useState<ReportTemplate | null>(null);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
 
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
   const { data: templates = [], isLoading, error } = useReportTemplates();
   const deleteMutation = useDeleteTemplate();
   const generateMutation = useGenerateReport();
@@ -49,17 +52,20 @@ export default function ReportsPage() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleteError(null);
     
     try {
       await deleteMutation.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete template:', error);
+      setDeleteError(error.response?.data?.detail || 'Failed to delete template');
     }
   };
 
   const handleGenerate = async (template: ReportTemplate, format: OutputFormat) => {
     setGeneratingId(template.id);
+    setGenerateError(null);
     
     try {
       const result = await generateMutation.mutateAsync({
@@ -79,8 +85,9 @@ export default function ReportsPage() {
         const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
         downloadReport(blob, getReportFilename(template.name, format));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to generate report:', error);
+      setGenerateError(error.response?.data?.detail || 'Failed to generate report');
     } finally {
       setGeneratingId(null);
     }
@@ -155,6 +162,12 @@ export default function ReportsPage() {
                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           />
         </div>
+
+        {(deleteError || generateError) && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+            {deleteError || generateError}
+          </div>
+        )}
 
         {isLoading ? (
           <div className="flex items-center justify-center py-16">

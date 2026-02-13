@@ -374,6 +374,9 @@ export default function AdminFeedbackPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-feedback-stats'] });
       setSelectedFeedback(null);
     },
+    onError: (error: any) => {
+      console.error('Failed to respond to feedback:', error);
+    },
   });
 
   // Status update mutation
@@ -385,6 +388,9 @@ export default function AdminFeedbackPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-feedback'] });
       queryClient.invalidateQueries({ queryKey: ['admin-feedback-stats'] });
     },
+    onError: (error: any) => {
+      console.error('Failed to update feedback status:', error);
+    },
   });
 
   // Severity update mutation
@@ -395,6 +401,9 @@ export default function AdminFeedbackPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-feedback'] });
       queryClient.invalidateQueries({ queryKey: ['admin-feedback-stats'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to update feedback severity:', error);
     },
   });
 

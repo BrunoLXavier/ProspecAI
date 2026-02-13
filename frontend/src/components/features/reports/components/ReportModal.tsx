@@ -94,6 +94,8 @@ export default function ReportModal({
     setShowDeleteConfirm(false);
   }, [isOpen, template, reset]);
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const saveMutation = useMutation({
     mutationFn: (data: { name: string; description: string }) => {
       const payload = {
@@ -109,17 +111,25 @@ export default function ReportModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['report-templates'] });
+      setSaveError(null);
       reset();
       onClose();
+    },
+    onError: (error: any) => {
+      console.error('Failed to save report template:', error);
+      setSaveError(error.response?.data?.detail || 'Failed to save template');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => apiClient.delete(`/api/v1/reports/templates/${template!.id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['report-templates'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['report-templates'] });
       onClose();
       onDelete?.(template!.id as string);
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete report template:', error);
     },
   });
 
@@ -148,6 +158,11 @@ export default function ReportModal({
   // Tab 1 content: Básico
   const basicTabContent = (
     <div className="space-y-4">
+      {saveError && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+          {saveError}
+        </div>
+      )}
       <FormInput
         label={t('name')}
         placeholder={t('namePlaceholder') || 'Nome do template'}

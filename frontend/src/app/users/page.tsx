@@ -132,8 +132,8 @@ export default function UsersPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiClient.delete(`/api/v1/admin/users/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['users'] });
       state.closeModal();
       setFormError(null);
     },

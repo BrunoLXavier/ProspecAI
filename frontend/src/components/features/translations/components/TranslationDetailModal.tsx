@@ -30,17 +30,20 @@ export default function TranslationDetailModal({ isOpen, onClose, translation, o
   const [editing, setEditing] = useState(false);
   const [values, setValues] = useState<Record<string, string>>(translation?.values || {});
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // keep values in sync when translation prop changes
   useEffect(() => {
     setValues(translation?.values || {});
     setEditing(false);
     setSaving(false);
+    setError(null);
   }, [translation]);
 
   const handleSave = async () => {
     if (!translation) return;
     setSaving(true);
+    setError(null);
     try {
       const localesToUpdate = localesProp && localesProp.length ? localesProp : Object.keys(values);
       for (const locale of localesToUpdate) {
@@ -52,7 +55,8 @@ export default function TranslationDetailModal({ isOpen, onClose, translation, o
       setEditing(false);
       onUpdated?.();
     } catch (err: any) {
-      console.error(err);
+      console.error('Failed to save translation:', err);
+      setError(err.response?.data?.detail || 'Failed to save translation');
     } finally {
       setSaving(false);
     }
@@ -61,12 +65,14 @@ export default function TranslationDetailModal({ isOpen, onClose, translation, o
   const handleDelete = async () => {
     if (!translation) return;
     if (!confirm(`${t('translations.deleteConfirm')} "${translation.path}"?`)) return;
+    setError(null);
     try {
       await apiClient.delete(`/api/v1/translations/${translation.path}`);
       onDeleted?.();
       onClose();
     } catch (err: any) {
-      console.error(err);
+      console.error('Failed to delete translation:', err);
+      setError(err.response?.data?.detail || 'Failed to delete translation');
     }
   };
 
@@ -111,6 +117,11 @@ export default function TranslationDetailModal({ isOpen, onClose, translation, o
       footer={renderFooter()}
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {error && (
+          <div className="md:col-span-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+            {error}
+          </div>
+        )}
         <div className="md:col-span-1">
           <div className="rounded-md p-4 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-gray-600">
             <h4 className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-2">{t('translations.keyPath')}</h4>

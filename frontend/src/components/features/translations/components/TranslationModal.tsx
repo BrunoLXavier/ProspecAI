@@ -41,6 +41,7 @@ export default function TranslationModal({
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Keep values in sync when translation prop changes
   useEffect(() => {
@@ -48,11 +49,13 @@ export default function TranslationModal({
       setValues(translation.values || {});
     }
     setShowDeleteConfirm(false);
+    setError(null);
   }, [isOpen, translation]);
 
   const handleSave = async () => {
     if (!translation) return;
     setSaving(true);
+    setError(null);
     try {
       const localesToUpdate = localesProp && localesProp.length ? localesProp : Object.keys(values);
       for (const locale of localesToUpdate) {
@@ -64,7 +67,8 @@ export default function TranslationModal({
       onUpdated?.();
       onClose();
     } catch (err: any) {
-      console.error(err);
+      console.error('Failed to save translation:', err);
+      setError(err.response?.data?.detail || 'Failed to save translation');
     } finally {
       setSaving(false);
     }
@@ -73,12 +77,14 @@ export default function TranslationModal({
   const handleDelete = async () => {
     if (!translation) return;
     setDeleting(true);
+    setError(null);
     try {
       await apiClient.delete(`/api/v1/translations/${translation.path}`);
       onDeleted?.();
       onClose();
     } catch (err: any) {
-      console.error(err);
+      console.error('Failed to delete translation:', err);
+      setError(err.response?.data?.detail || 'Failed to delete translation');
     } finally {
       setDeleting(false);
     }
@@ -138,6 +144,11 @@ export default function TranslationModal({
         />
 
         {/* Key Path Info */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+            {error}
+          </div>
+        )}
         <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase block mb-1">
             {t('translations.keyPath')}

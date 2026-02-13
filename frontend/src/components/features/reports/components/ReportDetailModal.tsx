@@ -35,10 +35,13 @@ export default function ReportDetailModal({ isOpen, onClose, template, onDeleted
 
   const deleteMutation = useMutation({
     mutationFn: () => apiClient.delete(`/api/v1/reports/templates/${template!.id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['report-templates'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['report-templates'] });
       onDeleted?.(template!.id);
       onClose();
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete report template:', error);
     },
   });
 

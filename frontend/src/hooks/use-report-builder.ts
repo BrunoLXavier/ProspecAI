@@ -107,6 +107,9 @@ export function useCreateTemplate() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['report-templates'] });
     },
+    onError: (error: any) => {
+      console.error('Failed to create report template:', error);
+    },
   });
 }
 
@@ -121,6 +124,9 @@ export function useUpdateTemplate() {
       queryClient.invalidateQueries({ queryKey: ['report-templates'] });
       queryClient.invalidateQueries({ queryKey: ['report-template', variables.id] });
     },
+    onError: (error: any) => {
+      console.error('Failed to update report template:', error);
+    },
   });
 }
 
@@ -131,8 +137,11 @@ export function useDeleteTemplate() {
     mutationFn: async (templateId: string) => {
       await apiClient.delete(`${REPORTS_BASE}/templates/${templateId}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['report-templates'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['report-templates'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete report template:', error);
     },
   });
 }
@@ -167,6 +176,9 @@ export function useGenerateReport() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['report-instances'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to generate report:', error);
     },
   });
 }
@@ -203,8 +215,11 @@ export function useDeleteReportInstance() {
     mutationFn: async (instanceId: string) => {
       await apiClient.delete(`${REPORTS_BASE}/${instanceId}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['report-instances'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['report-instances'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete report instance:', error);
     },
   });
 }

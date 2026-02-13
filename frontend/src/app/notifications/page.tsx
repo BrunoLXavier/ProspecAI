@@ -72,6 +72,9 @@ export default function NotificationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
+    onError: (error: any) => {
+      console.error('Failed to mark notification as read:', error);
+    },
   });
 
   const markAllAsReadMutation = useMutation({
@@ -81,6 +84,9 @@ export default function NotificationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
+    onError: (error: any) => {
+      console.error('Failed to mark all notifications as read:', error);
+    },
   });
 
   const deleteNotificationMutation = useMutation({
@@ -88,8 +94,11 @@ export default function NotificationsPage() {
       await new Promise(resolve => setTimeout(resolve, 200));
       return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['notifications'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete notification:', error);
     },
   });
 

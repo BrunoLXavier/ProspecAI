@@ -39,6 +39,7 @@ export default function ThreadDetailModal({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [hasUnsentAttachments, setHasUnsentAttachments] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleEdit = useCallback(
     (thread: { id: string; subject?: string }) => {
@@ -50,18 +51,21 @@ export default function ThreadDetailModal({
 
   const handleDeleteRequest = useCallback((_threadId: string) => {
     setShowDeleteConfirm(true);
+    setDeleteError(null);
   }, []);
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!threadId) return;
     setDeleting(true);
+    setDeleteError(null);
     try {
       await apiClient.delete(`/api/v1/communications/${threadId}`);
       setShowDeleteConfirm(false);
       onClose();
       onThreadDeleted?.(threadId);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to delete thread:', e);
+      setDeleteError(e.response?.data?.detail || 'Failed to delete thread');
     } finally {
       setDeleting(false);
     }
@@ -103,7 +107,7 @@ export default function ThreadDetailModal({
         onCancel={() => setShowDeleteConfirm(false)}
         onConfirm={handleDeleteConfirm}
         title={t('deleteThread')}
-        description={t('deleteConfirmation')}
+        description={deleteError || t('deleteConfirmation')}
         confirmLabel={t('delete')}
         variant="danger"
         isLoading={deleting}

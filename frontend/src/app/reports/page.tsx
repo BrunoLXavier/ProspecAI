@@ -129,12 +129,16 @@ export default function ReportsPage() {
       if ((report as any).id) {
         await apiClient.delete(`/api/v1/reports/${(report as any).id}`);
       }
-    } catch (err) {
-      console.warn('Delete failed on backend', err);
+      setSelectedReport(null);
+      setIsDetailOpen(false);
+      state.refetch();
+    } catch (err: any) {
+      console.error('Failed to delete report:', err);
+      // Still close and refetch so user sees the item is still there
+      setSelectedReport(null);
+      setIsDetailOpen(false);
+      state.refetch();
     }
-    setSelectedReport(null);
-    setIsDetailOpen(false);
-    state.refetch();
   };
 
   return (

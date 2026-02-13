@@ -58,11 +58,18 @@ export default function ReportFormModal({ isOpen, onClose, initial }: ReportForm
     setFormats(initial && initial.output_formats ? (Array.isArray(initial.output_formats) ? initial.output_formats : (initial.output_formats as string).split(',').map(s => s.trim()).filter(Boolean)) : ['html','pdf']);
   }, [initial, reset]);
 
+  const [formError, setFormError] = useState<string | null>(null);
+
   const createMutation = useMutation({
     mutationFn: (data: any) => apiClient.post('/api/v1/reports/templates', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['report-templates'] });
+      setFormError(null);
       onClose();
+    },
+    onError: (error: any) => {
+      console.error('Failed to create report template:', error);
+      setFormError(error.response?.data?.detail || 'Failed to create template');
     },
   });
 
@@ -70,7 +77,12 @@ export default function ReportFormModal({ isOpen, onClose, initial }: ReportForm
     mutationFn: ({ id, data }: any) => apiClient.put(`/api/v1/reports/templates/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['report-templates'] });
+      setFormError(null);
       onClose();
+    },
+    onError: (error: any) => {
+      console.error('Failed to update report template:', error);
+      setFormError(error.response?.data?.detail || 'Failed to update template');
     },
   });
 
@@ -123,6 +135,11 @@ export default function ReportFormModal({ isOpen, onClose, initial }: ReportForm
     >
       {canCreate ? (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {formError && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+              {formError}
+            </div>
+          )}
           <FormInput
             label={t('name')}
             required

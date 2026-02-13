@@ -118,14 +118,20 @@ export default function IngestionDetailModal({
       queryClient.invalidateQueries({ queryKey: ['ingestion-jobs'] });
       setIsEditing(false);
     },
+    onError: (error: any) => {
+      console.error('Failed to update ingestion job:', error);
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => apiClient.delete(`/api/v1/ingestion/jobs/${job!.id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ingestion-jobs'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['ingestion-jobs'] });
       onClose();
       onDelete?.(job!.id);
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete ingestion job:', error);
     },
   });
 

@@ -134,6 +134,10 @@ export default function ReportBuilderPage() {
     }
   });
 
+  // Save / Generate state
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
   // Mutations
   const createMutation = useCreateTemplate();
   const updateMutation = useUpdateTemplate();
@@ -187,6 +191,7 @@ export default function ReportBuilderPage() {
 
   const handleSave = async () => {
     if (!isTemplateValid) return;
+    setSaveError(null);
 
     const payload = {
       name: templateName,
@@ -206,13 +211,15 @@ export default function ReportBuilderPage() {
         await createMutation.mutateAsync(payload);
       }
       router.push('/reports');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save template:', error);
+      setSaveError(error.response?.data?.detail || 'Failed to save template');
     }
   };
 
   const handleGenerate = async (format: OutputFormat) => {
     if (!editId && !isTemplateValid) return;
+    setGenerateError(null);
 
     try {
       // If we have a saved template, use it
@@ -233,8 +240,9 @@ export default function ReportBuilderPage() {
           newWindow.document.write(html);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to generate report:', error);
+      setGenerateError(error.response?.data?.detail || 'Failed to generate report');
     }
   };
 
@@ -371,6 +379,11 @@ export default function ReportBuilderPage() {
 
           {currentStep === 'save' && (
             <div className="space-y-6">
+              {(saveError || generateError) && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+                  {saveError || generateError}
+                </div>
+              )}
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
