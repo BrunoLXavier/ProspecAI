@@ -28,15 +28,28 @@ export function toCamelCase(str: string): string {
 // ─── Deep Object Transformers ────────────────────────────────────────────────
 
 /**
+ * Fields whose *values* contain domain-data keys (e.g. nav item IDs)
+ * that must NOT be transformed. The field name itself IS transformed,
+ * but child object keys inside these fields are preserved as-is.
+ */
+const VALUE_KEY_PRESERVE_FIELDS = new Set([
+  'nav_parent_map', 'navParentMap',
+  'visible_nav_items_by_role', 'visibleNavItemsByRole',
+  'dashboard_widgets_by_role', 'dashboardWidgetsByRole',
+]);
+
+/**
  * Recursively transform all keys of an object/array using a key transform function.
  * Handles nested objects, arrays, null, and primitives safely.
+ * Keys listed in VALUE_KEY_PRESERVE_FIELDS will have their name transformed but
+ * their child keys preserved verbatim (to protect domain-data IDs like nav item names).
  */
-function deepTransformKeys<T>(data: T, transformFn: (key: string) => string): T {
+function deepTransformKeys<T>(data: T, transformFn: (key: string) => string, preserveChildKeys = false): T {
   if (data === null || data === undefined) return data;
   if (typeof data !== 'object') return data;
 
   if (Array.isArray(data)) {
-    return data.map((item) => deepTransformKeys(item, transformFn)) as T;
+    return data.map((item) => deepTransformKeys(item, transformFn, preserveChildKeys)) as T;
   }
 
   if (data instanceof Date || data instanceof File || data instanceof Blob || data instanceof FormData) {
@@ -45,7 +58,18 @@ function deepTransformKeys<T>(data: T, transformFn: (key: string) => string): T 
 
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-    result[transformFn(key)] = deepTransformKeys(value, transformFn);
+    const newKey = preserveChildKeys ? key : transformFn(key);
+    // If this field's values contain domain-data keys, preserve child keys
+    if (VALUE_KEY_PRESERVE_FIELDS.has(key) && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      // Only transform the field name, keep inner keys as-is (just recurse values, not keys)
+      const preserved: Record<string, unknown> = {};
+      for (const [innerKey, innerVal] of Object.entries(value as Record<string, unknown>)) {
+        preserved[innerKey] = innerVal;
+      }
+      result[newKey] = preserved;
+    } else {
+      result[newKey] = deepTransformKeys(value, transformFn, preserveChildKeys);
+    }
   }
   return result as T;
 }

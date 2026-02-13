@@ -5,8 +5,7 @@
  */
 'use client';
 
-import { Fragment, useState, useEffect } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import { useState, useEffect } from 'react';
 import {
   XMarkIcon,
   DocumentTextIcon,
@@ -24,6 +23,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/api-client';
+import BaseModal from '@/components/features/shared/ui/BaseModal';
 
 interface IngestionJob {
   id: string;
@@ -177,63 +177,58 @@ export default function IngestionDetailModal({
     return `${diffMins}m ${diffSecs}s`;
   };
 
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        {/* Backdrop */}
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
-        </Transition.Child>
+  // Build footer based on mode
+  const renderFooter = () => {
+    if (isEditing) return null; // Edit mode has its own form buttons
+    return (
+      <div className="flex justify-between">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center gap-2"
+          >
+            <TrashIcon className="w-4 h-4" />
+            {tCommon('delete')}
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2"
+          >
+            <PencilIcon className="w-4 h-4" />
+            {tCommon('edit')}
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+          >
+            {tCommon('close')}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
-        {/* Modal Container */}
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-xl transition-all">
-                {/* Header */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg bg-${statusConfig.color}-100 dark:bg-${statusConfig.color}-900/30`}>
-                        <StatusIcon className={`w-6 h-6 text-${statusConfig.color}-600 dark:text-${statusConfig.color}-400 ${isInProgress ? 'animate-spin' : ''}`} />
-                      </div>
-                      <div>
-                        <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {isEditing ? t('titleEdit') : job.name}
-                        </Dialog.Title>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          ID: {job.id}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={onClose}
-                      className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition"
-                    >
-                      <XMarkIcon className="w-5 h-5" />
-                    </button>
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditing ? t('titleEdit') : job.name}
+      subtitle={`ID: ${job.id}`}
+      icon={
+        <StatusIcon className={`w-6 h-6 text-${statusConfig.color}-600 dark:text-${statusConfig.color}-400 ${isInProgress ? 'animate-spin' : ''}`} />
+      }
+      size="2xl"
+      noContentScroll={false}
+      footer={renderFooter()}
+    >
                   </div>
                 </div>
 
                 {/* Delete Confirmation */}
                 {showDeleteConfirm && (
-                  <div className="mx-6 mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <p className="text-red-700 dark:text-red-400 mb-3">
                       {t('deleteConfirmation')}
                     </p>
@@ -257,7 +252,7 @@ export default function IngestionDetailModal({
 
                 {/* Content */}
                 {isEditing ? (
-                  <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     {/* Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -322,7 +317,7 @@ export default function IngestionDetailModal({
                     )}
                   </form>
                 ) : (
-                  <div className="p-6 space-y-6">
+                  <div className="space-y-6">
                     {/* Status and Type Row */}
                     <div className="flex items-center gap-4 flex-wrap">
                       <span className={`px-3 py-1 text-sm font-medium rounded-full bg-${statusConfig.color}-100 dark:bg-${statusConfig.color}-900/30 text-${statusConfig.color}-700 dark:text-${statusConfig.color}-300`}>
@@ -465,41 +460,6 @@ export default function IngestionDetailModal({
                     </div>
                   </div>
                 )}
-
-                {/* Footer - View Mode Only */}
-                {!isEditing && (
-                  <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-between">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition flex items-center gap-2"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                        {tCommon('delete')}
-                      </button>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2"
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                        {tCommon('edit')}
-                      </button>
-                      <button
-                        onClick={onClose}
-                        className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-                      >
-                        {tCommon('close')}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+    </BaseModal>
   );
 }

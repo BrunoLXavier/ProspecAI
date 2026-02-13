@@ -197,6 +197,39 @@ class FeedbackRepository:
         
         return self._to_entity(model)
     
+    async def update_severity(
+        self,
+        feedback_id: UUID,
+        tenant_id: UUID,
+        new_severity: FeedbackSeverity,
+        updated_by: UUID,
+    ) -> Optional[Feedback]:
+        """
+        Update feedback severity/priority.
+        """
+        stmt = select(FeedbackModel).where(
+            and_(
+                FeedbackModel.id == feedback_id,
+                FeedbackModel.tenant_id == tenant_id,
+                FeedbackModel.deleted_at.is_(None)
+            )
+        )
+        
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        
+        if not model:
+            return None
+        
+        model.severity = new_severity.value
+        model.updated_by = updated_by
+        model.updated_at = datetime.utcnow()
+        
+        await self.session.commit()
+        await self.session.refresh(model)
+        
+        return self._to_entity(model)
+    
     async def add_response(
         self,
         feedback_id: UUID,

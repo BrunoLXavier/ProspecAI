@@ -1,7 +1,54 @@
 # ProspecAI - Implementation History
 
 **Última atualização:** 12 de Fevereiro de 2026  
-**Status:** ✅ Phase 14 — Feedback Screenshot: Instant Capture (Complete)
+**Status:** ✅ Phase 15 — Multi-workstream: Feedback, Layout Settings, Communications, i18n (Complete)
+
+---
+
+## 2026-02-12 - Phase 15: Feedback Page Overhaul, Layout Settings Fix, Communications CRUD Modals, i18n Source Scanning
+
+### Summary:
+Four parallel workstreams implemented: (A) Complete feedback admin page overhaul with Heroicons, severity editing, and i18n; (B) Layout settings save bug fix for camelCase nav item IDs; (C) ThreadDetailModal for communications Board/Timeline/Table views; (D) Source-code scanning in validate-i18n.js.
+
+### A. Feedback Page (/feedback) — 6 changes
+1. **Emoji→Heroicon replacement**: Replaced all emoji-based type/status/severity indicators with Heroicons (BugAntIcon, LightBulbIcon, PaintBrushIcon, HandRaisedIcon, BoltIcon, WrenchScrewdriverIcon, DocumentTextIcon).
+2. **Missing `improvement` type**: Added to `FEEDBACK_TYPE_ICONS` map + i18n key `feedback.types.improvement`.
+3. **Priority/severity editing**: Added clickable pill buttons in FeedbackDetailModal → PATCH `/api/v1/feedback/{id}/severity` backend endpoint (route + use_case + repository).
+4. **Screenshot error fallback**: Added `onError` handler with PhotoIcon + "Screenshot unavailable" text.
+5. **PlusIcon + module fix**: Changed PencilSquareIcon → PlusIcon on header button; `module="proposals"` → `module="feedback"` in ConfigurableStatisticsBar.
+6. **All labels i18n**: Replaced hardcoded Portuguese strings with `t()` calls across all 4 views (list, board, timeline, table).
+
+### B. Layout Settings Save Bug — Root Cause Fix
+- **Root cause**: `deepTransformKeys` in case-transform.ts recursively converted ALL keys including domain-data keys inside `nav_parent_map` (e.g., `reportTemplates` → `report_templates`), corrupting submenu persistence.
+- **Fix**: Added `VALUE_KEY_PRESERVE_FIELDS` Set to `deepTransformKeys` — field names are still transformed but child keys inside these fields are preserved verbatim.
+- **Backend**: Changed `model_dump(exclude_none=True)` → `model_dump(exclude_unset=True)` for proper partial update semantics.
+
+### C. Communications CRUD Modals — ThreadDetailModal
+1. **Created** `ThreadDetailModal.tsx` — wraps ThreadView in BaseModal with edit/delete capabilities and ConfirmModal for delete confirmation.
+2. **Added** `onThreadSelect` prop to CommunicationsBoard, CommunicationsTable, CommunicationsTimeline.
+3. **Wired** page-level `selectedThreadId` state + ThreadDetailModal rendering in communications/page.tsx.
+4. **Exported** ThreadDetailModal from barrel index.
+
+### D. i18n Source-Code Scanning
+- **Added** `scanSourceForMissingKeys()` function to `validate-i18n.js` — walks all `.ts`/`.tsx` files, extracts `useTranslations('namespace')` + `t('key')` calls, checks against pt-BR.json.
+- **Reports** missing keys during Docker build (step 7/8 in Dockerfile).
+- First run found 577 pre-existing missing keys across the codebase.
+
+### Files changed:
+- **`frontend/src/app/feedback/page.tsx`**: Complete overhaul — icons, constants, modal, mutations, views, i18n
+- **`backend/adapters/api/feedback_routes.py`**: Added FeedbackSeverityUpdateRequest + PATCH /{id}/severity endpoint
+- **`backend/use_cases/manage_feedback_use_case.py`**: Added update_severity() method
+- **`backend/adapters/repositories/feedback_repository.py`**: Added update_severity() method
+- **`frontend/src/lib/case-transform.ts`**: VALUE_KEY_PRESERVE_FIELDS + deepTransformKeys preserveChildKeys param
+- **`backend/services/layout_service.py`**: exclude_none → exclude_unset (x2)
+- **`frontend/src/components/features/communications/components/ThreadDetailModal.tsx`**: New file
+- **`frontend/src/components/features/communications/components/CommunicationsBoard.tsx`**: Added onThreadSelect prop + click handler
+- **`frontend/src/components/features/communications/components/CommunicationsTable.tsx`**: Added onThreadSelect prop + onRowClick
+- **`frontend/src/components/features/communications/components/CommunicationsTimeline.tsx`**: Added onThreadSelect prop + onClick on items
+- **`frontend/src/components/features/communications/index.ts`**: Exported ThreadDetailModal
+- **`frontend/src/app/communications/page.tsx`**: Added selectedThreadId state, ThreadDetailModal, useAuth, refreshKey
+- **`frontend/scripts/validate-i18n.js`**: Added source-code scanning phase (walkDir + scanSourceForMissingKeys)
+- **`frontend/src/locales/pt-BR.json`**: Added feedback.types.improvement, feedback.admin.* (7 keys), feedback.send, communications.threadDetail
 
 ---
 

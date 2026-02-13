@@ -27,25 +27,7 @@ import apiClient from '@/lib/api-client';
 import ThreadView from './ThreadView';
 import CreateThreadModal from './CreateThreadModal';
 import EmailIngestionConfig from './EmailIngestionConfig';
-
-interface Thread {
-  id: string;
-  subject?: string;
-  preview?: string;
-  last_message_at?: string;
-  linked_entity_type?: string;
-  linked_entity_id?: string;
-  is_auto_created?: boolean;
-  auto_created_confirmed?: boolean;
-  participant_count?: number;
-  created_at?: string;
-}
-
-interface Participant {
-  id: string;
-  name: string;
-  email?: string;
-}
+import { Thread, Participant } from '../types';
 
 interface Props {
   items?: Thread[];

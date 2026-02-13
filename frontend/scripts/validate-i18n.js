@@ -217,6 +217,94 @@ async function checkBackendAvailable() {
 }
 
 // ────────────────────────────────────────────────────────────
+// Source-Code Scanning — find t() calls and verify keys exist
+// ────────────────────────────────────────────────────────────
+
+const glob = require('path');
+
+/**
+ * Recursively list all files matching extensions under a directory.
+ */
+function walkDir(dir, exts, results = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      // Skip node_modules, .next, etc.
+      if (['node_modules', '.next', 'dist', 'build', 'coverage'].includes(entry.name)) continue;
+      walkDir(full, exts, results);
+    } else if (exts.some((ext) => entry.name.endsWith(ext))) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+/**
+ * Scan source files for useTranslations() namespaces and t() key usages.
+ * Returns an array of { file, namespace, key, fullKey } objects for keys
+ * NOT found in the primary locale JSON.
+ */
+function scanSourceForMissingKeys(primaryLocale) {
+  const srcDir = path.resolve(__dirname, '..', 'src');
+  if (!fs.existsSync(srcDir)) {
+    console.warn('⚠️  src/ directory not found, skipping source scan');
+    return [];
+  }
+
+  const files = walkDir(srcDir, ['.ts', '.tsx', '.js', '.jsx']);
+  // Regex to extract namespace from useTranslations('namespace') or useTranslations("namespace")
+  const nsRegex = /useTranslations\(\s*['"`]([^'"`]+)['"`]\s*\)/g;
+  // Regex to extract key from t('key'), t("key"), t(`key`) — only static string literals
+  const tCallRegex = /\bt\(\s*['"`]([^'"`\n${}]+)['"`]/g;
+
+  const missing = [];
+  let totalKeysChecked = 0;
+
+  for (const filePath of files) {
+    let content;
+    try {
+      content = fs.readFileSync(filePath, 'utf-8');
+    } catch {
+      continue;
+    }
+
+    // Find all namespaces declared in this file
+    const namespaces = [];
+    let nsMatch;
+    while ((nsMatch = nsRegex.exec(content)) !== null) {
+      namespaces.push(nsMatch[1]);
+    }
+    nsRegex.lastIndex = 0;
+
+    if (namespaces.length === 0) continue;
+
+    // Find all t() calls
+    const keys = [];
+    let tMatch;
+    while ((tMatch = tCallRegex.exec(content)) !== null) {
+      keys.push(tMatch[1]);
+    }
+    tCallRegex.lastIndex = 0;
+
+    if (keys.length === 0) continue;
+
+    // For each namespace × key, check if it exists in primary locale
+    for (const ns of namespaces) {
+      for (const key of keys) {
+        const fullKey = `${ns}.${key}`;
+        totalKeysChecked++;
+        if (getByPath(primaryLocale, fullKey) === undefined) {
+          const relPath = path.relative(path.resolve(__dirname, '..'), filePath).replace(/\\/g, '/');
+          missing.push({ file: relPath, namespace: ns, key, fullKey });
+        }
+      }
+    }
+  }
+
+  return { missing, totalKeysChecked, totalFiles: files.length };
+}
+
+// ────────────────────────────────────────────────────────────
 // Main
 // ────────────────────────────────────────────────────────────
 
@@ -237,6 +325,24 @@ async function main() {
   const primary = locales[PRIMARY_LOCALE];
   const primaryPaths = collectPaths(primary);
   console.log(`\n🔑  Primary (${PRIMARY_LOCALE}): ${primaryPaths.length} keys\n`);
+
+  // ── Phase: Source-code scanning ──────────────────────────
+  console.log('─── Source-Code Scan ───');
+  const { missing: missingKeys, totalKeysChecked, totalFiles } = scanSourceForMissingKeys(primary);
+  console.log(`📂  Scanned ${totalFiles} source files, checked ${totalKeysChecked} t() references`);
+  if (missingKeys.length > 0) {
+    // Deduplicate by fullKey
+    const unique = [...new Map(missingKeys.map((m) => [m.fullKey, m])).values()];
+    console.log(`⚠️   ${unique.length} key(s) used in source but missing from ${PRIMARY_LOCALE}.json:`);
+    const MAX_SHOW = 30;
+    unique.slice(0, MAX_SHOW).forEach((m) => {
+      console.log(`     ❌  ${m.fullKey}  (${m.file})`);
+    });
+    if (unique.length > MAX_SHOW) console.log(`     ... and ${unique.length - MAX_SHOW} more`);
+  } else {
+    console.log('✅  All t() keys found in locale files');
+  }
+  console.log('');
 
   let apiAvailable = false;
   if (USE_API) {
@@ -350,6 +456,13 @@ async function main() {
     console.log('   Add entries to scripts/i18n-dicts/pt-en.json and pt-es.json to fix.');
   } else {
     console.log('\n✅  All locale files are in sync and translated!');
+  }
+
+  // Report source-code scan results again at the end
+  if (missingKeys.length > 0) {
+    const uniqueCount = new Set(missingKeys.map((m) => m.fullKey)).size;
+    console.log(`\n⚠️  ${uniqueCount} i18n key(s) referenced in source code but missing from locale files.`);
+    console.log('   Add them to src/locales/pt-BR.json to resolve.');
   }
 }
 

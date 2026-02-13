@@ -16,4 +16,5 @@ export { default as MessageComposer } from './components/MessageComposer';
 export { default as RecordingPreview } from './components/RecordingPreview';
 export { default as RichTextEditor } from './components/RichTextEditor';
 export { default as ThreadView } from './components/ThreadView';
+export { default as ThreadDetailModal } from './components/ThreadDetailModal';
 export { default as TranscriptionReportModal } from './components/TranscriptionReportModal';

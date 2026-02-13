@@ -19,6 +19,15 @@ import {
   StarIcon,
   UserIcon,
   CalendarIcon,
+  PlusIcon,
+  BugAntIcon,
+  LightBulbIcon,
+  PaintBrushIcon,
+  HandRaisedIcon,
+  BoltIcon,
+  WrenchScrewdriverIcon,
+  DocumentTextIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline';
 import PageHeader from '@/components/features/shared/ui/PageHeader';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
@@ -81,31 +90,37 @@ interface FeedbackStatistics {
 // Constants
 // =============================================================================
 
-const FEEDBACK_TYPES: Record<string, { label: string; emoji: string }> = {
-  bug_report: { label: 'Bug / Erro', emoji: '🐛' },
-  feature_request: { label: 'Sugestão', emoji: '💡' },
-  ui_feedback: { label: 'Interface', emoji: '🎨' },
-  usability: { label: 'Usabilidade', emoji: '👆' },
-  performance: { label: 'Performance', emoji: '⚡' },
-  other: { label: 'Outro', emoji: '📝' },
+// Feedback type → icon mapping (Heroicons instead of emojis for consistent rendering)
+const FEEDBACK_TYPE_ICONS: Record<string, { icon: React.ComponentType<any>; color: string }> = {
+  bug_report:      { icon: BugAntIcon,               color: 'text-red-500' },
+  feature_request: { icon: LightBulbIcon,             color: 'text-yellow-500' },
+  ui_feedback:     { icon: PaintBrushIcon,             color: 'text-purple-500' },
+  usability:       { icon: HandRaisedIcon,             color: 'text-blue-500' },
+  performance:     { icon: BoltIcon,                   color: 'text-orange-500' },
+  improvement:     { icon: WrenchScrewdriverIcon,      color: 'text-teal-500' },
+  other:           { icon: DocumentTextIcon,            color: 'text-gray-500' },
 };
 
-const SEVERITY_LABELS: Record<string, { label: string; color: string }> = {
-  critical: { label: 'Crítico', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
-  high: { label: 'Alto', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' },
-  medium: { label: 'Médio', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
-  low: { label: 'Baixo', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+const SEVERITY_COLORS: Record<string, string> = {
+  critical: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+  high: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+  low: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
 };
 
-const STATUS_LABELS: Record<string, { label: string; color: string; icon: any }> = {
-  open: { label: 'Aberto', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300', icon: ExclamationCircleIcon },
-  in_review: { label: 'Em análise', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', icon: EyeIcon },
-  acknowledged: { label: 'Reconhecido', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300', icon: CheckCircleIcon },
-  in_progress: { label: 'Em progresso', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300', icon: ArrowPathIcon },
-  resolved: { label: 'Resolvido', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', icon: CheckCircleIcon },
-  closed: { label: 'Fechado', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300', icon: XMarkIcon },
-  wont_fix: { label: 'Não será corrigido', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300', icon: XMarkIcon },
+const STATUS_ICONS: Record<string, { icon: React.ComponentType<any>; color: string }> = {
+  open:         { icon: ExclamationCircleIcon, color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+  in_review:    { icon: EyeIcon,               color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
+  acknowledged: { icon: CheckCircleIcon,        color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300' },
+  in_progress:  { icon: ArrowPathIcon,          color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
+  resolved:     { icon: CheckCircleIcon,        color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+  closed:       { icon: XMarkIcon,              color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+  wont_fix:     { icon: XMarkIcon,              color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
 };
+
+const ALL_SEVERITY_KEYS = ['critical', 'high', 'medium', 'low'] as const;
+const ALL_FEEDBACK_TYPES = ['bug_report', 'feature_request', 'ui_feedback', 'usability', 'performance', 'improvement', 'other'] as const;
+const ALL_STATUS_KEYS = Object.keys(STATUS_ICONS);
 
 // =============================================================================
 // Feedback Detail Modal
@@ -115,16 +130,19 @@ function FeedbackDetailModal({
   onClose,
   onRespond,
   onUpdateStatus,
+  onUpdateSeverity,
   onDelete,
 }: {
   feedback: Feedback;
   onClose: () => void;
   onRespond: (response: string) => void;
   onUpdateStatus: (status: string) => void;
+  onUpdateSeverity: (severity: string) => void;
   onDelete?: () => void;
 }) {
   const [response, setResponse] = useState(feedback.response || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [screenshotError, setScreenshotError] = useState(false);
   const t = useTranslations();
 
   const handleSubmitResponse = async () => {
@@ -134,89 +152,128 @@ function FeedbackDetailModal({
     setIsSubmitting(false);
   };
 
-  const typeInfo = FEEDBACK_TYPES[feedback.feedback_type] || { emoji: '📝' };
-  const severityInfo = SEVERITY_LABELS[feedback.severity] || SEVERITY_LABELS.medium;
-  const statusInfo = STATUS_LABELS[feedback.status] || STATUS_LABELS.open;
-  const StatusIcon = statusInfo.icon;
+  const typeIconInfo = FEEDBACK_TYPE_ICONS[feedback.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+  const TypeIcon = typeIconInfo.icon;
+  const severityColor = SEVERITY_COLORS[feedback.severity] || SEVERITY_COLORS.medium;
+  const statusIconInfo = STATUS_ICONS[feedback.status] || STATUS_ICONS.open;
+  const StatusIcon = statusIconInfo.icon;
 
   return (
     <BaseModal
       isOpen={true}
       onClose={onClose}
-      title={String(t(`feedback.types.${String(feedback.feedback_type)}`) || feedback.feedback_type || '')}
+      title={String(t(`feedback.types.${String(feedback.feedback_type)}`) || feedback.feedback_type || t('feedback.types.other'))}
+      icon={<TypeIcon className={`h-6 w-6 ${typeIconInfo.color}`} />}
       size="lg"
       showCloseButton={true}
     >
-      <div className="p-0">
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] space-y-6">
-          <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${statusInfo.color}`}>
-              <StatusIcon className="h-4 w-4" />
-              {statusInfo.label}
-            </span>
-            <span className={`px-3 py-1 rounded-full text-sm ${severityInfo.color}`}>{String(t('feedback.admin.priority') || 'Priority')}: {String(t(`feedback.severity.${String(feedback.severity)}`) || '')}</span>
-          </div>
+      <div className="space-y-6">
+        {/* Status + Severity badges */}
+        <div className="flex items-center gap-3">
+          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${statusIconInfo.color}`}>
+            <StatusIcon className="h-4 w-4" />
+            {String(t(`feedback.status.${String(feedback.status)}`) || feedback.status)}
+          </span>
+          <span className={`px-3 py-1 rounded-full text-sm ${severityColor}`}>
+            {String(t('feedback.admin.priority') || 'Priority')}: {String(t(`feedback.severity.${String(feedback.severity)}`) || feedback.severity)}
+          </span>
+        </div>
 
+        {/* Page URL */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.page')}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg break-all">{feedback.page_url}</p>
+        </div>
+
+        {/* User Comment */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.userComment')}</h3>
+          <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg whitespace-pre-wrap">{feedback.description}</p>
+        </div>
+
+        {/* Screenshot with error fallback */}
+        {(feedback.annotation_image_url || feedback.screenshot_url) && (
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.page')}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg break-all">{feedback.page_url}</p>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.userComment')}</h3>
-            <p className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg whitespace-pre-wrap">{feedback.description}</p>
-          </div>
-
-          {(feedback.annotation_image_url || feedback.screenshot_url) && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('feedback.admin.screenshot')}</h3>
-              <div className="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden">
-                <img src={feedback.annotation_image_url || feedback.screenshot_url || ''} alt="Screenshot do feedback" className="w-full" />
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('feedback.admin.screenshot')}</h3>
+            {screenshotError ? (
+              <div className="flex items-center justify-center gap-2 py-8 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700">
+                <PhotoIcon className="h-8 w-8 text-gray-400" />
+                <span className="text-sm text-gray-500 dark:text-gray-400">{t('feedback.admin.screenshotUnavailable') || 'Screenshot unavailable'}</span>
               </div>
-            </div>
-          )}
-
-          {feedback.response && (
-            <div className="border-l-4 border-primary-500 pl-4">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.previousResponse')}</h3>
-              <p className="text-gray-600 dark:text-gray-400">{feedback.response}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('feedback.admin.respondedAt')}: {feedback.responded_at ? new Date(feedback.responded_at).toLocaleString() : 'N/A'}</p>
-            </div>
-          )}
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{feedback.response ? t('feedback.admin.updateResponse') : t('feedback.admin.addResponse')}</h3>
-            <textarea value={response} onChange={(e) => setResponse(e.target.value)} placeholder={t('feedback.admin.responsePlaceholder')} rows={4} maxLength={2000} className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none" />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{response.length}/2000 {t('common.chars')}</p>
+            ) : (
+              <div className="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden">
+                <img
+                  src={feedback.annotation_image_url || feedback.screenshot_url || ''}
+                  alt={t('feedback.admin.screenshot')}
+                  className="w-full"
+                  onError={() => setScreenshotError(true)}
+                />
+              </div>
+            )}
           </div>
+        )}
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('feedback.admin.updateStatus')}</h3>
-            <div className="flex flex-wrap gap-2">
-              {['in_review', 'in_progress', 'resolved', 'wont_fix'].map((status) => {
-                const info = STATUS_LABELS[status];
-                const Icon = info.icon;
-                return (
-                  <button key={status} onClick={() => onUpdateStatus(status)} disabled={feedback.status === status} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${feedback.status === status ? 'bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}`}>
-                    <Icon className="h-4 w-4" />
-                    {String(t(`feedback.status.${String(status)}`) || info.label || '')}
-                  </button>
-                );
-              })}
-            </div>
+        {/* Previous Response */}
+        {feedback.response && (
+          <div className="border-l-4 border-primary-500 pl-4">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.previousResponse')}</h3>
+            <p className="text-gray-600 dark:text-gray-400">{feedback.response}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('feedback.admin.respondedAt')}: {feedback.responded_at ? new Date(feedback.responded_at).toLocaleString() : 'N/A'}</p>
+          </div>
+        )}
+
+        {/* Response textarea */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{feedback.response ? t('feedback.admin.updateResponse') : t('feedback.admin.addResponse')}</h3>
+          <textarea value={response} onChange={(e) => setResponse(e.target.value)} placeholder={t('feedback.admin.responsePlaceholder')} rows={4} maxLength={2000} className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none" />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{response.length}/2000 {t('common.chars')}</p>
+        </div>
+
+        {/* Update Priority */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('feedback.admin.updatePriority') || 'Update Priority'}</h3>
+          <div className="flex flex-wrap gap-2">
+            {ALL_SEVERITY_KEYS.map((sev) => (
+              <button
+                key={sev}
+                onClick={() => onUpdateSeverity(sev)}
+                disabled={feedback.severity === sev}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${feedback.severity === sev ? `${SEVERITY_COLORS[sev]} font-semibold ring-2 ring-offset-1 ring-current cursor-default` : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}`}
+              >
+                {String(t(`feedback.severity.${sev}`) || sev)}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex justify-between gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
-          <div>
-            {onDelete && (
-              <button onClick={() => { if (confirm(String(t('feedback.admin.confirmDelete') || 'Confirm delete?'))) onDelete(); }} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">{t('feedback.admin.delete') || 'Deletar'}</button>
-            )}
+        {/* Update Status */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('feedback.admin.updateStatus')}</h3>
+          <div className="flex flex-wrap gap-2">
+            {['in_review', 'in_progress', 'resolved', 'wont_fix'].map((status) => {
+              const info = STATUS_ICONS[status];
+              const Icon = info.icon;
+              return (
+                <button key={status} onClick={() => onUpdateStatus(status)} disabled={feedback.status === status} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${feedback.status === status ? 'bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}`}>
+                  <Icon className="h-4 w-4" />
+                  {String(t(`feedback.status.${String(status)}`) || status)}
+                </button>
+              );
+            })}
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">{t('modal.close')}</button>
-            <button onClick={handleSubmitResponse} disabled={!response.trim() || isSubmitting} className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{isSubmitting ? t('feedback.admin.sending') : t('feedback.admin.sendResponse')}</button>
-          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-between gap-3 pt-4 mt-4 border-t border-gray-200 dark:border-slate-700">
+        <div>
+          {onDelete && (
+            <button onClick={() => { if (confirm(String(t('feedback.admin.confirmDelete') || 'Confirm delete?'))) onDelete(); }} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">{t('feedback.admin.delete') || 'Delete'}</button>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">{t('modal.close')}</button>
+          <button onClick={handleSubmitResponse} disabled={!response.trim() || isSubmitting} className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{isSubmitting ? t('feedback.admin.sending') : t('feedback.admin.sendResponse')}</button>
         </div>
       </div>
     </BaseModal>
@@ -291,6 +348,17 @@ export default function AdminFeedbackPage() {
     },
   });
 
+  // Severity update mutation
+  const severityMutation = useMutation({
+    mutationFn: async ({ feedbackId, severity }: { feedbackId: string; severity: string }) => {
+      await apiClient.patch(`/api/v1/feedback/${feedbackId}/severity`, { severity });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-feedback'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-feedback-stats'] });
+    },
+  });
+
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async ({ feedbackId }: { feedbackId: string }) => {
@@ -315,6 +383,13 @@ export default function AdminFeedbackPage() {
     await statusMutation.mutateAsync({ feedbackId: selectedFeedback.id, status });
     setSelectedFeedback((prev) => prev ? { ...prev, status } : null);
   }, [selectedFeedback, statusMutation]);
+
+  // Handle severity update
+  const handleUpdateSeverity = useCallback(async (severity: string) => {
+    if (!selectedFeedback) return;
+    await severityMutation.mutateAsync({ feedbackId: selectedFeedback.id, severity });
+    setSelectedFeedback((prev) => prev ? { ...prev, severity } : null);
+  }, [selectedFeedback, severityMutation]);
 
   // Handle delete
   const handleDelete = useCallback(async () => {
@@ -357,35 +432,35 @@ export default function AdminFeedbackPage() {
   const filterFields: FilterField[] = [
     {
       key: 'search',
-      label: 'Buscar',
+      label: t('feedback.admin.search') || 'Search',
       type: 'text',
-      placeholder: 'Buscar feedbacks...'
+      placeholder: t('feedback.admin.searchPlaceholder') || 'Search feedbacks...'
     },
     {
       key: 'status',
-      label: 'Status',
+      label: t('feedback.admin.filterStatus') || 'Status',
       type: 'select',
-      options: Object.entries(STATUS_LABELS).map(([value, info]) => ({
+      options: ALL_STATUS_KEYS.map((value) => ({
         value,
-        label: info.label,
+        label: String(t(`feedback.status.${value}`) || value),
       })),
     },
     {
       key: 'feedback_type',
-      label: 'Tipo',
+      label: t('feedback.admin.filterType') || 'Type',
       type: 'select',
-      options: Object.entries(FEEDBACK_TYPES).map(([value, info]) => ({
+      options: ALL_FEEDBACK_TYPES.map((value) => ({
         value,
-        label: `${info.emoji} ${info.label}`,
+        label: String(t(`feedback.types.${value}`) || value),
       })),
     },
     {
       key: 'severity',
-      label: 'Prioridade',
+      label: t('feedback.admin.filterPriority') || 'Priority',
       type: 'select',
-      options: Object.entries(SEVERITY_LABELS).map(([value, info]) => ({
+      options: ALL_SEVERITY_KEYS.map((value) => ({
         value,
-        label: info.label,
+        label: String(t(`feedback.severity.${value}`) || value),
       })),
     },
   ];
@@ -394,18 +469,18 @@ export default function AdminFeedbackPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Feedback dos Usuários"
-        subtitle="Revise e responda aos feedbacks enviados pelos usuários"
+        title={t('feedback.admin.title') || 'User Feedback'}
+        subtitle={t('feedback.admin.subtitle') || 'Review and respond to user feedback'}
         viewToggle={true}
         viewMode={viewMode}
         onViewChange={(m) => setViewMode(m)}
         action={(
           <button
             onClick={() => openFeedback()}
-            title={t('feedback.send') || 'Enviar feedback'}
+            title={t('feedback.send') || 'Send feedback'}
             className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
           >
-            <PencilSquareIcon className="h-5 w-5" />
+            <PlusIcon className="h-5 w-5" />
           </button>
         )}
       />
@@ -414,7 +489,7 @@ export default function AdminFeedbackPage() {
       <FeedbackModal />
 
       {/* Configurable Statistics Bar - use same component as other pages */}
-      <ConfigurableStatisticsBar module="proposals" data={feedbackData?.items || []} />
+      <ConfigurableStatisticsBar module="feedback" data={feedbackData?.items || []} />
 
       {/* Actions Bar removed - refresh now available via other controls */}
 
@@ -435,24 +510,27 @@ export default function AdminFeedbackPage() {
       ) : filteredFeedbacks.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
           <ChatBubbleBottomCenterTextIcon className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">Nenhum feedback encontrado</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('feedback.admin.noFeedback') || 'No feedback found'}</p>
         </div>
       ) : viewMode === 'board' ? (
         /* Board View - Grouped by status */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Object.entries(STATUS_LABELS).map(([statusKey, statusInfo]) => (
+          {Object.entries(STATUS_ICONS).map(([statusKey, statusInfo]) => {
+            const SIcon = statusInfo.icon;
+            return (
             <div key={statusKey} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                <statusInfo.icon className="h-4 w-4" />
-                {statusInfo.label}
+                <SIcon className="h-4 w-4" />
+                {String(t(`feedback.status.${statusKey}`) || statusKey)}
                 <span className="ml-auto text-xs bg-gray-200 dark:bg-slate-600 px-2 py-0.5 rounded-full">
                   {filteredFeedbacks.filter((f: Feedback) => f.status === statusKey).length}
                 </span>
               </h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {filteredFeedbacks.filter((f: Feedback) => f.status === statusKey).map((fb: Feedback) => {
-                  const typeInfo = FEEDBACK_TYPES[fb.feedback_type] || { label: fb.feedback_type, emoji: '📝' };
-                  const severityInfo = SEVERITY_LABELS[fb.severity] || SEVERITY_LABELS.medium;
+                  const typeIconInf = FEEDBACK_TYPE_ICONS[fb.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+                  const FbTypeIcon = typeIconInf.icon;
+                  const sevColor = SEVERITY_COLORS[fb.severity] || SEVERITY_COLORS.medium;
                   return (
                     <div
                       key={fb.id}
@@ -460,33 +538,34 @@ export default function AdminFeedbackPage() {
                       onClick={() => setSelectedFeedback(fb)}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <span className="text-lg">{typeInfo.emoji}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${severityInfo.color}`}>{severityInfo.label}</span>
+                        <FbTypeIcon className={`h-5 w-5 ${typeIconInf.color}`} />
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${sevColor}`}>{String(t(`feedback.severity.${fb.severity}`) || fb.severity)}</span>
                       </div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{typeInfo.label}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{String(t(`feedback.types.${fb.feedback_type}`) || fb.feedback_type)}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">{fb.description}</p>
                       <div className="text-xs text-gray-400 dark:text-gray-500">{new Date(fb.created_at).toLocaleDateString('pt-BR')}</div>
                     </div>
                   );
                 })}
                 {filteredFeedbacks.filter((f: Feedback) => f.status === statusKey).length === 0 && (
-                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">Nenhum item</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">{t('feedback.admin.noItems') || 'No items'}</p>
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : viewMode === 'timeline' ? (
         /* Timeline View */
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
           <TimelineView
             items={paginatedFeedbacks.map((fb: Feedback): TimelineItem => {
-              const typeInfo = FEEDBACK_TYPES[fb.feedback_type] || { label: fb.feedback_type, emoji: '📝' };
-              const severityInfo = SEVERITY_LABELS[fb.severity] || SEVERITY_LABELS.medium;
-              const statusInfo = STATUS_LABELS[fb.status] || STATUS_LABELS.open;
-              const StatusIcon = statusInfo.icon;
+              const typeIconInf = FEEDBACK_TYPE_ICONS[fb.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+              const TlTypeIcon = typeIconInf.icon;
+              const sevColor = SEVERITY_COLORS[fb.severity] || SEVERITY_COLORS.medium;
+              const stIconInf = STATUS_ICONS[fb.status] || STATUS_ICONS.open;
+              const TlStatusIcon = stIconInf.icon;
 
-              // Map feedback status to timeline status
               const timelineStatus: TimelineItem['status'] =
                 fb.status === 'resolved' || fb.status === 'closed' ? 'success' :
                 fb.status === 'in_progress' || fb.status === 'in_review' ? 'pending' :
@@ -495,14 +574,14 @@ export default function AdminFeedbackPage() {
 
               return {
                 id: fb.id,
-                title: `${typeInfo.emoji} ${typeInfo.label}`,
+                title: String(t(`feedback.types.${fb.feedback_type}`) || fb.feedback_type),
                 description: fb.description,
                 date: fb.created_at,
                 status: timelineStatus,
-                icon: <StatusIcon className="h-4 w-4" />,
+                icon: <TlStatusIcon className="h-4 w-4" />,
                 tags: [
-                  { label: severityInfo.label, color: severityInfo.color },
-                  { label: statusInfo.label, color: statusInfo.color },
+                  { label: String(t(`feedback.severity.${fb.severity}`) || fb.severity), color: sevColor },
+                  { label: String(t(`feedback.status.${fb.status}`) || fb.status), color: stIconInf.color },
                 ],
                 onClick: () => setSelectedFeedback(fb),
                 footer: fb.page_url ? (
@@ -513,7 +592,7 @@ export default function AdminFeedbackPage() {
             size="md"
             showConnectors={true}
             animated={true}
-            emptyMessage="Nenhum feedback encontrado"
+            emptyMessage={t('feedback.admin.noFeedback') || 'No feedback found'}
           />
           <Pagination
             currentPage={currentPage}
@@ -545,25 +624,26 @@ export default function AdminFeedbackPage() {
               },
               {
                 key: 'feedback_type',
-                header: 'Tipo',
+                header: t('feedback.admin.filterType') || 'Type',
                 accessor: 'feedback_type',
                 render: (value, row) => {
-                  const typeInfo = FEEDBACK_TYPES[row.feedback_type] || { label: row.feedback_type, emoji: '📝' };
+                  const typeIconInf = FEEDBACK_TYPE_ICONS[row.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+                  const TbTypeIcon = typeIconInf.icon;
                   return (
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{typeInfo.emoji}</span>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{typeInfo.label}</span>
+                      <TbTypeIcon className={`h-5 w-5 ${typeIconInf.color}`} />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{String(t(`feedback.types.${row.feedback_type}`) || row.feedback_type)}</span>
                     </div>
                   );
                 },
               },
               {
                 key: 'severity',
-                header: 'Prioridade',
+                header: t('feedback.admin.filterPriority') || 'Priority',
                 accessor: 'severity',
                 render: (value, row) => {
-                  const severityInfo = SEVERITY_LABELS[row.severity] || SEVERITY_LABELS.medium;
-                  return <span className={`px-2 py-1 rounded-full text-xs ${severityInfo.color}`}>{severityInfo.label}</span>;
+                  const sevColor = SEVERITY_COLORS[row.severity] || SEVERITY_COLORS.medium;
+                  return <span className={`px-2 py-1 rounded-full text-xs ${sevColor}`}>{String(t(`feedback.severity.${row.severity}`) || row.severity)}</span>;
                 },
               },
               {
@@ -590,12 +670,12 @@ export default function AdminFeedbackPage() {
                 header: 'Status',
                 accessor: 'status',
                 render: (value, row) => {
-                  const statusInfo = STATUS_LABELS[row.status] || STATUS_LABELS.open;
-                  const StatusIcon = statusInfo.icon;
+                  const stIconInf = STATUS_ICONS[row.status] || STATUS_ICONS.open;
+                  const TbStatusIcon = stIconInf.icon;
                   return (
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${statusInfo.color}`}>
-                      <StatusIcon className="h-3 w-3" />
-                      {statusInfo.label}
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${stIconInf.color}`}>
+                      <TbStatusIcon className="h-3 w-3" />
+                      {String(t(`feedback.status.${row.status}`) || row.status)}
                     </span>
                   );
                 },
@@ -603,7 +683,7 @@ export default function AdminFeedbackPage() {
             ] as TableColumn<Feedback>[]}
             hoverable={true}
             striped={true}
-            emptyMessage="Nenhum feedback encontrado"
+            emptyMessage={t('feedback.admin.noFeedback') || 'No feedback found'}
           />
           <Pagination
             currentPage={currentPage}
@@ -618,10 +698,11 @@ export default function AdminFeedbackPage() {
         /* List View - Card-based layout (default) */
         <div className="space-y-4">
           {paginatedFeedbacks.map((feedback: Feedback) => {
-            const typeInfo = FEEDBACK_TYPES[feedback.feedback_type] || { label: feedback.feedback_type, emoji: '📝' };
-            const severityInfo = SEVERITY_LABELS[feedback.severity] || SEVERITY_LABELS.medium;
-            const statusInfo = STATUS_LABELS[feedback.status] || STATUS_LABELS.open;
-            const StatusIcon = statusInfo.icon;
+            const typeIconInf = FEEDBACK_TYPE_ICONS[feedback.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+            const ListTypeIcon = typeIconInf.icon;
+            const sevColor = SEVERITY_COLORS[feedback.severity] || SEVERITY_COLORS.medium;
+            const stIconInf = STATUS_ICONS[feedback.status] || STATUS_ICONS.open;
+            const ListStatusIcon = stIconInf.icon;
 
             return (
               <div
@@ -632,20 +713,20 @@ export default function AdminFeedbackPage() {
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                   {/* Icon and type */}
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-2xl">
-                      {typeInfo.emoji}
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                      <ListTypeIcon className={`h-6 w-6 ${typeIconInf.color}`} />
                     </div>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                      <h3 className="text-base font-medium text-gray-900 dark:text-white">{typeInfo.label}</h3>
+                      <h3 className="text-base font-medium text-gray-900 dark:text-white">{String(t(`feedback.types.${feedback.feedback_type}`) || feedback.feedback_type)}</h3>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`px-2 py-1 rounded-full text-xs ${severityInfo.color}`}>{severityInfo.label}</span>
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${statusInfo.color}`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {statusInfo.label}
+                        <span className={`px-2 py-1 rounded-full text-xs ${sevColor}`}>{String(t(`feedback.severity.${feedback.severity}`) || feedback.severity)}</span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${stIconInf.color}`}>
+                          <ListStatusIcon className="h-3 w-3" />
+                          {String(t(`feedback.status.${feedback.status}`) || feedback.status)}
                         </span>
                       </div>
                     </div>
@@ -665,7 +746,7 @@ export default function AdminFeedbackPage() {
                     {feedback.response && (
                       <div className="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700">
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          <span className="font-medium text-primary-600 dark:text-primary-400">Resposta:</span> {feedback.response.slice(0, 100)}...
+                          <span className="font-medium text-primary-600 dark:text-primary-400">{t('feedback.admin.responseLabel') || 'Response'}:</span> {feedback.response.slice(0, 100)}...
                         </p>
                       </div>
                     )}
@@ -703,6 +784,7 @@ export default function AdminFeedbackPage() {
           onClose={() => setSelectedFeedback(null)}
           onRespond={handleRespond}
           onUpdateStatus={handleUpdateStatus}
+          onUpdateSeverity={handleUpdateSeverity}
           onDelete={handleDelete}
         />
       )}

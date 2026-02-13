@@ -57,6 +57,11 @@ class FeedbackStatusUpdateRequest(BaseModel):
     status: FeedbackStatus
 
 
+class FeedbackSeverityUpdateRequest(BaseModel):
+    """Request model for updating feedback severity/priority"""
+    severity: FeedbackSeverity
+
+
 class FeedbackResponseRequest(BaseModel):
     """Request model for admin response to feedback"""
     response: str = Field(..., min_length=1, max_length=2000)
@@ -409,6 +414,37 @@ async def update_feedback_status(
         feedback_id=feedback_id,
         tenant_id=_ensure_uuid(tenant_id),
         new_status=request.status,
+        updated_by=user_id,
+    )
+    
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    
+    return _feedback_to_response(feedback)
+
+
+@router.patch("/{feedback_id}/severity", summary="Update feedback severity", response_model=FeedbackResponse)
+async def update_feedback_severity(
+    feedback_id: UUID,
+    request: FeedbackSeverityUpdateRequest,
+    container=Depends(get_di_container),
+    user_id: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
+):
+    """
+    Update feedback severity/priority (admin only).
+    """
+    is_admin = await _is_admin(container, user_id, tenant_id)
+    
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    use_case = await _get_use_case(container)
+    
+    feedback = await use_case.update_severity(
+        feedback_id=feedback_id,
+        tenant_id=_ensure_uuid(tenant_id),
+        new_severity=request.severity,
         updated_by=user_id,
     )
     

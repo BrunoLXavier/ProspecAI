@@ -7,32 +7,24 @@ import { useTranslations } from 'next-intl';
 import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 import apiClient from '@/lib/api-client';
 import { ExclamationTriangleIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
+import { Thread, CommunicationsFilters } from '../types';
 
-interface Thread {
-  id: string;
-  subject?: string;
-  preview?: string;
-  last_message_at?: string;
-  created_at?: string;
-  linked_entity_type?: string | null;
-  linked_entity_id?: string | null;
-  participant_count?: number;
-  is_auto_created?: boolean;
-  auto_created_confirmed?: boolean;
+interface CommunicationsTableProps {
+  filters?: CommunicationsFilters;
+  onThreadSelect?: (threadId: string) => void;
 }
 
-export default function CommunicationsTable() {
+export default function CommunicationsTable({ filters, onThreadSelect }: CommunicationsTableProps) {
   const t = useTranslations('communications');
   const [items, setItems] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
-  const load = async (opts?: { page?: number; page_size?: number; search?: string; sort?: string | null; direction?: string | null }) => {
+  const load = async (opts?: { page?: number; page_size?: number; sort?: string | null; direction?: string | null }) => {
     setLoading(true);
     try {
       const page = opts?.page ?? currentPage;
@@ -42,7 +34,8 @@ export default function CommunicationsTable() {
       const params: Record<string, any> = {};
       params.skip = skip;
       params.limit = ps;
-      if (opts?.search ?? search) params.search = opts?.search ?? search;
+      if (filters?.search) params.search = filters.search;
+      if (filters?.showAutoCreated !== undefined) params.include_auto_unconfirmed = String(filters.showAutoCreated);
       if (opts?.sort) params.sort = opts.sort;
       if (opts?.direction) params.direction = opts.direction;
 
@@ -58,8 +51,8 @@ export default function CommunicationsTable() {
   };
 
   useEffect(() => {
-    load({ page: currentPage, page_size: pageSize, search, sort: sortColumn ?? undefined, direction: sortDirection ?? undefined });
-  }, [currentPage, pageSize, search, sortColumn, sortDirection]);
+    load({ page: currentPage, page_size: pageSize, sort: sortColumn ?? undefined, direction: sortDirection ?? undefined });
+  }, [currentPage, pageSize, sortColumn, sortDirection, filters?.search, filters?.showAutoCreated]);
 
   const columns: TableColumn<Thread>[] = useMemo(() => [
     {
@@ -122,10 +115,7 @@ export default function CommunicationsTable() {
       data={items}
       columns={columns}
       getRowKey={(r) => r.id}
-      searchable={true}
-      searchPlaceholder={t('searchThreads') || 'Search...'}
-      searchValue={search}
-      onSearchChange={(v) => { setSearch( v ); setCurrentPage(1); }}
+      searchable={false}
       paginated={true}
       pageSize={pageSize}
       currentPage={currentPage}
@@ -141,7 +131,7 @@ export default function CommunicationsTable() {
       stickyHeader={true}
       hoverable={true}
       striped={true}
-      onRowClick={(r) => { /* could open thread detail */ }}
+      onRowClick={(r) => onThreadSelect?.(r.id)}
     />
   );
 }

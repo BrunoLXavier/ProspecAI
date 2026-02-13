@@ -218,6 +218,34 @@ class ManageFeedbackUseCase:
         
         return feedback
     
+    async def update_severity(
+        self,
+        feedback_id: UUID,
+        tenant_id: UUID,
+        new_severity: FeedbackSeverity,
+        updated_by: UUID,
+    ) -> Optional[Feedback]:
+        """
+        Update feedback severity/priority (admin only).
+        """
+        feedback = await self.feedback_repository.update_severity(
+            feedback_id=feedback_id,
+            tenant_id=tenant_id,
+            new_severity=new_severity,
+            updated_by=updated_by,
+        )
+        
+        if feedback and self.audit_service:
+            await self.audit_service.log_update(
+                entity_type="Feedback",
+                entity_id=feedback_id,
+                user_id=updated_by,
+                tenant_id=tenant_id,
+                changes={"severity": new_severity.value}
+            )
+        
+        return feedback
+    
     async def respond_to_feedback(
         self,
         feedback_id: UUID,

@@ -4,7 +4,7 @@
 
 import { useState, useMemo, Fragment } from 'react';
 import { useTranslations } from 'next-intl';
-import { Tab, Dialog, Transition, Switch } from '@headlessui/react';
+import { Tab, Switch } from '@headlessui/react';
 import {
 	ShieldCheckIcon,
 	ChartBarIcon,

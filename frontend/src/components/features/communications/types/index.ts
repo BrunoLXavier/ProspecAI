@@ -5,6 +5,45 @@
  * Implements RF-08: Communications and collaboration
  */
 
+// ─── Thread ──────────────────────────────────────────────────────────────────
+
+/**
+ * Canonical Thread interface shared by all communications views.
+ * Previously duplicated in CommunicationsList, Board, Table, Timeline.
+ */
+export interface Thread {
+  id: string;
+  subject?: string;
+  preview?: string;
+  last_message_at?: string;
+  created_at?: string;
+  linked_entity_type?: string | null;
+  linked_entity_id?: string | null;
+  is_auto_created?: boolean;
+  auto_created_confirmed?: boolean;
+  participant_count?: number;
+}
+
+/**
+ * Participant in a communication thread
+ */
+export interface Participant {
+  id: string;
+  name: string;
+  email?: string;
+}
+
+/**
+ * Common filter parameters for communications views.
+ * All views should accept these to stay in sync with the page‑level FilterPanel.
+ */
+export interface CommunicationsFilters {
+  search?: string;
+  showAutoCreated?: boolean;
+}
+
+// ─── Recording ───────────────────────────────────────────────────────────────
+
 /**
  * Recording types available in the message composer
  * - microphone: Audio recording from microphone only

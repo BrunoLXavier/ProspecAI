@@ -8,18 +8,14 @@ import TimelineView, { TimelineItem } from '@/components/features/shared/ui/Time
 import Pagination from '@/components/features/shared/ui/Pagination';
 import apiClient from '@/lib/api-client';
 import { ExclamationTriangleIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
+import { Thread, CommunicationsFilters } from '../types';
 
-interface Thread {
-  id: string;
-  subject?: string;
-  preview?: string;
-  last_message_at?: string;
-  created_at?: string;
-  is_auto_created?: boolean;
-  auto_created_confirmed?: boolean;
+interface CommunicationsTimelineProps {
+  filters?: CommunicationsFilters;
+  onThreadSelect?: (threadId: string) => void;
 }
 
-export default function CommunicationsTimeline() {
+export default function CommunicationsTimeline({ filters, onThreadSelect }: CommunicationsTimelineProps) {
   const t = useTranslations('communications');
   const [items, setItems] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,6 +28,8 @@ export default function CommunicationsTimeline() {
     try {
       const skip = Math.max(0, (page - 1) * page_size);
       const params: Record<string, any> = { skip, limit: page_size };
+      if (filters?.search) params.search = filters.search;
+      if (filters?.showAutoCreated !== undefined) params.include_auto_unconfirmed = String(filters.showAutoCreated);
       const res: any = await apiClient.get('/api/v1/communications', params);
       setItems(res.items || []);
       setTotalItems(res.total ?? (Array.isArray(res) ? res.length : 0));
@@ -45,7 +43,7 @@ export default function CommunicationsTimeline() {
 
   useEffect(() => {
     load(currentPage, pageSize);
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, filters?.search, filters?.showAutoCreated]);
 
   const timelineItems: TimelineItem[] = useMemo(() => {
     const sorted = [...items].sort((a, b) => {
@@ -61,6 +59,7 @@ export default function CommunicationsTimeline() {
       date: titem.last_message_at || titem.created_at || new Date().toISOString(),
       status: titem.is_auto_created && !titem.auto_created_confirmed ? 'warning' : 'default',
       icon: titem.is_auto_created ? <ExclamationTriangleIcon className="w-4 h-4" /> : <CheckBadgeIcon className="w-4 h-4" />,
+      onClick: () => onThreadSelect?.(titem.id),
     }));
   }, [items, t]);
 

@@ -169,7 +169,7 @@
         "admin"
       ],
       "nav_parent_map": {
-        "ingestion": null,
+        "ingestion": "piiAnalysis",
         "proposals": "crm",
         "communications": "crm",
         "opportunities": "funding",
@@ -179,7 +179,8 @@
         "notifications": "dashboard",
         "activity": "dashboard",
         "reports": null,
-        "settings": null
+        "settings": null,
+        "reportTemplates": "reports"
       },
       "visible_nav_items_by_role": {
         "admin": [
@@ -241,11 +242,11 @@
         "proposals",
         "communications",
         "admin",
+        "feedbackManagement",
         "reports",
         "reportTemplates",
         "piiAnalysis",
         "ingestion",
-        "feedbackManagement",
         "settings"
       ],
       "dashboard_widgets": [
@@ -258,10 +259,20 @@
         "analytics-kpis",
         "analytics-pipeline",
         "analytics-trl",
-        "analytics-trends",
-        "analytics-export"
+        "analytics-trends"
       ],
-      "dashboard_widget_order": [],
+      "dashboard_widget_order": [
+        "pipeline",
+        "opportunities",
+        "matching",
+        "metrics",
+        "activity",
+        "calendar",
+        "analytics-kpis",
+        "analytics-pipeline",
+        "analytics-trl",
+        "analytics-trends"
+      ],
       "dashboard_widgets_by_role": {
         "admin": [
           "pipeline",
@@ -298,7 +309,7 @@
       "dense_tables": false,
       "animations_enabled": true,
       "compact_mode": false,
-      "color_mode": "light",
+      "color_mode": "dark",
       "appearance": "default",
       "primary_color": "#E30613",
       "secondary_color": "#003366",
@@ -325,7 +336,7 @@
       "modal_overlay_opacity": 0.4,
       "modal_elevation": "medium",
       "created_at": "2026-01-24T23:47:01.598612Z",
-      "updated_at": "2026-02-13T00:08:15.647708Z"
+      "updated_at": "2026-02-13T01:23:35.823674Z"
     },
     {
       "id": "default_default",

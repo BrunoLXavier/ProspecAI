@@ -281,14 +281,14 @@ class LayoutService:
         if layout_index is not None:
             # Update existing
             existing = config["layouts"][layout_index]
-            for key, value in update.model_dump(exclude_none=True).items():
+            for key, value in update.model_dump(exclude_unset=True).items():
                 existing[key] = value
             existing["updated_at"] = now
             config["layouts"][layout_index] = existing
         else:
             # Create new
             new_layout = self._get_default_config(user_id, tenant_id).model_dump()
-            for key, value in update.model_dump(exclude_none=True).items():
+            for key, value in update.model_dump(exclude_unset=True).items():
                 new_layout[key] = value
             new_layout["updated_at"] = now
             config.setdefault("layouts", []).append(new_layout)

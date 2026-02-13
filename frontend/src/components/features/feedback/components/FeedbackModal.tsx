@@ -431,13 +431,12 @@ export default function FeedbackModal() {
       onClose={closeFeedback}
       title={String(t('modal.title') || '')}
       size="3xl"
-      noContentScroll={false}
+      noContentScroll={currentStep === 'annotate'}
       footer={renderFooter()}
-      // add a specific class so screenshot capture can ignore this modal
-      className="feedback-modal max-w-[90vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl"
+      className="feedback-modal"
     >
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[70vh]">
+        <div>
           {/* Step Indicator - hide for success/error/submitting */}
           {!['success', 'error', 'submitting'].includes(currentStep) && (
             <StepIndicator currentStep={currentStep} t={t} />
@@ -632,7 +631,6 @@ export default function FeedbackModal() {
             </div>
           )}
         </div>
-        {/* Footer handled inside content for each step; render a default footer for cancel/close when appropriate */}
       </BaseModal>
   );
 }

@@ -8,16 +8,7 @@ import KanbanBoard, { KanbanColumn } from '@/components/features/shared/ui/Kanba
 import apiClient from '@/lib/api-client';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import Pagination from '@/components/features/shared/ui/Pagination';
-
-interface Thread {
-  id: string;
-  subject?: string;
-  preview?: string;
-  last_message_at?: string;
-  linked_entity_type?: string | null;
-  participant_count?: number;
-  is_auto_created?: boolean;
-}
+import { Thread, CommunicationsFilters } from '../types';
 
 const COLORS = [
   'from-blue-500 to-blue-600',
@@ -27,7 +18,12 @@ const COLORS = [
   'from-pink-500 to-pink-600',
 ];
 
-export default function CommunicationsBoard() {
+interface CommunicationsBoardProps {
+  filters?: CommunicationsFilters;
+  onThreadSelect?: (threadId: string) => void;
+}
+
+export default function CommunicationsBoard({ filters, onThreadSelect }: CommunicationsBoardProps) {
   const t = useTranslations('communications');
   const [items, setItems] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,6 +42,8 @@ export default function CommunicationsBoard() {
       const params: Record<string, any> = { skip, limit: ps };
       if (opts?.sort) params.sort = opts.sort;
       if (opts?.direction) params.direction = opts.direction;
+      if (filters?.search) params.search = filters.search;
+      if (filters?.showAutoCreated !== undefined) params.include_auto_unconfirmed = String(filters.showAutoCreated);
 
       const res: any = await apiClient.get('/api/v1/communications', params);
       setItems(res.items || []);
@@ -60,7 +58,7 @@ export default function CommunicationsBoard() {
 
   useEffect(() => {
     load({ page: currentPage, page_size: pageSize, sort: sortColumn ?? undefined, direction: sortDirection ?? undefined });
-  }, [currentPage, pageSize, sortColumn, sortDirection]);
+  }, [currentPage, pageSize, sortColumn, sortDirection, filters?.search, filters?.showAutoCreated]);
 
   // Group by linked_entity_type, use 'Unlinked' when missing
   const columns = useMemo(() => {
@@ -83,7 +81,10 @@ export default function CommunicationsBoard() {
   }, [items, t]);
 
   const renderItem = (thread: Thread) => (
-    <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+    <div
+      className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700 cursor-pointer hover:ring-2 hover:ring-primary-300 transition"
+      onClick={() => onThreadSelect?.(thread.id)}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

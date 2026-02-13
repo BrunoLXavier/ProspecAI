@@ -598,6 +598,11 @@
     "noSubject": "Sem assunto",
     "noThreads": "Nenhuma conversa encontrada",
     "noWhitelistEmails": "Nenhuma whitelist configurada - todos os emails serão aceitos",
+    "unlinked": "Sem vínculo",
+    "manual": "Manual",
+    "lastMessage": "Última mensagem",
+    "autoConfirmed": "Auto (confirmado)",
+    "autoUnconfirmed": "Auto (não confirmado)",
     "optional": "opcional",
     "participantIdPlaceholder": "Digite o ID do usuário...",
     "participants": "participantes",
@@ -639,6 +644,7 @@
     "supportedBrowsers": "Navegadores compatíveis: Chrome, Edge, Opera",
     "systemAudioNotSupported": "Captura de áudio do sistema disponível apenas em Chrome, Edge e Opera",
     "threads": "Conversas",
+    "threadDetail": "Detalhes da Conversa",
     "title": "Comunicações",
     "to": "Para",
     "transcription": {
@@ -857,6 +863,14 @@
       "title": "Feedback dos Usuários",
       "updateResponse": "Atualizar resposta",
       "updateStatus": "Atualizar status",
+      "updatePriority": "Atualizar prioridade",
+      "screenshotUnavailable": "Screenshot não disponível",
+      "searchPlaceholder": "Buscar feedbacks...",
+      "filterStatus": "Status",
+      "filterType": "Tipo",
+      "filterPriority": "Prioridade",
+      "noItems": "Nenhum item",
+      "responseLabel": "Resposta",
       "userComment": "Comentário do usuário",
       "view": "Visualizar"
     },
@@ -927,6 +941,7 @@
       "low": "Baixa",
       "medium": "Média"
     },
+    "send": "Enviar feedback",
     "start": "Iniciar",
     "startProcessingTitle": "Iniciar processamento",
     "status": {
@@ -953,6 +968,7 @@
     "types": {
       "bug_report": "Bug / Erro",
       "feature_request": "Sugestão",
+      "improvement": "Melhoria",
       "other": "Outro",
       "performance": "Performance",
       "ui_feedback": "Interface",

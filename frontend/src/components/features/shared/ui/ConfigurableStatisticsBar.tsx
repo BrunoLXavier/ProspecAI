@@ -3,11 +3,10 @@
 'use client';
 
 import { useState, useMemo, Fragment, useEffect } from 'react';
-import { Dialog, Transition, Switch } from '@headlessui/react';
+import { Switch } from '@headlessui/react';
 import { useTranslations } from 'next-intl';
 import {
   Cog6ToothIcon,
-  XMarkIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   ChevronLeftIcon,
@@ -15,6 +14,7 @@ import {
   Bars3Icon,
   CheckIcon,
 } from '@heroicons/react/24/outline';
+import BaseModal from './BaseModal';
 import * as Icons from '@heroicons/react/24/outline';
 import {
   StatisticsModule,
@@ -87,49 +87,24 @@ function StatisticsConfigModal({
   const categories = Object.entries(STAT_CATEGORIES) as [StatCategory, typeof STAT_CATEGORIES[StatCategory]][];
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/30 dark:bg-black/50" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-xl transition-all">
-                <div className="flex items-center justify-between mb-6">
-                  <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {t('configureStatistics')}
-                  </Dialog.Title>
-                  <button
-                    onClick={onClose}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition"
-                  >
-                    <XMarkIcon className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                  {t('configureStatisticsDescription')}
-                </p>
-
-                <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('configureStatistics')}
+      subtitle={t('configureStatisticsDescription')}
+      size="2xl"
+      footer={
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+          >
+            {t('done')}
+          </button>
+        </div>
+      }
+    >
+                <div className="space-y-4">
                   {categories.map(([category, info]) => {
                     const stats = statisticsByCategory[category];
                     if (stats.length === 0) return null;
@@ -217,21 +192,7 @@ function StatisticsConfigModal({
                     );
                   })}
                 </div>
-
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-                  >
-                    {t('done')}
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+    </BaseModal>
   );
 }
 
