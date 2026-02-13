@@ -11,7 +11,7 @@ import { useFeedbackStore } from '@/stores/feedback-store';
 import { ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
 import FeedbackModal from './FeedbackModal';
 
-export default function FeedbackButton() {
+export default function FeedbackButton({ compact }: { compact?: boolean }) {
   const t = useTranslations('feedback');
   const { isOpen, openFeedback } = useFeedbackStore();
   
@@ -21,7 +21,10 @@ export default function FeedbackButton() {
       {!isOpen && (
         <button
           onClick={openFeedback}
-          className="feedback-button fixed bottom-6 right-24 w-14 h-14 text-white rounded-full shadow-lg transition-all duration-150 ease-in-out hover:scale-105 hover:shadow-2xl transform-gpu flex items-center justify-center z-40 ring-2 ring-transparent focus:outline-none"
+          className={compact ?
+            "feedback-button inline-flex w-12 h-12 text-white rounded-full shadow-lg transition-all duration-150 ease-in-out hover:scale-105 hover:shadow-2xl transform-gpu items-center justify-center z-40 ring-2 ring-transparent focus:outline-none" :
+            "feedback-button fixed bottom-6 right-24 w-14 h-14 text-white rounded-full shadow-lg transition-all duration-150 ease-in-out hover:scale-105 hover:shadow-2xl transform-gpu flex items-center justify-center z-40 ring-2 ring-transparent focus:outline-none"
+          }
           aria-label={t('button.label')}
           title={t('button.title')}
           data-feedback-ignore

@@ -10,8 +10,7 @@ import { ThemeProvider } from '@/components/features/shared/layout/ThemeProvider
 import { SidebarProvider, useSidebar } from '@/components/features/shared/layout/Sidebar';
 import Sidebar from '@/components/features/shared/layout/Sidebar';
 import Header from '@/components/features/shared/layout/Header';
-import ChatWidget from '@/components/features/shared/messaging/ChatWidget';
-import { FeedbackButton } from '@/components/features/feedback';
+// ChatWidget and FeedbackButton are rendered inside the Sidebar when enabled.
 import { useAuth } from '@/contexts/AuthContext';
 import { LayoutProvider, useLayout } from '@/contexts/LayoutContext';
 import { SafeRender as ErrorBoundary } from '@/components/features/shared/ui'; // temporary
@@ -127,8 +126,7 @@ function LayoutFeatureToggle() {
   const { config } = useLayout();
   return (
     <>
-      {config.ai_chat_enabled && <ChatWidget />}
-      {config.feedback_button_enabled && <FeedbackButton />}
+      {/* Floating global buttons removed: chat and feedback are rendered compactly inside the Sidebar when enabled. */}
     </>
   );
 }

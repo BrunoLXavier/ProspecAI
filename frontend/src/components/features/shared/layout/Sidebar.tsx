@@ -33,6 +33,8 @@ import {
   DocumentDuplicateIcon,
   ChartPieIcon,
 } from '@heroicons/react/24/outline';
+import ChatWidget from '@/components/features/shared/messaging/ChatWidget';
+import FeedbackButton from '@/components/features/feedback/components/FeedbackButton';
 
 // Navigation items configuration
 // Implements RF-06: Sidebar navigation with Administration block for Feedback Management
@@ -383,36 +385,24 @@ export default function Sidebar() {
           </button>
         </div>
       )}
-      {/* User Info Section */}
-      <div className={`
-        p-3 border-t border-white/10
-        ${isCollapsed ? 'flex justify-center' : ''}
-      `}>
-        <Link
-          href="/profile"
-          className={`
-            flex items-center rounded-lg p-2 hover:bg-white/5 cursor-pointer transition-colors
-            ${isCollapsed ? 'justify-center' : 'gap-3'}
-          `}
-        >
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center ring-2 ring-white/20">
-              <span className="text-sm font-bold text-white">AD</span>
+      {/* Bottom action area: compact chat + feedback buttons rendered inside sidebar */}
+      <div className={`p-3 border-t border-white/10 ${isCollapsed ? 'flex justify-center' : ''}`}>
+        {(() => {
+          const showChat = !!config.ai_chat_enabled;
+          const showFeedback = !!config.feedback_button_enabled;
+          if (!showChat && !showFeedback) return null;
+          // compute numeric sidebar width to position chat panel when compact
+          const sidebarWidth = isCollapsed ? 72 : (typeof config.sidebar_width === 'number' ? config.sidebar_width : parseInt(String(config.sidebar_width || '280'), 10));
+          const panelLeft = sidebarWidth + 24; // 24px gap from sidebar
+          return (
+            <div className={`flex items-center ${isCollapsed ? '' : 'justify-between'}`}>
+              <div className="flex gap-3 items-center">
+                {showChat && <ChatWidget compact panelLeft={panelLeft} />}
+                {showFeedback && <FeedbackButton compact />}
+              </div>
             </div>
-            {/* Online Indicator */}
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-secondary-400 border-2 border-secondary-500 rounded-full" />
-          </div>
-          {/* User Details */}
-          <div className={`
-            flex-1 min-w-0
-            transition-all duration-350
-            ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}
-          `}>
-            <p className="text-sm font-medium text-white truncate">Admin User</p>
-            <p className="text-xs text-white/60 truncate">admin@prospecai.com</p>
-          </div>
-        </Link>
+          );
+        })()}
       </div>
     </aside>
   );

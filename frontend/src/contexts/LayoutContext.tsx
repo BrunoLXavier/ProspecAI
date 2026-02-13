@@ -7,6 +7,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
+import { toSnakeCaseKeys } from '@/lib/case-transform';
 import { getStoredUser } from '@/contexts/AuthContext';
 import { DEFAULT_CONFIG, ALL_WIDGET_IDS } from './layout-types';
 import type { LayoutConfig, LayoutContextType, WidgetRoleConfig } from './layout-types';
@@ -46,8 +47,13 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     try {
       const user = getStoredUser();
       const path = user?.id ? `/api/v1/layout?user_id=${user.id}` : '/api/v1/layout';
-      const response = await apiClient.get<{ config: LayoutConfig }>(path);
-      const backendConfig = { ...DEFAULT_CONFIG, ...response.config };
+      const response = await apiClient.get<{ config: any }>(path);
+      // apiClient response interceptor converts backend snake_case -> camelCase.
+      // The frontend code expects snake_case keys in `DEFAULT_CONFIG` and `LayoutConfig`.
+      // Normalize the received config back to snake_case so merging overrides work.
+      const receivedConfig = response?.config || {};
+      const normalized = toSnakeCaseKeys(receivedConfig) as LayoutConfig;
+      const backendConfig = { ...DEFAULT_CONFIG, ...normalized };
       // If the user has an explicit local preference saved under 'theme', prefer it
       // over the backend value so local toggles don't get overridden on reload.
       try {
@@ -475,7 +481,16 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         modal_border_light: config.modal_border_light,
         modal_border_dark: config.modal_border_dark,
         // Navigation hierarchy (parent map)
-        nav_parent_map: config.nav_parent_map,
+        // Sanitize nav_parent_map: only include keys for existing nav items and
+        // normalize undefined -> null so backend receives explicit nulls.
+        nav_parent_map: (function(){
+          try {
+            const map = config.nav_parent_map || {};
+            const allowed = new Set([...(config.nav_order || []), ...(config.visible_nav_items || [])]);
+            const entries = Object.entries(map || {}).filter(([k]) => allowed.has(k)).map(([k,v]) => [k, (v === undefined ? null : v)] as [string, any]);
+            return Object.fromEntries(entries);
+          } catch (e) { return config.nav_parent_map || {}; }
+        })(),
         border_light: (config as any).border_light,
         border_dark: (config as any).border_dark,
         modal_overlay_opacity: config.modal_overlay_opacity,
@@ -498,13 +513,35 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         ai_chat_enabled: config.ai_chat_enabled,
         feedback_button_enabled: config.feedback_button_enabled,
       });
-      // Update local state with authoritative saved config returned by backend
+      // Update local state with authoritative saved config returned by backend.
+      // IMPORTANT: Preserve locally-managed navigation/widget ordering fields
+      // so that a stale or incomplete backend response doesn't overwrite the
+      // user's pending changes.
       try {
-        // backend returns the LayoutConfig object
-        setConfig(prev => ({ ...prev, ...(saved || {}) } as LayoutConfig));
+        // backend returns the LayoutConfig object; normalize keys to snake_case
+        const normalizedSaved = toSnakeCaseKeys(saved || {}) as LayoutConfig;
+
+        // Fields managed via local updateConfig should not be overwritten by the
+        // backend response, because the local state is authoritative during the
+        // editing session.
+        const preservedKeys: (keyof LayoutConfig)[] = [
+          'nav_order',
+          'nav_parent_map',
+          'visible_nav_items',
+          'visible_nav_items_by_role',
+          'dashboard_widgets',
+          'dashboard_widget_order',
+          'dashboard_widgets_by_role',
+        ];
+        const safeMerge = { ...normalizedSaved };
+        for (const key of preservedKeys) {
+          delete (safeMerge as any)[key];
+        }
+
+        setConfig(prev => ({ ...prev, ...safeMerge } as LayoutConfig));
         // debug log for tracing
         // eslint-disable-next-line no-console
-        console.info('[LayoutContext] saveConfig: saved config from backend', saved);
+        console.info('[LayoutContext] saveConfig: saved config from backend', normalizedSaved);
       } catch (e) {
         // ignore update failures
       }

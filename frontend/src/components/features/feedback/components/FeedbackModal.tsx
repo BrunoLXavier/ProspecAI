@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import {
@@ -203,7 +203,7 @@ export default function FeedbackModal() {
   } = useFeedbackStore();
   
   const { capture } = useScreenshotCapture();
-  const [isCapturing, setIsCapturing] = useState(false);
+  const capturingRef = useRef(false);
   
   // Submit mutation
   const submitMutation = useMutation({
@@ -258,10 +258,13 @@ export default function FeedbackModal() {
       try { document.documentElement.setAttribute('data-capture-error', 'unhandledrejection|' + String(ev.reason)); } catch (_) {}
     });
 
-    if (isOpen && currentStep === 'capture' && !screenshotBase64 && !isCapturing) {
-      setIsCapturing(true);
+    if (isOpen && currentStep === 'capture' && !screenshotBase64 && !capturingRef.current) {
+      capturingRef.current = true;
       console.log('[FeedbackModal] Auto-capturing screenshot...');
-      // Small delay to ensure modal is hidden during capture
+
+      // html2canvas's ignoreElements already excludes .feedback-modal,
+      // .feedback-button, [data-feedback-ignore] and #feedback-container,
+      // so we don't need to manually hide/restore DOM elements.
       const timer = setTimeout(async () => {
         try {
           const success = await capture();
@@ -278,15 +281,18 @@ export default function FeedbackModal() {
           setStep('error');
           try { document.documentElement.setAttribute('data-capture-debug', 'exception'); } catch {}
         } finally {
-          setIsCapturing(false);
+          capturingRef.current = false;
         }
-      }, 200);
-      return () => clearTimeout(timer);
+      }, 150);
+      return () => {
+        clearTimeout(timer);
+        capturingRef.current = false;
+      };
     }
     return () => {
       window.removeEventListener('error', onError);
     };
-  }, [isOpen, currentStep, screenshotBase64, capture, isCapturing, setError]);
+  }, [isOpen, currentStep, screenshotBase64, capture, setError]);
   
   // Handle annotation complete
   const handleAnnotationComplete = useCallback((imageBase64: string, paths: any[]) => {

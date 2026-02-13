@@ -6,6 +6,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
@@ -81,7 +82,7 @@ function SourceList({ sources }: { sources: SourceReference[] }) {
   );
 }
 
-export default function ChatWidget() {
+export default function ChatWidget({ compact, panelLeft }: { compact?: boolean; panelLeft?: number }) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -89,6 +90,8 @@ export default function ChatWidget() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties | null>(null);
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const tDashboard = useTranslations('dashboard');
@@ -97,6 +100,38 @@ export default function ChatWidget() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => { if (isOpen) inputRef.current?.focus(); }, [isOpen]);
+
+  // compute panel position when opened to avoid being affected by sidebar transforms
+  useEffect(() => {
+    if (!isOpen) {
+      setPanelStyle(null);
+      return;
+    }
+    // prefer explicit panelLeft prop if provided
+    if (compact && typeof panelLeft === 'number') {
+      setPanelStyle({ position: 'fixed', bottom: '7rem', left: `${panelLeft}px`, right: 'auto' });
+      return;
+    }
+    // otherwise, compute from button bounding rect
+    const btn = buttonRef.current;
+    if (btn && typeof window !== 'undefined') {
+      const rect = btn.getBoundingClientRect();
+      const gap = 12; // gap between button and panel
+      const left = rect.right + gap;
+      const maxRight = window.innerWidth - left;
+      // if there's not enough space to the right, open to the left of the button
+      if (left + 320 > window.innerWidth) {
+        const panelWidth = 384; // ~w-96
+        const altLeft = Math.max(12, rect.left - panelWidth - gap);
+        setPanelStyle({ position: 'fixed', bottom: `${rect.height + 36}px`, left: `${altLeft}px` });
+      } else {
+        setPanelStyle({ position: 'fixed', bottom: `${rect.height + 36}px`, left: `${left}px` });
+      }
+    } else {
+      // fallback to right
+      setPanelStyle({ position: 'fixed', bottom: '7rem', right: '1.5rem' });
+    }
+  }, [isOpen, compact, panelLeft]);
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -125,8 +160,12 @@ export default function ChatWidget() {
   return (
     <>
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="chat-button fixed bottom-6 right-6 w-14 h-14 text-white rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transform-gpu flex items-center justify-center z-40 ring-2 ring-transparent focus:outline-none"
+        className={compact ?
+          "chat-button inline-flex w-12 h-12 text-white rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transform-gpu items-center justify-center z-40 ring-2 ring-transparent focus:outline-none" :
+          "chat-button fixed bottom-6 right-6 w-14 h-14 text-white rounded-full shadow-lg hover:scale-105 hover:shadow-2xl transform-gpu flex items-center justify-center z-40 ring-2 ring-transparent focus:outline-none"
+        }
         aria-label={isOpen ? tCommon('close') : tDashboard('chatbot.open')}
       >
         {isOpen ? (
@@ -144,7 +183,12 @@ export default function ChatWidget() {
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-28 right-6 w-96 h-[500px] bg-white dark:bg-slate-800 rounded-xl shadow-2xl dark:shadow-black/30 flex flex-col z-50 border border-gray-200 dark:border-slate-700">
+        // render panel into document.body to avoid being clipped by sidebar transforms/overflow
+        createPortal(
+          <div
+            className="w-96 h-[500px] bg-white dark:bg-slate-800 rounded-xl shadow-2xl dark:shadow-black/30 flex flex-col border border-gray-200 dark:border-slate-700"
+            style={{ position: 'fixed', zIndex: 9999, ...(panelStyle || { right: '1.5rem', bottom: '7rem' }) }}
+          >
           <div className="flex items-center justify-between px-4 py-3 bg-primary-600 dark:bg-primary-700 text-white rounded-t-xl">
             <div className="flex items-center gap-2"><SparklesIcon className="h-5 w-5" /><span className="font-medium">{tChat('title')}</span></div>
             <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-primary-700 dark:hover:bg-primary-800 rounded" aria-label={tCommon('close')}><XMarkIcon className="h-5 w-5" /></button>
@@ -178,8 +222,10 @@ export default function ChatWidget() {
               <button onClick={handleSend} disabled={!input.trim() || chatMutation.isPending} className="px-3 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"><PaperAirplaneIcon className="h-5 w-5" /></button>
             </div>
           </div>
-        </div>
-      )}
+          </div>,
+          // container
+          typeof document !== 'undefined' ? document.body : (null as any)
+        ) as React.ReactNode)}
     </>
   );
 }

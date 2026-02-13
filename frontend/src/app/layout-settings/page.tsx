@@ -2,7 +2,7 @@
 // Implements RF-07 (layout configuration per user/tenant)
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useLayout, ALL_WIDGET_IDS } from '@/contexts/LayoutContext';
@@ -164,8 +164,17 @@ export default function LayoutPage() {
 
   // ── Effects ───────────────────────────────────────────────────────────
 
+  // Refs to ensure initialization effects only run once after the backend
+  // config has been loaded. This prevents user-triggered config changes
+  // (e.g. moveNavItem, indentNavItem) from re-running the init logic and
+  // overwriting the user's pending changes.
+  const navInitRef = useRef(false);
+  const widgetInitRef = useRef(false);
+
   useEffect(() => {
-    if (!config) return;
+    if (!config || isLoading) return;
+    if (navInitRef.current) return;
+    navInitRef.current = true;
     const savedOrder = (config.nav_order && config.nav_order.length) ? [...config.nav_order] : (config.visible_nav_items && config.visible_nav_items.length ? [...config.visible_nav_items] : []);
     const allAvailable = availableNavItems.map(i => i.id);
     const merged = Array.from(new Set([...(savedOrder || []), ...allAvailable]));
@@ -174,19 +183,21 @@ export default function LayoutPage() {
     if (!visibleNow.includes('settings')) {
       updateConfig('visible_nav_items', [...visibleNow, 'settings']);
     }
-  }, [config]);
+  }, [config, isLoading]);
 
   const orderedAvailableNavItems = (navOrder.length ? navOrder : availableNavItems.map(i => i.id))
     .map(id => availableNavItems.find(x => x.id === id))
     .filter(Boolean) as typeof availableNavItems;
 
   useEffect(() => {
-    if (!config) return;
+    if (!config || isLoading) return;
+    if (widgetInitRef.current) return;
+    widgetInitRef.current = true;
     const savedOrder = (config.dashboard_widget_order && config.dashboard_widget_order.length) ? [...config.dashboard_widget_order] : (config.dashboard_widgets && config.dashboard_widgets.length ? [...config.dashboard_widgets] : []);
     const allAvailable = availableWidgets.map(i => i.id);
     const merged = Array.from(new Set([...(savedOrder || []), ...allAvailable]));
     setWidgetsOrder(merged);
-  }, [config]);
+  }, [config, isLoading]);
 
   const isAdmin = !!user?.roles?.includes('admin');
 
@@ -240,6 +251,9 @@ export default function LayoutPage() {
       setSaving(true);
       setError(null);
       try {
+        // Allow init effects to re-run after reset so the UI reflects the new defaults
+        navInitRef.current = false;
+        widgetInitRef.current = false;
         await resetConfig();
       } catch (err: any) {
         setError(err?.message || 'Failed to reset');
@@ -360,7 +374,9 @@ export default function LayoutPage() {
       if (swap < 0 || swap >= prev.length) return prev;
       const copy = [...prev];
       [copy[idx], copy[swap]] = [copy[swap], copy[idx]];
-      updateConfig('nav_order', copy);
+      // Sync to config outside the updater via microtask to avoid
+      // side-effects inside React state updater callbacks.
+      queueMicrotask(() => updateConfig('nav_order', copy));
       return copy;
     });
   };
@@ -414,7 +430,9 @@ export default function LayoutPage() {
       if (swap < 0 || swap >= prev.length) return prev;
       const copy = [...prev];
       [copy[idx], copy[swap]] = [copy[swap], copy[idx]];
-      updateConfig('dashboard_widget_order', copy);
+      // Sync to config outside the updater via microtask to avoid
+      // side-effects inside React state updater callbacks.
+      queueMicrotask(() => updateConfig('dashboard_widget_order', copy));
       return copy;
     });
   };

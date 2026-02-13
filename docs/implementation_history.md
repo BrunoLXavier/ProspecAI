@@ -1,7 +1,31 @@
 # ProspecAI - Implementation History
 
 **Última atualização:** 12 de Fevereiro de 2026  
-**Status:** ✅ Phase 13 — Cleanup & Docker Rebuild (Complete)
+**Status:** ✅ Phase 14 — Feedback Screenshot: Instant Capture (Complete)
+
+---
+
+## 2026-02-12 - Phase 14: Feedback Screenshot — Instant Capture without Browser Dialog
+
+### Summary:
+Made the "Enviar Feedback" screenshot capture happen immediately using html2canvas (no native browser `getDisplayMedia` dialog). The modal is excluded from the screenshot via `ignoreElements` portal-root detection.
+
+### Root causes fixed:
+1. **`getDisplayMedia` fallback removed** — this was triggering the browser's "Choose what to share" dialog. Removed from both `ScreenshotCapture` component and `useScreenshotCapture` hook.
+2. **html2canvas CSS `color()` crash** — Firefox serializes some computed colors as `color(srgb ...)` which html2canvas v1 cannot parse. Fixed by monkey-patching `window.getComputedStyle` via Proxy to convert `color()`, `oklch()`, `oklab()`, `lab()`, `lch()` to `rgb()`/`rgba()` before html2canvas reads them.
+3. **Auto-capture timer cancelled by re-render** — `setIsCapturing(true)` (useState) triggered a re-render → useEffect cleanup → `clearTimeout(timer)`. Converted to `useRef` to avoid re-render cycle.
+4. **Modal appearing in screenshot** — Added portal-root detection: walks from `[role="dialog"]`/`.feedback-modal` up to the outermost child of `<body>`, then feeds it to `ignoreElements` so the entire Headless UI portal tree (backdrop + dialog) is excluded.
+
+### Files changed:
+- **`frontend/src/components/features/feedback/components/ScreenshotCapture.tsx`**: Removed `getDisplayMedia` fallback; added `patchGetComputedStyle()` with Proxy-based CSS color sanitization; added `html2canvasOptions()` with portal-root `ignoreElements`; shared options between component and hook.
+- **`frontend/src/components/features/feedback/components/FeedbackModal.tsx`**: Removed complex `hideForCapture` DOM manipulation; converted `isCapturing` from `useState` to `useRef`; simplified auto-capture to just call `capture()` with a 150ms delay.
+
+### Verified via Playwright (Firefox):
+- ✅ No native browser dialog appears
+- ✅ Screenshot captured automatically when feedback button is clicked
+- ✅ Modal and feedback button NOT visible in captured screenshot
+- ✅ Flow proceeds to "Marcações" (annotate) step automatically
+- ✅ `data-capture-debug="ok"`, `data-capture-method="html2canvas"`
 
 ---
 
