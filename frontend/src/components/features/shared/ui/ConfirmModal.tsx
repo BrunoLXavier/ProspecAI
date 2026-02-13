@@ -81,7 +81,7 @@ export default function ConfirmModal({
       onClose={onCancel}
       title={resolvedTitle}
       icon={<ExclamationTriangleIcon className="w-6 h-6 text-yellow-500" />}
-      size="md"
+      size="lg"
       footer={footer}
       showCloseButton={false}
     >

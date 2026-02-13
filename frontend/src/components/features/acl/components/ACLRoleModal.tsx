@@ -198,7 +198,7 @@ export default function ACLRoleModal({
       onClose={onClose}
       title={isEditMode ? (t('acl.editRole') || 'Edit Role') : (t('acl.createRole') || 'New Role')}
       icon={<ShieldCheckIcon className="w-6 h-6" />}
-      size="2xl"
+      size="3xl"
       footer={footerContent}
     >
       <form id="acl-role-form" onSubmit={handleSubmit} className="space-y-6">

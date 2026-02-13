@@ -92,7 +92,7 @@ function StatisticsConfigModal({
       onClose={onClose}
       title={t('configureStatistics')}
       subtitle={t('configureStatisticsDescription')}
-      size="2xl"
+      size="3xl"
       footer={
         <div className="flex justify-end">
           <button

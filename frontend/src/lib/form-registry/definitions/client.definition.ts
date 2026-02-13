@@ -24,7 +24,7 @@ export const clientDefinition: EntityFormDefinition<ClientFormData> = registerEn
   instituteScoped: false,
   apiEndpoint: '/api/v1/crm/clients',
   statisticsModule: 'crm',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     name: '',
@@ -39,8 +39,8 @@ export const clientDefinition: EntityFormDefinition<ClientFormData> = registerEn
   },
 
   tabs: [
-    { key: 'basic', nameKey: 'tabBasic', fields: ['cnpj', 'name', 'segment', 'annual_revenue', 'maturity_level'], gridCols: 2 },
-    { key: 'contact', nameKey: 'tabContact', fields: ['contact_name', 'contact_email', 'contact_phone'], gridCols: 2 },
+    { key: 'basic', nameKey: 'tabBasic', fields: ['cnpj', 'name', 'segment', 'annual_revenue', 'maturity_level'], gridCols: 1 },
+    { key: 'contact', nameKey: 'tabContact', fields: ['contact_name', 'contact_email', 'contact_phone'], gridCols: 1 },
     { key: 'notes', nameKey: 'tabNotes', fields: ['notes'], gridCols: 1 },
   ],
 

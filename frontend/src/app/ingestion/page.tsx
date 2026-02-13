@@ -478,35 +478,34 @@ export default function IngestionPage() {
       />
       
       {/* New Job Modal */}
-      {showNewModal && (
-        <NewJobModal
-          jobName={jobName}
-          onJobNameChange={setJobName}
-          jobDescription={jobDescription}
-          onJobDescriptionChange={setJobDescription}
-          uploadingFiles={uploadingFiles}
-          isDragging={isDragging}
-          isCreatingJob={isCreatingJob}
-          error={error}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onFileSelect={handleFileSelect}
-          onRemoveFile={removeFile}
-          onCreateJob={async () => {
-            await handleCreateJob();
-            if (!error) {
-              setShowNewModal(false);
-            }
-          }}
-          onClose={() => {
+      <NewJobModal
+        isOpen={showNewModal}
+        jobName={jobName}
+        onJobNameChange={setJobName}
+        jobDescription={jobDescription}
+        onJobDescriptionChange={setJobDescription}
+        uploadingFiles={uploadingFiles}
+        isDragging={isDragging}
+        isCreatingJob={isCreatingJob}
+        error={error}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onFileSelect={handleFileSelect}
+        onRemoveFile={removeFile}
+        onCreateJob={async () => {
+          await handleCreateJob();
+          if (!error) {
             setShowNewModal(false);
-            setJobName('');
-            setJobDescription('');
-            setUploadingFiles([]);
-          }}
-        />
-      )}
+          }
+        }}
+        onClose={() => {
+          setShowNewModal(false);
+          setJobName('');
+          setJobDescription('');
+          setUploadingFiles([]);
+        }}
+      />
     </div>
   );
 }

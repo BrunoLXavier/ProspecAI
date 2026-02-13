@@ -438,6 +438,7 @@
     "moveRight": "Moveright",
     "no": "No",
     "noItems": "No items",
+    "optional": "optional",
     "noRecordsFound": "No records found",
     "noRecordsOfType": "No records of this type found",
     "noResults": "No results found",
@@ -1225,7 +1226,11 @@
     "title": "Data Ingestion",
     "titleEdit": "Edit Ingestion Job",
     "updateError": "Error updating job. Please try again.",
-    "view": "View"
+    "view": "View",
+    "dragFilesHere": "Drag files here or",
+    "selectFromComputer": "select from computer",
+    "fileFormatsHint": "CSV, XLSX, JSON (max 50MB each)",
+    "selectedFiles": "Selected Files"
   },
   "institutes": {
     "accreditation_hint": "Mark accreditations applicable to the institute.",
@@ -1314,6 +1319,7 @@
     },
     "statsUnavailable": "Statistics unavailable",
     "status": "Status",
+    "status_receita": "Registry status",
     "subtitle": "Manage research institutes and organizational units",
     "tabs": {
       "accreditation": "Accreditations",
@@ -1461,7 +1467,11 @@
     "submit": "Submit",
     "submitting": "Submitting",
     "title": "Title",
-    "viewTitle": "View"
+    "viewTitle": "View",
+    "step": "Step {index}: {name}",
+    "stepOf": "({current}/{total})",
+    "previousStep": "Previous step",
+    "nextStep": "Next step"
   },
   "modules": {
     "crm": "CRM",
@@ -1681,6 +1691,7 @@
     "medium": "Medium",
     "noDetectionsFound": "No detections found",
     "noItems": "No items",
+    "optional": "optional",
     "origin": "Origin",
     "pending": "Pending",
     "piiEntities": "PII entities",
@@ -3410,7 +3421,13 @@
     "deleteConfirm": "Deleteconfirm",
     "keyPath": "Keypath",
     "showing": "Showing",
-    "translationKeys": "Translationkeys"
+    "translationKeys": "Translationkeys",
+    "preview": "Preview",
+    "importOverwriteWarning": "This will overwrite the existing locale file. Review the content below and confirm.",
+    "exportPreviewHint": "Preview exported locale JSON. You can download it from here.",
+    "importing": "Importing...",
+    "overwriteAndImport": "Overwrite and Import",
+    "downloadJson": "Download JSON"
   },
   "trends": {
     "matches": "Matches",
@@ -3533,7 +3550,11 @@
     "pattern": "Invalid format",
     "required": "This field is required",
     "uniqueValue": "This value is already in use",
-    "url": "Enter a valid URL"
+    "url": "Enter a valid URL",
+    "fieldsNeedAttention": "{count} field(s) need attention across {tabs} tab(s)",
+    "error": "error",
+    "errors": "errors",
+    "complete": "Complete"
   },
   "view": "View"
 }

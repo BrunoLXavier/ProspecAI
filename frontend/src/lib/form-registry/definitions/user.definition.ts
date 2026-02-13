@@ -24,7 +24,7 @@ export const userDefinition: EntityFormDefinition<UserFormData> = registerEntity
   instituteScoped: false,
   apiEndpoint: '/api/v1/admin/users',
   statisticsModule: 'users',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     name: '',
@@ -40,13 +40,13 @@ export const userDefinition: EntityFormDefinition<UserFormData> = registerEntity
       key: 'basic',
       nameKey: 'form.basicInfo',
       fields: ['name', 'email', 'role', 'is_active'],
-      gridCols: 2,
+      gridCols: 1,
     },
     {
       key: 'credentials',
       nameKey: 'form.credentials',
       fields: ['password', 'confirm_password'],
-      gridCols: 2,
+      gridCols: 1,
     },
   ],
 

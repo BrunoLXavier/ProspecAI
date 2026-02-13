@@ -118,7 +118,7 @@ export default function ReportFormModal({ isOpen, onClose, initial }: ReportForm
       onClose={onClose}
       title={initial ? t('editTemplate') : t('newTemplate')}
       icon={<DocumentTextIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />}
-      size="2xl"
+      size="3xl"
       footer={renderFooter()}
     >
       {canCreate ? (

@@ -49,7 +49,7 @@ export default function PIIReviewModal({
       title={t('reviewTitle')}
       subtitle={`ID: ${detection.id}`}
       icon={<div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg"><ShieldExclamationIcon className="w-6 h-6 text-yellow-600 dark:text-yellow-400" /></div>}
-      size="2xl"
+      size="3xl"
       footer={(
         <div className="flex items-center justify-between gap-3">
           <div>

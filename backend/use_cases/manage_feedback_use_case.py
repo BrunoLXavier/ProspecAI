@@ -363,39 +363,44 @@ class ManageFeedbackUseCase:
         suffix: str,
     ) -> Optional[str]:
         """
-        Upload base64-encoded image to MinIO and return presigned URL.
+        Upload base64-encoded image to MinIO and return the object path.
+        The path is stored in DB; a backend proxy endpoint serves the image
+        so we avoid Docker-internal presigned URLs reaching the browser.
         """
+        from infrastructure.file_storage import StorageBucket
         try:
             # Remove data URL prefix if present
             if "," in base64_data:
                 base64_data = base64_data.split(",")[1]
-            
+
             # Decode base64
             image_bytes = base64.b64decode(base64_data)
-            
-            # Generate object name
-            object_name = f"feedbacks/{tenant_id}/{user_id}/{feedback_id}_{suffix}.png"
-            
+
+            # Generate object name (stored under tenant/user/feedback path)
+            object_name = f"{tenant_id}/{user_id}/{feedback_id}_{suffix}.png"
+
             # Upload to MinIO via file service
             if self.file_service:
                 result = await self.file_service.upload_bytes(
-                    bucket="feedbacks",
-                    object_name=object_name,
-                    data=image_bytes,
+                    tenant_id=str(tenant_id),
+                    bucket=StorageBucket.FEEDBACKS,
+                    filename=f"{feedback_id}_{suffix}.png",
+                    content=image_bytes,
                     content_type="image/png",
+                    prefix=f"{user_id}",
+                    file_category="images",
                 )
-                
-                # Generate presigned URL (7 days expiry)
-                presigned_url = await self.file_service.get_presigned_url(
-                    bucket="feedbacks",
-                    object_name=object_name,
-                    expiry_days=7,
-                )
-                
-                return presigned_url
-            
+
+                if result.success:
+                    # Return the object path (not a presigned URL).
+                    # The frontend will use a backend proxy endpoint to display.
+                    return result.object_name
+                else:
+                    logger.error(f"Upload failed for {suffix}: {result.error}")
+                    return None
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error uploading image: {e}")
             raise

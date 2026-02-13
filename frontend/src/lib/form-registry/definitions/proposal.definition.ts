@@ -20,7 +20,7 @@ export const proposalDefinition: EntityFormDefinition<ProposalFormData> = regist
   instituteScoped: false,
   apiEndpoint: '/api/v1/proposals',
   statisticsModule: 'proposals',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     title: '',
@@ -31,7 +31,7 @@ export const proposalDefinition: EntityFormDefinition<ProposalFormData> = regist
   },
 
   tabs: [
-    { key: 'basic', nameKey: 'tabs.basic', fields: ['title', 'opportunity_id', 'funding_source_id', 'status'], gridCols: 2 },
+    { key: 'basic', nameKey: 'tabs.basic', fields: ['title', 'opportunity_id', 'funding_source_id', 'status'], gridCols: 1 },
     { key: 'content', nameKey: 'tabs.content', fields: ['content'], gridCols: 1 },
   ],
 

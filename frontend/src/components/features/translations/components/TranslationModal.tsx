@@ -124,7 +124,7 @@ export default function TranslationModal({
       onClose={onClose}
       title={translation.path}
       icon={<LanguageIcon className="w-6 h-6" />}
-      size="lg"
+      size="3xl"
       footer={footerContent}
     >
       <div>

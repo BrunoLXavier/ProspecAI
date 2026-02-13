@@ -30,7 +30,7 @@ export const infrastructureDefinition: EntityFormDefinition<InfrastructureFormDa
   instituteScoped: true,
   apiEndpoint: '/api/v1/infrastructures',
   statisticsModule: 'infrastructure',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     name: '',
@@ -51,9 +51,9 @@ export const infrastructureDefinition: EntityFormDefinition<InfrastructureFormDa
   },
 
   tabs: [
-    { key: 'basic', nameKey: 'tabs.basic', fields: ['name', 'tipo', 'status', 'descricao', 'endereco'], gridCols: 2 },
-    { key: 'contact', nameKey: 'tabs.contact', fields: ['email_responsavel', 'telefone_responsavel', 'area_m2', 'capacidade_atendimentos'], gridCols: 2 },
-    { key: 'maturity', nameKey: 'tabs.maturity', fields: ['maturidade_gestao', 'maturidade_base_tecnologica', 'maturidade_produtos_servicos', 'maturidade_cooperacao', 'maturidade_regulatoria', 'maturidade_laboratorial'], gridCols: 2 },
+    { key: 'basic', nameKey: 'tabs.basic', fields: ['name', 'tipo', 'status', 'descricao', 'endereco'], gridCols: 1 },
+    { key: 'contact', nameKey: 'tabs.contact', fields: ['email_responsavel', 'telefone_responsavel', 'area_m2', 'capacidade_atendimentos'], gridCols: 1 },
+    { key: 'maturity', nameKey: 'tabs.maturity', fields: ['maturidade_gestao', 'maturidade_base_tecnologica', 'maturidade_produtos_servicos', 'maturidade_cooperacao', 'maturidade_regulatoria', 'maturidade_laboratorial'], gridCols: 1 },
   ],
 
   fields: [

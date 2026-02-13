@@ -27,7 +27,9 @@ from use_cases.execute_matching_use_case import ExecuteMatchingUseCase
 from use_cases.manage_proposals_use_case import ManageProposalsUseCase
 from use_cases.manage_feedback_use_case import ManageFeedbackUseCase
 from infrastructure.ai.lgpd_agent import LGPDAgent
+from infrastructure.file_storage import FileStorageService
 import os
+from adapters.external.cnpj_client import CNPJAPIClient
 
 
 class NoOpAuditService:
@@ -79,6 +81,10 @@ class DependencyContainer:
         self._lgpd_agent = LGPDAgent(encryption_key)
         # Simple audit service used until a full implementation is available
         self._audit_service = NoOpAuditService()
+        # External API clients
+        cnpj_api_url = os.getenv("CNPJ_API_URL", "https://brasilapi.com.br/api/cnpj/v1")
+        cnpj_api_timeout = int(os.getenv("CNPJ_API_TIMEOUT", "10"))
+        self._cnpj_api_client = CNPJAPIClient(api_url=cnpj_api_url, timeout=cnpj_api_timeout)
     
     # Repository getters
     @property
@@ -138,8 +144,8 @@ class DependencyContainer:
         """
         return ManageFeedbackUseCase(
             feedback_repository=self._feedback_repo,
-            file_service=None,
-            audit_service=None,
+            file_service=FileStorageService.get_instance(),
+            audit_service=self._audit_service,
         )
     
     def get_manage_crm_use_case(self) -> ManageCRMUseCase:
@@ -149,7 +155,12 @@ class DependencyContainer:
         return ManageCRMUseCase(
             client_repository=self._client_repo,
             interaction_repository=self._interaction_repo,
+            cnpj_api_client=self._cnpj_api_client,
         )
+
+    @property
+    def cnpj_api_client(self) -> CNPJAPIClient:
+        return self._cnpj_api_client
     
     def get_manage_pipeline_use_case(self) -> ManagePipelineUseCase:
         """

@@ -20,6 +20,7 @@ class InstituteResponse(BaseModel):
     endereco_uf: str
     descricao: str
     status: str
+    status_receita: Optional[str] = None
     status_operacional: str
     logo_url: Optional[str] = None
     created_at: str

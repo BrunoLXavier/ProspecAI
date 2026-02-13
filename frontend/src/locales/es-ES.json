@@ -438,6 +438,7 @@
     "moveRight": "Moveright",
     "no": "No",
     "noItems": "Sin elementos",
+    "optional": "opcional",
     "noRecordsFound": "No se encontraron registros",
     "noRecordsOfType": "No existen registros de este tipo",
     "noResults": "No results found",
@@ -1224,7 +1225,12 @@
     "title": "Ingestión de Datos",
     "titleEdit": "Editar Job de Ingestión",
     "updateError": "Error al actualizar el job. Por favor, inténtelo de nuevo.",
-    "view": "Ver"
+    "view": "Ver",
+    "newJob": "Nuevo Job",
+    "dragFilesHere": "Arrastre archivos aquí o",
+    "selectFromComputer": "seleccione del computador",
+    "fileFormatsHint": "CSV, XLSX, JSON (máx. 50MB cada)",
+    "selectedFiles": "Archivos Seleccionados"
   },
   "institutes": {
     "accreditation_hint": "Marque las acreditaciones aplicables al instituto.",
@@ -1460,7 +1466,11 @@
     "submit": "Enviar",
     "submitting": "Enviando",
     "title": "Título",
-    "viewTitle": "Ver"
+    "viewTitle": "Ver",
+    "step": "Paso {index}: {name}",
+    "stepOf": "({current}/{total})",
+    "previousStep": "Paso anterior",
+    "nextStep": "Siguiente paso"
   },
   "modules": {
     "crm": "CRM",
@@ -3409,7 +3419,13 @@
     "deleteConfirm": "Deleteconfirm",
     "keyPath": "Keypath",
     "showing": "Showing",
-    "translationKeys": "Translationkeys"
+    "translationKeys": "Translationkeys",
+    "preview": "Vista previa",
+    "importOverwriteWarning": "Las claves existentes serán sobrescritas. Revise el contenido y confirme.",
+    "exportPreviewHint": "Vista previa de las traducciones exportadas. Puede descargarlas desde aquí.",
+    "importing": "Importando...",
+    "overwriteAndImport": "Sobrescribir e Importar",
+    "downloadJson": "Descargar JSON"
   },
   "trends": {
     "matches": "Matches",
@@ -3532,7 +3548,11 @@
     "pattern": "Formato inválido",
     "required": "Este campo es obligatorio",
     "uniqueValue": "Este valor ya está en uso",
-    "url": "Ingrese una URL válida"
+    "url": "Ingrese una URL válida",
+    "fieldsNeedAttention": "{count} campo(s) necesitan atención en {tabs} pestaña(s)",
+    "error": "error",
+    "errors": "errores",
+    "complete": "Completo"
   },
   "view": "Ver"
 }

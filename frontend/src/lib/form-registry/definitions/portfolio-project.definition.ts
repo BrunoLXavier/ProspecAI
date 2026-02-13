@@ -25,7 +25,7 @@ export const portfolioProjectDefinition: EntityFormDefinition<PortfolioProjectFo
   instituteScoped: true,
   apiEndpoint: '/api/v1/portfolio',
   statisticsModule: 'portfolio',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     title: '',
@@ -42,8 +42,8 @@ export const portfolioProjectDefinition: EntityFormDefinition<PortfolioProjectFo
   },
 
   tabs: [
-    { key: 'basic', nameKey: 'tabs.basic', fields: ['title', 'description', 'status', 'institute_id', 'start_date', 'end_date'], gridCols: 2 },
-    { key: 'technical', nameKey: 'tabs.financial', fields: ['budget', 'trl', 'research_area', 'keywords'], gridCols: 2 },
+    { key: 'basic', nameKey: 'tabs.basic', fields: ['title', 'description', 'status', 'institute_id', 'start_date', 'end_date'], gridCols: 1 },
+    { key: 'technical', nameKey: 'tabs.financial', fields: ['budget', 'trl', 'research_area', 'keywords'], gridCols: 1 },
     { key: 'lessons', nameKey: 'tabs.lessons', fields: ['lessons_learned'], gridCols: 1 },
   ],
 

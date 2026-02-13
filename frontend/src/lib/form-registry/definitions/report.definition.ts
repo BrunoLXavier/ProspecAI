@@ -24,7 +24,7 @@ export const reportDefinition: EntityFormDefinition<ReportFormData> = registerEn
   instituteScoped: false,
   apiEndpoint: '/api/v1/reports/templates',
   statisticsModule: 'reports',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     name: '',
@@ -40,7 +40,7 @@ export const reportDefinition: EntityFormDefinition<ReportFormData> = registerEn
       key: 'basic',
       nameKey: 'tabs.basic',
       fields: ['name', 'description', 'type', 'is_active'],
-      gridCols: 2,
+      gridCols: 1,
     },
     {
       key: 'formats',

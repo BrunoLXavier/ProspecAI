@@ -1,7 +1,45 @@
 # ProspecAI - Implementation History
 
 **Última atualização:** 12 de Fevereiro de 2026  
-**Status:** ✅ Phase 15 — Multi-workstream: Feedback, Layout Settings, Communications, i18n (Complete)
+**Status:** ✅ Phase 16 — Modal Modernization (Complete)
+
+---
+
+## 2026-02-12 - Phase 16: Modal Modernization — Stepper, Sizing, Validation, i18n
+
+### Summary:
+Complete overhaul of all 23+ modal windows across the application. Replaced horizontal tabs with vertical sidebar stepper navigation, increased modal sizes to 3xl, enforced single-column form layouts, added cross-tab validation with error badges, and migrated 3 rogue modals to use BaseModal.
+
+### Infrastructure Changes (Shared Components)
+1. **BaseModal** — Default size changed `2xl`→`3xl`, added `4xl` size option, content `max-h` raised to `75vh`, padding increased to `p-6 sm:p-8`.
+2. **ModalTabs** — Complete rewrite from Headless UI `Tab.Group` (horizontal tabs) to custom vertical sidebar stepper. Desktop: left sidebar (w-56) with numbered step circles, connector lines, error badges (red with count), and completion indicators (green checkmark). Mobile: prev/next chevron nav with enhanced step indicator circles. Added `useTranslations` for full i18n. Supports controlled (`selectedIndex`+`onChange`) and uncontrolled modes.
+3. **EntityModal** — Complete rewrite integrating `useTabValidation`, `ValidationSummary`, controlled `activeTabIndex` state. Enhanced submit with `trigger()` + auto-navigation to first errored tab. Forces `gridCols={1}`.
+4. **FormRenderer** — Default `gridCols` changed `2`→`1`, gap changed `gap-4`→`gap-5`.
+5. **useTabValidation** (NEW) — Hook mapping react-hook-form field errors to tabs. Returns `tabStates`, `firstTabWithError`, `totalErrors`, `tabsWithErrors`. Also exports `getRequiredFieldNames()` helper.
+6. **ValidationSummary** (NEW) — Red error banner above footer showing total errors with clickable chips to navigate to errored tabs.
+7. **use-entity-form** — Validation mode changed `'onBlur'`→`'all'` for on-blur + on-submit validation.
+
+### Entity Definition Updates (13 files)
+All `gridCols: 2` → `gridCols: 1` (both top-level and tab-level): client, communication, feedback, funding, infrastructure, ingestion, institute, opportunity, portfolio-project, proposal, report, team, user.
+
+### Modal Migrations
+8. **InstituteModal** — Completely rewritten from ~294 lines of manual form code to ~92 lines using `<EntityModal definition={instituteDefinition} />`. Preserved `useCNPJAutofill` hook.
+9. **NewKeyModal** (translations) — Migrated from raw `div.fixed` to BaseModal with LanguageIcon, added `isOpen` prop.
+10. **ImportPreviewModal** (translations) — Migrated from raw `div.fixed` to BaseModal, added i18n via `useTranslations`, replaced all hardcoded English strings.
+11. **NewJobModal** (ingestion) — Migrated from raw `div.fixed` to BaseModal, replaced all hardcoded Portuguese strings with i18n keys.
+
+### Size Bumps (13 modals)
+UserModal (`md`→`3xl`), ACLRoleModal, CreateThreadModal, TranscriptionReportModal, PIIReviewModal, ReportFormModal, ReportDetailModal, IngestionDetailModal, ConfigurableStatisticsBar (all `2xl`→`3xl`), TranslationModal (`lg`→`3xl`), activity/page.tsx, feedback/page.tsx, reports/page.tsx inline modals. ReportModal and IngestionModal also bumped to `3xl`. ConfirmModal bumped `md`→`lg`. PasswordChangeModal kept at `sm`.
+
+### i18n Keys Added (3 locale files: en-US, pt-BR, es-ES)
+- **validation**: `fieldsNeedAttention`, `error`, `errors`, `complete`
+- **modal**: `step`, `stepOf`, `previousStep`, `nextStep`
+- **translations**: `preview`, `importOverwriteWarning`, `exportPreviewHint`, `importing`, `overwriteAndImport`, `downloadJson`
+- **ingestion**: `dragFilesHere`, `selectFromComputer`, `fileFormatsHint`, `selectedFiles`, `newJob` (pt-BR/es-ES)
+- **common**: `optional`
+
+### Files Modified (30+)
+`BaseModal.tsx`, `ModalTabs.tsx`, `EntityModal.tsx`, `FormRenderer.tsx`, `ValidationSummary.tsx` (new), `use-tab-validation.ts` (new), `use-entity-form.ts`, `shared/ui/index.ts`, `ConfirmModal.tsx`, `InstituteModal.tsx`, `NewKeyModal.tsx`, `ImportPreviewModal.tsx`, `NewJobModal.tsx`, `IngestionDetailModal.tsx`, `IngestionModal.tsx`, `ReportModal.tsx`, `UserModal.tsx`, `ACLRoleModal.tsx`, `CreateThreadModal.tsx`, `TranscriptionReportModal.tsx`, `PIIReviewModal.tsx`, `TranslationModal.tsx`, `ReportFormModal.tsx`, `ReportDetailModal.tsx`, `ConfigurableStatisticsBar.tsx`, `en-US.json`, `pt-BR.json`, `es-ES.json`, 13 definition files, `translations/page.tsx`, `ingestion/page.tsx`, `activity/page.tsx`, `feedback/page.tsx`, `reports/page.tsx`.
 
 ---
 

@@ -10,7 +10,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useTranslations } from 'next-intl';
 
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'full';
+export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | 'full';
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -34,6 +34,7 @@ const sizeClasses: Record<ModalSize, string> = {
   xl: 'max-w-xl',
   '2xl': 'max-w-2xl',
   '3xl': 'max-w-3xl',
+  '4xl': 'max-w-4xl',
   full: 'max-w-full mx-4',
 };
 
@@ -43,7 +44,7 @@ export default function BaseModal({
   title,
   subtitle,
   icon,
-  size = '2xl',
+  size = '3xl',
   children,
   footer,
   showCloseButton = true,
@@ -111,7 +112,7 @@ export default function BaseModal({
                 </div>
 
                 {/* Content - allow dropdown overflow when noContentScroll is true */}
-                <div className={`p-6 ${noContentScroll ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden max-h-[60vh]'}`}>
+                <div className={`p-6 sm:p-8 ${noContentScroll ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden max-h-[75vh]'}`}>
                   {children}
                 </div>
 

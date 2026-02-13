@@ -31,6 +31,7 @@ export { default as ModalTabs, TabPanelContent, TabHint } from './ModalTabs';
 export type { TabItem } from './ModalTabs';
 export { default as ConfirmModal } from './ConfirmModal';
 export { default as DeleteConfirmation } from './DeleteConfirmation';
+export { default as ValidationSummary } from './ValidationSummary';
 
 // New Standardized Components (FASE 1-3)
 // Pagination with dark mode, URL persistence, React Query integration

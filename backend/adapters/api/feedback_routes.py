@@ -12,8 +12,10 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 import logging
+import io
 
 from infrastructure.dependencies import get_di_container, get_current_user_id, get_current_tenant_id
 from adapters.api.auth_middleware import get_current_user, AuthenticatedUser
@@ -398,12 +400,16 @@ async def update_feedback_status(
     request: FeedbackStatusUpdateRequest,
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Update feedback status (admin only).
     """
-    is_admin = await _is_admin(container, user_id, tenant_id)
+    if current_user is not None:
+        is_admin = current_user.is_admin()
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
     
     if not is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -429,12 +435,16 @@ async def update_feedback_severity(
     request: FeedbackSeverityUpdateRequest,
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Update feedback severity/priority (admin only).
     """
-    is_admin = await _is_admin(container, user_id, tenant_id)
+    if current_user is not None:
+        is_admin = current_user.is_admin()
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
     
     if not is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -460,13 +470,17 @@ async def respond_to_feedback(
     request: FeedbackResponseRequest,
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Add admin response to feedback.
     Automatically sets status to ACKNOWLEDGED.
     """
-    is_admin = await _is_admin(container, user_id, tenant_id)
+    if current_user is not None:
+        is_admin = current_user.is_admin()
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
     
     if not is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -492,12 +506,16 @@ async def resolve_feedback(
     request: FeedbackResolveRequest,
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
     Mark feedback as resolved with optional resolution notes.
     """
-    is_admin = await _is_admin(container, user_id, tenant_id)
+    if current_user is not None:
+        is_admin = current_user.is_admin()
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
     
     if not is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -522,6 +540,7 @@ async def delete_feedback(
     feedback_id: UUID,
     container=Depends(get_di_container),
     user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """
@@ -529,7 +548,12 @@ async def delete_feedback(
     Admin can delete any feedback, users can only delete their own.
     """
     use_case = await _get_use_case(container)
-    is_admin = await _is_admin(container, user_id, tenant_id)
+
+    # Prefer token-based role check when available (faster, avoids DB lookup)
+    if current_user is not None:
+        is_admin = current_user.is_admin()
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
     
     # Check if user can delete
     feedback = await use_case.get_feedback(
@@ -556,3 +580,65 @@ async def delete_feedback(
         raise HTTPException(status_code=500, detail="Failed to delete feedback")
     
     return None
+
+
+@router.get("/{feedback_id}/image/{image_type}", summary="Serve feedback screenshot/annotation image")
+async def get_feedback_image(
+    feedback_id: UUID,
+    image_type: str,
+    container=Depends(get_di_container),
+    user_id: UUID = Depends(get_current_user_id),
+    current_user: Optional[AuthenticatedUser] = Depends(get_current_user),
+    tenant_id: str = Depends(get_current_tenant_id),
+):
+    """
+    Proxy endpoint that streams a feedback screenshot or annotation image
+    directly from MinIO.  This avoids exposing Docker-internal presigned URLs
+    (e.g. http://minio:9000/...) to the browser.
+
+    image_type: 'screenshot' or 'annotation'
+    """
+    from infrastructure.file_storage import FileStorageService, StorageBucket
+
+    if image_type not in ("screenshot", "annotation"):
+        raise HTTPException(status_code=400, detail="image_type must be 'screenshot' or 'annotation'")
+
+    use_case = await _get_use_case(container)
+
+    # Prefer token-based admin check
+    if current_user is not None:
+        is_admin = current_user.is_admin()
+    else:
+        is_admin = await _is_admin(container, user_id, tenant_id)
+
+    feedback = await use_case.get_feedback(
+        feedback_id=feedback_id,
+        tenant_id=_ensure_uuid(tenant_id),
+        user_id=user_id,
+        is_admin=is_admin,
+    )
+
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+
+    object_name = (
+        feedback.screenshot_url if image_type == "screenshot"
+        else feedback.annotation_image_url
+    )
+
+    if not object_name:
+        raise HTTPException(status_code=404, detail=f"No {image_type} image available")
+
+    storage = FileStorageService.get_instance()
+    content = await storage.download_file(StorageBucket.FEEDBACKS, object_name)
+
+    if content is None:
+        raise HTTPException(status_code=404, detail="Image file not found in storage")
+
+    return Response(
+        content=content,
+        media_type="image/png",
+        headers={
+            "Cache-Control": "private, max-age=86400",
+        },
+    )

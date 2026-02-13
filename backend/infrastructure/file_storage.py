@@ -30,6 +30,7 @@ BUCKET_PROPOSALS = "proposals"
 BUCKET_DOCUMENTS = "documents"
 BUCKET_REPORTS = "reports"
 BUCKET_ATTACHMENTS = "attachments"
+BUCKET_FEEDBACKS = "feedbacks"
 
 # Upload limits
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
@@ -48,6 +49,7 @@ class StorageBucket(str, Enum):
     DOCUMENTS = "documents"
     REPORTS = "reports"
     ATTACHMENTS = "attachments"
+    FEEDBACKS = "feedbacks"
 
 
 @dataclass
@@ -107,7 +109,7 @@ class FileStorageService:
         if self._initialized:
             return
         
-        buckets = [BUCKET_PROPOSALS, BUCKET_DOCUMENTS, BUCKET_REPORTS, BUCKET_ATTACHMENTS]
+        buckets = [BUCKET_PROPOSALS, BUCKET_DOCUMENTS, BUCKET_REPORTS, BUCKET_ATTACHMENTS, BUCKET_FEEDBACKS]
         
         for bucket in buckets:
             try:
@@ -157,6 +159,7 @@ class FileStorageService:
         content_type: Optional[str] = None,
         prefix: str = "",
         metadata: Optional[Dict[str, str]] = None,
+        file_category: str = "documents",
     ) -> UploadResult:
         """
         Upload file to storage.
@@ -177,7 +180,7 @@ class FileStorageService:
         await self.initialize()
         
         # Validate
-        error = self._validate_file(filename, size)
+        error = self._validate_file(filename, size, category=file_category)
         if error:
             return UploadResult(
                 success=False,
@@ -235,6 +238,7 @@ class FileStorageService:
         content: bytes,
         content_type: Optional[str] = None,
         prefix: str = "",
+        file_category: str = "documents",
     ) -> UploadResult:
         """Upload bytes directly"""
         data = io.BytesIO(content)
@@ -246,6 +250,7 @@ class FileStorageService:
             size=len(content),
             content_type=content_type,
             prefix=prefix,
+            file_category=file_category,
         )
     
     async def get_presigned_url(

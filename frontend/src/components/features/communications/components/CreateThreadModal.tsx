@@ -344,7 +344,7 @@ export default function CreateThreadModal({
       title={t('newThread') || 'New Thread'}
       subtitle={t('newThreadSubtitle') || 'Start a new conversation'}
       icon={<ChatBubbleLeftRightIcon className="w-6 h-6 text-primary-600" />}
-      size="2xl"
+      size="3xl"
       footer={
         <ModalFooter
           onCancel={onClose}

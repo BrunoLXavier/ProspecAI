@@ -219,13 +219,10 @@ export default function IngestionDetailModal({
       icon={
         <StatusIcon className={`w-6 h-6 text-${statusConfig.color}-600 dark:text-${statusConfig.color}-400 ${isInProgress ? 'animate-spin' : ''}`} />
       }
-      size="2xl"
+      size="3xl"
       noContentScroll={false}
       footer={renderFooter()}
     >
-                  </div>
-                </div>
-
                 {/* Delete Confirmation */}
                 {showDeleteConfirm && (
                   <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">

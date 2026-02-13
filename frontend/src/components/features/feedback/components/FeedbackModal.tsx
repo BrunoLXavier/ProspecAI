@@ -589,15 +589,9 @@ export default function FeedbackModal() {
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 {t('success.title')}
               </h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
+              <p className="text-gray-600 dark:text-gray-300">
                 {t('success.description')}
               </p>
-              <button
-                onClick={handleSuccessClose}
-                className="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
-              >
-                {t('success.close')}
-              </button>
             </div>
           )}
           

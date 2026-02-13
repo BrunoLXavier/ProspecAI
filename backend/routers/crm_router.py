@@ -291,10 +291,20 @@ async def enrich_from_cnpj(
     
     Implements RF-04.07: Consulta CNPJ para preenchimento automático
     """
-    # If a CNPJ API client is available via DI, call it; otherwise return 501
-    container = await get_di_container()
-    # The DI container may not provide a cnpj_api_client; signal not implemented
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="CNPJ enrichment not configured")
+    # Use the DI-provided CNPJ client to fetch enrichment data
+    cnpj_client = getattr(container, 'cnpj_api_client', None)
+    if not cnpj_client:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="CNPJ enrichment not configured")
+
+    try:
+        data = await cnpj_client.fetch_cnpj(cnpj)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+
+    # Return transformed API response (serializer will validate against response_model)
+    return to_primitive(data)
 
 
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)

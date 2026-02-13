@@ -362,7 +362,7 @@ export default function ReportModal({
       onClose={onClose}
       title={isEditMode ? t('editTemplate') : t('newTemplate')}
       icon={<DocumentChartBarIcon className="w-6 h-6" />}
-      size="md"
+      size="3xl"
       footer={canCreate || isEditMode ? footerContent : undefined}
     >
       {!canCreate && !isEditMode ? (

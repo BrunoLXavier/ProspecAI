@@ -21,7 +21,7 @@ export const ingestionDefinition: EntityFormDefinition<IngestionFormData> = regi
   instituteScoped: false,
   apiEndpoint: '/api/v1/ingestion/jobs',
   statisticsModule: 'ingestion',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     name: '',
@@ -34,7 +34,7 @@ export const ingestionDefinition: EntityFormDefinition<IngestionFormData> = regi
       key: 'basic',
       nameKey: 'jobName',
       fields: ['name', 'description', 'source_type'],
-      gridCols: 2,
+      gridCols: 1,
     },
   ],
 

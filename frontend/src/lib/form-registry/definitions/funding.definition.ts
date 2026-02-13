@@ -28,7 +28,7 @@ export const fundingDefinition: EntityFormDefinition<FundingFormData> = register
   instituteScoped: false,
   apiEndpoint: '/api/v1/funding',
   statisticsModule: 'funding',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     source_name: '',
@@ -48,13 +48,13 @@ export const fundingDefinition: EntityFormDefinition<FundingFormData> = register
       key: 'basic',
       nameKey: 'tabBasic',
       fields: ['source_name', 'category', 'status', 'deadline', 'total_amount'],
-      gridCols: 2,
+      gridCols: 1,
     },
     {
       key: 'technical',
       nameKey: 'tabTRL',
       fields: ['trl_min', 'trl_max', 'focus_areas'],
-      gridCols: 2,
+      gridCols: 1,
     },
     {
       key: 'details',

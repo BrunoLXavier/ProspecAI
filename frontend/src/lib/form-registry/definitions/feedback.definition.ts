@@ -23,7 +23,7 @@ export const feedbackDefinition: EntityFormDefinition<FeedbackFormData> = regist
   instituteScoped: false,
   apiEndpoint: '/api/v1/feedback',
   statisticsModule: 'feedback',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     type: 'bug_report',
@@ -38,7 +38,7 @@ export const feedbackDefinition: EntityFormDefinition<FeedbackFormData> = regist
       key: 'basic',
       nameKey: 'comment.typeLabel',
       fields: ['type', 'severity', 'status', 'comment'],
-      gridCols: 2,
+      gridCols: 1,
     },
     {
       key: 'context',

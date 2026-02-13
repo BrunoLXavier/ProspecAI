@@ -23,7 +23,7 @@ export const communicationDefinition: EntityFormDefinition<CommunicationFormData
   instituteScoped: false,
   apiEndpoint: '/api/v1/communications/threads',
   statisticsModule: 'communications',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     subject: '',
@@ -44,7 +44,7 @@ export const communicationDefinition: EntityFormDefinition<CommunicationFormData
       key: 'link',
       nameKey: 'linkedEntity',
       fields: ['linked_entity_type', 'linked_entity_id'],
-      gridCols: 2,
+      gridCols: 1,
     },
   ],
 

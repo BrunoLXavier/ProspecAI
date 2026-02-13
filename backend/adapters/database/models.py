@@ -270,6 +270,8 @@ class InstituteModel(BaseModel):
     # Status fields
     status_operacional = Column(String(50), nullable=False, default='Operacional')
     status = Column(String(50), nullable=False, default='Ativo')
+    # Official registry status fetched from CNPJ API (nullable)
+    status_receita = Column(String(50), nullable=True)
     
     # Maturity fields
     maturidade_gestao = Column(String(10), nullable=True)
@@ -294,6 +296,7 @@ class InstituteModel(BaseModel):
     __table_args__ = (
         Index('idx_institutes_tenant', 'tenant_id'),
         Index('idx_institutes_status', 'status', 'status_operacional'),
+        Index('idx_institutes_status_receita', 'status_receita'),
         Index('idx_institutes_cidade_uf', 'endereco_cidade', 'endereco_uf'),
         UniqueConstraint('tenant_id', 'nome', name='uq_institutes_tenant_name'),
     )

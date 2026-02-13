@@ -284,7 +284,7 @@ export default function TranscriptionReportModal({
       title={t('transcription.reportTitle')}
       subtitle={t('transcription.reportDescription')}
       icon={<SparklesIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />}
-      size="2xl"
+      size="3xl"
       footer={renderFooter()}
       noContentScroll
     >

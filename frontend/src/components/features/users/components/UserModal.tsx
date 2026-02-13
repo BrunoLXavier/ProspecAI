@@ -161,7 +161,7 @@ export default function UserModal({
       onClose={onClose}
       title={isEditMode ? (t('users.editUser') || 'Edit User') : (t('users.newUser') || 'New User')}
       icon={<UserCircleIcon className="w-6 h-6" />}
-      size="md"
+      size="3xl"
       footer={footerContent}
     >
       <form id="user-form" onSubmit={handleSubmit} className="space-y-5">

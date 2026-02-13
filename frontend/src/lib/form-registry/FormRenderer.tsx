@@ -127,7 +127,7 @@ export default function FormRenderer({
       ? definition.tabs.find((t: TabDefinition) => t.key === tabKey)?.gridCols
       : undefined)
     || definition.gridCols
-    || 2;
+    || 1;
 
   const isViewMode = mode === 'view';
 
@@ -157,7 +157,7 @@ export default function FormRenderer({
     <div className={`space-y-4 ${className}`}>
       {beforeFields}
 
-      <div className={`grid ${gridColsClass[effectiveGridCols]} gap-4`}>
+      <div className={`grid ${gridColsClass[effectiveGridCols]} gap-5`}>
         {visibleFields.map((field) => {
           const isReadOnly =
             isViewMode

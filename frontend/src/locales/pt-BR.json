@@ -438,6 +438,7 @@
     "moveRight": "Mover para Direita",
     "no": "Não",
     "noItems": "Nenhum item",
+    "optional": "opcional",
     "noRecordsFound": "Nenhum registro encontrado",
     "noRecordsOfType": "Não existem registros deste tipo cadastrados",
     "noResults": "Nenhum resultado encontrado",
@@ -1235,7 +1236,12 @@
     "title": "Ingestão de Dados",
     "titleEdit": "Editar Job de Ingestão",
     "updateError": "Erro ao atualizar job. Tente novamente.",
-    "view": "Ver"
+    "view": "Ver",
+    "newJob": "Novo Job",
+    "dragFilesHere": "Arraste arquivos aqui ou",
+    "selectFromComputer": "selecione do computador",
+    "fileFormatsHint": "CSV, XLSX, JSON (m�x. 50MB cada)",
+    "selectedFiles": "Arquivos Selecionados"
   },
   "institutes": {
     "accreditation_hint": "Marque os credenciamentos aplicáveis ao instituto.",
@@ -1324,6 +1330,7 @@
     },
     "statsUnavailable": "Estatísticas indisponíveis",
     "status": "Status",
+    "status_receita": "Status (Receita)",
     "subtitle": "Gerencie institutos de pesquisa e unidades organizacionais",
     "tabs": {
       "accreditation": "Credenciamentos",
@@ -1471,7 +1478,11 @@
     "submit": "Enviar",
     "submitting": "Enviando",
     "title": "Título",
-    "viewTitle": "Visualizar"
+    "viewTitle": "Visualizar",
+    "step": "Etapa {index}: {name}",
+    "stepOf": "({current}/{total})",
+    "previousStep": "Etapa anterior",
+    "nextStep": "Pr�xima etapa"
   },
   "modules": {
     "crm": "CRM",
@@ -3420,7 +3431,13 @@
     "deleteConfirm": "Deleteconfirm",
     "keyPath": "Keypath",
     "showing": "Showing",
-    "translationKeys": "Translationkeys"
+    "translationKeys": "Translationkeys",
+    "preview": "Pr�via",
+    "importOverwriteWarning": "As chaves existentes ser�o sobrescritas. Revise o conte�do abaixo e confirme.",
+    "exportPreviewHint": "Pr�via das tradu��es exportadas. Voc� pode baixar daqui.",
+    "importing": "Importando...",
+    "overwriteAndImport": "Sobrescrever e Importar",
+    "downloadJson": "Baixar JSON"
   },
   "trends": {
     "matches": "Matches",
@@ -3543,7 +3560,11 @@
     "pattern": "Formato inválido",
     "required": "Este campo é obrigatório",
     "uniqueValue": "Este valor já está em uso",
-    "url": "Informe uma URL válida"
+    "url": "Informe uma URL válida",
+    "fieldsNeedAttention": "{count} campo(s) precisam de atenção em {tabs} aba(s)",
+    "error": "erro",
+    "errors": "erros",
+    "complete": "Completo"
   },
   "view": "Ver"
 }

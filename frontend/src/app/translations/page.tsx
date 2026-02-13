@@ -437,40 +437,38 @@ export default function TranslationsPage() {
 				)}
 
 				{/* New Key Modal */}
-				{showNewKeyModal && (
-					<NewKeyModal
-						t={t}
-						tCommon={tCommon}
-						locales={locales}
-						newKeyPath={newKeyPath}
-						setNewKeyPath={setNewKeyPath}
-						newKeyValues={newKeyValues}
-						setNewKeyValues={setNewKeyValues}
-						saving={saving}
-						setSaving={setSaving}
-						onClose={() => {
-							setShowNewKeyModal(false);
-							setNewKeyPath('');
-							setNewKeyValues({});
-						}}
-						onCreate={createTranslation}
-						onToast={showToast}
-					/>
-				)}
+				<NewKeyModal
+					isOpen={showNewKeyModal}
+					t={t}
+					tCommon={tCommon}
+					locales={locales}
+					newKeyPath={newKeyPath}
+					setNewKeyPath={setNewKeyPath}
+					newKeyValues={newKeyValues}
+					setNewKeyValues={setNewKeyValues}
+					saving={saving}
+					setSaving={setSaving}
+					onClose={() => {
+						setShowNewKeyModal(false);
+						setNewKeyPath('');
+						setNewKeyValues({});
+					}}
+					onCreate={createTranslation}
+					onToast={showToast}
+				/>
 
 				{/* Import Preview Modal */}
-				{showImportPreview && (
-					<ImportPreviewModal
-						previewLocale={previewLocale}
-						previewData={previewData}
-						previewMode={previewMode}
-						saving={saving}
-						onClose={closeImportPreview}
-						onConfirmImport={confirmImport}
-						onDownloadSuccess={showSuccess}
-						onError={(msg) => setError(msg)}
-					/>
-				)}
+				<ImportPreviewModal
+					isOpen={showImportPreview}
+					previewLocale={previewLocale}
+					previewData={previewData}
+					previewMode={previewMode}
+					saving={saving}
+					onClose={closeImportPreview}
+					onConfirmImport={confirmImport}
+					onDownloadSuccess={showSuccess}
+					onError={(msg) => setError(msg)}
+				/>
 			</div>
 
 			<TranslationModal

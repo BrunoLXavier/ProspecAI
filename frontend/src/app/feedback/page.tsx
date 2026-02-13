@@ -3,7 +3,7 @@
 // Implements: User Feedback System - Admin Dashboard
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import {
@@ -48,25 +48,25 @@ import Pagination from '@/components/features/shared/ui/Pagination';
 
 interface Feedback {
   id: string;
-  user_id: string;
-  feedback_type: string;
+  userId: string;
+  feedbackType: string;
   severity: string;
   description: string;
-  page_url: string;
-  page_title: string | null;
-  entity_type: string | null;
-  entity_id: string | null;
-  screenshot_url: string | null;
-  annotation_image_url: string | null;
-  annotation_data: any | null;
+  pageUrl: string;
+  pageTitle: string | null;
+  entityType: string | null;
+  entityId: string | null;
+  screenshotUrl: string | null;
+  annotationImageUrl: string | null;
+  annotationData: any | null;
   status: string;
   response: string | null;
-  responded_by: string | null;
-  responded_at: string | null;
-  resolved_at: string | null;
-  resolution_notes: string | null;
-  created_at: string;
-  updated_at: string;
+  respondedBy: string | null;
+  respondedAt: string | null;
+  resolvedAt: string | null;
+  resolutionNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface FeedbackListResponse {
@@ -143,7 +143,43 @@ function FeedbackDetailModal({
   const [response, setResponse] = useState(feedback.response || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [screenshotError, setScreenshotError] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
   const t = useTranslations();
+
+  // Fetch the screenshot/annotation image via the backend proxy endpoint
+  // (MinIO presigned URLs are Docker-internal, so we stream through the API)
+  useEffect(() => {
+    const hasImage = feedback.annotationImageUrl || feedback.screenshotUrl;
+    if (!hasImage) return;
+
+    let revoked = false;
+    const imageType = feedback.annotationImageUrl ? 'annotation' : 'screenshot';
+
+    setImageLoading(true);
+    apiClient
+      .get(`/api/v1/feedback/${feedback.id}/image/${imageType}`, { responseType: 'blob' })
+      .then((blob: any) => {
+        if (revoked) return;
+        // axios with responseType: 'blob' already returns a Blob, but apiClient
+        // might return the raw data. Handle both cases.
+        const blobObj = blob instanceof Blob ? blob : new Blob([blob], { type: 'image/png' });
+        const url = URL.createObjectURL(blobObj);
+        setImageUrl(url);
+      })
+      .catch(() => {
+        if (!revoked) setScreenshotError(true);
+      })
+      .finally(() => {
+        if (!revoked) setImageLoading(false);
+      });
+
+    return () => {
+      revoked = true;
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feedback.id, feedback.annotationImageUrl, feedback.screenshotUrl]);
 
   const handleSubmitResponse = async () => {
     if (!response.trim()) return;
@@ -152,7 +188,7 @@ function FeedbackDetailModal({
     setIsSubmitting(false);
   };
 
-  const typeIconInfo = FEEDBACK_TYPE_ICONS[feedback.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+  const typeIconInfo = FEEDBACK_TYPE_ICONS[feedback.feedbackType] || FEEDBACK_TYPE_ICONS.other;
   const TypeIcon = typeIconInfo.icon;
   const severityColor = SEVERITY_COLORS[feedback.severity] || SEVERITY_COLORS.medium;
   const statusIconInfo = STATUS_ICONS[feedback.status] || STATUS_ICONS.open;
@@ -162,9 +198,9 @@ function FeedbackDetailModal({
     <BaseModal
       isOpen={true}
       onClose={onClose}
-      title={String(t(`feedback.types.${String(feedback.feedback_type)}`) || feedback.feedback_type || t('feedback.types.other'))}
+      title={String(t(`feedback.types.${String(feedback.feedbackType)}`) || feedback.feedbackType || t('feedback.types.other'))}
       icon={<TypeIcon className={`h-6 w-6 ${typeIconInfo.color}`} />}
-      size="lg"
+      size="3xl"
       showCloseButton={true}
     >
       <div className="space-y-6">
@@ -182,7 +218,7 @@ function FeedbackDetailModal({
         {/* Page URL */}
         <div>
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.page')}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg break-all">{feedback.page_url}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 px-3 py-2 rounded-lg break-all">{feedback.pageUrl}</p>
         </div>
 
         {/* User Comment */}
@@ -192,7 +228,7 @@ function FeedbackDetailModal({
         </div>
 
         {/* Screenshot with error fallback */}
-        {(feedback.annotation_image_url || feedback.screenshot_url) && (
+        {(feedback.annotationImageUrl || feedback.screenshotUrl) && (
           <div>
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('feedback.admin.screenshot')}</h3>
             {screenshotError ? (
@@ -200,16 +236,20 @@ function FeedbackDetailModal({
                 <PhotoIcon className="h-8 w-8 text-gray-400" />
                 <span className="text-sm text-gray-500 dark:text-gray-400">{t('feedback.admin.screenshotUnavailable') || 'Screenshot unavailable'}</span>
               </div>
-            ) : (
+            ) : imageLoading ? (
+              <div className="flex items-center justify-center py-8 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700">
+                <span className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">{t('common.loading') || 'Loading...'}</span>
+              </div>
+            ) : imageUrl ? (
               <div className="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden">
                 <img
-                  src={feedback.annotation_image_url || feedback.screenshot_url || ''}
+                  src={imageUrl}
                   alt={t('feedback.admin.screenshot')}
                   className="w-full"
                   onError={() => setScreenshotError(true)}
                 />
               </div>
-            )}
+            ) : null}
           </div>
         )}
 
@@ -218,7 +258,7 @@ function FeedbackDetailModal({
           <div className="border-l-4 border-primary-500 pl-4">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('feedback.admin.previousResponse')}</h3>
             <p className="text-gray-600 dark:text-gray-400">{feedback.response}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('feedback.admin.respondedAt')}: {feedback.responded_at ? new Date(feedback.responded_at).toLocaleString() : 'N/A'}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('feedback.admin.respondedAt')}: {feedback.respondedAt ? new Date(feedback.respondedAt).toLocaleString() : 'N/A'}</p>
           </div>
         )}
 
@@ -292,7 +332,7 @@ export default function AdminFeedbackPage() {
   const openFeedback = useFeedbackStore((s) => s.openFeedback);
   const [filters, setFilters] = useState<{
     status?: string;
-    feedback_type?: string;
+    feedbackType?: string;
     severity?: string;
     search?: string;
   }>({});
@@ -308,9 +348,8 @@ export default function AdminFeedbackPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
-      if (filters.feedback_type) params.append('feedback_type', filters.feedback_type);
-      if (filters.severity) params.append('severity', filters.severity);
-
+      if (filters.feedbackType) params.append('feedback_type', filters.feedbackType);
+      if (filters.severity) params.append('severity', filters.severity);      if (filters.search) params.append('search', filters.search);
       const response = await apiClient.get(`/api/v1/feedback/?${params.toString()}`);
       return response;
     },
@@ -364,9 +403,9 @@ export default function AdminFeedbackPage() {
     mutationFn: async ({ feedbackId }: { feedbackId: string }) => {
       await apiClient.delete(`/api/v1/feedback/${feedbackId}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-feedback'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-feedback-stats'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['admin-feedback'] });
+      await queryClient.refetchQueries({ queryKey: ['admin-feedback-stats'] });
       setSelectedFeedback(null);
     },
   });
@@ -399,8 +438,11 @@ export default function AdminFeedbackPage() {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Failed to delete feedback', e);
+      // Close modal and refresh list even on error so the user doesn't get stuck
+      setSelectedFeedback(null);
+      await queryClient.refetchQueries({ queryKey: ['admin-feedback'] });
     }
-  }, [selectedFeedback, deleteMutation]);
+  }, [selectedFeedback, deleteMutation, queryClient]);
 
   // Filter feedbacks by search (uses `filters.search` now)
   const filteredFeedbacks = useMemo(() => {
@@ -411,8 +453,8 @@ export default function AdminFeedbackPage() {
     const query = searchQ.toLowerCase();
     return feedbackData.items.filter((f: Feedback) =>
       f.description.toLowerCase().includes(query) ||
-      f.page_url.toLowerCase().includes(query) ||
-      (f.page_title && f.page_title.toLowerCase().includes(query))
+      f.pageUrl.toLowerCase().includes(query) ||
+      (f.pageTitle && f.pageTitle.toLowerCase().includes(query))
     );
   }, [feedbackData, filters.search]);
 
@@ -446,7 +488,7 @@ export default function AdminFeedbackPage() {
       })),
     },
     {
-      key: 'feedback_type',
+      key: 'feedbackType',
       label: t('feedback.admin.filterType') || 'Type',
       type: 'select',
       options: ALL_FEEDBACK_TYPES.map((value) => ({
@@ -528,7 +570,7 @@ export default function AdminFeedbackPage() {
               </h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {filteredFeedbacks.filter((f: Feedback) => f.status === statusKey).map((fb: Feedback) => {
-                  const typeIconInf = FEEDBACK_TYPE_ICONS[fb.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+                  const typeIconInf = FEEDBACK_TYPE_ICONS[fb.feedbackType] || FEEDBACK_TYPE_ICONS.other;
                   const FbTypeIcon = typeIconInf.icon;
                   const sevColor = SEVERITY_COLORS[fb.severity] || SEVERITY_COLORS.medium;
                   return (
@@ -541,9 +583,9 @@ export default function AdminFeedbackPage() {
                         <FbTypeIcon className={`h-5 w-5 ${typeIconInf.color}`} />
                         <span className={`text-xs px-2 py-0.5 rounded-full ${sevColor}`}>{String(t(`feedback.severity.${fb.severity}`) || fb.severity)}</span>
                       </div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{String(t(`feedback.types.${fb.feedback_type}`) || fb.feedback_type)}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{String(t(`feedback.types.${fb.feedbackType}`) || fb.feedbackType)}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">{fb.description}</p>
-                      <div className="text-xs text-gray-400 dark:text-gray-500">{new Date(fb.created_at).toLocaleDateString('pt-BR')}</div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500">{new Date(fb.createdAt).toLocaleDateString('pt-BR')}</div>
                     </div>
                   );
                 })}
@@ -560,7 +602,7 @@ export default function AdminFeedbackPage() {
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
           <TimelineView
             items={paginatedFeedbacks.map((fb: Feedback): TimelineItem => {
-              const typeIconInf = FEEDBACK_TYPE_ICONS[fb.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+              const typeIconInf = FEEDBACK_TYPE_ICONS[fb.feedbackType] || FEEDBACK_TYPE_ICONS.other;
               const TlTypeIcon = typeIconInf.icon;
               const sevColor = SEVERITY_COLORS[fb.severity] || SEVERITY_COLORS.medium;
               const stIconInf = STATUS_ICONS[fb.status] || STATUS_ICONS.open;
@@ -574,9 +616,9 @@ export default function AdminFeedbackPage() {
 
               return {
                 id: fb.id,
-                title: String(t(`feedback.types.${fb.feedback_type}`) || fb.feedback_type),
+                title: String(t(`feedback.types.${fb.feedbackType}`) || fb.feedbackType),
                 description: fb.description,
-                date: fb.created_at,
+                date: fb.createdAt,
                 status: timelineStatus,
                 icon: <TlStatusIcon className="h-4 w-4" />,
                 tags: [
@@ -584,8 +626,8 @@ export default function AdminFeedbackPage() {
                   { label: String(t(`feedback.status.${fb.status}`) || fb.status), color: stIconInf.color },
                 ],
                 onClick: () => setSelectedFeedback(fb),
-                footer: fb.page_url ? (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">📄 {fb.page_url}</p>
+                footer: fb.pageUrl ? (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">📄 {fb.pageUrl}</p>
                 ) : undefined,
               };
             })}
@@ -612,9 +654,9 @@ export default function AdminFeedbackPage() {
             onRowClick={(row) => setSelectedFeedback(row)}
             columns={[
               {
-                key: 'user_id',
+                key: 'userId',
                 header: 'Usuário',
-                accessor: 'user_id',
+                accessor: 'userId',
                 render: (value) => (
                   <div className="flex items-center gap-2">
                     <UserIcon className="h-4 w-4 text-gray-400" />
@@ -623,16 +665,16 @@ export default function AdminFeedbackPage() {
                 ),
               },
               {
-                key: 'feedback_type',
+                key: 'feedbackType',
                 header: t('feedback.admin.filterType') || 'Type',
-                accessor: 'feedback_type',
+                accessor: 'feedbackType',
                 render: (value, row) => {
-                  const typeIconInf = FEEDBACK_TYPE_ICONS[row.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+                  const typeIconInf = FEEDBACK_TYPE_ICONS[row.feedbackType] || FEEDBACK_TYPE_ICONS.other;
                   const TbTypeIcon = typeIconInf.icon;
                   return (
                     <div className="flex items-center gap-2">
                       <TbTypeIcon className={`h-5 w-5 ${typeIconInf.color}`} />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{String(t(`feedback.types.${row.feedback_type}`) || row.feedback_type)}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{String(t(`feedback.types.${row.feedbackType}`) || row.feedbackType)}</span>
                     </div>
                   );
                 },
@@ -655,9 +697,9 @@ export default function AdminFeedbackPage() {
                 ),
               },
               {
-                key: 'created_at',
+                key: 'createdAt',
                 header: 'Data',
-                accessor: 'created_at',
+                accessor: 'createdAt',
                 render: (value) => (
                   <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
                     <CalendarIcon className="h-4 w-4" />
@@ -698,7 +740,7 @@ export default function AdminFeedbackPage() {
         /* List View - Card-based layout (default) */
         <div className="space-y-4">
           {paginatedFeedbacks.map((feedback: Feedback) => {
-            const typeIconInf = FEEDBACK_TYPE_ICONS[feedback.feedback_type] || FEEDBACK_TYPE_ICONS.other;
+            const typeIconInf = FEEDBACK_TYPE_ICONS[feedback.feedbackType] || FEEDBACK_TYPE_ICONS.other;
             const ListTypeIcon = typeIconInf.icon;
             const sevColor = SEVERITY_COLORS[feedback.severity] || SEVERITY_COLORS.medium;
             const stIconInf = STATUS_ICONS[feedback.status] || STATUS_ICONS.open;
@@ -721,7 +763,7 @@ export default function AdminFeedbackPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                      <h3 className="text-base font-medium text-gray-900 dark:text-white">{String(t(`feedback.types.${feedback.feedback_type}`) || feedback.feedback_type)}</h3>
+                      <h3 className="text-base font-medium text-gray-900 dark:text-white">{String(t(`feedback.types.${feedback.feedbackType}`) || feedback.feedbackType)}</h3>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2 py-1 rounded-full text-xs ${sevColor}`}>{String(t(`feedback.severity.${feedback.severity}`) || feedback.severity)}</span>
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${stIconInf.color}`}>
@@ -736,10 +778,10 @@ export default function AdminFeedbackPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
                         <CalendarIcon className="h-3.5 w-3.5" />
-                        {new Date(feedback.created_at).toLocaleDateString('pt-BR')}
+                        {new Date(feedback.createdAt).toLocaleDateString('pt-BR')}
                       </span>
-                      {feedback.page_url && (
-                        <span className="truncate max-w-[200px]">📄 {feedback.page_url}</span>
+                      {feedback.pageUrl && (
+                        <span className="truncate max-w-[200px]">📄 {feedback.pageUrl}</span>
                       )}
                     </div>
 

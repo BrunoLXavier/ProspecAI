@@ -14,7 +14,7 @@ export interface InstituteFormData {
   isi_sigla: string;
   cnpj: string;
   descricao: string;
-  status: string;
+  status_receita: string;
   status_operacional: string;
   endereco_rua: string;
   endereco_numero: string;
@@ -42,7 +42,7 @@ export const instituteDefinition: EntityFormDefinition<InstituteFormData> = regi
   instituteScoped: false,
   apiEndpoint: '/api/v1/institutes',
   statisticsModule: 'institutes',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     nome: '',
@@ -50,7 +50,7 @@ export const instituteDefinition: EntityFormDefinition<InstituteFormData> = regi
     isi_sigla: '',
     cnpj: '',
     descricao: '',
-    status: 'active',
+    status_receita: 'Ativo',
     status_operacional: 'operational',
     endereco_rua: '',
     endereco_numero: '',
@@ -75,26 +75,26 @@ export const instituteDefinition: EntityFormDefinition<InstituteFormData> = regi
     {
       key: 'basic',
       nameKey: 'tabs.basic',
-      fields: ['nome', 'nome_fantasia', 'isi_sigla', 'cnpj', 'status', 'status_operacional', 'descricao'],
-      gridCols: 2,
+      fields: ['cnpj', 'nome', 'nome_fantasia', 'isi_sigla', 'status_receita', 'status_operacional', 'descricao'],
+      gridCols: 1,
     },
     {
       key: 'address',
       nameKey: 'tabs.address',
       fields: ['endereco_rua', 'endereco_numero', 'endereco_complemento', 'endereco_bairro', 'endereco_cep', 'endereco_cidade', 'endereco_uf', 'area_predial_m2'],
-      gridCols: 2,
+      gridCols: 1,
     },
     {
       key: 'contact',
       nameKey: 'tabs.contact',
       fields: ['phone', 'website', 'logo_url'],
-      gridCols: 2,
+      gridCols: 1,
     },
     {
       key: 'maturity',
       nameKey: 'tabs.maturity',
       fields: ['maturidade_gestao', 'maturidade_base_tecnologica', 'maturidade_produtos_servicos', 'maturidade_cooperacao', 'credenciamento_cati', 'credenciamento_ed'],
-      gridCols: 2,
+      gridCols: 1,
     },
   ],
 
@@ -127,13 +127,13 @@ export const instituteDefinition: EntityFormDefinition<InstituteFormData> = regi
       rules: [{ type: 'cnpj', messageKey: 'cnpj' }],
     },
     {
-      name: 'status',
+      name: 'status_receita',
       type: 'select',
-      labelKey: 'status',
+      labelKey: 'status_receita',
       options: [
-        { value: 'active', labelKey: 'statuses.active' },
-        { value: 'inactive', labelKey: 'statuses.inactive' },
-        { value: 'prospect', labelKey: 'statuses.prospect' },
+        { value: 'Ativo', labelKey: 'statuses.active' },
+        { value: 'Inativo', labelKey: 'statuses.inactive' },
+        { value: 'Prospect', labelKey: 'statuses.prospect' },
       ],
     },
     {

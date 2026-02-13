@@ -27,7 +27,7 @@ export const opportunityDefinition: EntityFormDefinition<OpportunityFormData> = 
   instituteScoped: false,
   apiEndpoint: '/api/v1/opportunities',
   statisticsModule: 'opportunities',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     title: '',
@@ -45,8 +45,8 @@ export const opportunityDefinition: EntityFormDefinition<OpportunityFormData> = 
   },
 
   tabs: [
-    { key: 'basic', nameKey: 'tabs.basic', fields: ['title', 'description', 'client_id', 'funding_source_id', 'stage', 'status'], gridCols: 2 },
-    { key: 'values', nameKey: 'tabs.values', fields: ['estimated_value', 'expected_close_date', 'probability'], gridCols: 2 },
+    { key: 'basic', nameKey: 'tabs.basic', fields: ['title', 'description', 'client_id', 'funding_source_id', 'stage', 'status'], gridCols: 1 },
+    { key: 'values', nameKey: 'tabs.values', fields: ['estimated_value', 'expected_close_date', 'probability'], gridCols: 1 },
     { key: 'priority', nameKey: 'tabs.priority', fields: ['urgency', 'financial_impact', 'strategic_fit'], gridCols: 1 },
   ],
 

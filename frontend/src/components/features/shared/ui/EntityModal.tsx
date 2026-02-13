@@ -1,10 +1,17 @@
 /**
  * EntityModal — Unified Entity CRUD Modal
- * Composes BaseModal + ModalTabs + ModalFooter + DeleteConfirmation + FormRenderer
- * + useEntityForm into a SINGLE reusable modal for all entities.
+ * Composes BaseModal + ModalTabs (vertical stepper) + ModalFooter +
+ * DeleteConfirmation + FormRenderer + useTabValidation + ValidationSummary
+ * into a SINGLE reusable modal for all entities.
  *
  * This is the ONLY modal component that should be used for entity CRUD.
  * Manual modal building (duplicating Dialog/Transition/form logic) is prohibited.
+ *
+ * Features:
+ *   - Vertical sidebar stepper for tabbed forms
+ *   - Cross-tab validation with error badges and auto-navigation
+ *   - On-blur + on-submit validation
+ *   - Single-column field layout by default
  *
  * Slots available for custom content:
  *   - beforeFields: above the auto-rendered form fields
@@ -29,12 +36,14 @@
 
 import React, { useState, useCallback, useMemo, ReactNode, ComponentType } from 'react';
 import { useTranslations } from 'next-intl';
-import BaseModal, { ModalFooter } from './BaseModal';
+import BaseModal from './BaseModal';
 import ModalTabs, { TabPanelContent } from './ModalTabs';
 import type { TabItem } from './ModalTabs';
 import DeleteConfirmation from './DeleteConfirmation';
+import ValidationSummary from './ValidationSummary';
 import FormRenderer from '@/lib/form-registry/FormRenderer';
 import { useEntityForm, EntityFormMode } from '@/hooks/use-entity-form';
+import { useTabValidation, getRequiredFieldNames } from '@/hooks/use-tab-validation';
 import { usePermission } from '@/contexts/ACLContext';
 import type { EntityFormDefinition, TabDefinition } from '@/lib/form-registry/types';
 import type { ModalSize } from './BaseModal';
@@ -63,7 +72,7 @@ export interface EntityModalProps<T = any> {
   onSuccess?: (data: any) => void;
   /** Callback after successful delete */
   onDeleteSuccess?: () => void;
-  /** Override modal size (defaults to '2xl') */
+  /** Override modal size (defaults to '3xl') */
   size?: ModalSize;
   /** Override API endpoint */
   apiEndpoint?: string;
@@ -112,7 +121,7 @@ export default function EntityModal<T extends Record<string, any> = any>({
   onClose,
   onSuccess,
   onDeleteSuccess,
-  size = '2xl',
+  size = '3xl',
   apiEndpoint,
   queryKey,
   extraData,
@@ -133,6 +142,9 @@ export default function EntityModal<T extends Record<string, any> = any>({
 
   // Delete confirmation state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Controlled tab index for stepper navigation
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   // ACL permission check
   const { can } = usePermission();
@@ -163,17 +175,39 @@ export default function EntityModal<T extends Record<string, any> = any>({
   const {
     form,
     mode,
-    onSubmit,
+    onSubmit: originalOnSubmit,
     onDelete,
     isSubmitting,
     isDeleting,
     serverError,
   } = entityForm;
 
-  const { control, register, formState: { errors }, watch } = form;
+  const { control, register, formState: { errors }, watch, trigger } = form;
 
   const isViewMode = mode === 'view';
   const isReadOnly = isViewMode || !canEdit;
+
+  // ── Tab Validation ──────────────────────────────────────────────────────
+
+  const requiredFields = useMemo(
+    () => getRequiredFieldNames(definition.fields),
+    [definition.fields]
+  );
+
+  const formValues = watch();
+
+  const { tabStates, firstTabWithError, totalErrors, tabsWithErrors } =
+    useTabValidation(errors, definition.tabs, requiredFields, formValues);
+
+  // Enhanced submit: trigger full validation, navigate to first error tab
+  const onSubmit = useCallback(async () => {
+    const isValid = await trigger();
+    if (!isValid && firstTabWithError !== null) {
+      setActiveTabIndex(firstTabWithError);
+      return;
+    }
+    originalOnSubmit();
+  }, [trigger, firstTabWithError, originalOnSubmit]);
 
   // ── Title ───────────────────────────────────────────────────────────────
 
@@ -222,6 +256,7 @@ export default function EntityModal<T extends Record<string, any> = any>({
 
   const handleClose = useCallback(() => {
     setShowDeleteConfirm(false);
+    setActiveTabIndex(0);
     onClose();
   }, [onClose]);
 
@@ -240,7 +275,7 @@ export default function EntityModal<T extends Record<string, any> = any>({
     setShowDeleteConfirm(false);
   }, []);
 
-  // ── Build tab items ─────────────────────────────────────────────────────
+  // ── Build tab items with error/completion state ─────────────────────────
 
   const tabItems = useMemo((): TabItem[] | null => {
     if (!definition.tabs || definition.tabs.length === 0) {
@@ -255,8 +290,12 @@ export default function EntityModal<T extends Record<string, any> = any>({
         tabName = tabDef.nameKey;
       }
 
+      const tabState = tabStates[tabDef.key];
+
       return {
         name: tabName,
+        errorCount: tabState?.errorCount ?? 0,
+        isComplete: tabState?.isComplete ?? false,
         content: (
           <TabPanelContent>
             <FormRenderer
@@ -267,7 +306,7 @@ export default function EntityModal<T extends Record<string, any> = any>({
               errors={errors}
               watch={watch}
               tabKey={tabDef.key}
-              gridCols={tabDef.gridCols}
+              gridCols={1}
               beforeFields={tabDef.key === definition.tabs![0].key ? beforeFields : undefined}
               afterFields={tabDef.key === definition.tabs![definition.tabs!.length - 1].key ? afterFields : undefined}
             />
@@ -282,7 +321,20 @@ export default function EntityModal<T extends Record<string, any> = any>({
     }
 
     return entityTabs;
-  }, [definition, mode, control, register, errors, watch, t, beforeFields, afterFields, customTabs]);
+  }, [definition, mode, control, register, errors, watch, t, beforeFields, afterFields, customTabs, tabStates]);
+
+  // ── Validation summary tab errors ───────────────────────────────────────
+
+  const tabErrorInfos = useMemo(() => {
+    if (!definition.tabs || !tabItems) return [];
+    return definition.tabs
+      .map((tabDef, index) => ({
+        name: tabItems[index]?.name ?? tabDef.nameKey,
+        errorCount: tabStates[tabDef.key]?.errorCount ?? 0,
+        index,
+      }))
+      .filter((t) => t.errorCount > 0);
+  }, [definition.tabs, tabItems, tabStates]);
 
   // ── Footer ──────────────────────────────────────────────────────────────
 
@@ -297,6 +349,12 @@ export default function EntityModal<T extends Record<string, any> = any>({
     return (
       <div>
         {errorBanner}
+        {/* Cross-tab validation summary */}
+        <ValidationSummary
+          totalErrors={totalErrors}
+          tabErrors={tabErrorInfos}
+          onNavigateToTab={setActiveTabIndex}
+        />
         <div className="flex items-center justify-between">
           {/* Left side: delete + footerExtra */}
           <div className="flex items-center gap-2">
@@ -340,6 +398,7 @@ export default function EntityModal<T extends Record<string, any> = any>({
     serverError, showDelete, canDelete, mode, entity, isDeleting,
     showDeleteConfirm, isViewMode, isReadOnly, isSubmitting,
     tCommon, handleDeleteClick, handleClose, onSubmit, footerExtra,
+    totalErrors, tabErrorInfos,
   ]);
 
   // ── Render ──────────────────────────────────────────────────────────────
@@ -370,7 +429,11 @@ export default function EntityModal<T extends Record<string, any> = any>({
 
       {/* Form content — tabbed or flat */}
       {tabItems ? (
-        <ModalTabs tabs={tabItems} />
+        <ModalTabs
+          tabs={tabItems}
+          selectedIndex={activeTabIndex}
+          onChange={setActiveTabIndex}
+        />
       ) : (
         <FormRenderer
           definition={definition}
@@ -379,6 +442,7 @@ export default function EntityModal<T extends Record<string, any> = any>({
           register={register}
           errors={errors}
           watch={watch}
+          gridCols={1}
           beforeFields={beforeFields}
           afterFields={afterFields}
         />

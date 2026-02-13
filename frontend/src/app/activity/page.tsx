@@ -526,7 +526,7 @@ export default function ActivityPage() {
           onClose={() => setSelectedActivity(null)}
           title={String(t(`types.${String(selectedActivity.type)}`) || '')}
           subtitle={selectedActivity.entityName}
-          size="2xl"
+          size="3xl"
           showCloseButton={true}
           footer={<ModalFooter onCancel={() => setSelectedActivity(null)} />}
         >

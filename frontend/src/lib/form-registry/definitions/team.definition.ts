@@ -28,7 +28,7 @@ export const teamDefinition: EntityFormDefinition<TeamFormData> = registerEntity
   instituteScoped: true,
   apiEndpoint: '/api/v1/teams',
   statisticsModule: 'teams',
-  gridCols: 2,
+  gridCols: 1,
 
   defaultValues: {
     nome: '',
@@ -47,9 +47,9 @@ export const teamDefinition: EntityFormDefinition<TeamFormData> = registerEntity
   },
 
   tabs: [
-    { key: 'personal', nameKey: 'tabs.basic', fields: ['nome', 'cargo', 'departamento', 'especializacao', 'vinculo_principal', 'experiencia_anos', 'formacao'], gridCols: 2 },
-    { key: 'contact', nameKey: 'tabs.contact', fields: ['email_profissional', 'telefone_profissional'], gridCols: 2 },
-    { key: 'academic', nameKey: 'tabs.academic', fields: ['lattes_url', 'linkedin_url', 'orcid', 'researchgate'], gridCols: 2 },
+    { key: 'personal', nameKey: 'tabs.basic', fields: ['nome', 'cargo', 'departamento', 'especializacao', 'vinculo_principal', 'experiencia_anos', 'formacao'], gridCols: 1 },
+    { key: 'contact', nameKey: 'tabs.contact', fields: ['email_profissional', 'telefone_profissional'], gridCols: 1 },
+    { key: 'academic', nameKey: 'tabs.academic', fields: ['lattes_url', 'linkedin_url', 'orcid', 'researchgate'], gridCols: 1 },
   ],
 
   fields: [

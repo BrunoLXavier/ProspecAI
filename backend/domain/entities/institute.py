@@ -52,6 +52,8 @@ class Institute(BaseEntity):
     # Status fields
     status_operacional: OperationalStatus = OperationalStatus.OPERATIONAL
     status: InstituteStatus = InstituteStatus.ACTIVE
+    # Official Receita/registry status fetched from CNPJ API (raw value)
+    status_receita: Optional[str] = None
     
     # Maturity fields (ISI maturity model)
     maturidade_gestao: Optional[str] = Field(None, max_length=10, description="e.g. 'M4c', 'M3b'")
@@ -122,6 +124,8 @@ class InstituteCreate(BaseEntity):
     credenciamento_cati: bool = False
     credenciamento_ed: bool = False
     logo_url: Optional[str] = None
+    # Optional official registry status when creating from CNPJ enrichment
+    status_receita: Optional[str] = None
 
 
 class InstituteUpdate(BaseEntity):
@@ -140,6 +144,7 @@ class InstituteUpdate(BaseEntity):
     area_predial_m2: Optional[int] = None
     status_operacional: Optional[OperationalStatus] = None
     status: Optional[InstituteStatus] = None
+    status_receita: Optional[str] = None
     maturidade_gestao: Optional[str] = None
     maturidade_base_tecnologica: Optional[Decimal] = None
     maturidade_produtos_servicos: Optional[Decimal] = None

@@ -115,7 +115,7 @@ export function useEntityForm<T extends Record<string, any> = any>(
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: definition.defaultValues as any,
-    mode: 'onBlur',
+    mode: 'all',
   });
 
   // Reset form when entity changes (edit/view mode)

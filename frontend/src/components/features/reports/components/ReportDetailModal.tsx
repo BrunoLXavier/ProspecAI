@@ -83,7 +83,7 @@ export default function ReportDetailModal({ isOpen, onClose, template, onDeleted
         onClose={onClose}
         title={template.name}
         icon={<DocumentTextIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />}
-        size="2xl"
+        size="3xl"
         footer={renderFooter()}
       >
         <div className="space-y-4">
