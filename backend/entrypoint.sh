@@ -62,20 +62,9 @@ else
   exit 1
 fi
 
-if [ -n "${SEED_TENANT_IDS:-}" ]; then
-  echo "SEED_TENANT_IDS detected: ${SEED_TENANT_IDS}. Running seeds..."
-  if python -m backend.scripts.run_seeds --tenants "${SEED_TENANT_IDS}"; then
-    echo "Seeds executed successfully."
-  else
-    echo "Warning: seeds failed. Continuing startup." >&2
-  fi
-else
-  echo "SEED_TENANT_IDS not set; skipping seeds."
-fi
-
 echo "Starting backend server..."
 if [ "${RUN_SERVER:-true}" = "false" ]; then
-  echo "RUN_SERVER=false; exiting after migrations and seeds without starting server."
+  echo "RUN_SERVER=false; exiting after migrations without starting server."
   exit 0
 fi
 

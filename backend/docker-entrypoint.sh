@@ -14,23 +14,6 @@ if command -v alembic >/dev/null 2>&1; then
   fi
 fi
 
-if [ "${RUN_SEEDS_ON_START:-}" = "1" ] || [ "${RUN_SEEDS_ON_START:-}" = "true" ]; then
-  echo "[entrypoint] RUN_SEEDS_ON_START is set — executing seed runner"
-  # If SEED_TENANT_IDS is set, pass it; otherwise the runner will read env var inside container
-  if [ -n "${SEED_TENANT_IDS:-}" ]; then
-    python /app/scripts/run_seeds_fixed.py --tenants "${SEED_TENANT_IDS}"
-  else
-    python /app/scripts/run_seeds_fixed.py
-  fi
-  echo "[entrypoint] Seed runner finished"
-elif [ -n "${SEED_TENANT_IDS:-}" ]; then
-  echo "[entrypoint] SEED_TENANT_IDS is set — executing seed runner"
-  python /app/scripts/run_seeds_fixed.py --tenants "${SEED_TENANT_IDS}"
-  echo "[entrypoint] Seed runner finished"
-else
-  echo "[entrypoint] RUN_SEEDS_ON_START not set; skipping seeds"
-fi
-
 echo "[entrypoint] Starting application"
   # If TRANSLATIONS_DIR is not populated, attempt to copy locales from the frontend
   # This helps non-bind-mount deployments where locales should be baked into the image
@@ -53,7 +36,7 @@ echo "[entrypoint] Starting application"
   fi
 
   if [ "${RUN_SERVER:-true}" = "false" ]; then
-    echo "[entrypoint] RUN_SERVER=false; exiting after migrations and seeds without starting server."
+    echo "[entrypoint] RUN_SERVER=false; exiting after migrations without starting server."
     exit 0
   fi
 

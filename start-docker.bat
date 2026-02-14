@@ -18,7 +18,6 @@ set "NO_MIGRATE="
 set "SHOW_MIGRATIONS="
 set "RUN_MIGRATIONS=1"
 set "RUN_ENV_ARGS="
-set "SEED_TENANT_IDS="
 
 REM Clean up old logs
 if exist "%LOG_FILE%" del /q "%LOG_FILE%" >nul 2>&1
@@ -111,9 +110,6 @@ if "%RUN_MIGRATIONS%"=="1" (
 REM Ensure frontend is running
 call :log Ensuring frontend is running...
 docker compose start frontend >nul 2>&1
-
-REM Run seed scripts
-call :run_seeds
 
 REM Final cleanup - remove temp files only on success
 call :log Cleaning up temporary files...
@@ -225,40 +221,6 @@ if %MIG_EXIT% NEQ 0 (
   exit /b 1
 )
 call :log [OK] Migrations completed
-goto :eof
-
-:run_seeds
-call :log Running seed scripts...
-set "DEFAULT_SEED_TENANTS=00000000-0000-0000-0000-000000000001"
-if defined SEED_TENANT_IDS (
-  set "SEED_TENANTS=!SEED_TENANT_IDS!"
-) else (
-  set "SEED_TENANTS=%DEFAULT_SEED_TENANTS%"
-)
-
-REM Find seed runner script
-set "SEED_RUNNER_PATH="
-if exist "%~dp0scripts\run_seeds_fixed.py" (
-  set "SEED_RUNNER_PATH=scripts/run_seeds_fixed.py"
-) else if exist "%~dp0backend\scripts\run_seeds_fixed.py" (
-  set "SEED_RUNNER_PATH=scripts/run_seeds_fixed.py"
-)
-
-if not "!SEED_RUNNER_PATH!"=="" (
-  call :log Invoking seed runner ^(path: !SEED_RUNNER_PATH!^) with tenants: %SEED_TENANTS%
-  if defined RUN_ENV_ARGS (
-    docker compose run --rm %RUN_ENV_ARGS% --entrypoint "" backend python "!SEED_RUNNER_PATH!" --tenants "%SEED_TENANTS%" >> "%BACKEND_LOG%" 2>&1
-  ) else (
-    docker compose run --rm --entrypoint "" backend python "!SEED_RUNNER_PATH!" --tenants "%SEED_TENANTS%" >> "%BACKEND_LOG%" 2>&1
-  )
-  if !ERRORLEVEL! NEQ 0 (
-    call :log [WARN] Seed runner returned error; continuing anyway
-  ) else (
-    call :log [OK] Seed runner completed
-  )
-) else (
-  call :log [WARN] No seed runner found; skipping seeds
-)
 goto :eof
 
 :cleanup
