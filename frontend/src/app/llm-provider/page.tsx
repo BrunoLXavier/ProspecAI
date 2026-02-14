@@ -616,7 +616,9 @@ export default function LLMProviderSettingsPage() {
           </div>
         ) : configs.length === 0 ? (
           <div className="text-center py-8">
-            <ExclamationTriangleIcon className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
+            <div className="w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center mx-auto mb-3">
+              <ExclamationTriangleIcon className="w-6 h-6 text-yellow-400" />
+            </div>
             <p className="text-gray-500 dark:text-gray-400">
               {t('llm.noConfigs')}
             </p>

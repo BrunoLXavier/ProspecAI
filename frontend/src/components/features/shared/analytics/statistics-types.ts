@@ -18,7 +18,10 @@ export type StatisticsModule =
   | 'institutes'
   | 'teams'
   | 'infrastructure'
-  | 'communications';
+  | 'communications'
+  | 'activity'
+  | 'notifications'
+  | 'feedback';
 
 /**
  * User roles for permission-based statistics visibility
@@ -413,6 +416,9 @@ export const ALL_MODULES: StatisticsModule[] = [
   'communications',
   'reports',
   'translations',
+  'activity',
+  'notifications',
+  'feedback',
 ];
 
 /**

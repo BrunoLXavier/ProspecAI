@@ -231,14 +231,14 @@ export default function InstituteMembersPage() {
             action={
               <button
                 onClick={() => setShowAddPanel(!showAddPanel)}
-                className={`inline-flex items-center px-4 py-2 rounded-lg transition ${
+                title={t('addMember') || 'Adicionar Membro'}
+                className={`inline-flex items-center justify-center p-2 rounded-lg transition ${
                   showAddPanel
                     ? 'bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-gray-300'
                     : 'bg-primary-600 text-white hover:bg-primary-700'
                 }`}
               >
-                <PlusIcon className="w-5 h-5 mr-2" />
-                {t('addMember') || 'Adicionar Membro'}
+                <PlusIcon className="w-5 h-5" />
               </button>
             }
           />

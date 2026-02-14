@@ -144,9 +144,13 @@ class FeedbackRepository:
         self,
         tenant_id: UUID,
         status: Optional[FeedbackStatus] = None,
+        feedback_type: Optional[FeedbackType] = None,
+        severity: Optional[FeedbackSeverity] = None,
+        user_id: Optional[UUID] = None,
     ) -> int:
         """
-        Count feedbacks with optional status filter.
+        Count feedbacks with optional filters.
+        Mirrors the same filter params as list_by_tenant for accurate pagination.
         """
         conditions = [
             FeedbackModel.tenant_id == tenant_id,
@@ -155,6 +159,15 @@ class FeedbackRepository:
         
         if status:
             conditions.append(FeedbackModel.status == status.value)
+        
+        if feedback_type:
+            conditions.append(FeedbackModel.feedback_type == feedback_type.value)
+        
+        if severity:
+            conditions.append(FeedbackModel.severity == severity.value)
+        
+        if user_id:
+            conditions.append(FeedbackModel.user_id == user_id)
         
         stmt = select(func.count(FeedbackModel.id)).where(and_(*conditions))
         result = await self.session.execute(stmt)

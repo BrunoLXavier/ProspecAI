@@ -155,16 +155,18 @@ export default function OpportunitiesWidget() {
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">Valor Total</p>
         </div>
-        <div className="flex items-center gap-1">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {(data?.avg_probability || 0).toFixed(0)}%
-          </p>
-          {(data?.avg_probability || 0) >= 50 ? (
-            <ArrowTrendingUpIcon className="w-4 h-4 text-green-500" />
-          ) : (
-            <ArrowTrendingDownIcon className="w-4 h-4 text-red-500" />
-          )}
-          <p className="text-xs text-gray-500 dark:text-gray-400 ml-1">Prob. Média</p>
+        <div>
+          <div className="flex items-center gap-1">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {(data?.avg_probability || 0).toFixed(0)}%
+            </p>
+            {(data?.avg_probability || 0) >= 50 ? (
+              <ArrowTrendingUpIcon className="w-4 h-4 text-green-500" />
+            ) : (
+              <ArrowTrendingDownIcon className="w-4 h-4 text-red-500" />
+            )}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Prob. Média</p>
         </div>
       </div>
 

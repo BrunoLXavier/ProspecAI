@@ -156,7 +156,7 @@ export default function InstitutesPage() {
       />
 
       <SafeRender fallback={<div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-4"><div className="text-sm text-gray-500 dark:text-gray-400">{t('statsUnavailable') || 'Statistics unavailable'}</div></div>}>
-        <ConfigurableStatisticsBar module={"institutes" as any} data={state.allData} />
+        <ConfigurableStatisticsBar module="institutes" data={state.allData} />
       </SafeRender>
 
       <FilterPanel fields={filterFields} values={state.filters} onChange={state.setFilter} onReset={state.resetFilters} />

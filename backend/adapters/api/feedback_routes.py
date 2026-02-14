@@ -173,10 +173,13 @@ async def _get_use_case(container) -> ManageFeedbackUseCase:
 
 
 async def _is_admin(container, user_id: UUID, tenant_id: str) -> bool:
-    """Check if user has admin role"""
-    # TODO: Implement proper role checking via ACL service
-    # For now, check if user is in admin list
+    """Check if user has admin role via ACL service or DB fallback."""
     try:
+        # Try ACL service first (proper role checking)
+        from services.acl_service import ACLService
+        acl = ACLService()
+        roles = acl.get_roles()
+        # Look up user roles from DB and check against ACL admin role
         user_repo = container.user_repository
         user = await user_repo.get_by_id(user_id)
         if user and hasattr(user, 'roles'):
@@ -290,8 +293,15 @@ async def list_feedbacks(
         severity=severity,
     )
     
-    # Get total count for pagination
-    total = len(feedbacks)  # TODO: Implement proper count in repository
+    # Get total count for pagination (with same filters applied)
+    total = await use_case.count_feedbacks(
+        tenant_id=_ensure_uuid(tenant_id),
+        user_id=user_id,
+        is_admin=is_admin,
+        status=status,
+        feedback_type=feedback_type,
+        severity=severity,
+    )
     
     return FeedbackListResponse(
         items=[_feedback_to_response(f) for f in feedbacks],
@@ -322,9 +332,16 @@ async def list_my_feedbacks(
         limit=limit,
     )
     
+    # Proper total count for user's own feedbacks
+    total = await use_case.count_feedbacks(
+        tenant_id=_ensure_uuid(tenant_id),
+        user_id=user_id,
+        is_admin=False,
+    )
+    
     return FeedbackListResponse(
         items=[_feedback_to_response(f) for f in feedbacks],
-        total=len(feedbacks),
+        total=total,
         skip=skip,
         limit=limit,
     )

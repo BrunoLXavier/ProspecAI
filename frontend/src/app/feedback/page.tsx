@@ -95,6 +95,7 @@ const FEEDBACK_TYPE_ICONS: Record<string, { icon: React.ComponentType<any>; colo
   bug_report:      { icon: BugAntIcon,               color: 'text-red-500' },
   feature_request: { icon: LightBulbIcon,             color: 'text-yellow-500' },
   ui_feedback:     { icon: PaintBrushIcon,             color: 'text-purple-500' },
+  visual_bug:      { icon: EyeIcon,                   color: 'text-pink-500' },
   usability:       { icon: HandRaisedIcon,             color: 'text-blue-500' },
   performance:     { icon: BoltIcon,                   color: 'text-orange-500' },
   improvement:     { icon: WrenchScrewdriverIcon,      color: 'text-teal-500' },

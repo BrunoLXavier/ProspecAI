@@ -146,12 +146,14 @@ async def get_funding_by_category(
 
 @router.get("/trl-distribution", response_model=List[TRLDistributionData])
 async def get_trl_distribution(
+    institute_id: str = Query(None, description="Filter by institute ID"),
     current_user: AuthenticatedUser = Depends(get_current_user),
     session = Depends(get_db_session),
 ):
     """
     Get project distribution by TRL level.
     Shows technology maturity across portfolio.
+    Optionally filter by institute_id to scope data.
     """
     tenant_id = None
     if current_user is not None and getattr(current_user, "tenant_id", None) is not None:
@@ -159,7 +161,7 @@ async def get_trl_distribution(
     else:
         tenant_id = None
     service = AnalyticsService(session, tenant_id)
-    data = await service.get_projects_by_trl()
+    data = await service.get_projects_by_trl(institute_id=institute_id)
     return to_primitive([TRLDistributionData(**item) for item in data])
 
 

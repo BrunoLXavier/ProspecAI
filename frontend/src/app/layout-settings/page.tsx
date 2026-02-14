@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useLayout, ALL_WIDGET_IDS } from '@/contexts/LayoutContext';
 import { navigationItems as SIDEBAR_NAV_ITEMS } from '@/components/features/shared/layout/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -455,11 +455,11 @@ export default function LayoutPage() {
         </div>
 
         <div className="flex gap-2">
-          <button onClick={handleResetLayout} disabled={saving} className="px-3 py-2 border rounded">
-            <ArrowPathIcon className="w-4 h-4 inline-block mr-1" /> {t('layout.buttons.reset') || 'Reset'}
+          <button onClick={handleResetLayout} disabled={saving} title={t('layout.buttons.reset') || 'Reset'} className="inline-flex items-center justify-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
+            <ArrowPathIcon className="w-5 h-5" />
           </button>
-          <button onClick={handleSaveLayout} disabled={saving} className="px-3 py-2 bg-primary-600 text-white rounded">
-            {saving ? 'Saving...' : saved ? 'Saved' : (t('layout.buttons.saveChanges') || 'Save changes')}
+          <button onClick={handleSaveLayout} disabled={saving} title={t('layout.buttons.saveChanges') || 'Save changes'} className="inline-flex items-center justify-center p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50">
+            {saving ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <CheckIcon className="w-5 h-5" />}
           </button>
         </div>
       </div>

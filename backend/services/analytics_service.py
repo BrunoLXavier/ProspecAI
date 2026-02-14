@@ -175,16 +175,20 @@ class AnalyticsService:
             for row in rows
         ]
     
-    async def get_projects_by_trl(self) -> List[Dict[str, Any]]:
-        """Get project distribution by TRL level"""
+    async def get_projects_by_trl(self, institute_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get project distribution by TRL level, optionally filtered by institute."""
+        conditions = [
+            ProjectModel.tenant_id == self.tenant_id,
+            ProjectModel.deleted_at.is_(None),
+        ]
+        if institute_id:
+            conditions.append(ProjectModel.institute_id == institute_id)
+
         query = select(
             ProjectModel.trl_current,
             func.count(ProjectModel.id).label("count")
         ).where(
-            and_(
-                ProjectModel.tenant_id == self.tenant_id,
-                ProjectModel.deleted_at.is_(None)
-            )
+            and_(*conditions)
         ).group_by(ProjectModel.trl_current)
         
         result = await self.session.execute(query)

@@ -99,13 +99,13 @@ function SortableWidget({ widget, children, isEditMode, overlay }: SortableWidge
     small: 'col-span-1',
     medium: 'col-span-1 lg:col-span-1',
     large: 'col-span-1 lg:col-span-2',
-    full: 'col-span-1 lg:col-span-2',
+    full: 'col-span-1 lg:col-span-2 min-w-0 overflow-hidden',
   };
 
   const spanClass = sizeClasses[widget.size ?? 'medium'];
 
   return (
-    <div ref={setNodeRef} style={style} className={`relative group ${spanClass} ${isEditMode ? 'cursor-move' : ''}`}>
+    <div ref={setNodeRef} style={style} className={`relative group min-w-0 ${spanClass} ${isEditMode ? 'cursor-move' : ''}`}>
       {overlay && <div className="absolute top-2 right-2 z-40 pointer-events-auto">{overlay}</div>}
 
       {isEditMode && (

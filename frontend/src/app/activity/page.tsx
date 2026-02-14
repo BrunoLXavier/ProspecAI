@@ -18,6 +18,8 @@ import {
   BriefcaseIcon,
   UserGroupIcon,
   CurrencyDollarIcon,
+  PlusIcon,
+  InboxIcon,
 } from '@heroicons/react/24/outline';
 import PageHeader from '@/components/features/shared/ui/PageHeader';
 import StatCard from '@/components/features/shared/ui/StatCard';
@@ -282,12 +284,18 @@ export default function ActivityPage() {
         viewToggle={true}
         viewMode={viewMode}
         onViewChange={(m) => { if (m === 'list' || m === 'board' || m === 'timeline' || m === 'table') setViewMode(m); }}
-        availableModes={['list', 'board', 'timeline', 'table']}
-        viewLabels={{ list: 'List View', board: 'Board View', timeline: 'Timeline View', table: 'Table View' }}
+        action={
+          <button
+            title={t('title')}
+            className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
+          >
+            <PlusIcon className="w-5 h-5" />
+          </button>
+        }
       />
 
       {/* Configurable Statistics Bar */}
-      <ConfigurableStatisticsBar module="proposals" data={safeActivities} />
+      <ConfigurableStatisticsBar module="activity" data={safeActivities} />
 
       {/* Filters */}
       <FilterPanel
@@ -324,7 +332,12 @@ export default function ActivityPage() {
                 ))}
               </div>
             ) : paginatedActivities.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('empty')}</p>
+              <div className="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
+                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+                  <InboxIcon className="w-6 h-6" />
+                </div>
+                <p className="text-sm">{t('empty')}</p>
+              </div>
             ) : (
               paginatedActivities.map((activity) => (
                 <div
@@ -373,6 +386,14 @@ export default function ActivityPage() {
 
         {/* Board View - Grouped by action type */}
         {viewMode === 'board' && (
+          safeActivities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+                <InboxIcon className="w-6 h-6" />
+              </div>
+              <p className="text-sm">{t('empty')}</p>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {(['create', 'update', 'delete', 'transition', 'match', 'submit'] as const).map((actionType) => {
               const groupedActivities = safeActivities.filter(a => a.type === actionType);
@@ -423,6 +444,7 @@ export default function ActivityPage() {
               );
             })}
           </div>
+          )
         )}
 
         {/* Table View */}
@@ -435,7 +457,12 @@ export default function ActivityPage() {
                 ))}
               </div>
             ) : paginatedActivities.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('empty')}</p>
+              <div className="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
+                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+                  <InboxIcon className="w-6 h-6" />
+                </div>
+                <p className="text-sm">{t('empty')}</p>
+              </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
                 <thead className="bg-gray-50 dark:bg-slate-700">

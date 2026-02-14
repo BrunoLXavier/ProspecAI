@@ -6,14 +6,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLayout } from '@/contexts/LayoutContext';
 import { useTranslations } from 'next-intl';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import FilterPanel, { FilterField } from '@/components/features/shared/ui/FilterPanel';
 import ConfigurableStatisticsBar from '@/components/features/shared/ui/ConfigurableStatisticsBar';
+import PageHeader from '@/components/features/shared/ui/PageHeader';
 import TranslationModal from '@/components/features/translations/components/TranslationModal';
 import TableView, { TableColumn } from '@/components/features/shared/ui/TableView';
 import { ViewMode } from '@/components/features/shared/ui/ViewToggle';
 import { apiClient } from '@/lib/api-client';
 import {
-	TranslationsHeader,
+	ImportExportMenu,
 	TranslationsListView,
 	TranslationsBoardView,
 	TranslationsTimelineView,
@@ -321,17 +323,32 @@ export default function TranslationsPage() {
 		<>
 			<div className="max-w-7xl mx-auto space-y-6 pb-24">
 				{/* Header */}
-				<TranslationsHeader
-					t={t}
+				<PageHeader
+					title={t('translations.title') || 'Traduções'}
+					subtitle={t('translations.description') || 'Gerencie as traduções do sistema'}
+					viewToggle={true}
 					viewMode={viewMode}
-					setViewMode={setViewMode}
-					locales={locales}
-					showImportExportMenu={showImportExportMenu}
-					setShowImportExportMenu={setShowImportExportMenu}
-					onExportLocale={exportLocale}
-					onImportFile={handleImportFile}
-					onImportError={handleImportError}
-					onAddNewKey={() => setShowNewKeyModal(true)}
+					onViewChange={(m) => setViewMode(m as ViewMode)}
+					action={
+						<div className="flex items-center gap-2">
+							<ImportExportMenu
+								t={t}
+								locales={locales}
+								showMenu={showImportExportMenu}
+								setShowMenu={setShowImportExportMenu}
+								onExportLocale={exportLocale}
+								onImportFile={handleImportFile}
+								onImportError={handleImportError}
+							/>
+							<button
+								onClick={() => setShowNewKeyModal(true)}
+								title={t('translations.addNewKey') || 'New Key'}
+								className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
+							>
+								<PlusIcon className="w-5 h-5" />
+							</button>
+						</div>
+					}
 				/>
 
 				{/* Error Alert */}

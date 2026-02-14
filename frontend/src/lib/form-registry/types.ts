@@ -238,6 +238,8 @@ export type StatisticsModule =
   | 'teams'
   | 'infrastructure'
   | 'communications'
+  | 'activity'
+  | 'notifications'
   | 'feedback';
 
 // ─── Entity Form Definition ─────────────────────────────────────────────────

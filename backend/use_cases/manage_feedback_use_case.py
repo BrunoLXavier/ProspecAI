@@ -160,6 +160,35 @@ class ManageFeedbackUseCase:
                 limit=limit,
             )
     
+    async def count_feedbacks(
+        self,
+        tenant_id: UUID,
+        user_id: UUID,
+        is_admin: bool = False,
+        status: Optional[FeedbackStatus] = None,
+        feedback_type: Optional[FeedbackType] = None,
+        severity: Optional[FeedbackSeverity] = None,
+    ) -> int:
+        """
+        Count feedbacks with the same filter logic as list_feedbacks.
+        Used for accurate pagination totals.
+        """
+        if is_admin:
+            return await self.feedback_repository.count_by_tenant(
+                tenant_id=tenant_id,
+                status=status,
+                feedback_type=feedback_type,
+                severity=severity,
+            )
+        else:
+            return await self.feedback_repository.count_by_tenant(
+                tenant_id=tenant_id,
+                status=status,
+                feedback_type=feedback_type,
+                severity=severity,
+                user_id=user_id,
+            )
+    
     async def get_feedback(
         self,
         feedback_id: UUID,

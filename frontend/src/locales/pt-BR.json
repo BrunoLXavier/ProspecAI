@@ -791,6 +791,7 @@
       "openFunding": "Editais Abertos",
       "proposalsInReview": "Propostas em Revisão"
     },
+    "subtitle": "Visão geral das suas oportunidades e métricas",
     "title": "Dashboard",
     "welcomeSubtitle": "",
     "welcomeTitle": ""
@@ -973,7 +974,8 @@
       "other": "Outro",
       "performance": "Performance",
       "ui_feedback": "Interface",
-      "usability": "Usabilidade"
+      "usability": "Usabilidade",
+      "visual_bug": "Bug Visual"
     },
     "video": "Video"
   },
@@ -1663,7 +1665,11 @@
     "updatedAt": "Última Atualização",
     "updateError": "Erro ao atualizar oportunidade. Tente novamente.",
     "urgencyHelper": "Prazo e janela de oportunidade",
-    "urgencyLabel": "Urgência (20%)"
+    "urgencyLabel": "Urgência (20%)",
+    "exportExcel": "Exportar para Excel",
+    "exporting": "Exportando...",
+    "exportSuccess": "Arquivo exportado com sucesso",
+    "exportError": "Erro ao exportar oportunidades"
   },
   "period": {
     "label": "Label",

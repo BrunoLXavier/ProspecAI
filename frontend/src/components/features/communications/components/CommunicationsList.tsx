@@ -372,7 +372,9 @@ export default function CommunicationsList({
           </>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-gray-50 dark:bg-slate-900">
-            <ChatBubbleLeftRightIcon className="w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" />
+            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+              <ChatBubbleLeftRightIcon className="w-6 h-6 text-gray-300 dark:text-gray-600" />
+            </div>
             <p className="text-lg font-medium">{t('selectThread') || 'Select a thread'}</p>
             <p className="text-sm">{t('selectThreadHint') || 'Choose a conversation from the list to view messages'}</p>
           </div>

@@ -4,8 +4,10 @@ Implements RF-05: Pipeline de Oportunidades
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from datetime import datetime, date
 from uuid import UUID
+import io
 
 from domain.entities.opportunity import Opportunity, OpportunityStage, OpportunityPriority
 from domain.schemas.opportunity_schemas import (
@@ -130,6 +132,90 @@ async def list_opportunities(
         }
 
     return [_serialize(o) for o in opportunities]
+
+
+@router.get("/export", summary="Export opportunities to Excel")
+async def export_opportunities(
+    stage: Optional[str] = Query(None, description="Filter by pipeline stage"),
+    priority: Optional[str] = Query(None, description="Filter by priority level"),
+    search: Optional[str] = Query(None, description="Search in title and description"),
+    container: DependencyContainer = Depends(get_di_container),
+    current_user: UUID = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
+    institute_ids: list = Depends(get_current_institute_ids),
+):
+    """
+    Export opportunities as an Excel (.xlsx) file.
+    Implements RF-05: Excel export for opportunity listings (FB_3).
+    """
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    # Build repository criteria (reuse same pattern as list endpoint)
+    criteria = {
+        "tenant_id": tenant_id,
+        "stage": stage,
+        "search_text": search,
+    }
+    if institute_ids:
+        criteria["institute_id"] = [str(iid) for iid in institute_ids]
+
+    opportunities = await container.opportunity_repository.find_by_criteria(
+        criteria, skip=0, limit=5000  # Reasonable export cap
+    )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Oportunidades"
+
+    headers = [
+        "Título", "Descrição", "Estágio", "Valor Estimado",
+        "Probabilidade", "Prioridade", "Criado em", "Atualizado em",
+    ]
+    header_fill = PatternFill(start_color="1E40AF", end_color="1E40AF", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center")
+
+    for row_idx, o in enumerate(opportunities, 2):
+        ws.cell(row=row_idx, column=1, value=o.title)
+        ws.cell(row=row_idx, column=2, value=o.description or "")
+        stage_val = getattr(o, "stage", None)
+        ws.cell(row=row_idx, column=3, value=stage_val.value if stage_val else "")
+        ws.cell(row=row_idx, column=4, value=float(getattr(o, "estimated_value", 0) or 0))
+        ws.cell(row=row_idx, column=5, value=float(getattr(o, "probability", getattr(o, "probability_score", 0)) or 0))
+        ws.cell(row=row_idx, column=6, value=float(getattr(o, "priority_score", getattr(o, "priority", 0)) or 0))
+        created = getattr(o, "created_at", None)
+        ws.cell(row=row_idx, column=7, value=created.replace(tzinfo=None) if created else None)
+        updated = getattr(o, "updated_at", None)
+        ws.cell(row=row_idx, column=8, value=updated.replace(tzinfo=None) if updated else None)
+
+    # Auto-fit columns
+    for col in ws.columns:
+        max_length = 0
+        column_letter = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except Exception:
+                pass
+        ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"oportunidades_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/{opportunity_id}", response_model=OpportunityResponse)

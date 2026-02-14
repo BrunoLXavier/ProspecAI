@@ -27,7 +27,8 @@ FEEDBACKS = [
         'description': 'Seria útil ter um filtro por TRL na página de projetos para facilitar a busca.',
         'page_url': '/portfolio',
         'page_title': 'Portfólio de Projetos',
-        'status': 'open',
+        'status': 'resolved',
+        'response': 'Filtro por TRL implementado na página de Portfólio (range TRL 1-9). Disponível via painel de filtros.',
     },
     {
         'id': FEEDBACK_IDS['FB_2'],
@@ -36,7 +37,8 @@ FEEDBACKS = [
         'description': 'O gráfico de distribuição de TRL não está atualizando corretamente após filtrar por instituto.',
         'page_url': '/dashboard',
         'page_title': 'Dashboard',
-        'status': 'in_progress',
+        'status': 'resolved',
+        'response': 'Corrigido: gráfico TRL agora aceita filtro por instituto selecionado e atualiza automaticamente.',
     },
     {
         'id': FEEDBACK_IDS['FB_3'],
@@ -46,7 +48,7 @@ FEEDBACKS = [
         'page_url': '/opportunities',
         'page_title': 'Oportunidades',
         'status': 'resolved',
-        'response': 'Funcionalidade implementada na versão 2.1.0',
+        'response': 'Exportação Excel implementada. Botão disponível no cabeçalho da página de Oportunidades.',
     },
 ]
 

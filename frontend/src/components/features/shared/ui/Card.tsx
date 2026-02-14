@@ -183,12 +183,12 @@ const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
     };
 
     const cardContent = (
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
+      <div className="flex items-start justify-between min-w-0">
+        <div className="flex-1 min-w-0">
           <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
             {label}
           </dt>
-          <dd className="mt-2 flex items-baseline gap-2">
+          <dd className="mt-2 flex items-baseline gap-2 flex-wrap">
             <span className="text-3xl font-bold text-gray-900 dark:text-white">
               {value}
             </span>
@@ -210,13 +210,13 @@ const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
 
     if (href) {
       return (
-        <Link href={href} className="block">
+        <Link href={href} className="block min-w-0 overflow-hidden">
           <Card
             ref={ref}
             elevation="soft"
             hover="lift"
-            padding="lg"
-            className={`cursor-pointer ${className || ''}`}
+            padding="md"
+            className={`cursor-pointer min-w-0 ${className || ''}`}
             {...props}
           >
             {cardContent}
@@ -230,8 +230,8 @@ const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
         ref={ref}
         elevation="soft"
         hover="lift"
-        padding="lg"
-        className={className}
+        padding="md"
+        className={`min-w-0 ${className || ''}`}
         {...props}
       >
         {cardContent}

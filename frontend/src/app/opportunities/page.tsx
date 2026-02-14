@@ -2,10 +2,10 @@
 // Implements RF-05: Pipeline de Oportunidades
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { PlusIcon, RocketLaunchIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, RocketLaunchIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCrudPage, FetchResult } from '@/hooks/use-crud-page';
@@ -75,6 +75,32 @@ export default function OpportunitiesPage() {
   const tCommon = useTranslations('common');
   const tInstitutes = useTranslations('institutes');
   const { selectedInstitutes } = useAuth();
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Export handler — downloads Excel file from backend
+  const handleExport = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      const response = await apiClient.get('/api/v1/opportunities/export', {
+        responseType: 'blob',
+      });
+      const blob = response instanceof Blob ? response : new Blob([response as any], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `oportunidades_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  }, []);
 
   // Load institutes for filter dropdown
   const { data: institutes = [] } = useQuery<any[]>({
@@ -201,10 +227,20 @@ export default function OpportunitiesPage() {
         viewMode={state.viewMode}
         onViewChange={state.setViewMode}
         action={
-          <button onClick={state.openCreateModal} title={t('newOpportunity')}
-            className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition">
-            <PlusIcon className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExport}
+              disabled={isExporting}
+              title={t('exportExcel')}
+              className="inline-flex items-center justify-center p-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition"
+            >
+              <ArrowDownTrayIcon className="w-5 h-5" />
+            </button>
+            <button onClick={state.openCreateModal} title={t('newOpportunity')}
+              className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition">
+              <PlusIcon className="w-5 h-5" />
+            </button>
+          </div>
         }
       />
 

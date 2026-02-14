@@ -790,6 +790,7 @@
       "openFunding": "Financiamiento Abierto",
       "proposalsInReview": "Propuestas en Revisión"
     },
+    "subtitle": "Visión general de sus oportunidades y métricas",
     "title": "Panel",
     "welcomeSubtitle": "Welcomesubtitle",
     "welcomeTitle": "Welcometitle"
@@ -962,7 +963,8 @@
       "other": "Other",
       "performance": "Performance",
       "ui_feedback": "Interface",
-      "usability": "Usability"
+      "usability": "Usability",
+      "visual_bug": "Bug Visual"
     },
     "video": "Video"
   },
@@ -1651,7 +1653,11 @@
     "updatedAt": "Última Actualización",
     "updateError": "Error al actualizar la oportunidad. Inténtelo de nuevo.",
     "urgencyHelper": "Plazo y ventana de oportunidad",
-    "urgencyLabel": "Urgencia (20%)"
+    "urgencyLabel": "Urgencia (20%)",
+    "exportExcel": "Exportar a Excel",
+    "exporting": "Exportando...",
+    "exportSuccess": "Archivo exportado exitosamente",
+    "exportError": "Error al exportar oportunidades"
   },
   "period": {
     "label": "Label",

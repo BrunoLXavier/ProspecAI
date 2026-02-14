@@ -87,10 +87,10 @@ export default function DashboardStats() {
     return () => { mounted = false; };
   }, [t]);
 
-  if (isLoading) return <div className="animate-pulse grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"><div className="h-24 bg-gray-100 rounded" /></div>;
+  if (isLoading) return <div className="animate-pulse grid grid-cols-2 gap-3 xl:grid-cols-4"><div className="h-20 bg-gray-100 dark:bg-gray-700 rounded" /><div className="h-20 bg-gray-100 dark:bg-gray-700 rounded" /><div className="h-20 bg-gray-100 dark:bg-gray-700 rounded" /><div className="h-20 bg-gray-100 dark:bg-gray-700 rounded" /></div>;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       {(stats || []).map((stat) => (
         <StatCard
           key={stat.name}

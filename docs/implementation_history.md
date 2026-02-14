@@ -1,7 +1,124 @@
 # ProspecAI - Implementation History
 
-**Última atualização:** 12 de Fevereiro de 2026  
-**Status:** ✅ Phase 16 — Modal Modernization (Complete)
+**Última atualização:** 13 de Fevereiro de 2026  
+**Status:** ✅ Phase 18b — Cross-Page Consistency Audit (Complete)
+
+---
+
+## 2026-02-13 - Phase 18b: Cross-Page Consistency Audit
+
+### Summary:
+Audited all app pages for the same issues fixed in Phase 18 (non-standard view toggles, text+icon buttons, wrong StatisticsModule values). Fixed 5 additional pages for UI pattern consistency.
+
+### Fixes Applied:
+
+1. **Translations page** — Replaced custom inline text buttons ("List", "Board", "Timeline", "Table") with the standard `PageHeader` + `ViewToggle` component (icon-only, bg-primary-600 active, URL persistence). Removed `TranslationsHeader` dependency.
+
+2. **StatisticsModule type** — Added `'feedback'` to both `statistics-types.ts` and `form-registry/types.ts` so the feedback page's `<ConfigurableStatisticsBar module="feedback">` no longer uses an invalid module.
+
+3. **Institutes page** — Removed stale `as any` cast: `module={"institutes" as any}` → `module="institutes"` (type already includes `'institutes'`).
+
+4. **Institute members page** — Converted action button from text+icon (`<PlusIcon> + "Adicionar Membro"`) to icon-only `<PlusIcon>` with `title` tooltip, matching the standard `p-2` pattern.
+
+5. **Layout settings page** — Converted Reset (text+icon) and Save (text-only) buttons to icon-only: `<ArrowPathIcon>` for reset, `<CheckIcon>` for save (with `animate-spin` during saving). Added `CheckIcon` import.
+
+### Files Modified (5):
+- `frontend/src/app/translations/page.tsx` — Replaced TranslationsHeader with PageHeader + ViewToggle
+- `frontend/src/components/features/shared/analytics/statistics-types.ts` — Added 'feedback' to type + ALL_MODULES
+- `frontend/src/app/institutes/page.tsx` — Removed `as any` cast
+- `frontend/src/app/institutes/[id]/members/page.tsx` — Icon-only add button
+- `frontend/src/app/layout-settings/page.tsx` — Icon-only reset/save buttons + CheckIcon import
+
+### Verification:
+All fixes visually verified via Playwright browser testing.
+
+---
+
+## 2026-02-13 - Phase 18: User Feedback Visual Fixes
+
+### Summary:
+Read all 8 open feedback records from /feedback and implemented comprehensive visual/UX fixes across 4 pages: Activity, Notifications, Dashboard, and Translations. Standardized action buttons, added empty states, fixed layout issues, and corrected i18n/type system gaps.
+
+### Feedback Items Addressed (8):
+1. **Activity page**: Missing action button in header — Added icon-only "+" button (bg-primary-600)
+2. **Activity page**: Board view empty state was blank — Added InboxIcon + "Nenhuma atividade encontrada"
+3. **Activity page**: Statistics bar showed wrong module — Changed `module="proposals"` → `module="activity"`
+4. **Notifications page**: Action button had inconsistent style — Standardized to icon-only CheckIcon (shown only when unread > 0)
+5. **Notifications page**: List view empty state had no icon — Added InboxIcon; wrapped content in shadow container
+6. **Notifications page**: Statistics bar wrong module — Changed `module="proposals"` → `module="notifications"`
+7. **Dashboard page**: Heading too small, hardcoded subtitle — Changed text-2xl → text-3xl; replaced PT string with `t('subtitle')`
+8. **Dashboard page**: OpportunitiesWidget 3rd column layout broken — Fixed "Prob. Média" from horizontal to vertical flex layout (matching other columns)
+9. **Dashboard page**: DashboardStats skeleton showed 1 card — Expanded to 4 skeleton cards in loading state
+10. **Translations page**: "New Key" button had text+icon — Changed to icon-only PlusIcon with tooltip
+
+### Type System Fixes:
+- Added `'activity' | 'notifications'` to `StatisticsModule` union type in both `statistics-types.ts` and `form-registry/types.ts`
+- Added both modules to `ALL_MODULES` array for ConfigurableStatisticsBar
+
+### i18n Additions:
+- Added `dashboard.subtitle` key to pt-BR, en-US, es-ES locale files
+
+### Files Modified (9):
+- `frontend/src/app/activity/page.tsx` — PlusIcon/InboxIcon imports, PageHeader action, board empty state, module fix
+- `frontend/src/app/notifications/page.tsx` — CheckIcon standardized, InboxIcon empty state, shadow container, module fix
+- `frontend/src/components/features/dashboard/components/OpportunitiesWidget.tsx` — 3rd column vertical layout
+- `frontend/src/components/features/dashboard/components/DashboardStats.tsx` — 4-card skeleton
+- `frontend/src/app/dashboard/page.tsx` — text-3xl heading, i18n subtitle
+- `frontend/src/components/features/translations/components/TranslationsHeader.tsx` — Icon-only button
+- `frontend/src/components/features/shared/analytics/statistics-types.ts` — StatisticsModule type + ALL_MODULES
+- `frontend/src/lib/form-registry/types.ts` — StatisticsModule type
+- `frontend/src/locales/{pt-BR,en-US,es-ES}.json` — dashboard.subtitle key
+
+### Verification:
+All fixes visually verified via Playwright browser testing across all affected pages.
+
+---
+
+## 2026-02-13 - Phase 17: Feedback Triage & Corrections
+
+### Summary:
+Comprehensive triage of all 3 "Gestão de Feedbacks" records (FB_1, FB_2, FB_3). Diagnosed root causes, implemented fixes for confirmed bugs, built missing features, and corrected 3 technical issues in the feedback system itself. All feedback records updated to reflect resolved status.
+
+### A. FB_1: TRL Filter on Portfolio Page — STATUS: Already Implemented (Closed retroactively)
+- **Diagnosis**: Filter by TRL range (1-9) already existed in portfolio/page.tsx and portfolio_router.py.
+- **Action**: Updated feedback record status from `open` → `resolved` with response noting the existing feature.
+
+### B. FB_2: TRL Distribution Chart Not Updating After Institute Filter — BUG FIX
+- **Root Cause**: `AnalyticsTRL.tsx` called `/api/v1/analytics/trl-distribution` with no `institute_id` parameter. Backend `get_projects_by_trl()` filtered by `tenant_id` only. React Query `queryKey` had no institute dependency, so no refetch occurred on institute change.
+- **Backend fix**: Added `institute_id: Optional[str]` parameter to `AnalyticsService.get_projects_by_trl()` with conditional `ProjectModel.institute_id` filter. Added `institute_id: Query(None)` to the `/trl-distribution` route.
+- **Frontend fix**: `AnalyticsTRL.tsx` now reads `selectedInstitutes` from `useAuth()`, includes `instituteId` in `queryKey` and passes it as query parameter. Chart now reacts automatically when user changes institute selection.
+
+### C. FB_3: Excel Export for Opportunities — NEW FEATURE
+- **Diagnosis**: Despite being marked "resolved" in seeds, no export endpoint or UI button existed.
+- **Backend**: Added `GET /api/v1/opportunities/export` endpoint using `openpyxl` (already a project dependency via `dynamic_report_service`). Generates styled XLSX with headers: Título, Descrição, Estágio, Valor Estimado, Probabilidade, Prioridade, Criado em, Atualizado em. Supports same filters as list endpoint (stage, search, institute). Returns `StreamingResponse` with `Content-Disposition` header.
+- **Frontend**: Added `ArrowDownTrayIcon` export button (green) alongside create button in `PageHeader` action area. Uses blob download via `apiClient.get()` with `responseType: 'blob'`.
+- **i18n**: Added `exportExcel`, `exporting`, `exportSuccess`, `exportError` keys in pt-BR, en-US, es-ES.
+
+### D. Feedback System Technical Fixes — 3 Issues
+1. **Pagination bug** (feedback_routes.py L294): Replaced `total = len(feedbacks)` with proper `count_feedbacks()` call using same filters. Added `count_feedbacks()` method to `ManageFeedbackUseCase` and expanded `count_by_tenant()` in `FeedbackRepository` to accept `feedback_type`, `severity`, `user_id` filters. Also fixed `/my` endpoint (L331).
+2. **ACL integration** (feedback_routes.py L177): Replaced bare TODO with ACL service import/fallback pattern. `_is_admin()` now attempts ACL service first.
+3. **Enum drift** (fix_feedback_types.py): Removed contradictory `improvement → ui_feedback` mapping since `IMPROVEMENT` is a valid `FeedbackType` enum value (added Phase 15).
+
+### E. Feedback Records Updated
+- Created Alembic migration `20260213_update_feedback_records.py` to update existing records in DB.
+- Updated seed data in `activity_feedback.py`: all 3 records now `status: resolved` with descriptive responses.
+
+### Files Modified (15)
+- `backend/services/analytics_service.py` — `get_projects_by_trl()` accepts `institute_id`
+- `backend/adapters/api/analytics_routes.py` — `/trl-distribution` accepts `institute_id` query param
+- `frontend/src/components/features/shared/analytics/AnalyticsTRL.tsx` — reads selectedInstitutes, passes to API
+- `backend/routers/opportunities_router.py` — Added `GET /export` endpoint with openpyxl XLSX generation
+- `frontend/src/app/opportunities/page.tsx` — Added export button + blob download handler
+- `backend/adapters/api/feedback_routes.py` — Fixed pagination, ACL integration
+- `backend/adapters/repositories/feedback_repository.py` — Expanded `count_by_tenant()` filters
+- `backend/use_cases/manage_feedback_use_case.py` — Added `count_feedbacks()` method
+- `backend/scripts/fix_feedback_types.py` — Removed contradictory enum mapping
+- `backend/alembic/seeds/activity_feedback.py` — All 3 feedbacks now resolved with responses
+- `backend/alembic/versions/20260213_update_feedback_records.py` — New migration for existing data
+- `frontend/src/locales/pt-BR.json` — Added export i18n keys
+- `frontend/src/locales/en-US.json` — Added export i18n keys
+- `frontend/src/locales/es-ES.json` — Added export i18n keys
+- `docs/implementation_history.md` — This entry
 
 ---
 

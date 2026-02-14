@@ -93,7 +93,9 @@ export default function QueryPreview({ queryConfig, isValid }: QueryPreviewProps
       {/* No data message */}
       {!isPending && !error && previewData?.data?.length === 0 && (
         <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-          <TableCellsIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+          <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-2">
+            <TableCellsIcon className="w-6 h-6 text-gray-400" />
+          </div>
           <p className="text-gray-500 dark:text-gray-400">
             {t('noDataFound')}
           </p>
@@ -152,7 +154,9 @@ export default function QueryPreview({ queryConfig, isValid }: QueryPreviewProps
       {/* Not valid message */}
       {!isValid && !previewData && (
         <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-          <EyeIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+          <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-2">
+            <EyeIcon className="w-6 h-6 text-gray-400" />
+          </div>
           <p className="text-gray-500 dark:text-gray-400">
             {t('selectTableAndFields')}
           </p>

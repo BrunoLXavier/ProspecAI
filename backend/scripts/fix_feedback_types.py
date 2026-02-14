@@ -13,10 +13,8 @@ async def fix_feedback_types():
         )
         print(f"Updated 'bug' to 'bug_report': {result1.rowcount} rows")
         
-        result2 = await conn.execute(
-            text("UPDATE feedbacks SET feedback_type = 'ui_feedback' WHERE feedback_type = 'improvement'")
-        )
-        print(f"Updated 'improvement' to 'ui_feedback': {result2.rowcount} rows")
+        # Note: 'improvement' is now a valid FeedbackType enum value (added Phase 15).
+        # No longer converting improvement → ui_feedback.
         
         print("Done!")
 

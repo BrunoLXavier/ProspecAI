@@ -280,17 +280,17 @@ export default function NotificationsPage() {
             <button
               onClick={() => markAllAsReadMutation.mutate()}
               disabled={markAllAsReadMutation.isPending}
-              className="inline-flex items-center px-4 py-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition"
+              title={t('markAllRead')}
+              className="inline-flex items-center justify-center p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition disabled:opacity-50"
             >
-              <CheckIcon className="w-4 h-4 mr-2" />
-              {t('markAllRead')}
+              <CheckIcon className="w-5 h-5" />
             </button>
           ) : undefined
         }
       />
 
       {/* Statistics Bar */}
-      <ConfigurableStatisticsBar module="proposals" data={notifications || []} />
+      <ConfigurableStatisticsBar module="notifications" data={notifications || []} />
 
       {/* Filters */}
       <FilterPanel
@@ -318,6 +318,7 @@ export default function NotificationsPage() {
       {viewMode === 'list' && (
         <div className="space-y-4">
           {/* ListView - Card-based layout */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft border border-gray-200 dark:border-slate-700 overflow-hidden p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {isLoading ? (
               // Loading skeleton
@@ -334,7 +335,10 @@ export default function NotificationsPage() {
                 </div>
               ))
             ) : paginatedNotifications.length === 0 ? (
-              <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+              <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
+                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+                  <InboxIcon className="w-6 h-6" />
+                </div>
                 <p>{t('empty')}</p>
               </div>
             ) : (
@@ -395,6 +399,7 @@ export default function NotificationsPage() {
                 );
               })
             )}
+          </div>
           </div>
 
           {/* Pagination */}
@@ -511,7 +516,6 @@ export default function NotificationsPage() {
             onRowClick={(row) => !row.read && markAsReadMutation.mutate(row.id)}
             loading={isLoading}
             emptyMessage={t('empty')}
-            emptyIcon={<InboxIcon className="w-12 h-12" />}
             striped={true}
             hoverable={true}
             paginated={false}

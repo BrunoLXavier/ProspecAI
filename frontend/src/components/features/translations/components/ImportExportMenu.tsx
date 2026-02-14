@@ -29,10 +29,10 @@ export default function ImportExportMenu({
 		<div className="relative">
 			<button
 				onClick={() => setShowMenu((v: boolean) => !v)}
-				className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 transition"
+				title={t('translations.importExport') || 'Import / Export'}
+				className="inline-flex items-center justify-center p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 transition"
 			>
-				<ArrowDownTrayIcon className="w-4 h-4" />
-				{t('translations.importExport') || 'Import / Export'}
+				<ArrowDownTrayIcon className="w-5 h-5" />
 			</button>
 
 			{showMenu && (

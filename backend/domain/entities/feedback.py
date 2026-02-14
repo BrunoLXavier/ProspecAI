@@ -12,6 +12,7 @@ class FeedbackType(str, Enum):
     BUG_REPORT = "bug_report"
     FEATURE_REQUEST = "feature_request"
     UI_FEEDBACK = "ui_feedback"
+    VISUAL_BUG = "visual_bug"
     PERFORMANCE = "performance"
     USABILITY = "usability"
     IMPROVEMENT = "improvement"

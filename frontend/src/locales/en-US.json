@@ -790,6 +790,7 @@
       "openFunding": "Open Funding",
       "proposalsInReview": "Proposals in Review"
     },
+    "subtitle": "Overview of your opportunities and metrics",
     "title": "Dashboard",
     "welcomeSubtitle": "",
     "welcomeTitle": ""
@@ -962,7 +963,8 @@
       "other": "Other",
       "performance": "Performance",
       "ui_feedback": "Interface",
-      "usability": "Usability"
+      "usability": "Usability",
+      "visual_bug": "Visual Bug"
     },
     "video": "Video"
   },
@@ -1652,7 +1654,11 @@
     "updatedAt": "Last Updated",
     "updateError": "Error updating opportunity. Please try again.",
     "urgencyHelper": "Deadline and opportunity window",
-    "urgencyLabel": "Urgency (20%)"
+    "urgencyLabel": "Urgency (20%)",
+    "exportExcel": "Export to Excel",
+    "exporting": "Exporting...",
+    "exportSuccess": "File exported successfully",
+    "exportError": "Error exporting opportunities"
   },
   "period": {
     "label": "Label",

@@ -2,12 +2,14 @@
  * Analytics TRL Distribution Widget
  * Displays Technology Readiness Level distribution chart
  * Implements RF-07: TRL visualization for Dashboard
+ * Fixed: Now filters by selected institute (FB_2)
  */
 'use client';
 
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import type { AnalyticsWidgetProps, TRLData } from './types';
 
 // =============================================================================
@@ -39,10 +41,19 @@ function TRLSkeleton() {
 
 export default function AnalyticsTRL({ className = '' }: AnalyticsWidgetProps) {
   const t = useTranslations('analytics');
+  const { selectedInstitutes } = useAuth();
+
+  // Use the first selected institute for filtering (if any)
+  const instituteId = selectedInstitutes?.[0] || null;
 
   const { data: trlData, isLoading, isError, error } = useQuery({
-    queryKey: ['analytics-trl'],
-    queryFn: () => apiClient.get('/api/v1/analytics/trl-distribution'),
+    queryKey: ['analytics-trl', instituteId],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (instituteId) params.set('institute_id', instituteId);
+      const qs = params.toString();
+      return apiClient.get(`/api/v1/analytics/trl-distribution${qs ? `?${qs}` : ''}`);
+    },
   });
 
   if (isLoading) {

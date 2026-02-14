@@ -73,7 +73,9 @@ export default function TableSelector({ selectedTable, onSelect }: TableSelector
         
         {filteredTables.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            <TableCellsIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-2">
+              <TableCellsIcon className="w-6 h-6 opacity-50" />
+            </div>
             <p>{t('noTablesFound') || 'No tables found'}</p>
           </div>
         )}

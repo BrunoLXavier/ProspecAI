@@ -368,7 +368,9 @@ export default function PIIAnalysisPage() {
         </div>
       ) : filteredDetections.length === 0 ? (
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-12 text-center">
-          <ShieldExclamationIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-3">
+            <ShieldExclamationIcon className="w-6 h-6 text-gray-400" />
+          </div>
           <p className="text-gray-500 dark:text-gray-400">
             {tp('noDetectionsFound')}
           </p>
